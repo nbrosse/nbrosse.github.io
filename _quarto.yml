@@ -1,0 +1,19 @@
+project:
+  type: website
+
+website:
+  title: "blog"
+  navbar:
+    right:
+      - about.qmd
+      - icon: github
+        href: https://github.com/nbrosse
+      - icon: linkedin
+        href: https://www.linkedin.com/in/nicolas-brosse-984685a0/
+format:
+  html:
+    theme: flatly
+    css: styles.css
+
+
+

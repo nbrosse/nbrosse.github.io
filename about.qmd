@@ -1,0 +1,18 @@
+---
+title: "About"
+image: profile.jpg
+about:
+  template: solana
+  links:
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/nicolas-brosse-984685a0/
+    - icon: github
+      text: Github
+      href: https://github.com/nbrosse
+
+---
+
+PhD in statistics, AI research scientist.
+
+Curious and interested in science, I like being confronted to complex challenges. Modelling the problem, developing algorithms and pushing them to production are stages I step into.
