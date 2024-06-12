@@ -5,6 +5,7 @@ date: "2024-04-24"
 categories: [ML]
 bibliography: unimol-gbf-references.bib
 description: "Distance encoding"
+image: figures/cover.png 
 ---
 
 In this article, we aim at comparing two different ways of encoding distances in 3D
@@ -25,12 +26,12 @@ atoms, as well as masked noisy atoms coordinates and distances for effectively l
 from [@zhou2023unimol]).
 
 [![Schematic illustration of the Uni-Mol
-framework](overview-unimol.png){#fig-overview-unimol
+framework](figures/overview-unimol.png){#fig-overview-unimol
 fig-alt="Schematic illustration of the Uni-Mol framework"}](https://github.com/dptech-corp/Uni-Mol)
 
 [![Left: the overall pretraining architecture. Middle: the model inputs, including atom
 representation and pair representation. Right: details in the model
-block.](overall-pretraining-architecture.png){#fig-pretraining-architecture
+block.](figures/overall-pretraining-architecture.png){#fig-pretraining-architecture
 fig-alt="Left: the overall pretraining architecture. Middle: the model inputs, including atom representation and pair representation. Right: details in the model block."}](https://github.com/dptech-corp/Uni-Mol)
 
 We focus here on the encoding of the coordinates in distances (pair representation in
@@ -76,7 +77,7 @@ following conclusions:
     Uni-Mol.
 
 [![Validation loss in pretraining for different 3D spatial
-encodings](validation-loss-3D-spatial-encoding.png){#fig-val-loss-3D
+encodings](figures/validation-loss-3D-spatial-encoding.png){#fig-val-loss-3D
 fig-alt="Validation loss in pretraining for different 3D spatial encodings"}](https://github.com/dptech-corp/Uni-Mol)
 
 The code for the [GKPT
@@ -134,7 +135,7 @@ gradients are of the order of one thousand. Uni-Mol relies on
 and these high values do not affect the stability of the training.
 
 ![Gradients of GaussianLayer parameters (GBFPT
-encoding)](gbfpt-gradients.png){#fig-gbf-gradients
+encoding)](figures/gbfpt-gradients.png){#fig-gbf-gradients
 fig-alt="Gradients of GaussianLayer parameters (GBFPT encoding)"}
 
 Nevertheless, we wanted to try another encoding that would be naturally stable without
@@ -197,7 +198,7 @@ large values and are naturally stable without clipping gradients. This is illust
 @fig-dcept-gradients.
 
 ![Gradients of DistEncoding parameters (DCEPT
-encoding)](dcept-gradients.png){#fig-dcept-gradients
+encoding)](figures/dcept-gradients.png){#fig-dcept-gradients
 fig-alt="Gradients of DistEncoding parameters (DCEPT encoding)"}
 
 Following [@Jumper2021] distogram prediction task, we also replace the distance
@@ -224,7 +225,7 @@ In conclusion, according to the loss curves and the stability of the gradients, 
 seems to be a better encoding than GBFPT (or at least as good as).
 
 ![Uni-Mol training and validation losses with GBFPT and DCEPT
-encoding](gbfpt-dcept-losses-curves.png){#fig-gbfpt-dcept-losses-curves
+encoding](figures/gbfpt-dcept-losses-curves.png){#fig-gbfpt-dcept-losses-curves
 fig-alt="Uni-Mol training and validation losses with GBFPT and DCEPT encoding"}
 
 However, Uni-Mol stands as a foundational model pre-trained through unsupervised
