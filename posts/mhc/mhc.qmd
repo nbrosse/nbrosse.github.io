@@ -8,10 +8,14 @@ description: "MHC"
 image: figures/cover.jpg
 ---
 
-# Major histocompatibility complex
+This blog post originates from an interview homework and has for subject the major histocompatibility complex (MHC). In @sec-mhc, we first introduce MHC (biological aspects) relying on the [associated wikipedia page](https://en.wikipedia.org/wiki/Major_histocompatibility_complex). Then in @sec-pred-mhc, we present the approach and the results of MHC antigen presentation.
+
+# Major histocompatibility complex {#sec-mhc}
 
 ::: callout-note
-## This section (text and figures) is drawn from the excellent wikipedia page https://en.wikipedia.org/wiki/Major_histocompatibility_complex
+## Disclaimer
+
+This section (text and figures) is drawn from the wikipedia page <https://en.wikipedia.org/wiki/Major_histocompatibility_complex>
 :::
 
 The major histocompatibility complex (MHC) is a large region on vertebrate DNA that contains a set of closely linked, highly variable genes responsible for coding cell surface proteins essential for the adaptive immune system. These cell surface proteins are known as MHC molecules.
@@ -90,29 +94,83 @@ MHC class II molecules are heterodimers composed of polymorphic α and β subuni
 
 ## Human leukocyte antigen
 
-[Detailed wikipedia page](https://en.wikipedia.org/wiki/Human_leukocyte_antigen)
+![Codominant expression of HLA genes](figures/MHC_expression.png){#fig-codominant-expr-HLA fig-alt="Codominant expression of HLA genes"}
 
-![](figures/MHC_expression.png)
+Human MHC class I and II molecules are also known as human leukocyte antigens (HLA). Some biomedical literature uses "HLA" specifically to refer to the protein molecules, while "MHC" is used to denote the genomic region that encodes these molecules. However, this distinction is not consistently applied.
 
-Human MHC class I and II are also called [human leukocyte antigen](https://en.wikipedia.org/wiki/Human_leukocyte_antigen "Human leukocyte antigen") (HLA). To clarify the usage, some of the biomedical literature uses HLA to refer specifically to the HLA protein molecules and reserves MHC for the region of the genome that encodes for this molecule, but this is not a consistent convention.
+The most extensively studied HLA genes include nine classical MHC genes: HLA-A, HLA-B, HLA-C, HLA-DPA1, HLA-DPB1, HLA-DQA1, HLA-DQB1, HLA-DRA, and HLA-DRB1. In humans, the MHC gene cluster is categorized into three regions: class I, class II, and class III. The A, B, and C genes belong to MHC class I, while the six D genes are part of class II.
 
-The most studied HLA genes are the nine classical MHC genes: [*HLA-A*](https://en.wikipedia.org/wiki/HLA-A "HLA-A")*, [HLA-B](https://en.wikipedia.org/wiki/HLA-B "HLA-B"), [HLA-C](https://en.wikipedia.org/wiki/HLA-C "HLA-C"), [HLA-DPA1](https://en.wikipedia.org/wiki/HLA-DPA1 "HLA-DPA1"), [HLA-DPB1](https://en.wikipedia.org/wiki/HLA-DPB1 "HLA-DPB1"), [HLA-DQA1](https://en.wikipedia.org/wiki/HLA-DQA1 "HLA-DQA1"), [HLA-DQB1](https://en.wikipedia.org/wiki/HLA-DQB1 "HLA-DQB1"), [HLA-DRA](https://en.wikipedia.org/wiki/HLA-DRA "HLA-DRA")*, and [*HLA-DRB1*](https://en.wikipedia.org/wiki/HLA-DRB1 "HLA-DRB1"). In humans, the MHC gene cluster is divided into three regions: classes I, II, and III. The A, B and C genes belong to MHC class I, whereas the six D genes belong to class II.
+MHC alleles are expressed in a codominant manner, meaning the alleles inherited from both parents are equally expressed. Each person carries two alleles for each of the three class I genes (HLA-A, HLA-B, and HLA-C), allowing them to express six different types of MHC-I molecules, see @fig-codominant-expr-HLA.
 
-MHC alleles are expressed in codominant fashion.^[\[60\]](https://en.wikipedia.org/wiki/Major_histocompatibility_complex#cite_note-ABBAS-60)^ This means the [alleles](https://en.wikipedia.org/wiki/Allele "Allele") (variants) inherited from both parents are expressed equally:
+In the class II locus, each person inherits a pair of HLA-DP genes (DPA1 and DPB1, encoding α and β chains), a pair of HLA-DQ genes (DQA1 and DQB1, also encoding α and β chains), one HLA-DRα gene (DRA1), and one or more HLA-DRβ genes (DRB1 and potentially DRB3, DRB4, or DRB5). Thus, a heterozygous individual can inherit six to eight functioning class II alleles, three or more from each parent.
 
--   Each person carries 2 alleles of each of the 3 class-I genes, (*HLA-A, HLA-B* and *HLA-C*), and so can express six different types of MHC-I (see figure).
+The collection of alleles present on each chromosome is known as the MHC haplotype. In humans, each HLA allele is designated by a specific number (e.g., HLA-A2, HLA-B5, HLA-DR3). A heterozygous individual will have two MHC haplotypes, one from each parent.
 
--   
+MHC genes are highly polymorphic, meaning there is a vast diversity of alleles within a population. In a mixed (non-endogamous) population, it is rare for two individuals, except identical twins, to have the same set of MHC molecules.
 
--   In the class-II locus, each person inherits a pair of HLA-DP genes (DPA1 and DPB1, which encode α and β chains), a couple of genes *HLA-DQ* (*DQA1* and *DQB1*, for α and β chains), one gene *HLA-DRα* (*DRA1*), and one or more genes *HLA-DRβ* (*DRB1* and *DRB3, -4* or *-5*). That means that one [heterozygous](https://en.wikipedia.org/wiki/Heterozygous "Heterozygous") individual can inherit six or eight functioning class-II alleles, three or more from each parent. The role of *DQA2* or *DQB2* is not verified. The *DRB2, DRB6, DRB7, DRB8* and *DRB9* are pseudogenes.
+The polymorphic regions of each allele are located in the peptide-binding region. Only a subset of peptides can strongly bind to a given HLA allele, so by carrying two alleles for each gene, each encoding specificity for unique antigens, a broader range of peptides can be presented.
 
-The set of alleles that is present in each chromosome is called the MHC [haplotype](https://en.wikipedia.org/wiki/Haplotype "Haplotype"). In humans, each HLA allele is named with a number. For instance, for a given individual, his haplotype might be HLA-A2, HLA-B5, HLA-DR3, etc... Each heterozygous individual will have two MHC haplotypes, one each from the paternal and maternal chromosomes.
+Within a population, the presence of many different alleles ensures that there will always be individuals with the right MHC molecules to present the necessary peptide for immune recognition of a specific microbe. MHC polymorphism has evolved to prevent a population from being decimated by a new or mutated pathogen, as some individuals will always be able to mount an adequate immune response. The diversity in MHC molecules is inherited and is not a result of recombination, as is the case with antigen receptors.
 
-The MHC genes are highly polymorphic; many different alleles exist in the different individuals inside a population. The polymorphism is so high, in a mixed population (non[endogamic](https://en.wikipedia.org/wiki/Endogamy "Endogamy")), no two individuals have exactly the same set of MHC molecules, with the exception of [identical twins](https://en.wikipedia.org/wiki/Twin "Twin").
+# Predictions of MHC antigen presentation {#sec-pred-mhc}
 
-The polymorphic regions in each allele are located in the region for peptide contact. Of all the peptides that could be displayed by MHC, only a subset will bind strongly enough to any given HLA allele, so by carrying two alleles for each gene, each encoding specificity for unique antigens, a much larger set of peptides can be presented.
+::: callout-note
+The code is available at https://github.com/nbrosse/mhcpred.
+:::
 
-On the other hand, inside a population, the presence of many different alleles ensures there will always be an individual with a specific MHC molecule able to load the correct peptide to recognize a specific microbe. The evolution of the MHC polymorphism ensures that a population will not succumb to a new pathogen or a mutated one, because at least some individuals will be able to develop an adequate immune response to win over the pathogen. The variations in the MHC molecules (responsible for the polymorphism) are the result of the inheritance of different MHC molecules, and they are not induced by [recombination](https://en.wikipedia.org/wiki/Genetic_recombination "Genetic recombination"), as it is the case for the antigen [receptors](https://en.wikipedia.org/wiki/Immune_receptor "Immune receptor").
+The goal of the homework is to build a classifier that predicts if a given peptide will be presented by a specific MHC I protein, identified by its allele name. Unfortunately, the data used for this homework has to be kept private. However, the data is fully extracted from the training and evaluation data of *NetMHCPan4.1*, a framework developed in [@10.1093/nar/gkaa379] and can thus be re-created. The data is divided in a train and test datasets. Five folds are available for the training data, with no overlap between the folds.
+
+The data contains one target variable ("hit", 1 if the peptide is presented, 0 else) and two features:
+
+-   "peptide" sequence of amino-acids
+
+-   "allele" name, identifying the MHC. You can find details on the naming [here (nomenclature)](https://hla.alleles.org/nomenclature/naming.html).
+
+::: callout-note
+Note that prediction of MHC antigen presentation is a complex subject. In this homework, we only skim the surface. We refer to [@10.1093/nar/gkaa379], [@2020mhcflurry] and references therein for more information.
+:::
+
+We first perform an Exploratory Data Analysis (EDA).
+
+## EDA
+
+{{< embed notebooks/EDA.ipynb echo=true >}}
+
+## Prediction using mhcflurry pretrained models
+
+In the following, we rely heavily on the [mhcflurry package](https://github.com/openvax/mhcflurry) to build and train a binary classifier. See also the associated paper [@2020mhcflurry].
+
+MHCflurry implements class I peptide/MHC binding affinity prediction. The current version provides pan-MHC I predictors supporting any MHC allele of known sequence. MHCflurry also includes two expermental predictors, an "antigen processing" predictor that attempts to model MHC allele-independent effects such as proteosomal cleavage and a "presentation" predictor that integrates processing predictions with binding affinity predictions to give a composite "presentation score." Both models are trained on mass spec-identified MHC ligands.
+
+In the following, we use the pretrained presentation predictor to compute the presentation score for the test dataset.
+
+``` bash
+mhcflurry-downloads fetch models_class1_presentation
+python scripts/mhcflurry_benchmark.py
+```
+
+The output is of the form
+
+| peptide       | hit  | allele       | prediction  | prediction_low | prediction_high | prediction_percentile |
+|---------------|------|--------------|-------------|----------------|-----------------|-----------------------|
+| AAPATRAAL     | True | HLA-B*35:03  | 94.297      | 59.902         | 144.624         | 0.205                 |
+| AAPSAAREL     | True | HLA-B*35:03  | 116.190     | 79.847         | 169.241         | 0.262                 |
+| AEISQIHQSVTD  | True | HLA-B*35:03  | 26103.260   | 22695.389      | 28415.000       | 15.739                |
+| ALEEQLQQIRAE  | True | HLA-B*35:03  | 24797.131   | 19988.967      | 28062.650       | 13.571                |
+| AQDPLLLQM     | True | HLA-B*35:03  | 2164.336    | 745.888        | 5390.727        | 1.413                 |
+| ASAPPGPPA     | True | HLA-B*35:03  | 1398.729    | 387.675        | 3293.692        | 1.157                 |
+| DAHKGVAL      | True | HLA-B*35:03  | 84.315      | 54.736         | 133.899         | 0.175                 |
+| DNPIQTVSL     | True | HLA-B*35:03  | 1386.767    | 565.122        | 3667.210        | 1.151                 |
+| DPEAFLVQI     | True | HLA-B*35:03  | 245.485     | 133.986        | 394.752         | 0.484                 |
+
+
+
+Two percent is a commonly-used threshold for the `prediction_percentile` prediction (lower is better).
+
+## Prediction fitting a Class1BinaryNeuralNetwork from mhcflurry
+
+We now fit a Class1BinaryNeuralNetwork from mhcflurry on the training dataset. All the code is available at https://github.com/nbrosse/mhcpred. 
+
 
 # Methods
 
@@ -141,6 +199,10 @@ MHCflurry
 <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11092674/pdf/nihpp-2024.05.01.592062v1.pdf>
 
 <https://pubmed.ncbi.nlm.nih.gov/31578220/>
+
+Structure
+
+<https://www.nature.com/articles/s41467-023-40736-6>
 
 Translation
 
