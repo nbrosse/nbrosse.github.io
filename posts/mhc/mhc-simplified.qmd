@@ -1,0 +1,142 @@
+---
+title: "Predicting MHC-Peptide Binding with Machine Learning"
+author: "Nicolas Brosse"
+date: "2024-mm-dd"
+categories: [machine learning, biology]
+bibliography: mhc-references.bib
+description: "Using machine learning to predict peptide binding affinity to Major Histocompatibility Complex (MHC) molecules."
+image: figures/cover.jpg
+---
+
+This blog post explores how machine learning can predict binding affinity between peptides and Major Histocompatibility Complex (MHC) molecules. This is a fundamental problem in immunology with direct applications to vaccine design, immunotherapy, and understanding autoimmune diseases. In @sec-mhc, we introduce the biological background of MHC molecules. In @sec-pred-mhc, we present a machine learning approach for predicting MHC-peptide binding. This work stems from an interview project, and while the specific dataset cannot be shared, the methods and insights are broadly applicable.
+
+# Understanding MHC: A Biological Background for Machine Learning {#sec-mhc}
+
+The Major Histocompatibility Complex (MHC) is a region of DNA containing genes responsible for coding cell surface proteins essential for the adaptive immune system.  These proteins, called MHC molecules, play a critical role in how our immune system recognizes and responds to threats.
+
+Think of MHC molecules as **presenters**.  They grab fragments of proteins (called **peptides**) from inside cells and display them on the cell surface. This display allows immune cells called T cells to inspect the peptides and determine if they are "self" (belonging to the body) or "non-self" (e.g., from a virus or bacteria).  If a peptide is recognized as "non-self," it triggers an immune response.
+
+**Why is this a good ML problem?**
+
+*   **Sequence Dependence:** The binding between an MHC molecule and a peptide is highly dependent on the amino acid sequence of the peptide and the specific type of MHC molecule. This sequence-structure-function relationship is ripe for machine learning.
+*   **Data Availability:**  Experimental data on MHC-peptide binding affinities is available, although often sparse.  This allows us to train and evaluate predictive models.
+*   **High Dimensionality:** The MHC genes are highly polymorphic, meaning that there are many different variants (alleles) within the population. This contributes to the complexity of the problem, but also the potential for building more specific prediction models.
+
+**Key MHC Concepts:**
+
+*   **MHC Class I and Class II:** These are the two main types of MHC molecules.
+    *   **MHC Class I:** Found on almost all cells. Present peptides derived from inside the cell to cytotoxic T cells (CD8+). If a cytotoxic T cell recognizes the peptide as foreign, it kills the cell.
+    *   **MHC Class II:** Found mainly on antigen-presenting cells (APCs) like macrophages and dendritic cells. Present peptides derived from outside the cell (e.g., from bacteria) to helper T cells (CD4+). Helper T cells then coordinate the broader immune response.
+*   **Epitope:** The specific portion of the peptide that is recognized by the T cell receptor.
+*   **Polymorphism:** The existence of many different versions (alleles) of MHC genes within a population.  This is important because different MHC alleles bind to different peptides.
+*   **Binding Affinity:** The strength of the interaction between an MHC molecule and a peptide.  This is often measured experimentally and is the target variable for many ML models.
+
+![This diagram illustrates how MHC molecules present peptides to T cells. Class I MHC molecules present peptides derived from inside the cell to cytotoxic T cells, while Class II MHC molecules present peptides derived from outside the cell to helper T cells, source [@antunes2018]](figures/Schematic-view-of-the-role-of-MHCs-in-T-cell-activation-Class-I-Major-Histocompatibility_W640.jpg){#fig-schematic-view-MHC-T-cell fig-alt="MHC and T cell activation"}
+
+![Schematic structure of an MHC Class I molecule, highlighting the peptide-binding groove. The sequence of the peptide and the MHC molecule affect the strength of the binding, source [@feng2014].](figures/MHC_class_I_structure.webp){#fig-HLA-class-I-schematic-structure fig-alt="MHC Class I Structure"}
+
+**Relevance to Machine Learning**
+
+The goal of MHC-peptide binding prediction is to build models that can accurately predict the binding affinity between a given peptide sequence and a specific MHC allele.  This can be formulated as a regression or classification problem.
+
+*   **Input:** Peptide sequence, MHC allele (represented as a sequence or encoding).
+*   **Output:** Binding affinity (e.g., IC50 value, Kd value) or a binary label (binder/non-binder).
+
+Feature engineering and model selection are critical steps in building accurate predictors.  Common approaches include:
+
+*   **Sequence-based Features:** Amino acid composition, n-grams, physicochemical properties.
+*   **Structure-based Features:**  (If available) Information about the 3D structure of the MHC-peptide complex.
+*   **Encoding MHC Alleles:**  Using techniques like one-hot encoding, amino acid embeddings, or more sophisticated methods to represent the MHC allele sequence.
+*   **Machine Learning Algorithms:**  Linear regression, Support Vector Machines (SVMs), Random Forests, Neural Networks (especially Convolutional Neural Networks and Transformers).
+
+# Predicting MHC Binding: A Machine Learning Approach {#sec-pred-mhc}
+
+::: callout-note
+The code is available at https://github.com/nbrosse/mhcpred.
+:::
+
+The goal of this project is to build a machine learning classifier that predicts whether a given peptide will be presented by a specific MHC class I protein, identified by its allele name.  Unfortunately, the data used for this homewokrk has to be kept private. However, it is derived from the training and evaluation data of *NetMHCPan4.1* [@10.1093/nar/gkaa379], a well-established framework for MHC binding prediction. This allows to reproduce similar experimental conditions without directly sharing the original dataset. The data is split into training and testing sets, with the training data further divided into five folds for cross-validation. This ensures robust model evaluation and prevents overfitting.
+
+The dataset contains a binary target variable, "hit" (1 if the peptide is presented by the MHC, 0 otherwise), and two crucial features:
+
+-   **"peptide"**: The amino acid sequence of the peptide. These short chains of amino acids are potential antigens that could be presented to the immune system.
+
+-   **"allele"**: The name of the MHC class I allele. MHC molecules are highly polymorphic, meaning there are many different versions (alleles) within the human population. Each allele has a slightly different binding groove, affecting which peptides it can bind and present. You can find details on the naming convention [here (nomenclature)](https://hla.alleles.org/nomenclature/naming.html). Understanding the specific allele is crucial for accurate prediction.
+
+::: callout-note
+Predicting MHC antigen presentation is a complex field. This project provides a simplified introduction to the problem. For a more in-depth understanding, we recommend exploring *NetMHCPan* [@10.1093/nar/gkaa379] and *MHCflurry* [@2020mhcflurry] and the references cited within those publications.
+:::
+
+We begin with Exploratory Data Analysis (EDA) to understand the characteristics of our data.
+
+## Exploratory Data Analysis
+
+{{< embed notebooks/EDA.ipynb echo=true >}}
+
+## Prediction using mhcflurry pretrained models
+
+We'll be leveraging the [mhcflurry package](https://github.com/openvax/mhcflurry) to build our classifier. MHCflurry is a powerful tool specifically designed for MHC binding affinity prediction. See also the associated paper [@2020mhcflurry].
+
+**What is MHCflurry and how does it work?**
+
+MHCflurry is a software package focused on predicting how strongly peptides bind to MHC class I molecules.  It's based on machine learning models trained on a large dataset of experimentally measured peptide-MHC binding affinities. The current version uses neural networks trained with a mix of binding affinity and mass spectrometry data (ligand presentation). This makes it a *pan-MHC I predictor*, meaning it can predict binding for virtually any MHC allele, even if it wasn't explicitly included in the training data, as long as the amino acid sequence of the MHC allele is known.  This "pan-specific" capability is a significant advantage.
+
+MHCflurry goes beyond simple binding affinity prediction with its experimental "antigen processing" predictor that attempts to model MHC allele-independent effects such as proteosomal cleavage, TAP transport efficiency, and other factors. Combining these features, a "presentation" predictor integrates processing predictions with binding affinity predictions to give a composite "presentation score.". Both models are trained on mass spec-identified MHC ligands.
+
+**How are the pretrained models trained?**
+
+The "pretrained" models in MHCflurry have been trained on vast amounts of publicly available data.  The training process involves:
+
+1.  **Data Collection:** Gathering experimental data on peptide-MHC binding affinities and presentation. This data comes from various sources, including published studies and databases.
+
+2.  **Feature Engineering:**  Representing peptides and MHC alleles in a way that the machine learning model can understand. This often involves encoding amino acid sequences into numerical features.
+
+3.  **Model Training:**  Training a neural network (or other machine learning model) to predict binding affinity based on the engineered features. The model learns the complex relationships between peptide sequence, MHC allele, and binding strength.
+
+4.  **Validation and Refinement:**  Evaluating the model's performance on a held-out dataset and refining the model architecture and training process to improve accuracy.
+
+**Using the Pretrained Presentation Predictor**
+
+In the following, we use the pretrained presentation predictor to compute the presentation score for the test dataset. This saves us the time and resources of training a model from scratch and allows us to leverage the knowledge already encoded in the pretrained model.
+
+``` bash
+mhcflurry-downloads fetch models_class1_presentation
+python scripts/mhcflurry_benchmark.py
+```
+
+The output is of the form
+
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| peptide      | hit     | allele       | prediction | prediction_low | prediction_high | prediction_percentile |
++==============+=========+==============+============+================+=================+=======================+
+| AAPATRAAL    | True    | HLA-B\*35:03 | 94.297     | 59.902         | 144.624         | 0.205                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| AAPSAAREL    | True    | HLA-B\*35:03 | 116.190    | 79.847         | 169.241         | 0.262                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| AEISQIHQSVTD | True    | HLA-B\*35:03 | 26103.260  | 22695.389      | 28415.000       | 15.739                |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| ALEEQLQQIRAE | True    | HLA-B\*35:03 | 24797.131  | 19988.967      | 28062.650       | 13.571                |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| AQDPLLLQM    | True    | HLA-B\*35:03 | 2164.336   | 745.888        | 5390.727        | 1.413                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| ASAPPGPPA    | True    | HLA-B\*35:03 | 1398.729   | 387.675        | 3293.692        | 1.157                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| DAHKGVAL     | True    | HLA-B\*35:03 | 84.315     | 54.736         | 133.899         | 0.175                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| DNPIQTVSL    | True    | HLA-B\*35:03 | 1386.767   | 565.122        | 3667.210        | 1.151                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| DPEAFLVQI    | True    | HLA-B\*35:03 | 245.485    | 133.986        | 394.752         | 0.484                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+
+*   **peptide**: The amino acid sequence of the peptide being evaluated.
+*   **hit**: The ground truth, a boolean value indicating whether the peptide is known to be presented by the given MHC allele (`True`) or not (`False`).
+*   **allele**: The name of the MHC class I allele being considered.
+*   **prediction**: The raw prediction score from the MHCflurry model. Higher values generally indicate a stronger predicted binding affinity. These values are not directly interpretable in isolation.
+*   **prediction_low/prediction_high**: These represent the lower and upper bounds of a 95% confidence interval around the `prediction` value. They provide an estimate of the uncertainty associated with the prediction.
+*   **prediction_percentile**: This is the most useful column for interpreting the results. It represents the percentile rank of the `prediction` score compared to a background distribution of scores for random peptides. A lower percentile indicates a stronger predicted binding affinity. For example, a percentile of 1.0 means that the predicted score is in the top 1% of all possible scores.
+
+Two percent is a commonly-used threshold for the `prediction_percentile` prediction (lower is better).
+
+## Prediction fitting a Class1BinaryNeuralNetwork from mhcflurry
+
+We now fit a Class1BinaryNeuralNetwork from mhcflurry on the training dataset. All the code is available at https://github.com/nbrosse/mhcpred.
