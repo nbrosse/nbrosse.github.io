@@ -34,15 +34,11 @@ The MHC gene family is divided into three subgroups: MHC class I, MHC class II, 
 
 MHC class I molecules are expressed on nearly all nucleated cells, including platelets, but not on red blood cells. They present epitopes (8–10 amino acids residues) to cytotoxic T lymphocytes (CTLs), which express CD8 receptors and T-cell receptors (TCRs). When a CTL’s CD8 receptor binds to an MHC class I molecule, and if the CTL's TCR recognizes the epitope presented by the MHC class I molecule, the CTL induces programmed cell death (apoptosis) in the target cell, see @fig-schematic-view-MHC-T-cell and @fig-T-cell-MHC. Thus, MHC class I molecules are crucial for mediating cellular immunity, primarily targeting intracellular pathogens such as viruses and some bacteria. In humans, MHC class I molecules include HLA-A, HLA-B, and HLA-C.
 
-[@antunes2018]
-
 ![Schematic view of the role of MHCs in T-cell activation. Class I Major Histocompatibility Complexes (MHC-I) are present in almost every cell and involved in the surface presentation of peptides derived from intracellular proteins. On the other hand, class II MHCs are present only in "professional" antigen-presenting cells (phagocytes) and involved in the surface presentation of peptides derived from extracellular proteins. The recognition of displayed peptideMHC complexes by the T-cell receptor (TCR) triggers T-cell activation, clonal expansion and immunological memory. While cytotoxic T-cells (CD8+) mediate cellular immunity, helper T-cells (CD4+) control the humoral response and have other regulatory roles. CD stands for cluster of differentiation. [@antunes2018]](figures/Schematic-view-of-the-role-of-MHCs-in-T-cell-activation-Class-I-Major-Histocompatibility_W640.jpg){#fig-schematic-view-MHC-T-cell}
 
 ![T-cell receptor complexed with MHC-I and MHC-II.](figures/T-CellReceptor-MHC.jpg){#fig-T-cell-MHC}
 
 The crystal structure of an MHC class I molecule reveals that MHC class I molecules are heterodimers, consisting of a polymorphic heavy α-subunit encoded within the MHC locus and an invariant β2 microglobulin subunit typically encoded outside the MHC locus, see @fig-HLA-class-I-schematic-structure and @fig-HLA-class-I-structure. The polymorphic heavy chain features an N-terminal extracellular region with three domains (α1, α2, and α3), a transmembrane helix anchoring the molecule to the cell surface, and a short cytoplasmic tail. The α1 and α2 domains form a deep peptide-binding groove with two long α-helices and a floor composed of eight β-strands. The α3 domain interacts with the CD8 co-receptor. The β2 microglobulin subunit stabilizes the complex and aids in the recognition of the peptide-MHC class I complex by the CD8 co-receptor. The peptide is non-covalently bound within the MHC class I molecule's groove, held in place by several pockets. The most polymorphic amino acid side-chains in human alleles occupy the central, wider part of the binding groove, while conserved side-chains cluster at its narrower ends.
-
-[@feng2014]
 
 ![HLA class I schematic structure, source [@feng2014].](figures/MHC_class_I_structure.webp){#fig-HLA-class-I-schematic-structure}
 
@@ -58,11 +54,7 @@ Thus, MHC class II molecules mediate the immune response to an antigen or, if AP
 
 MHC class II molecules are heterodimers composed of polymorphic α and β subunits, with genes located within the MHC class II subregion. The peptide-binding groove of MHC class II molecules is formed by the N-terminal domains of both the α1 and β1 subunits, unlike MHC class I molecules, which involve two domains from the same chain. Both subunits of MHC class II molecules also contain a transmembrane helix and immunoglobulin domains (α2 and β2), which can be recognized by CD4 co-receptors. This specificity ensures that different lymphocytes bind to the appropriate antigens with high affinity, see @fig-MHC-II-crystal-structure.
 
-[@feng2014]
-
 ![Crystal structure of MHC II determined by X-ray crystallography [@feng2014]](figures/Color-online-Crystal-structure-of-MHC-II-determined-by-X-ray-crystallography-15-a-A_W640.jpg){#fig-MHC-II-crystal-structure}
-
-[@antunes2018]
 
 ![Molecular structures of class I and class II MHCs. Molecular representation of a class I MHC (A, C) and a class II MHC (B, D). The upper panel shows a top view, while the bottom panel shows a cross section side-view of the binding clefts. Note that the binding cleft of a class I receptor is deeper, with "closed" extremities, while the class II cleft is shallower, with open extremities. The pockets involved in binding primary "anchor" residues are indicated. Together, structural differences in the shape of the cleft and the location of binding pockets have an impact on the overall conformation of bound ligands (e.g., peptides tend to adopt bulged conformations when bound to class I, and more linear conformations when bound to class II). Crystal structures of both complexes were downloaded from the PDB and superimposed to be in the same orientation. Class I complex: HLA-A\*01:01 receptor presenting a tumor-derived 9-mer peptide (PDB code 5BRZ). Class II complex: HLA-DRB1\*01:01 receptor presenting a 14-mer bacteria-derived peptide (PDB code 1KLU). [@antunes2018]](figures/Molecular-structures-of-class-I-and-class-II-MHCs-Molecular-representation-of-a-class-I_W640.jpg){#fig-mol-structures-I-II-MHC}
 
@@ -73,7 +65,7 @@ MHC class II molecules are heterodimers composed of polymorphic α and β subuni
 |                                 |                                         |                                          |
 |                                 | β~2~ chain (12 KDa in humans)           | β chain (26–29 KDa in humans)            |
 +---------------------------------+-----------------------------------------+------------------------------------------+
-| Antigen binding domain          | α1and α2 domains                        | α~1~ and β~1~ domains                    |
+| Antigen binding domain          | α1 and α2 domains                       | α~1~ and β~1~ domains                    |
 +---------------------------------+-----------------------------------------+------------------------------------------+
 | Binds protein antigens of       | 8–10 amino acids residues               | 13–18 amino acids residues               |
 +---------------------------------+-----------------------------------------+------------------------------------------+
@@ -132,7 +124,7 @@ Note that prediction of MHC antigen presentation is a complex subject. In this h
 
 We first perform an Exploratory Data Analysis (EDA).
 
-## EDA
+## Exploratory Data Analysis
 
 {{< embed notebooks/EDA.ipynb echo=true >}}
 
@@ -151,26 +143,33 @@ python scripts/mhcflurry_benchmark.py
 
 The output is of the form
 
-| peptide       | hit  | allele       | prediction  | prediction_low | prediction_high | prediction_percentile |
-|---------------|------|--------------|-------------|----------------|-----------------|-----------------------|
-| AAPATRAAL     | True | HLA-B*35:03  | 94.297      | 59.902         | 144.624         | 0.205                 |
-| AAPSAAREL     | True | HLA-B*35:03  | 116.190     | 79.847         | 169.241         | 0.262                 |
-| AEISQIHQSVTD  | True | HLA-B*35:03  | 26103.260   | 22695.389      | 28415.000       | 15.739                |
-| ALEEQLQQIRAE  | True | HLA-B*35:03  | 24797.131   | 19988.967      | 28062.650       | 13.571                |
-| AQDPLLLQM     | True | HLA-B*35:03  | 2164.336    | 745.888        | 5390.727        | 1.413                 |
-| ASAPPGPPA     | True | HLA-B*35:03  | 1398.729    | 387.675        | 3293.692        | 1.157                 |
-| DAHKGVAL      | True | HLA-B*35:03  | 84.315      | 54.736         | 133.899         | 0.175                 |
-| DNPIQTVSL     | True | HLA-B*35:03  | 1386.767    | 565.122        | 3667.210        | 1.151                 |
-| DPEAFLVQI     | True | HLA-B*35:03  | 245.485     | 133.986        | 394.752         | 0.484                 |
-
-
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| peptide      | hit     | allele       | prediction | prediction_low | prediction_high | prediction_percentile |
++==============+=========+==============+============+================+=================+=======================+
+| AAPATRAAL    | True    | HLA-B\*35:03 | 94.297     | 59.902         | 144.624         | 0.205                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| AAPSAAREL    | True    | HLA-B\*35:03 | 116.190    | 79.847         | 169.241         | 0.262                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| AEISQIHQSVTD | True    | HLA-B\*35:03 | 26103.260  | 22695.389      | 28415.000       | 15.739                |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| ALEEQLQQIRAE | True    | HLA-B\*35:03 | 24797.131  | 19988.967      | 28062.650       | 13.571                |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| AQDPLLLQM    | True    | HLA-B\*35:03 | 2164.336   | 745.888        | 5390.727        | 1.413                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| ASAPPGPPA    | True    | HLA-B\*35:03 | 1398.729   | 387.675        | 3293.692        | 1.157                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| DAHKGVAL     | True    | HLA-B\*35:03 | 84.315     | 54.736         | 133.899         | 0.175                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| DNPIQTVSL    | True    | HLA-B\*35:03 | 1386.767   | 565.122        | 3667.210        | 1.151                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
+| DPEAFLVQI    | True    | HLA-B\*35:03 | 245.485    | 133.986        | 394.752         | 0.484                 |
++--------------+---------+--------------+------------+----------------+-----------------+-----------------------+
 
 Two percent is a commonly-used threshold for the `prediction_percentile` prediction (lower is better).
 
 ## Prediction fitting a Class1BinaryNeuralNetwork from mhcflurry
 
-We now fit a Class1BinaryNeuralNetwork from mhcflurry on the training dataset. All the code is available at https://github.com/nbrosse/mhcpred. 
-
+We now fit a Class1BinaryNeuralNetwork from mhcflurry on the training dataset. All the code is available at https://github.com/nbrosse/mhcpred.
 
 # Methods
 
