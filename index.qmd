@@ -3,8 +3,8 @@ title: "blog"
 listing:
   contents: posts
   sort: "date desc"
-  type: default
-  fields: [date, title, author, description, image]
+  type: table
+  fields: [date, title, categories, description]
   categories: true
   sort-ui: true
   filter-ui: true

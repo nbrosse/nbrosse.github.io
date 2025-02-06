@@ -2,10 +2,9 @@
 title: "Encoding distances in molecules and pockets"
 author: "Nicolas Brosse"
 date: "2024-04-24"
-categories: [ML]
+categories: [machine learning]
 bibliography: unimol-gbf-references.bib
 description: "Distance encoding"
-image: figures/cover.png 
 ---
 
 In this article, we aim at comparing two different ways of encoding distances in 3D
