@@ -1,8 +1,10 @@
 project:
   type: website
+  preview: 
+    port: 1234
 
 website:
-  title: "blog"
+  title: "Nicolas' Notebook"
   navbar:
     right:
       - about.qmd
@@ -14,6 +16,10 @@ format:
   html:
     theme: flatly
     css: styles.css
+    toc: true
 
+theme:
+  light: flatly
+  dark: darkly
 
 
