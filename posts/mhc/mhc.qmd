@@ -122,12 +122,12 @@ We leverage the [mhcflurry package](https://github.com/openvax/mhcflurry) to bui
 
 We use the Binding Affinity pretrained model from mhcflurry to predict the binding affinity of peptides to MHC class I molecules using `Class1AffinityPredictor`. The following code assumes you have installed `mhcflurry` and downloaded the required pretrained models.
 
-```bash
+``` bash
 mhcflurry-downloads fetch models_class1_presentation
 python scripts/mhcflurry_benchmark.py
 ```
 
-```python
+``` python
 def predict_with_mhcflurry() -> pd.DataFrame:
     predictor = Class1AffinityPredictor.load()
     df_test = get_test_data()
@@ -156,6 +156,8 @@ The output is of the form:
 | DPEAFLVQI     | True  | HLA-B*35:03 |     245.485  |          133.986  |           394.752 |                   0.484 |
 
 
+: MHCflurry pretrained model predictions. {#tbl-mhcflurry-pretrained-predictions}
+
 The first 3 columns come from the test dataset.
 
 *   **peptide**: The amino acid sequence of the peptide being evaluated.
@@ -183,6 +185,8 @@ Here's a glimpse of the training data structure:
 | QPHDPLVPLSA  | HLA-B*54:01 | True  |
 | RTIADSLINSF   | HLA-B*57:03 | True  |
 
+: Training data. {#tbl-training-data}
+
 Challenges arise in encoding the peptide and allele sequences for use in a neural network. Peptides have variable lengths, and alleles are represented by their names.
 
 The `MHCFlurry` package provides a mapping between alleles and their corresponding MHC molecule sequences within the `allele_sequences.csv` file. This mapping is crucial for encoding the alleles.
@@ -195,9 +199,11 @@ The `MHCFlurry` package provides a mapping between alleles and their correspondi
 | HLA-A*01:04 | YFAMYQENMAHTDANTLYGIIYDRDYTWVARVYRGYX    |
 | HLA-A*01:06 | YFAMYQENMAHTDANTLYGIIYDRDYTWVALAYRGYA    |
 
+: Allele sequences. {#tbl-allele-sequences}
+
 First, we import necessary libraries. We also import components from our own `mhcpred` library, which contains the neural network architecture and data loading functions.
 
-```python
+``` python
 import pickle
 from pathlib import Path
 from typing import Iterator
@@ -216,7 +222,7 @@ from mhcpred.hyperparameters import base_hyperparameters
 
 We load the allele sequences, training data, and test data using helper functions. The allele sequences are crucial for encoding the MHC alleles.
 
-```python
+``` python
 allele_sequences = pd.read_csv(
     str(data_path / "allele_sequences.csv"), index_col=0
 ).iloc[:, 0]
@@ -227,7 +233,7 @@ df_test = get_test_data()
 
 We determine the alleles present in our data and filter the loaded allele sequences to only include those we'll be using.
 
-```python
+``` python
 alleles_in_use = set(df_total_train.allele).union(set(df_test.allele))
 allele_sequences_in_use = allele_sequences[allele_sequences.index.isin(alleles_in_use)]
 ```
@@ -236,7 +242,7 @@ The [`AlleleEncoding` class](https://github.com/openvax/mhcflurry/blob/8e9f35381
 
 We also split the training data into training and validation sets using `train_test_split` from `sklearn`. Stratified splitting ensures the class balance is maintained across the training and validation sets. The validation data is also preprocessed by encoding the peptides and alleles.
 
-```python
+``` python
 allele_encoding = AlleleEncoding(
     alleles=allele_sequences_in_use.index.values,
     allele_to_sequence=allele_sequences_in_use.to_dict(),
@@ -285,7 +291,7 @@ The `AlleleEncoding` class uses BLOSUM62 to convert amino acid sequences into nu
 
 The `train_data_iterator` function is a generator that yields batches of training data. This function also handles filtering of alleles that might be present in the training data but not in the `allele_sequences` data to handle potential data inconsistencies.
 
-```python
+``` python
 def train_data_iterator(
     df_train: pd.DataFrame,
     train_allele_encoding: AlleleEncoding,
@@ -332,7 +338,7 @@ def train_data_iterator(
 
 The neural network model is initialized using the `Class1BinaryNeuralNetwork` class. Base hyperparameters are used for initialization. The model is then trained using the `fit_generator` method. This method takes the training data generator, validation data, and other parameters like the number of epochs and steps per epoch.  The `steps_per_epoch` is calculated based on the training data size and batch size.
 
-```python
+``` python
 model = Class1BinaryNeuralNetwork(**base_hyperparameters)
 steps_per_epoch = np.ceil(len(df_train) / batch_size)
 batch_size = 1024  # Define batch_size here
@@ -374,7 +380,7 @@ This architecture is designed to effectively learn the complex patterns governin
 
 Finally, the trained model is used to make predictions on the test data. The test data is preprocessed in the same way as the training data, and the `predict` method of the model is used to generate predictions. These predictions are then added to the test dataframe and saved to a CSV file.
 
-```python
+``` python
 test_peptides = df_test.peptide.values
 test_allele_encoding = AlleleEncoding(
     alleles=df_test.allele.values,

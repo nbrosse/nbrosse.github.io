@@ -1,37 +1,32 @@
 ---
-title: "Encoding distances in molecules and pockets"
+title: "Encoding Distances in Molecules and Pockets: A Comparison of GBFPT and DCEPT"
 author: "Nicolas Brosse"
 date: "2024-04-24"
-categories: [machine learning]
+categories: [deep learning, biology]
 bibliography: unimol-gbf-references.bib
-description: "Distance encoding"
+description: "A comparative analysis of Gaussian kernel with pair type (GBFPT) and Discretization categorical embedding with Pair Type (DCEPT) for encoding distances in 3D molecular representations, using the Uni-Mol framework."
 ---
 
-In this article, we aim at comparing two different ways of encoding distances in 3D
-molecules and pockets. Our analysis relies on a universal 3D molecular representation
-learning framework Uni-Mol. Code <https://github.com/dptech-corp/Uni-Mol> and article
-[@zhou2023unimol] are available. In brief, Uni-Mol is a 3D foundation model for
-molecules and pockets based on a SE(3) Transformer architecture. It comprises two
-pretrained models: one for molecular conformations and another for protein pocket data.
-Uni-Mol is pretrained on large-scale unlabeled data and is able to directly take 3D
-positions as both inputs and outputs. Uni-Mol backbone is a Transformer based model that
-can capture the input 3D information and predict 3D positions directly. Uni-Mol
-pretraining is done on two large-scale datasets: a 209M molecular conformation dataset
-and a 3M candidate protein pocket dataset, for pretraining 2 models on molecules and
-protein pockets, respectively. In the pretraining phase, Uni-Mol has to predict masked
-atoms, as well as masked noisy atoms coordinates and distances for effectively learning
-3D spatial representation. The overall pretraining architecture is illustrated in
-@fig-pretraining-architecture and the framework is given in @fig-overview-unimol (taken
-from [@zhou2023unimol]).
+This blog post compares two different methods for encoding distances in 3D molecules and protein pockets: Gaussian kernel with pair type (GBFPT) and Discretization categorical embedding with Pair Type (DCEPT).  We analyze their performance within the Uni-Mol framework, a universal 3D molecular representation learning model. We observed unstable gradients with GBFPT and hypothesized that DCEPT, inspired by AlphaFold's distance representation, might offer a more stable alternative.  We found that while DCEPT exhibits more stable training behavior, GBFPT ultimately yields superior pocket embeddings for retrieval tasks.
 
-[![Schematic illustration of the Uni-Mol
-framework](figures/overview-unimol.png){#fig-overview-unimol
+Before diving into the details, let's define the acronyms used in this article:
+
+*   **GBFPT:** Gaussian Basis Function with Pair Type
+*   **DCEPT:** Discretization Categorical Embedding with Pair Type
+
+# Introduction to Uni-Mol and Distance Encoding {#sec-uni-mol-intro}
+
+Code for Uni-Mol is available at <https://github.com/dptech-corp/Uni-Mol>, and the related article is [@zhou2023unimol]. In brief, Uni-Mol is a 3D foundation model for molecules and pockets based on a SE(3) Transformer architecture. It comprises two pretrained models: one for molecular conformations and another for protein pocket data. Uni-Mol is pretrained on large-scale unlabeled data and is able to directly take 3D positions as both inputs and outputs. Uni-Mol backbone is a Transformer based model that can capture the input 3D information and predict 3D positions directly. Uni-Mol pretraining is done on two large-scale datasets: a 209M molecular conformation dataset and a 3M candidate protein pocket dataset, for pretraining 2 models on molecules and protein pockets, respectively. In the pretraining phase, Uni-Mol has to predict masked atoms, as well as masked noisy atoms coordinates and distances for effectively learning 3D spatial representation. The overall pretraining architecture is illustrated in @fig-pretraining-architecture and the framework is given in @fig-overview-unimol (taken from [@zhou2023unimol]).
+
+[![Schematic illustration of the Uni-Mol framework](figures/overview-unimol.png){#fig-overview-unimol
 fig-alt="Schematic illustration of the Uni-Mol framework"}](https://github.com/dptech-corp/Uni-Mol)
 
 [![Left: the overall pretraining architecture. Middle: the model inputs, including atom
 representation and pair representation. Right: details in the model
 block.](figures/overall-pretraining-architecture.png){#fig-pretraining-architecture
 fig-alt="Left: the overall pretraining architecture. Middle: the model inputs, including atom representation and pair representation. Right: details in the model block."}](https://github.com/dptech-corp/Uni-Mol)
+
+**Background: 3D Spatial Encoding in Uni-Mol**
 
 We focus here on the encoding of the coordinates in distances (pair representation in
 @fig-pretraining-architecture middle part) and the decoding part, prediction of
@@ -42,35 +37,35 @@ molecular pretraining. In particular, they benchmarked:
 
 -   Gaussian kernel (GK), a simply Gaussian density function.
 
--   Gaussian kennel with pair type (GKPT) [@shuaibi2021rotation]. Based on GK, an affine
+-   Gaussian kernel with pair type (GKPT) [@shuaibi2021rotation]. Based on GK, an affine
     transformation according to the pair type is applied on pair distances, before
     applying the Gaussian kernel.
 
 -   Radial Bessel basis (RBB) [@NEURIPS2021_82489c97]. A Bessel based radial function.
 
--   Discretization categorical embedding (DCE). We convert the continued distances to
+-   Discretization categorical embedding (DCE). They convert the continued distances to
     the discrete bins, by Discretization. With binned distances, embedding-based
     positional encoding is directly used.
 
 -   Delta coordinate (DC) [@9710703]. Following Point Transformer, the deltas of
     coordinates are directly used as pair-wise spatial relative positional encoding.
 
--   Gaussian kennel with pair type and local graph (GKPTLG). Based on GKPT, we set up a
+-   Gaussian kernel with pair type and local graph (GKPTLG). Based on GKPT, they set up a
     model with locally connected graphs. In particular, the cutoff radius is set to 6 Å.
 
 The validation loss during pretraining for each encoding is summarized in
 @fig-val-loss-3D (taken from [@zhou2023unimol]). From the results, they drew the
 following conclusions:
 
--   The performance of DCE and GK are almost the same, and outperform RBB and DC. And we
+-   The performance of DCE and GK are almost the same, and outperform RBB and DC. And they
     choose GK as the basic encoding.
 
--   Compared with GK, GKPT convergences faster. This indicates the pair type is critical
+-   Compared with GK, GKPT converges faster. This indicates the pair type is critical
     in the 3D spatial positional encoding.
 
--   Compared with GKPT, GKPTLG convergences slower. This indicates the locally cutoff
+-   Compared with GKPT, GKPTLG converges slower. This indicates the locally cutoff
     graph is not effective for self-supervised learning, and the default fully connected
-    graph in Transformer is more effective.
+    graph structure inherent in the Transformer architecture is more effective.
 
 -   As GKPT outperforms all other encoding, they use it in the backbone model of
     Uni-Mol.
@@ -81,9 +76,12 @@ fig-alt="Validation loss in pretraining for different 3D spatial encodings"}](ht
 
 The code for the [GKPT
 encoding](https://github.com/dptech-corp/Uni-Mol/blob/37c6ddc4a3f263b8885cd3fba2faebb5d0bef9f7/unimol/unimol/models/unimol.py#L396)
-is given by
+is given by:
 
 ``` python
+import torch
+import torch.nn as nn
+
 @torch.jit.script
 def gaussian(x, mean, std):
     pi = 3.14159
@@ -116,19 +114,22 @@ class GaussianLayer(nn.Module):
 
 `K` represents the number of Gaussian basis functions, `edge_types` the number of
 possible edge types, `x` the distance matrix (for an initial 3D molecule or pocket) and
-`edge_type` the corresponding edge type matrix.
+`edge_type` the corresponding edge type matrix. 
+**Edge types** represent the different types of atom pairs (e.g., C-C, C-O, C-N, etc.)
+
+# Experimental Setup {#sec-experimental-setup}
 
 ::: callout-note
 All the Uni-Mol experiments run for this article are based on a small pockets dataset
-inspired from PDBbind <http://www.pdbbind.org.cn/>. The dataset is split in a train and
-validation dataset relying on pockets similarities. The wandb project is available
+inspired from the PDBbind database (<http://www.pdbbind.org.cn/>), a collection of protein-ligand complexes and their binding affinities.  The dataset was split into training and validation sets based on pocket similarity. The wandb project is available
 <https://wandb.ai/nicolasb/unimol_analysis/> as well as a summary report
 <https://api.wandb.ai/links/nicolasb/kdz59bry>.
 :::
 
-When we train Uni-Mol on a small dataset of pockets inspired from PDBbind
-<http://www.pdbbind.org.cn/>, we remark that the gradients related to `GaussianLayer`
-parameters are not stable and can take very large values. In @fig-gbf-gradients, some
+**Motivation for DCEPT and Implementation**
+
+When we train Uni-Mol on a small dataset of pockets inspired from the PDBbind database, we remark that the gradients related to `GaussianLayer`
+parameters are not stable and can take very large values. To address the gradient instability observed with GBFPT, and drawing inspiration from AlphaFold's use of discretization, we explored using a Discretization Categorical Embedding with Pair Type (DCEPT) as an alternative. In @fig-gbf-gradients, some
 gradients are of the order of one thousand. Uni-Mol relies on
 [Uni-Core](https://github.com/dptech-corp/Uni-Core) which implements gradient clipping
 and these high values do not affect the stability of the training.
@@ -138,12 +139,26 @@ encoding)](figures/gbfpt-gradients.png){#fig-gbf-gradients
 fig-alt="Gradients of GaussianLayer parameters (GBFPT encoding)"}
 
 Nevertheless, we wanted to try another encoding that would be naturally stable without
-exploding gradients. Discretization categorical embedding (DCE) seemed to be another
-good encoding from Uni-Mol benchmark. Besides, DCE is the encoding used in AlphaFold
+exploding gradients. Furthermore, DCE is the encoding used in AlphaFold
 [@Jumper2021]. We implemented Discretization categorical embedding with Pair Type
-encoding (DCEPT) that takes into account the edge type.
+encoding (DCEPT) that takes into account the edge type.  A **distogram** is a discrete representation of the distance matrix, where distances are binned into predefined intervals. The binning process transforms continuous distances into discrete categories.
 
 ``` python
+import torch
+import torch.nn as nn
+
+# Constants
+PAD_DIST = 0
+
+class NonLinearModule(nn.Module):
+    def __init__(self, input_dim, out_dim, activation_fn):
+        super().__init__()
+        self.linear = nn.Linear(input_dim, out_dim)
+        self.activation = getattr(nn, activation_fn)()
+
+    def forward(self, x):
+        return self.activation(self.linear(x))
+
 class DistEncoding(nn.Module):
     def __init__(
         self,
@@ -154,33 +169,71 @@ class DistEncoding(nn.Module):
         encoder_attention_heads: int,
         activation_fn: str,
     ):
+        """
+        Initializes the DistEncoding module for encoding distances and edge types.
+
+        Args:
+            distogram_nb_bins: Number of bins for the distogram (distance discretization).
+            nb_edge_types: Number of possible edge types (e.g., different bond types).
+            embedding_dim: Dimension of the embeddings for distances and edge types.
+            edge_type_padding_idx: Padding index for edge type embeddings.
+            encoder_attention_heads: Number of attention heads in the Transformer encoder.
+            activation_fn: Activation function to use in the projection layer.
+        """
         super(DistEncoding, self).__init__()
+
+        # Embedding layer for the distogram (discretized distances)
         self.dist_embedding = nn.Embedding(
             num_embeddings=distogram_nb_bins,
             embedding_dim=embedding_dim,
-            padding_idx=PAD_DIST,
+            padding_idx=PAD_DIST,  # Use PAD_DIST for padding
         )
+
+        # Embedding layer for edge types
         self.edge_type_embedding = nn.Embedding(
             num_embeddings=nb_edge_types,
             embedding_dim=embedding_dim,
             padding_idx=edge_type_padding_idx,
         )
+
+        # Projection layer to combine distance and edge type embeddings and project
+        # to the correct dimension for attention bias.
         self.projection = NonLinearModule(
-            input_dim=2 * embedding_dim,
-            out_dim=encoder_attention_heads,
+            input_dim=2 * embedding_dim,  # Concatenate dist and edge embeddings
+            out_dim=encoder_attention_heads,  # Output dimension matches attention heads
             activation_fn=activation_fn,
         )
 
     def forward(
         self, distogram: torch.Tensor, edge_types: torch.Tensor
     ) -> torch.Tensor:
-        n_node = distogram.size(-1)
-        dist_embeddings = self.dist_embedding(distogram)
-        edge_types_embeddings = self.edge_type_embedding(edge_types)
-        embeddings = torch.concat((dist_embeddings, edge_types_embeddings), dim=-1)
-        attn_bias = self.projection(embeddings)
-        attn_bias = attn_bias.permute(0, 3, 1, 2).contiguous()
-        attn_bias = attn_bias.view(-1, n_node, n_node)
+        """
+        Forward pass of the DistEncoding module.
+
+        Args:
+            distogram: Tensor of discretized distances (batch_size, seq_len, seq_len).
+            edge_types: Tensor of edge types (batch_size, seq_len, seq_len).
+
+        Returns:
+            attn_bias: Tensor of attention biases (batch_size, num_heads, seq_len, seq_len).
+        """
+        n_node = distogram.size(-1)  # Sequence length (number of nodes/atoms)
+
+        # Embed the discretized distances
+        dist_embeddings = self.dist_embedding(distogram)  # (B, L, L, D)
+
+        # Embed the edge types
+        edge_types_embeddings = self.edge_type_embedding(edge_types)  # (B, L, L, D)
+
+        # Concatenate distance and edge type embeddings
+        embeddings = torch.cat((dist_embeddings, edge_types_embeddings), dim=-1)  # (B, L, L, 2D)
+
+        # Project the combined embeddings to generate attention bias
+        attn_bias = self.projection(embeddings)  # (B, L, L, H) where H = num_heads
+
+        # Reshape the attention bias to the correct format for the Transformer
+        attn_bias = attn_bias.permute(0, 3, 1, 2).contiguous()  # (B, H, L, L)
+        attn_bias = attn_bias.view(-1, n_node, n_node) # (B*H, L, L) - Correct if attention is applied per head.
         return attn_bias
 ```
 
@@ -191,6 +244,8 @@ distance encoding is directly injected in the attention matrix. `distogram` is t
 distogram (discretization of the distance matrix) and `edge_types` the edge types. We
 concatenate the two embeddings creating *de facto* the DCEPT and then project to feed
 into the attention matrix.
+
+**Training Dynamics**
 
 During the training, the gradients related to `DistEncoding` parameters do not take
 large values and are naturally stable without clipping gradients. This is illustrated in
@@ -205,7 +260,7 @@ prediction task (mean squared error loss) implemented in Uni-Mol by a distogram
 prediction task (cross entropy loss). We remark that this loss replacement does not
 change the characteristics of Uni-Mol.
 
-On the small pockets inspired from PDBbind <http://www.pdbbind.org.cn/>, we notice that
+On the small pockets inspired from the PDBbind database, we notice that
 the training and validation loss curves are better with DCEPT encoding compared to GBFPT
 encoding (on average), see @fig-gbfpt-dcept-losses-curves. More precisely, the
 `masked_token_loss` and the `masked_acc` metrics related to the recovery of masked atoms
@@ -216,16 +271,18 @@ encoding both in the training and validation sets. Note that the `masked_distogr
 corresponds to the distogram loss (cross entropy loss) used in AlphaFold [@Jumper2021]
 and is implemented only for DCEPT encoding. For DCEPT encoding, we also add a distance
 prediction head with the corresponding MSE loss taken from Uni-Mol and a small
-multiplication factor (0.01). That explains why the DCEPT `masked_dist_loss` decreases
+multiplication factor (0.01). The rationale for including this head was to maintain some of the original Uni-Mol distance prediction capabilities alongside the distogram prediction. That explains why the DCEPT `masked_dist_loss` decreases
 slightly slower than GBFPT. Several additional experiments (not shown here) demonstrate
 that using a distogram or distance loss does not change the behavior of Uni-Mol.
 
 In conclusion, according to the loss curves and the stability of the gradients, DCEPT
-seems to be a better encoding than GBFPT (or at least as good as).
+seems to be a better encoding than GBFPT (or at least as good as) *during pre-training*.
 
 ![Uni-Mol training and validation losses with GBFPT and DCEPT
 encoding](figures/gbfpt-dcept-losses-curves.png){#fig-gbfpt-dcept-losses-curves
 fig-alt="Uni-Mol training and validation losses with GBFPT and DCEPT encoding"}
+
+# Downstream Performance: Pocket Retrieval {#sec-downstream-performance}
 
 However, Uni-Mol stands as a foundational model pre-trained through unsupervised
 methods. The pre-training metrics do not reflect the expected capabilities of the model.
@@ -260,11 +317,14 @@ results for each encoding, embedding and reference pocket and we remark that
 : Uni-Mol pockets retrieval with GBFPT or DCEPT encoding (higher is better)
 {#tbl-pockets-retrieval}
 
+**Investigating Noise Sensitivity**
+
 In conclusion, despite better pre-training behavior and metrics, DCEPT encoding is
 disappointing when it comes to embeddings comparison. We suppose that this defect comes
 from a higher sensitivity of the discretization procedure. Two distance matrices from
-two close pockets may be more sharply distinguished with DCEPT encoding compared to
-GBFPT encoding. To test this hypothesis, we take the `6v7a` pocket and we noise its
+two close pockets may be more distinctly differentiated with DCEPT encoding compared to
+GBFPT encoding. This could be due to the information loss inherent in discretizing continuous distances. GBFPT might be capturing subtle long-range interactions that DCEPT, with its discrete representation, misses. 
+To test this hypothesis, we take the `6v7a` pocket and we noise its
 coordinates with a uniform noise between 0 and 1A. Since we have a batch size of 16, we
 fill up a batch with the reference pocket `6v7a` and 15 noisy pockets. For each pocket,
 the distance matrix is encoded by GBFPT or DCEPT and we get an encoding of size 128 for
@@ -272,14 +332,18 @@ each distance in the distance matrix. We compute the cos similarities between ea
 encoding and the reference encoding in the reference matrix distance of `6v7a` and we
 obtain the overall statistics of these cos similarities for GBFPT and DCEPT. In
 @tbl-statistics-cos-similarities-6v7a, we have the absolute errors statistics between 1
-and the cos similarities of the noisy pockets from `6v7a`, the lower the better. We
+and the cos similarities of the noisy pockets from `6v7a`, the lower the better because the vectors are similar. We
 remark that as presumed DCEPT encoding is less robust to noise compared to GBFPT
 encoding.
 
-|        | Errors cos similarities GBFPT encoding | Errors cos similarities DCEPT encoding |
-|--------|----------------------------------------|----------------------------------------|
-| mean   | 0.002                                  | 0.020                                  |
-| median | 0.000                                  | 0.007                                  |
+|        | Absolute errors cos similarities GBFPT encoding (1 - cos similarities) | Absolute errors cos similarities DCEPT encoding (1 - cos similarities) |
+|--------|--------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| mean   | 0.002                                                                    | 0.020                                                                    |
+| median | 0.000                                                                    | 0.007                                                                    |
 
 : Statistics of cos similarities errors for noisy pockets from 6v7a
 {#tbl-statistics-cos-similarities-6v7a}
+
+# Conclusion {#sec-conclusion}
+
+These results suggest that while DCEPT offers advantages during pre-training in terms of gradient stability, the discretization process might lead to a loss of information and reduced robustness, ultimately hindering the quality of the generated pocket embeddings for downstream tasks like pocket retrieval. Further research is needed to investigate the optimal bin size for distograms and to explore alternative distance encoding techniques that balance stability and information retention.  This analysis was conducted on a small, custom-built pocket dataset, and future work should evaluate these encoding methods on larger, more diverse datasets to ensure the generalizability of our findings.
