@@ -6,8 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Nicolas Brosse">
+<meta name="description" content="Using machine learning to predict peptide binding affinity to Major Histocompatibility Complex (MHC) molecules.">
 
-<title>Nicolas’ Notebook</title>
+<title>Predicting MHC-Peptide Binding with Machine Learning – blog</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,27 +22,45 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-313591559204ad6a7884cc02194e8f50.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-313591559204ad6a7884cc02194e8f50.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -68,78 +88,20 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
-<script>
 
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
 
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-categories','listing-description',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-title-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
-
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
-
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../../styles.css">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-fixed fullcontent">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top quarto-banner">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">Nicolas’ Notebook</span>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">blog</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -149,7 +111,7 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./about.html"> 
+    <a class="nav-link" href="../../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item compact">
@@ -172,112 +134,126 @@ window.Quarto = {
 <!-- content -->
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-page-left">
-      <h1 class="title">Nicolas’ Notebook</h1>
-                      </div>
+    <div class="quarto-title column-body">
+      <h1 class="title">Predicting MHC-Peptide Binding with Machine Learning</h1>
+                  <div>
+        <div class="description">
+          Using machine learning to predict peptide binding affinity to Major Histocompatibility Complex (MHC) molecules.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">machine learning</div>
+                <div class="quarto-category">biology</div>
+              </div>
+                  </div>
   </div>
     
   
-  <div class="quarto-title-meta column-page-left">
+  <div class="quarto-title-meta">
 
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Nicolas Brosse </p>
+            </div>
+    </div>
       
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">Invalid Date</p>
+      </div>
+    </div>
     
       
     </div>
     
   
-  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(2)</span></div><div class="category" data-category="YmlvbG9neQ==">biology <span class="quarto-category-count">(2)</span></div><div class="category" data-category="ZGVlcCUyMGxlYXJuaW5n">deep learning <span class="quarto-category-count">(2)</span></div></div></div>
+    
 <!-- main -->
-<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+<main class="content quarto-banner-title-block" id="quarto-document-content">
 
 
 
 
 
-
-
-
-
-<div class="quarto-listing quarto-listing-container-table" id="listing-listing">
-<div class="listing-actions-group">
-   <div class="input-group input-group-sm quarto-listing-sort">
-     <span class="input-group-text"><i class="bi bi-sort-down"></i></span>
-     <select id="listing-listing-sort" class="form-select" aria-label="Order By" onchange="window['quarto-listings']['listing-listing'].sort(this.options[this.selectedIndex].value, { order: this.options[this.selectedIndex].getAttribute('data-direction')})">
-       <option value="" disabled="" selected="" hidden="">Order By</option>
-       <option value="index" data-direction="asc">Default</option>
-         <option value="listing-date-sort" data-direction="asc">
-          Date - Oldest
-        </option>
-         <option value="listing-date-sort" data-direction="desc">
-          Date - Newest
-        </option>
-         <option value="listing-title-sort" data-direction="asc">
-          Title
-        </option>
-     </select>
-  </div>
-    <div class="input-group input-group-sm quarto-listing-filter">
-      <span class="input-group-text"><i class="bi bi-search"></i></span>
-      <input type="text" class="search form-control" placeholder="Filter">
-    </div>
+<p>This blog post explores the application of machine learning techniques to predict the binding affinity between peptides and Major Histocompatibility Complex (MHC) molecules. This is a crucial problem in immunology, with implications for vaccine design, immunotherapy, and understanding autoimmune diseases. In <a href="#sec-mhc" class="quarto-xref">Section&nbsp;1</a>, we introduce the biological aspects of MHC. In <a href="#sec-pred-mhc" class="quarto-xref">Section&nbsp;2</a>, we then present the approach and the results of MHC antigen presentation.</p>
+<section id="sec-mhc" class="level1">
+<h1>Understanding MHC: A Biological Background for Machine Learning</h1>
+<p>The Major Histocompatibility Complex (MHC) is a region of DNA containing genes responsible for coding cell surface proteins essential for the adaptive immune system. These proteins, called MHC molecules, play a critical role in how our immune system recognizes and responds to threats.</p>
+<p>Think of MHC molecules as <strong>presenters</strong>. They grab fragments of proteins (called <strong>peptides</strong>) from inside cells and display them on the cell surface. This display allows immune cells called T cells to inspect the peptides and determine if they are “self” (belonging to the body) or “non-self” (e.g., from a virus or bacteria). If a peptide is recognized as “non-self,” it triggers an immune response.</p>
+<p><strong>Why is this a good ML problem?</strong></p>
+<ul>
+<li><strong>Sequence Dependence:</strong> The binding between an MHC molecule and a peptide is highly dependent on the amino acid sequence of the peptide and the specific type of MHC molecule. This sequence-structure-function relationship is ripe for machine learning.</li>
+<li><strong>Data Availability:</strong> Experimental data on MHC-peptide binding affinities is available, although often sparse. This allows us to train and evaluate predictive models.</li>
+<li><strong>High Dimensionality:</strong> The MHC genes are highly polymorphic, meaning that there are many different variants (alleles) within the population. This contributes to the complexity of the problem, but also the potential for building more specific prediction models.</li>
+</ul>
+<p><strong>Key MHC Concepts:</strong></p>
+<ul>
+<li><strong>MHC Class I and Class II:</strong> These are the two main types of MHC molecules.
+<ul>
+<li><strong>MHC Class I:</strong> Found on almost all cells. Present peptides derived from inside the cell to cytotoxic T cells (CD8+). If a cytotoxic T cell recognizes the peptide as foreign, it kills the cell.</li>
+<li><strong>MHC Class II:</strong> Found mainly on antigen-presenting cells (APCs) like macrophages and dendritic cells. Present peptides derived from outside the cell (e.g., from bacteria) to helper T cells (CD4+). Helper T cells then coordinate the broader immune response.</li>
+</ul></li>
+<li><strong>Epitope:</strong> The specific portion of the peptide that is recognized by the T cell receptor.</li>
+<li><strong>Polymorphism:</strong> The existence of many different versions (alleles) of MHC genes within a population. This is important because different MHC alleles bind to different peptides.</li>
+<li><strong>Binding Affinity:</strong> The strength of the interaction between an MHC molecule and a peptide. This is often measured experimentally and is the target variable for many ML models.</li>
+</ul>
+<div id="fig-schematic-view-MHC-T-cell" class="quarto-float quarto-figure quarto-figure-center anchored" alt="MHC and T cell activation">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-schematic-view-MHC-T-cell-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/Schematic-view-of-the-role-of-MHCs-in-T-cell-activation-Class-I-Major-Histocompatibility_W640.jpg" class="img-fluid figure-img" alt="MHC and T cell activation">
 </div>
-<table class="quarto-listing-table table">
-<thead>
-<tr>
-<th>
-<a class="sort" data-sort="listing-date-sort" onclick="if (this.classList.contains('sort-asc')) { this.classList.add('sort-desc'); this.classList.remove('sort-asc') } else { this.classList.add('sort-asc'); this.classList.remove('sort-desc')} return false;">Date</a>
-</th>
-<th>
-<a class="sort" data-sort="listing-title-sort" onclick="if (this.classList.contains('sort-asc')) { this.classList.add('sort-desc'); this.classList.remove('sort-asc') } else { this.classList.add('sort-asc'); this.classList.remove('sort-desc')} return false;">Title</a>
-</th>
-<th>
-Categories
-</th>
-<th>
-Description
-</th>
-</tr>
-</thead>
-<tbody class="list">
-<tr data-index="0" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDYmlvbG9neQ==" data-listing-date-sort="1738796400000" data-listing-file-modified-sort="1739099051208" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="24" data-listing-word-count-sort="4785" data-listing-title-sort="Predicting MHC-Peptide Binding with Machine Learning" data-listing-filename-sort="mhc.qmd">
-<td>
-<span class="listing-date">Feb 6, 2025</span>
-</td>
-<td>
-<a href="./posts/mhc/mhc.html" class="title listing-title">Predicting MHC-Peptide Binding with Machine Learning</a>
-</td>
-<td>
-<span class="listing-categories">deep learning, biology</span>
-</td>
-<td>
-<span class="listing-description">Using machine learning to predict peptide binding affinity to Major Histocompatibility Complex (MHC) molecules.</span>
-</td>
-</tr>
-<tr data-index="1" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDYmlvbG9neQ==" data-listing-date-sort="1713909600000" data-listing-file-modified-sort="1739099051206" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="18" data-listing-word-count-sort="3407" data-listing-title-sort="Encoding Distances in Molecules and Pockets: A Comparison of GBFPT and DCEPT" data-listing-filename-sort="unimol-gbf.qmd">
-<td>
-<span class="listing-date">Apr 24, 2024</span>
-</td>
-<td>
-<a href="./posts/encoding-distances/unimol-gbf.html" class="title listing-title">Encoding Distances in Molecules and Pockets: A Comparison of GBFPT and DCEPT</a>
-</td>
-<td>
-<span class="listing-categories">deep learning, biology</span>
-</td>
-<td>
-<span class="listing-description">A comparative analysis of Gaussian kernel with pair type (GBFPT) and Discretization categorical embedding with Pair Type (DCEPT) for encoding distances in 3D molecular representations, using the Uni-Mol framework.</span>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="listing-no-matching d-none">
-No matching items
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-schematic-view-MHC-T-cell-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Schematic view of the role of MHCs in T-cell activation. Class I Major Histocompatibility Complexes (MHC-I) are present in almost every cell and involved in the surface presentation of peptides derived from intracellular proteins. On the other hand, class II MHCs are present only in “professional” antigen-presenting cells (phagocytes) and involved in the surface presentation of peptides derived from extracellular proteins. The recognition of displayed peptideMHC complexes by the T-cell receptor (TCR) triggers T-cell activation, clonal expansion and immunological memory. While cytotoxic T-cells (CD8+) mediate cellular immunity, helper T-cells (CD4+) control the humoral response and have other regulatory roles. CD stands for cluster of differentiation. <span class="citation" data-cites="antunes2018">(<a href="#ref-antunes2018" role="doc-biblioref">Antunes et al. 2018</a>)</span>
+</figcaption>
+</figure>
 </div>
-</div></main> <!-- /main -->
+<p><em>Caption: This diagram illustrates how MHC molecules present peptides to T cells. Class I MHC molecules present peptides derived from inside the cell to cytotoxic T cells, while Class II MHC molecules present peptides derived from outside the cell to helper T cells.</em></p>
+<div id="fig-HLA-class-I-schematic-structure" class="quarto-float quarto-figure quarto-figure-center anchored" alt="MHC Class I Structure">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-HLA-class-I-schematic-structure-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/MHC_class_I_structure.webp" class="img-fluid figure-img" alt="MHC Class I Structure">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-HLA-class-I-schematic-structure-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: HLA class I schematic structure, source <span class="citation" data-cites="feng2014">(<a href="#ref-feng2014" role="doc-biblioref">Feng et al. 2014</a>)</span>.
+</figcaption>
+</figure>
+</div>
+<p><em>Caption: Schematic structure of an MHC Class I molecule, highlighting the peptide-binding groove. The sequence of the peptide and the MHC molecule affect the strength of the binding.</em></p>
+<p><strong>Relevance to Machine Learning</strong></p>
+<p>The goal of MHC-peptide binding prediction is to build models that can accurately predict the binding affinity between a given peptide sequence and a specific MHC allele. This can be formulated as a regression or classification problem.</p>
+<ul>
+<li><strong>Input:</strong> Peptide sequence, MHC allele (represented as a sequence or encoding).</li>
+<li><strong>Output:</strong> Binding affinity (e.g., IC50 value, Kd value) or a binary label (binder/non-binder).</li>
+</ul>
+<p>Feature engineering and model selection are critical steps in building accurate predictors. Common approaches include:</p>
+<ul>
+<li><strong>Sequence-based Features:</strong> Amino acid composition, n-grams, physicochemical properties.</li>
+<li><strong>Structure-based Features:</strong> (If available) Information about the 3D structure of the MHC-peptide complex.</li>
+<li><strong>Encoding MHC Alleles:</strong> Using techniques like one-hot encoding, amino acid embeddings, or more sophisticated methods to represent the MHC allele sequence.</li>
+<li><strong>Machine Learning Algorithms:</strong> Linear regression, Support Vector Machines (SVMs), Random Forests, Neural Networks (especially Convolutional Neural Networks and Transformers).</li>
+</ul>
+</section>
+<section id="sec-pred-mhc" class="level1">
+<h1>Predicting MHC Binding: A Machine Learning Approach</h1>
+<p><em>(This section would then describe your specific approach, feature engineering, model selection, and results. Focus on the ML aspects. Be sure to explain how you handled the MHC allele polymorphism in your model.)</em></p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-antunes2018" class="csl-entry" role="listitem">
+Antunes, Dinler A., Jayvee R. Abella, Didier Devaurs, Maurício M. Rigo, and Lydia E. Kavraki. 2018. <span>“Structure-based Methods for Binding Mode and Binding Affinity Prediction for Peptide-MHC Complexes.”</span> <em>Current Topics in Medicinal Chemistry</em> 18 (26): 2239–55. <a href="https://doi.org/10.2174/1568026619666181224101744">https://doi.org/10.2174/1568026619666181224101744</a>.
+</div>
+<div id="ref-feng2014" class="csl-entry" role="listitem">
+Feng, Lei, Mingwei Sun, Songpeng Dong, and Feng-Shan Gao. 2014. <span>“Progress in Crystallization of Major Histocompatibility Complex Class I in Vertebrates.”</span> <em>Chinese Science Bulletin</em> 59 (12): 1308–16. <a href="https://doi.org/10.1007/s11434-014-0211-z">https://doi.org/10.1007/s11434-014-0211-z</a>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -368,7 +344,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
     var mailtoRegex = new RegExp(/^mailto:/);
-      var filterRegex = new RegExp("https:\/\/nbrosse\.github\.io\/");
+      var filterRegex = new RegExp('/' + window.location.host + '/');
     var isInternal = (href) => {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }

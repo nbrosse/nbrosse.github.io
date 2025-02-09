@@ -2,15 +2,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.552">
+<meta name="generator" content="quarto-1.6.40">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Nicolas Brosse">
 <meta name="dcterms.date" content="2024-04-24">
-<meta name="description" content="Distance encoding">
+<meta name="description" content="A comparative analysis of Gaussian kernel with pair type (GBFPT) and Discretization categorical embedding with Pair Type (DCEPT) for encoding distances in 3D molecular representations, using the Uni-Mol framework.">
 
-<title>blog - Encoding distances in molecules and pockets</title>
+<title>Encoding Distances in Molecules and Pockets: A Comparison of GBFPT and DCEPT – Nicolas’ Notebook</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -36,7 +36,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -92,10 +92,10 @@ div.csl-indent {
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-313591559204ad6a7884cc02194e8f50.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -128,7 +128,7 @@ div.csl-indent {
 <link rel="stylesheet" href="../../styles.css">
 </head>
 
-<body class="nav-fixed fullcontent">
+<body class="nav-fixed">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top quarto-banner">
@@ -136,11 +136,11 @@ div.csl-indent {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../index.html">
-    <span class="navbar-title">blog</span>
+    <span class="navbar-title">Nicolas’ Notebook</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
@@ -161,7 +161,7 @@ div.csl-indent {
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
-          <div class="quarto-navbar-tools">
+            <div class="quarto-navbar-tools">
 </div>
       </div> <!-- /container-fluid -->
     </nav>
@@ -170,14 +170,15 @@ div.csl-indent {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Encoding distances in molecules and pockets</h1>
+      <h1 class="title">Encoding Distances in Molecules and Pockets: A Comparison of GBFPT and DCEPT</h1>
                   <div>
         <div class="description">
-          Distance encoding
+          A comparative analysis of Gaussian kernel with pair type (GBFPT) and Discretization categorical embedding with Pair Type (DCEPT) for encoding distances in 3D molecular representations, using the Uni-Mol framework.
         </div>
       </div>
                           <div class="quarto-categories">
-                <div class="quarto-category">ML</div>
+                <div class="quarto-category">deep learning</div>
+                <div class="quarto-category">biology</div>
               </div>
                   </div>
   </div>
@@ -206,7 +207,18 @@ div.csl-indent {
   </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sec-uni-mol-intro" id="toc-sec-uni-mol-intro" class="nav-link active" data-scroll-target="#sec-uni-mol-intro">Introduction to Uni-Mol and Distance Encoding</a></li>
+  <li><a href="#sec-experimental-setup" id="toc-sec-experimental-setup" class="nav-link" data-scroll-target="#sec-experimental-setup">Experimental Setup</a></li>
+  <li><a href="#sec-downstream-performance" id="toc-sec-downstream-performance" class="nav-link" data-scroll-target="#sec-downstream-performance">Downstream Performance: Pocket Retrieval</a></li>
+  <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+    </div>
 <!-- main -->
 <main class="content quarto-banner-title-block" id="quarto-document-content">
 
@@ -214,83 +226,98 @@ div.csl-indent {
 
 
 
-<p>In this article, we aim at comparing two different ways of encoding distances in 3D molecules and pockets. Our analysis relies on a universal 3D molecular representation learning framework Uni-Mol. Code <a href="https://github.com/dptech-corp/Uni-Mol" class="uri">https://github.com/dptech-corp/Uni-Mol</a> and article <span class="citation" data-cites="zhou2023unimol">(<a href="#ref-zhou2023unimol" role="doc-biblioref">Zhou et al. 2023</a>)</span> are available. In brief, Uni-Mol is a 3D foundation model for molecules and pockets based on a SE(3) Transformer architecture. It comprises two pretrained models: one for molecular conformations and another for protein pocket data. Uni-Mol is pretrained on large-scale unlabeled data and is able to directly take 3D positions as both inputs and outputs. Uni-Mol backbone is a Transformer based model that can capture the input 3D information and predict 3D positions directly. Uni-Mol pretraining is done on two large-scale datasets: a 209M molecular conformation dataset and a 3M candidate protein pocket dataset, for pretraining 2 models on molecules and protein pockets, respectively. In the pretraining phase, Uni-Mol has to predict masked atoms, as well as masked noisy atoms coordinates and distances for effectively learning 3D spatial representation. The overall pretraining architecture is illustrated in <a href="#fig-pretraining-architecture" class="quarto-xref">Figure&nbsp;2</a> and the framework is given in <a href="#fig-overview-unimol" class="quarto-xref">Figure&nbsp;1</a> (taken from <span class="citation" data-cites="zhou2023unimol">(<a href="#ref-zhou2023unimol" role="doc-biblioref">Zhou et al. 2023</a>)</span>).</p>
-<div id="fig-overview-unimol" class="quarto-figure quarto-figure-center quarto-float anchored" alt="Schematic illustration of the Uni-Mol framework">
+<p>This blog post compares two different methods for encoding distances in 3D molecules and protein pockets: Gaussian kernel with pair type (GBFPT) and Discretization categorical embedding with Pair Type (DCEPT). We analyze their performance within the Uni-Mol framework, a universal 3D molecular representation learning model. We observed unstable gradients with GBFPT and hypothesized that DCEPT, inspired by AlphaFold’s distance representation, might offer a more stable alternative. We found that while DCEPT exhibits more stable training behavior, GBFPT ultimately yields superior pocket embeddings for retrieval tasks.</p>
+<p>Before diving into the details, let’s define the acronyms used in this article:</p>
+<ul>
+<li><strong>GBFPT:</strong> Gaussian Basis Function with Pair Type</li>
+<li><strong>DCEPT:</strong> Discretization Categorical Embedding with Pair Type</li>
+</ul>
+<section id="sec-uni-mol-intro" class="level1">
+<h1>Introduction to Uni-Mol and Distance Encoding</h1>
+<p>Code for Uni-Mol is available at <a href="https://github.com/dptech-corp/Uni-Mol" class="uri">https://github.com/dptech-corp/Uni-Mol</a>, and the related article is <span class="citation" data-cites="zhou2023unimol">(<a href="#ref-zhou2023unimol" role="doc-biblioref">Zhou et al. 2023</a>)</span>. In brief, Uni-Mol is a 3D foundation model for molecules and pockets based on a SE(3) Transformer architecture. It comprises two pretrained models: one for molecular conformations and another for protein pocket data. Uni-Mol is pretrained on large-scale unlabeled data and is able to directly take 3D positions as both inputs and outputs. Uni-Mol backbone is a Transformer based model that can capture the input 3D information and predict 3D positions directly. Uni-Mol pretraining is done on two large-scale datasets: a 209M molecular conformation dataset and a 3M candidate protein pocket dataset, for pretraining 2 models on molecules and protein pockets, respectively. In the pretraining phase, Uni-Mol has to predict masked atoms, as well as masked noisy atoms coordinates and distances for effectively learning 3D spatial representation. The overall pretraining architecture is illustrated in <a href="#fig-pretraining-architecture" class="quarto-xref">Figure&nbsp;2</a> and the framework is given in <a href="#fig-overview-unimol" class="quarto-xref">Figure&nbsp;1</a> (taken from <span class="citation" data-cites="zhou2023unimol">(<a href="#ref-zhou2023unimol" role="doc-biblioref">Zhou et al. 2023</a>)</span>).</p>
+<div id="fig-overview-unimol" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Schematic illustration of the Uni-Mol framework">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-overview-unimol-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="https://github.com/dptech-corp/Uni-Mol"><img src="overview-unimol.png" class="img-fluid figure-img" alt="Schematic illustration of the Uni-Mol framework"></a>
+<a href="https://github.com/dptech-corp/Uni-Mol"><img src="figures/overview-unimol.png" class="img-fluid figure-img" alt="Schematic illustration of the Uni-Mol framework"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-overview-unimol-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;1: Schematic illustration of the Uni-Mol framework
 </figcaption>
 </figure>
 </div>
-<div id="fig-pretraining-architecture" class="quarto-figure quarto-figure-center quarto-float anchored" alt="Left: the overall pretraining architecture. Middle: the model inputs, including atom representation and pair representation. Right: details in the model block.">
+<div id="fig-pretraining-architecture" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Left: the overall pretraining architecture. Middle: the model inputs, including atom representation and pair representation. Right: details in the model block.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-pretraining-architecture-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="https://github.com/dptech-corp/Uni-Mol"><img src="overall-pretraining-architecture.png" class="img-fluid figure-img" alt="Left: the overall pretraining architecture. Middle: the model inputs, including atom representation and pair representation. Right: details in the model block."></a>
+<a href="https://github.com/dptech-corp/Uni-Mol"><img src="figures/overall-pretraining-architecture.png" class="img-fluid figure-img" alt="Left: the overall pretraining architecture. Middle: the model inputs, including atom representation and pair representation. Right: details in the model block."></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pretraining-architecture-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;2: Left: the overall pretraining architecture. Middle: the model inputs, including atom representation and pair representation. Right: details in the model block.
 </figcaption>
 </figure>
 </div>
+<p><strong>Background: 3D Spatial Encoding in Uni-Mol</strong></p>
 <p>We focus here on the encoding of the coordinates in distances (pair representation in <a href="#fig-pretraining-architecture" class="quarto-xref">Figure&nbsp;2</a> middle part) and the decoding part, prediction of distances (pair-dist head in <a href="#fig-pretraining-architecture" class="quarto-xref">Figure&nbsp;2</a> left part). In <span class="citation" data-cites="zhou2023unimol">(<a href="#ref-zhou2023unimol" role="doc-biblioref">Zhou et al. 2023</a>)</span> Section D.1, 3D spatial positional encodings benchmark, they investigate the performance of different 3D spatial positional encoding on the 3D molecular pretraining. In particular, they benchmarked:</p>
 <ul>
 <li><p>Gaussian kernel (GK), a simply Gaussian density function.</p></li>
-<li><p>Gaussian kennel with pair type (GKPT) <span class="citation" data-cites="shuaibi2021rotation">(<a href="#ref-shuaibi2021rotation" role="doc-biblioref">Shuaibi et al. 2021</a>)</span>. Based on GK, an affine transformation according to the pair type is applied on pair distances, before applying the Gaussian kernel.</p></li>
+<li><p>Gaussian kernel with pair type (GKPT) <span class="citation" data-cites="shuaibi2021rotation">(<a href="#ref-shuaibi2021rotation" role="doc-biblioref">Shuaibi et al. 2021</a>)</span>. Based on GK, an affine transformation according to the pair type is applied on pair distances, before applying the Gaussian kernel.</p></li>
 <li><p>Radial Bessel basis (RBB) <span class="citation" data-cites="NEURIPS2021_82489c97">(<a href="#ref-NEURIPS2021_82489c97" role="doc-biblioref">Gasteiger, Yeshwanth, and Günnemann 2021</a>)</span>. A Bessel based radial function.</p></li>
-<li><p>Discretization categorical embedding (DCE). We convert the continued distances to the discrete bins, by Discretization. With binned distances, embedding-based positional encoding is directly used.</p></li>
+<li><p>Discretization categorical embedding (DCE). They convert the continued distances to the discrete bins, by Discretization. With binned distances, embedding-based positional encoding is directly used.</p></li>
 <li><p>Delta coordinate (DC) <span class="citation" data-cites="9710703">(<a href="#ref-9710703" role="doc-biblioref">Zhao et al. 2021</a>)</span>. Following Point Transformer, the deltas of coordinates are directly used as pair-wise spatial relative positional encoding.</p></li>
-<li><p>Gaussian kennel with pair type and local graph (GKPTLG). Based on GKPT, we set up a model with locally connected graphs. In particular, the cutoff radius is set to 6 Å.</p></li>
+<li><p>Gaussian kernel with pair type and local graph (GKPTLG). Based on GKPT, they set up a model with locally connected graphs. In particular, the cutoff radius is set to 6 Å.</p></li>
 </ul>
 <p>The validation loss during pretraining for each encoding is summarized in <a href="#fig-val-loss-3D" class="quarto-xref">Figure&nbsp;3</a> (taken from <span class="citation" data-cites="zhou2023unimol">(<a href="#ref-zhou2023unimol" role="doc-biblioref">Zhou et al. 2023</a>)</span>). From the results, they drew the following conclusions:</p>
 <ul>
-<li><p>The performance of DCE and GK are almost the same, and outperform RBB and DC. And we choose GK as the basic encoding.</p></li>
-<li><p>Compared with GK, GKPT convergences faster. This indicates the pair type is critical in the 3D spatial positional encoding.</p></li>
-<li><p>Compared with GKPT, GKPTLG convergences slower. This indicates the locally cutoff graph is not effective for self-supervised learning, and the default fully connected graph in Transformer is more effective.</p></li>
+<li><p>The performance of DCE and GK are almost the same, and outperform RBB and DC. And they choose GK as the basic encoding.</p></li>
+<li><p>Compared with GK, GKPT converges faster. This indicates the pair type is critical in the 3D spatial positional encoding.</p></li>
+<li><p>Compared with GKPT, GKPTLG converges slower. This indicates the locally cutoff graph is not effective for self-supervised learning, and the default fully connected graph structure inherent in the Transformer architecture is more effective.</p></li>
 <li><p>As GKPT outperforms all other encoding, they use it in the backbone model of Uni-Mol.</p></li>
 </ul>
-<div id="fig-val-loss-3D" class="quarto-figure quarto-figure-center quarto-float anchored" alt="Validation loss in pretraining for different 3D spatial encodings">
+<div id="fig-val-loss-3D" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Validation loss in pretraining for different 3D spatial encodings">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-val-loss-3D-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="https://github.com/dptech-corp/Uni-Mol"><img src="validation-loss-3D-spatial-encoding.png" class="img-fluid figure-img" alt="Validation loss in pretraining for different 3D spatial encodings"></a>
+<a href="https://github.com/dptech-corp/Uni-Mol"><img src="figures/validation-loss-3D-spatial-encoding.png" class="img-fluid figure-img" alt="Validation loss in pretraining for different 3D spatial encodings"></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-val-loss-3D-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;3: Validation loss in pretraining for different 3D spatial encodings
 </figcaption>
 </figure>
 </div>
-<p>The code for the <a href="https://github.com/dptech-corp/Uni-Mol/blob/37c6ddc4a3f263b8885cd3fba2faebb5d0bef9f7/unimol/unimol/models/unimol.py#L396">GKPT encoding</a> is given by</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="at">@torch.jit.script</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gaussian(x, mean, std):</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    pi <span class="op">=</span> <span class="fl">3.14159</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    a <span class="op">=</span> (<span class="dv">2</span> <span class="op">*</span> pi) <span class="op">**</span> <span class="fl">0.5</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> torch.exp(<span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> (((x <span class="op">-</span> mean) <span class="op">/</span> std) <span class="op">**</span> <span class="dv">2</span>)) <span class="op">/</span> (a <span class="op">*</span> std)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> GaussianLayer(nn.Module):</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, K<span class="op">=</span><span class="dv">128</span>, edge_types<span class="op">=</span><span class="dv">1024</span>):</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.K <span class="op">=</span> K</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.means <span class="op">=</span> nn.Embedding(<span class="dv">1</span>, K)</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.stds <span class="op">=</span> nn.Embedding(<span class="dv">1</span>, K)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.mul <span class="op">=</span> nn.Embedding(edge_types, <span class="dv">1</span>)</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.bias <span class="op">=</span> nn.Embedding(edge_types, <span class="dv">1</span>)</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        nn.init.uniform_(<span class="va">self</span>.means.weight, <span class="dv">0</span>, <span class="dv">3</span>)</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        nn.init.uniform_(<span class="va">self</span>.stds.weight, <span class="dv">0</span>, <span class="dv">3</span>)</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        nn.init.constant_(<span class="va">self</span>.bias.weight, <span class="dv">0</span>)</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>        nn.init.constant_(<span class="va">self</span>.mul.weight, <span class="dv">1</span>)</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x, edge_type):</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>        mul <span class="op">=</span> <span class="va">self</span>.mul(edge_type).type_as(x)</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>        bias <span class="op">=</span> <span class="va">self</span>.bias(edge_type).type_as(x)</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> mul <span class="op">*</span> x.unsqueeze(<span class="op">-</span><span class="dv">1</span>) <span class="op">+</span> bias</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> x.expand(<span class="op">-</span><span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>, <span class="va">self</span>.K)</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>        mean <span class="op">=</span> <span class="va">self</span>.means.weight.<span class="bu">float</span>().view(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>        std <span class="op">=</span> <span class="va">self</span>.stds.weight.<span class="bu">float</span>().view(<span class="op">-</span><span class="dv">1</span>).<span class="bu">abs</span>() <span class="op">+</span> <span class="fl">1e-5</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> gaussian(x.<span class="bu">float</span>(), mean, std).type_as(<span class="va">self</span>.means.weight)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><code>K</code> represents the number of Gaussian basis functions, <code>edge_types</code> the number of possible edge types, <code>x</code> the distance matrix (for an initial 3D molecule or pocket) and <code>edge_type</code> the corresponding edge type matrix.</p>
+<p>The code for the <a href="https://github.com/dptech-corp/Uni-Mol/blob/37c6ddc4a3f263b8885cd3fba2faebb5d0bef9f7/unimol/unimol/models/unimol.py#L396">GKPT encoding</a> is given by:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">@torch.jit.script</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gaussian(x, mean, std):</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    pi <span class="op">=</span> <span class="fl">3.14159</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    a <span class="op">=</span> (<span class="dv">2</span> <span class="op">*</span> pi) <span class="op">**</span> <span class="fl">0.5</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> torch.exp(<span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> (((x <span class="op">-</span> mean) <span class="op">/</span> std) <span class="op">**</span> <span class="dv">2</span>)) <span class="op">/</span> (a <span class="op">*</span> std)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> GaussianLayer(nn.Module):</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, K<span class="op">=</span><span class="dv">128</span>, edge_types<span class="op">=</span><span class="dv">1024</span>):</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.K <span class="op">=</span> K</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.means <span class="op">=</span> nn.Embedding(<span class="dv">1</span>, K)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.stds <span class="op">=</span> nn.Embedding(<span class="dv">1</span>, K)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.mul <span class="op">=</span> nn.Embedding(edge_types, <span class="dv">1</span>)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.bias <span class="op">=</span> nn.Embedding(edge_types, <span class="dv">1</span>)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>        nn.init.uniform_(<span class="va">self</span>.means.weight, <span class="dv">0</span>, <span class="dv">3</span>)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        nn.init.uniform_(<span class="va">self</span>.stds.weight, <span class="dv">0</span>, <span class="dv">3</span>)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>        nn.init.constant_(<span class="va">self</span>.bias.weight, <span class="dv">0</span>)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>        nn.init.constant_(<span class="va">self</span>.mul.weight, <span class="dv">1</span>)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x, edge_type):</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>        mul <span class="op">=</span> <span class="va">self</span>.mul(edge_type).type_as(x)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>        bias <span class="op">=</span> <span class="va">self</span>.bias(edge_type).type_as(x)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> mul <span class="op">*</span> x.unsqueeze(<span class="op">-</span><span class="dv">1</span>) <span class="op">+</span> bias</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> x.expand(<span class="op">-</span><span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>, <span class="va">self</span>.K)</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>        mean <span class="op">=</span> <span class="va">self</span>.means.weight.<span class="bu">float</span>().view(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>        std <span class="op">=</span> <span class="va">self</span>.stds.weight.<span class="bu">float</span>().view(<span class="op">-</span><span class="dv">1</span>).<span class="bu">abs</span>() <span class="op">+</span> <span class="fl">1e-5</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> gaussian(x.<span class="bu">float</span>(), mean, std).type_as(<span class="va">self</span>.means.weight)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><code>K</code> represents the number of Gaussian basis functions, <code>edge_types</code> the number of possible edge types, <code>x</code> the distance matrix (for an initial 3D molecule or pocket) and <code>edge_type</code> the corresponding edge type matrix. <strong>Edge types</strong> represent the different types of atom pairs (e.g., C-C, C-O, C-N, etc.)</p>
+</section>
+<section id="sec-experimental-setup" class="level1">
+<h1>Experimental Setup</h1>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -301,65 +328,120 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>All the Uni-Mol experiments run for this article are based on a small pockets dataset inspired from PDBbind <a href="http://www.pdbbind.org.cn/" class="uri">http://www.pdbbind.org.cn/</a>. The dataset is split in a train and validation dataset relying on pockets similarities. The wandb project is available <a href="https://wandb.ai/nicolasb/unimol_analysis/" class="uri">https://wandb.ai/nicolasb/unimol_analysis/</a> as well as a summary report <a href="https://api.wandb.ai/links/nicolasb/kdz59bry" class="uri">https://api.wandb.ai/links/nicolasb/kdz59bry</a>.</p>
+<p>All the Uni-Mol experiments run for this article are based on a small pockets dataset inspired from the PDBbind database (<a href="http://www.pdbbind.org.cn/" class="uri">http://www.pdbbind.org.cn/</a>), a collection of protein-ligand complexes and their binding affinities. The dataset was split into training and validation sets based on pocket similarity. The wandb project is available <a href="https://wandb.ai/nicolasb/unimol_analysis/" class="uri">https://wandb.ai/nicolasb/unimol_analysis/</a> as well as a summary report <a href="https://api.wandb.ai/links/nicolasb/kdz59bry" class="uri">https://api.wandb.ai/links/nicolasb/kdz59bry</a>.</p>
 </div>
 </div>
-<p>When we train Uni-Mol on a small dataset of pockets inspired from PDBbind <a href="http://www.pdbbind.org.cn/" class="uri">http://www.pdbbind.org.cn/</a>, we remark that the gradients related to <code>GaussianLayer</code> parameters are not stable and can take very large values. In <a href="#fig-gbf-gradients" class="quarto-xref">Figure&nbsp;4</a>, some gradients are of the order of one thousand. Uni-Mol relies on <a href="https://github.com/dptech-corp/Uni-Core">Uni-Core</a> which implements gradient clipping and these high values do not affect the stability of the training.</p>
-<div id="fig-gbf-gradients" class="quarto-figure quarto-figure-center quarto-float anchored" alt="Gradients of GaussianLayer parameters (GBFPT encoding)">
+<p><strong>Motivation for DCEPT and Implementation</strong></p>
+<p>When we train Uni-Mol on a small dataset of pockets inspired from the PDBbind database, we remark that the gradients related to <code>GaussianLayer</code> parameters are not stable and can take very large values. To address the gradient instability observed with GBFPT, and drawing inspiration from AlphaFold’s use of discretization, we explored using a Discretization Categorical Embedding with Pair Type (DCEPT) as an alternative. In <a href="#fig-gbf-gradients" class="quarto-xref">Figure&nbsp;4</a>, some gradients are of the order of one thousand. Uni-Mol relies on <a href="https://github.com/dptech-corp/Uni-Core">Uni-Core</a> which implements gradient clipping and these high values do not affect the stability of the training.</p>
+<div id="fig-gbf-gradients" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Gradients of GaussianLayer parameters (GBFPT encoding)">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-gbf-gradients-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="gbfpt-gradients.png" class="img-fluid figure-img" alt="Gradients of GaussianLayer parameters (GBFPT encoding)">
+<img src="figures/gbfpt-gradients.png" class="img-fluid figure-img" alt="Gradients of GaussianLayer parameters (GBFPT encoding)">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gbf-gradients-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;4: Gradients of GaussianLayer parameters (GBFPT encoding)
 </figcaption>
 </figure>
 </div>
-<p>Nevertheless, we wanted to try another encoding that would be naturally stable without exploding gradients. Discretization categorical embedding (DCE) seemed to be another good encoding from Uni-Mol benchmark. Besides, DCE is the encoding used in AlphaFold <span class="citation" data-cites="Jumper2021">(<a href="#ref-Jumper2021" role="doc-biblioref">Jumper et al. 2021</a>)</span>. We implemented Discretization categorical embedding with Pair Type encoding (DCEPT) that takes into account the edge type.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> DistEncoding(nn.Module):</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>,</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        distogram_nb_bins: <span class="bu">int</span>,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        nb_edge_types: <span class="bu">int</span>,</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        embedding_dim: <span class="bu">int</span>,</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        edge_type_padding_idx: <span class="bu">int</span>,</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        encoder_attention_heads: <span class="bu">int</span>,</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        activation_fn: <span class="bu">str</span>,</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    ):</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>(DistEncoding, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.dist_embedding <span class="op">=</span> nn.Embedding(</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>            num_embeddings<span class="op">=</span>distogram_nb_bins,</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>            embedding_dim<span class="op">=</span>embedding_dim,</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>            padding_idx<span class="op">=</span>PAD_DIST,</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.edge_type_embedding <span class="op">=</span> nn.Embedding(</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>            num_embeddings<span class="op">=</span>nb_edge_types,</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>            embedding_dim<span class="op">=</span>embedding_dim,</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>            padding_idx<span class="op">=</span>edge_type_padding_idx,</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.projection <span class="op">=</span> NonLinearModule(</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>            input_dim<span class="op">=</span><span class="dv">2</span> <span class="op">*</span> embedding_dim,</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>            out_dim<span class="op">=</span>encoder_attention_heads,</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>            activation_fn<span class="op">=</span>activation_fn,</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(</span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, distogram: torch.Tensor, edge_types: torch.Tensor</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> torch.Tensor:</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        n_node <span class="op">=</span> distogram.size(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>        dist_embeddings <span class="op">=</span> <span class="va">self</span>.dist_embedding(distogram)</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>        edge_types_embeddings <span class="op">=</span> <span class="va">self</span>.edge_type_embedding(edge_types)</span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        embeddings <span class="op">=</span> torch.concat((dist_embeddings, edge_types_embeddings), dim<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        attn_bias <span class="op">=</span> <span class="va">self</span>.projection(embeddings)</span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>        attn_bias <span class="op">=</span> attn_bias.permute(<span class="dv">0</span>, <span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">2</span>).contiguous()</span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>        attn_bias <span class="op">=</span> attn_bias.view(<span class="op">-</span><span class="dv">1</span>, n_node, n_node)</span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> attn_bias</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Nevertheless, we wanted to try another encoding that would be naturally stable without exploding gradients. Furthermore, DCE is the encoding used in AlphaFold <span class="citation" data-cites="Jumper2021">(<a href="#ref-Jumper2021" role="doc-biblioref">Jumper et al. 2021</a>)</span>. We implemented Discretization categorical embedding with Pair Type encoding (DCEPT) that takes into account the edge type. A <strong>distogram</strong> is a discrete representation of the distance matrix, where distances are binned into predefined intervals. The binning process transforms continuous distances into discrete categories.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Constants</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>PAD_DIST <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> NonLinearModule(nn.Module):</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, input_dim, out_dim, activation_fn):</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.linear <span class="op">=</span> nn.Linear(input_dim, out_dim)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.activation <span class="op">=</span> <span class="bu">getattr</span>(nn, activation_fn)()</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.activation(<span class="va">self</span>.linear(x))</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> DistEncoding(nn.Module):</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>,</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        distogram_nb_bins: <span class="bu">int</span>,</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        nb_edge_types: <span class="bu">int</span>,</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        embedding_dim: <span class="bu">int</span>,</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>        edge_type_padding_idx: <span class="bu">int</span>,</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>        encoder_attention_heads: <span class="bu">int</span>,</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>        activation_fn: <span class="bu">str</span>,</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    ):</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co">        Initializes the DistEncoding module for encoding distances and edge types.</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="co">        Args:</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="co">            distogram_nb_bins: Number of bins for the distogram (distance discretization).</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="co">            nb_edge_types: Number of possible edge types (e.g., different bond types).</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="co">            embedding_dim: Dimension of the embeddings for distances and edge types.</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="co">            edge_type_padding_idx: Padding index for edge type embeddings.</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="co">            encoder_attention_heads: Number of attention heads in the Transformer encoder.</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co">            activation_fn: Activation function to use in the projection layer.</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>(DistEncoding, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Embedding layer for the distogram (discretized distances)</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.dist_embedding <span class="op">=</span> nn.Embedding(</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>            num_embeddings<span class="op">=</span>distogram_nb_bins,</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>            embedding_dim<span class="op">=</span>embedding_dim,</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>            padding_idx<span class="op">=</span>PAD_DIST,  <span class="co"># Use PAD_DIST for padding</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Embedding layer for edge types</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.edge_type_embedding <span class="op">=</span> nn.Embedding(</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>            num_embeddings<span class="op">=</span>nb_edge_types,</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>            embedding_dim<span class="op">=</span>embedding_dim,</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>            padding_idx<span class="op">=</span>edge_type_padding_idx,</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Projection layer to combine distance and edge type embeddings and project</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>        <span class="co"># to the correct dimension for attention bias.</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.projection <span class="op">=</span> NonLinearModule(</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>            input_dim<span class="op">=</span><span class="dv">2</span> <span class="op">*</span> embedding_dim,  <span class="co"># Concatenate dist and edge embeddings</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>            out_dim<span class="op">=</span>encoder_attention_heads,  <span class="co"># Output dimension matches attention heads</span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>            activation_fn<span class="op">=</span>activation_fn,</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, distogram: torch.Tensor, edge_types: torch.Tensor</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> torch.Tensor:</span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a><span class="co">        Forward pass of the DistEncoding module.</span></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a><span class="co">        Args:</span></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a><span class="co">            distogram: Tensor of discretized distances (batch_size, seq_len, seq_len).</span></span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a><span class="co">            edge_types: Tensor of edge types (batch_size, seq_len, seq_len).</span></span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a><span class="co">        Returns:</span></span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a><span class="co">            attn_bias: Tensor of attention biases (batch_size, num_heads, seq_len, seq_len).</span></span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>        n_node <span class="op">=</span> distogram.size(<span class="op">-</span><span class="dv">1</span>)  <span class="co"># Sequence length (number of nodes/atoms)</span></span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Embed the discretized distances</span></span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>        dist_embeddings <span class="op">=</span> <span class="va">self</span>.dist_embedding(distogram)  <span class="co"># (B, L, L, D)</span></span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Embed the edge types</span></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>        edge_types_embeddings <span class="op">=</span> <span class="va">self</span>.edge_type_embedding(edge_types)  <span class="co"># (B, L, L, D)</span></span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Concatenate distance and edge type embeddings</span></span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>        embeddings <span class="op">=</span> torch.cat((dist_embeddings, edge_types_embeddings), dim<span class="op">=-</span><span class="dv">1</span>)  <span class="co"># (B, L, L, 2D)</span></span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Project the combined embeddings to generate attention bias</span></span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>        attn_bias <span class="op">=</span> <span class="va">self</span>.projection(embeddings)  <span class="co"># (B, L, L, H) where H = num_heads</span></span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Reshape the attention bias to the correct format for the Transformer</span></span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>        attn_bias <span class="op">=</span> attn_bias.permute(<span class="dv">0</span>, <span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">2</span>).contiguous()  <span class="co"># (B, H, L, L)</span></span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>        attn_bias <span class="op">=</span> attn_bias.view(<span class="op">-</span><span class="dv">1</span>, n_node, n_node) <span class="co"># (B*H, L, L) - Correct if attention is applied per head.</span></span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> attn_bias</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><code>distogram_nb_bins</code> is the number of bins (128 by default), <code>nb_edge_types</code> the number of edge types, <code>embedding_dim</code> the dimension of the embedding (128 by default), <code>encoder_attention_heads</code> the number of attention heads in the transformer because the distance encoding is directly injected in the attention matrix. <code>distogram</code> is the distogram (discretization of the distance matrix) and <code>edge_types</code> the edge types. We concatenate the two embeddings creating <em>de facto</em> the DCEPT and then project to feed into the attention matrix.</p>
+<p><strong>Training Dynamics</strong></p>
 <p>During the training, the gradients related to <code>DistEncoding</code> parameters do not take large values and are naturally stable without clipping gradients. This is illustrated in <a href="#fig-dcept-gradients" class="quarto-xref">Figure&nbsp;5</a>.</p>
-<div id="fig-dcept-gradients" class="quarto-figure quarto-figure-center quarto-float anchored" alt="Gradients of DistEncoding parameters (DCEPT encoding)">
+<div id="fig-dcept-gradients" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Gradients of DistEncoding parameters (DCEPT encoding)">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-dcept-gradients-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="dcept-gradients.png" class="img-fluid figure-img" alt="Gradients of DistEncoding parameters (DCEPT encoding)">
+<img src="figures/dcept-gradients.png" class="img-fluid figure-img" alt="Gradients of DistEncoding parameters (DCEPT encoding)">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dcept-gradients-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;5: Gradients of DistEncoding parameters (DCEPT encoding)
@@ -367,31 +449,34 @@ Figure&nbsp;5: Gradients of DistEncoding parameters (DCEPT encoding)
 </figure>
 </div>
 <p>Following <span class="citation" data-cites="Jumper2021">(<a href="#ref-Jumper2021" role="doc-biblioref">Jumper et al. 2021</a>)</span> distogram prediction task, we also replace the distance prediction task (mean squared error loss) implemented in Uni-Mol by a distogram prediction task (cross entropy loss). We remark that this loss replacement does not change the characteristics of Uni-Mol.</p>
-<p>On the small pockets inspired from PDBbind <a href="http://www.pdbbind.org.cn/" class="uri">http://www.pdbbind.org.cn/</a>, we notice that the training and validation loss curves are better with DCEPT encoding compared to GBFPT encoding (on average), see <a href="#fig-gbfpt-dcept-losses-curves" class="quarto-xref">Figure&nbsp;6</a>. More precisely, the <code>masked_token_loss</code> and the <code>masked_acc</code> metrics related to the recovery of masked atoms seem to stagnate a little at first with DCEPT encoding compared to GBFPT encoding. It may be due to the fact that DCEPT are at first completely random embeddings and less intuitive for the neural network. However, the <code>masked_coord_loss</code> is better with DCEPT encoding both in the training and validation sets. Note that the <code>masked_distogram_loss</code> corresponds to the distogram loss (cross entropy loss) used in AlphaFold <span class="citation" data-cites="Jumper2021">(<a href="#ref-Jumper2021" role="doc-biblioref">Jumper et al. 2021</a>)</span> and is implemented only for DCEPT encoding. For DCEPT encoding, we also add a distance prediction head with the corresponding MSE loss taken from Uni-Mol and a small multiplication factor (0.01). That explains why the DCEPT <code>masked_dist_loss</code> decreases slightly slower than GBFPT. Several additional experiments (not shown here) demonstrate that using a distogram or distance loss does not change the behavior of Uni-Mol.</p>
-<p>In conclusion, according to the loss curves and the stability of the gradients, DCEPT seems to be a better encoding than GBFPT (or at least as good as).</p>
-<div id="fig-gbfpt-dcept-losses-curves" class="quarto-figure quarto-figure-center quarto-float anchored" alt="Uni-Mol training and validation losses with GBFPT and DCEPT encoding">
+<p>On the small pockets inspired from the PDBbind database, we notice that the training and validation loss curves are better with DCEPT encoding compared to GBFPT encoding (on average), see <a href="#fig-gbfpt-dcept-losses-curves" class="quarto-xref">Figure&nbsp;6</a>. More precisely, the <code>masked_token_loss</code> and the <code>masked_acc</code> metrics related to the recovery of masked atoms seem to stagnate a little at first with DCEPT encoding compared to GBFPT encoding. It may be due to the fact that DCEPT are at first completely random embeddings and less intuitive for the neural network. However, the <code>masked_coord_loss</code> is better with DCEPT encoding both in the training and validation sets. Note that the <code>masked_distogram_loss</code> corresponds to the distogram loss (cross entropy loss) used in AlphaFold <span class="citation" data-cites="Jumper2021">(<a href="#ref-Jumper2021" role="doc-biblioref">Jumper et al. 2021</a>)</span> and is implemented only for DCEPT encoding. For DCEPT encoding, we also add a distance prediction head with the corresponding MSE loss taken from Uni-Mol and a small multiplication factor (0.01). The rationale for including this head was to maintain some of the original Uni-Mol distance prediction capabilities alongside the distogram prediction. That explains why the DCEPT <code>masked_dist_loss</code> decreases slightly slower than GBFPT. Several additional experiments (not shown here) demonstrate that using a distogram or distance loss does not change the behavior of Uni-Mol.</p>
+<p>In conclusion, according to the loss curves and the stability of the gradients, DCEPT seems to be a better encoding than GBFPT (or at least as good as) <em>during pre-training</em>.</p>
+<div id="fig-gbfpt-dcept-losses-curves" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Uni-Mol training and validation losses with GBFPT and DCEPT encoding">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-gbfpt-dcept-losses-curves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="gbfpt-dcept-losses-curves.png" class="img-fluid figure-img" alt="Uni-Mol training and validation losses with GBFPT and DCEPT encoding">
+<img src="figures/gbfpt-dcept-losses-curves.png" class="img-fluid figure-img" alt="Uni-Mol training and validation losses with GBFPT and DCEPT encoding">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gbfpt-dcept-losses-curves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;6: Uni-Mol training and validation losses with GBFPT and DCEPT encoding
 </figcaption>
 </figure>
 </div>
+</section>
+<section id="sec-downstream-performance" class="level1">
+<h1>Downstream Performance: Pocket Retrieval</h1>
 <p>However, Uni-Mol stands as a foundational model pre-trained through unsupervised methods. The pre-training metrics do not reflect the expected capabilities of the model. Notably, we expect that the pockets embeddings obtained with Uni-Mol should be good proxies of the pockets themselves: if two pockets are close to each other, their embeddings should be close in cos similarity or euclidean distance.</p>
 <p>We have collected a dataset of 5 pockets (taken from <code>2oax,</code> <code>3oxc,</code> <code>5kxi,</code> <code>5zk3</code> and <code>6v7a</code> proteins) and for each pocket, a group of similar and dissimilar pockets. We compute the cos similarities between each reference pocket and the similar/dissimilar pockets and we sort the pockets by their cos similarity. Better embeddings translate into more similar pockets in the top retrieved pockets. More precisely, we sort the pockets by their cos similarities, we select the top 100 pockets, we count the number of similar pockets in the top 100 and we get a number between 0 and 1, the higher the better. We test two different embeddings: either, the vector corresponding to the <code>[CLS]</code> token (see <span class="citation" data-cites="zhou2023unimol">(<a href="#ref-zhou2023unimol" role="doc-biblioref">Zhou et al. 2023</a>)</span> Section 2.2) (indicated by <code>_cls</code>) or the mean of the pocket atoms vectors (indicated by <code>_mean</code>). <a href="#tbl-pockets-retrieval" class="quarto-xref">Table&nbsp;1</a> summarizes the results for each encoding, embedding and reference pocket and we remark that</p>
 <ul>
 <li><p>GBFPT is superior to DCEPT for pockets retrieval,</p></li>
 <li><p>The mean of the pocket atoms vectors is better or near as good as the <code>[CLS]</code> embedding.</p></li>
 </ul>
-<div id="tbl-pockets-retrieval" class="quarto-float anchored">
+<div id="tbl-pockets-retrieval" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-pockets-retrieval-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;1: Uni-Mol pockets retrieval with GBFPT or DCEPT encoding (higher is better)
 </figcaption>
 <div aria-describedby="tbl-pockets-retrieval-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="table">
+<table class="caption-top table">
 <thead>
 <tr class="header">
 <th></th>
@@ -440,24 +525,25 @@ Table&nbsp;1: Uni-Mol pockets retrieval with GBFPT or DCEPT encoding (higher is 
 </div>
 </figure>
 </div>
-<p>In conclusion, despite better pre-training behavior and metrics, DCEPT encoding is disappointing when it comes to embeddings comparison. We suppose that this defect comes from a higher sensitivity of the discretization procedure. Two distance matrices from two close pockets may be more sharply distinguished with DCEPT encoding compared to GBFPT encoding. To test this hypothesis, we take the <code>6v7a</code> pocket and we noise its coordinates with a uniform noise between 0 and 1A. Since we have a batch size of 16, we fill up a batch with the reference pocket <code>6v7a</code> and 15 noisy pockets. For each pocket, the distance matrix is encoded by GBFPT or DCEPT and we get an encoding of size 128 for each distance in the distance matrix. We compute the cos similarities between each encoding and the reference encoding in the reference matrix distance of <code>6v7a</code> and we obtain the overall statistics of these cos similarities for GBFPT and DCEPT. In <a href="#tbl-statistics-cos-similarities-6v7a" class="quarto-xref">Table&nbsp;2</a>, we have the absolute errors statistics between 1 and the cos similarities of the noisy pockets from <code>6v7a</code>, the lower the better. We remark that as presumed DCEPT encoding is less robust to noise compared to GBFPT encoding.</p>
-<div id="tbl-statistics-cos-similarities-6v7a" class="quarto-float anchored">
+<p><strong>Investigating Noise Sensitivity</strong></p>
+<p>In conclusion, despite better pre-training behavior and metrics, DCEPT encoding is disappointing when it comes to embeddings comparison. We suppose that this defect comes from a higher sensitivity of the discretization procedure. Two distance matrices from two close pockets may be more distinctly differentiated with DCEPT encoding compared to GBFPT encoding. This could be due to the information loss inherent in discretizing continuous distances. GBFPT might be capturing subtle long-range interactions that DCEPT, with its discrete representation, misses. To test this hypothesis, we take the <code>6v7a</code> pocket and we noise its coordinates with a uniform noise between 0 and 1A. Since we have a batch size of 16, we fill up a batch with the reference pocket <code>6v7a</code> and 15 noisy pockets. For each pocket, the distance matrix is encoded by GBFPT or DCEPT and we get an encoding of size 128 for each distance in the distance matrix. We compute the cos similarities between each encoding and the reference encoding in the reference matrix distance of <code>6v7a</code> and we obtain the overall statistics of these cos similarities for GBFPT and DCEPT. In <a href="#tbl-statistics-cos-similarities-6v7a" class="quarto-xref">Table&nbsp;2</a>, we have the absolute errors statistics between 1 and the cos similarities of the noisy pockets from <code>6v7a</code>, the lower the better because the vectors are similar. We remark that as presumed DCEPT encoding is less robust to noise compared to GBFPT encoding.</p>
+<div id="tbl-statistics-cos-similarities-6v7a" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-statistics-cos-similarities-6v7a-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;2: Statistics of cos similarities errors for noisy pockets from 6v7a
 </figcaption>
 <div aria-describedby="tbl-statistics-cos-similarities-6v7a-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="table">
+<table class="caption-top table">
 <colgroup>
-<col style="width: 9%">
-<col style="width: 45%">
-<col style="width: 45%">
+<col style="width: 5%">
+<col style="width: 47%">
+<col style="width: 47%">
 </colgroup>
 <thead>
 <tr class="header">
 <th></th>
-<th>Errors cos similarities GBFPT encoding</th>
-<th>Errors cos similarities DCEPT encoding</th>
+<th>Absolute errors cos similarities GBFPT encoding (1 - cos similarities)</th>
+<th>Absolute errors cos similarities DCEPT encoding (1 - cos similarities)</th>
 </tr>
 </thead>
 <tbody>
@@ -476,9 +562,14 @@ Table&nbsp;2: Statistics of cos similarities errors for noisy pockets from 6v7a
 </div>
 </figure>
 </div>
+</section>
+<section id="sec-conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>These results suggest that while DCEPT offers advantages during pre-training in terms of gradient stability, the discretization process might lead to a loss of information and reduced robustness, ultimately hindering the quality of the generated pocket embeddings for downstream tasks like pocket retrieval. Further research is needed to investigate the optimal bin size for distograms and to explore alternative distance encoding techniques that balance stability and information retention. This analysis was conducted on a small, custom-built pocket dataset, and future work should evaluate these encoding methods on larger, more diverse datasets to ensure the generalizability of our findings.</p>
 
 
 
+</section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-NEURIPS2021_82489c97" class="csl-entry" role="listitem">
@@ -532,18 +623,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -575,7 +655,27 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
     var mailtoRegex = new RegExp(/^mailto:/);
       var filterRegex = new RegExp("https:\/\/nbrosse\.github\.io\/");
@@ -583,7 +683,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }
     // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
     for (var i=0; i<links.length; i++) {
       const link = links[i];
       if (!isInternal(link.href)) {
@@ -680,7 +780,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       if (window.Quarto?.typesetMath) {
         window.Quarto.typesetMath(note);
       }
-      // TODO in 1.5, we should make sure this works without a callout special case
       if (note.classList.contains("callout")) {
         return note.outerHTML;
       } else {

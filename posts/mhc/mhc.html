@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.40">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Nicolas Brosse">
+<meta name="dcterms.date" content="2025-02-06">
+<meta name="description" content="Using machine learning to predict peptide binding affinity to Major Histocompatibility Complex (MHC) molecules.">
+
+<title>Predicting MHC-Peptide Binding with Machine Learning – Nicolas’ Notebook</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-313591559204ad6a7884cc02194e8f50.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Nicolas’ Notebook</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Predicting MHC-Peptide Binding with Machine Learning</h1>
+                  <div>
+        <div class="description">
+          Using machine learning to predict peptide binding affinity to Major Histocompatibility Complex (MHC) molecules.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">deep learning</div>
+                <div class="quarto-category">biology</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Nicolas Brosse </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">February 6, 2025</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sec-mhc" id="toc-sec-mhc" class="nav-link active" data-scroll-target="#sec-mhc">Understanding Major Histocompatibility Complex (MHC)</a>
+  <ul class="collapse">
+  <li><a href="#mhc-class-i-and-class-ii" id="toc-mhc-class-i-and-class-ii" class="nav-link" data-scroll-target="#mhc-class-i-and-class-ii">MHC Class I and Class II</a></li>
+  <li><a href="#datasets" id="toc-datasets" class="nav-link" data-scroll-target="#datasets">Datasets</a></li>
+  </ul></li>
+  <li><a href="#sec-pred-mhc" id="toc-sec-pred-mhc" class="nav-link" data-scroll-target="#sec-pred-mhc">Predicting MHC Binding: A Machine Learning Approach</a>
+  <ul class="collapse">
+  <li><a href="#relevance-to-machine-learning" id="toc-relevance-to-machine-learning" class="nav-link" data-scroll-target="#relevance-to-machine-learning">Relevance to Machine Learning</a></li>
+  <li><a href="#project-overview" id="toc-project-overview" class="nav-link" data-scroll-target="#project-overview">Project Overview</a>
+  <ul class="collapse">
+  <li><a href="#eda" id="toc-eda" class="nav-link" data-scroll-target="#eda">EDA</a></li>
+  <li><a href="#using-mhcflurry-pretrained-models-for-prediction" id="toc-using-mhcflurry-pretrained-models-for-prediction" class="nav-link" data-scroll-target="#using-mhcflurry-pretrained-models-for-prediction">Using MHCflurry Pretrained Models for Prediction</a></li>
+  <li><a href="#prediction-fitting-a-class1binaryneuralnetwork" id="toc-prediction-fitting-a-class1binaryneuralnetwork" class="nav-link" data-scroll-target="#prediction-fitting-a-class1binaryneuralnetwork">Prediction: Fitting a <code>Class1BinaryNeuralNetwork</code></a></li>
+  <li><a href="#metrics" id="toc-metrics" class="nav-link" data-scroll-target="#metrics">Metrics</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  </ul>
+<div class="quarto-alternate-notebooks"><h2>Notebooks</h2><ul><li><a href="notebooks/_EDA-preview.html"><i class="bi bi-journal-code"></i>EDA</a></li><li><a href="notebooks/_metrics-preview.html"><i class="bi bi-journal-code"></i>Metrics</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<p>This blog post explores the application of machine learning techniques to predict the binding affinity between peptides and Major Histocompatibility Complex (MHC) molecules. In <a href="#sec-mhc" class="quarto-xref">Section&nbsp;1</a>, we introduce the biological aspects of MHC. In <a href="#sec-pred-mhc" class="quarto-xref">Section&nbsp;2</a>, we then present the deep learning approach and the results of MHC antigen presentation.</p>
+<section id="sec-mhc" class="level1">
+<h1>Understanding Major Histocompatibility Complex (MHC)</h1>
+<p>The Major Histocompatibility Complex (MHC) is a crucial part of the immune system. It plays a key role in distinguishing between the body’s own cells and foreign invaders. The MHC is a region of DNA containing genes that code for cell surface proteins, known as MHC molecules. These molecules bind to fragments of proteins (antigens) and present them on the cell surface, allowing immune cells called T-cells to recognize and respond to potential threats. This interaction triggers an immune response when necessary.</p>
+<p>MHC molecules are involved in:</p>
+<ul>
+<li>Distinguishing self from non-self: Preventing autoimmune attacks.</li>
+<li>Activating the immune response: Targeting infected cells.</li>
+<li>Organ transplantation: Determining donor compatibility.</li>
+<li>Susceptibility to autoimmune diseases: Some MHC variations are linked to increased risk.</li>
+</ul>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>MHC molecules are like cellular “display cases” that present antigens to T cells, triggering an immune response when necessary.</p>
+</div>
+</div>
+<section id="mhc-class-i-and-class-ii" class="level2">
+<h2 class="anchored" data-anchor-id="mhc-class-i-and-class-ii">MHC Class I and Class II</h2>
+<p>MHC molecules are divided into two main classes: MHC class I and MHC class II.</p>
+<p><strong>MHC Class I</strong></p>
+<p>MHC class I molecules are present on most cells (except red blood cells). They present antigens from <em>inside</em> the cell. When a cell is infected or becomes cancerous, proteins within the cell are broken down into smaller fragments called epitopes. These epitopes are loaded onto MHC class I molecules and displayed on the cell surface. Killer T cells (cytotoxic T lymphocytes or CTLs) recognize these epitopes and can destroy infected or cancerous cells.</p>
+<div id="fig-mhc-class-I-pathway" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mhc-class-I-pathway-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/MHC_Class_I_processing.png" class="img-fluid figure-img" style="width:80.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mhc-class-I-pathway-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: MHC class I pathway: Proteins in the cytosol are degraded by the proteasome, liberating peptides internalized by TAP channel in the endoplasmic reticulum, there associating with MHC-I molecules freshly synthesized. MHC-I/peptide complexes enter Golgi apparatus, are glycosylated, enter secretory vesicles, fuse with the cell membrane, and externalize on the cell membrane interacting with T lymphocytes. This figure shows the detailed steps of how MHC Class I molecules get loaded. <a href="https://en.wikipedia.org/wiki/Major_histocompatibility_complex">Source</a>
+</figcaption>
+</figure>
+</div>
+<p>In humans, the main MHC class I molecules are HLA-A, HLA-B, and HLA-C (HLA stands for Human Leukocyte Antigen).</p>
+<p><strong>MHC Class II</strong></p>
+<p>MHC class II molecules are primarily found on specialized immune cells called antigen-presenting cells (APCs) like macrophages, dendritic cells, and B cells. They present antigens from <em>outside</em> the cell. APCs engulf foreign invaders and break them down into epitopes in a process called phagocytosis. These epitopes are loaded onto MHC class II molecules and displayed on the cell surface. Helper T cells recognize these epitopes and activate other immune cells to fight the infection. These Helper T cells have receptors that specifically bind to MHC Class II molecules. If a helper T cell recognizes a foreign epitope presented by MHC class II, it becomes activated and starts to coordinate the immune response. It releases chemical signals (cytokines) that help other immune cells, like B cells and killer T cells, to fight off the infection.</p>
+<div id="fig-schematic-view-MHC-T-cell" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-schematic-view-MHC-T-cell-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/Schematic-view-of-the-role-of-MHCs-in-T-cell-activation-Class-I-Major-Histocompatibility_W640.jpg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-schematic-view-MHC-T-cell-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: This diagram shows how MHC class I molecules present antigens from inside the cell to cytotoxic T cells (CD8+), leading to the destruction of infected cells. Notice how the antigen is processed inside the cell and then presented on the cell surface. On the contrary, MHC class II molecules present antigens from <em>outside</em> the cell to helper T cells (CD4+), which then activate other immune cells. Notice how this differs from MHC class I, which presents antigens from inside the cell.<span class="citation" data-cites="antunes2018">(<a href="#ref-antunes2018" role="doc-biblioref">Antunes et al. 2018</a>)</span>
+</figcaption>
+</figure>
+</div>
+<div id="fig-mol-structures-I-II-MHC" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mol-structures-I-II-MHC-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/Molecular-structures-of-class-I-and-class-II-MHCs-Molecular-representation-of-a-class-I_W640.jpg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mol-structures-I-II-MHC-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Molecular structures of class I and class II MHCs. Molecular representation of a class I MHC (A, C) and a class II MHC (B, D). The upper panel shows a top view, while the bottom panel shows a cross section side-view of the binding clefts. Note that the binding cleft of a class I receptor is deeper, with “closed” extremities, while the class II cleft is shallower, with open extremities. The pockets involved in binding primary “anchor” residues are indicated. Together, structural differences in the shape of the cleft and the location of binding pockets have an impact on the overall conformation of bound ligands (e.g., peptides tend to adopt bulged conformations when bound to class I, and more linear conformations when bound to class II). <span class="citation" data-cites="antunes2018">(<a href="#ref-antunes2018" role="doc-biblioref">Antunes et al. 2018</a>)</span>
+</figcaption>
+</figure>
+</div>
+<p>In humans, the main MHC class II molecules are HLA-DP, HLA-DQ, and HLA-DR.</p>
+<p><strong>Human Leukocyte Antigens (HLA)</strong></p>
+<p>In humans, MHC molecules are called Human Leukocyte Antigens (HLAs). The genes for HLA proteins are located within the MHC region on chromosome 6.</p>
+<p>HLAs are important for:</p>
+<ul>
+<li>Organ transplantation: HLA matching is crucial to prevent organ rejection.</li>
+<li>Autoimmune diseases: Certain HLA types are associated with increased risk of autoimmune diseases.</li>
+<li>Drug responses: HLA variations can influence how individuals respond to certain medications.</li>
+<li>Evolutionary advantage: HLA diversity is important for population survival against various pathogens.</li>
+</ul>
+<div id="fig-codominant-expr-HLA" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Codominant expression of HLA genes">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-codominant-expr-HLA-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/MHC_expression.png" class="img-fluid figure-img" alt="Codominant expression of HLA genes">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-codominant-expr-HLA-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Codominant expression of HLA genes. Each person inherits HLA genes from both parents, resulting in the expression of multiple HLA types. This increases the diversity of antigens that can be presented. <a href="https://en.wikipedia.org/wiki/Major_histocompatibility_complex">Source</a>
+</figcaption>
+</figure>
+</div>
+<p><strong>MHC Diversity</strong></p>
+<p>The MHC is highly diverse, with many different versions (alleles) of each MHC gene. This diversity is essential because different MHC molecules bind to different peptides. A diverse population is more likely to have individuals who can present antigens from new pathogens, ensuring better survival chances for the species.</p>
+</section>
+<section id="datasets" class="level2">
+<h2 class="anchored" data-anchor-id="datasets">Datasets</h2>
+<p>The <a href="https://www.ebi.ac.uk/ipd/imgt/hla/download/">IPD-IMGT/HLA Database</a> is a specialized resource focusing on the sequences of the human major histocompatibility complex (MHC) or human leukocyte antigen (HLA) system. It provides comprehensive information about HLA alleles, including their sequences, nomenclature, and associated metadata. This database is crucial for researchers in immunology, transplantation, and vaccine development, as accurate HLA typing is essential for understanding immune responses and predicting transplant compatibility. The <a href="https://www.iedb.org/home_v3.php">IEDB (Immune Epitope Database)</a> is a widely used resource for curated experimental data on immune epitopes. It catalogs epitopes recognized by T cells and B cells in various diseases and conditions. The IEDB facilitates research in epitope discovery, vaccine design, and understanding immune recognition, offering tools and data for analyzing and predicting immune responses.</p>
+</section>
+</section>
+<section id="sec-pred-mhc" class="level1">
+<h1>Predicting MHC Binding: A Machine Learning Approach</h1>
+<section id="relevance-to-machine-learning" class="level2">
+<h2 class="anchored" data-anchor-id="relevance-to-machine-learning">Relevance to Machine Learning</h2>
+<p>The interaction between an MHC molecule and a peptide is highly dependent on the amino acid sequence of the peptide and the specific type of MHC molecule. This sequence-structure-function relationship makes MHC-peptide binding prediction a suitable problem for machine learning. Experimental data on MHC-peptide binding affinities, though sometimes sparse, is available for training and evaluating predictive models. The high polymorphism of MHC genes, with numerous variants (alleles) existing in the population, adds complexity and motivates the development of specific prediction models.</p>
+<p><strong>Key MHC Concepts:</strong></p>
+<ul>
+<li>MHC Class I and Class II: The two main classes of MHC molecules.</li>
+<li>Epitope: The specific part of the peptide recognized by the T cell receptor.</li>
+<li>Polymorphism: The existence of multiple versions (alleles) of MHC genes within a population. Different MHC alleles bind to different sets of peptides.</li>
+<li>Binding Affinity: The strength of the interaction between an MHC molecule and a peptide. Often measured experimentally, it serves as the target variable for many machine learning models.</li>
+</ul>
+<p><strong>Machine Learning Approaches</strong></p>
+<p>MHC-peptide binding prediction aims to develop models that accurately predict the binding affinity between a given peptide sequence and a specific MHC allele. This can be framed as a regression or classification task.</p>
+<ul>
+<li><strong>Input:</strong> Peptide sequence, MHC allele (represented as a sequence or encoding).</li>
+<li><strong>Output:</strong> Binding affinity (e.g., IC50 value, Kd value) or a binary label (binder/non-binder).</li>
+</ul>
+<p>Feature engineering and model selection are crucial for building effective predictors. Common approaches include:</p>
+<ul>
+<li><strong>Sequence-based Features:</strong> Amino acid composition, n-grams, physicochemical properties.</li>
+<li><strong>Structure-based Features:</strong> (If available) Information about the 3D structure of the MHC-peptide complex.</li>
+<li><strong>MHC Allele Encoding:</strong> Techniques such as one-hot encoding, amino acid embeddings, or other methods to represent the MHC allele sequence.</li>
+<li><strong>Machine Learning Algorithms:</strong> Linear regression, Support Vector Machines (SVMs), Random Forests, Neural Networks (including Convolutional Neural Networks and Transformers).</li>
+</ul>
+</section>
+<section id="project-overview" class="level2">
+<h2 class="anchored" data-anchor-id="project-overview">Project Overview</h2>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The code is available at <a href="https://github.com/nbrosse/mhcpred">https://github.com/nbrosse/mhcpred</a>.</p>
+</div>
+</div>
+<p>The goal of this project is to build a machine learning classifier that predicts whether a given peptide will be presented by a specific MHC class I protein, identified by its allele name. The data used for this project is derived from the training and evaluation data of NetMHCPan4.1 <span class="citation" data-cites="10.1093/nar/gkaa379">(<a href="#ref-10.1093/nar/gkaa379" role="doc-biblioref">Reynisson et al. 2020</a>)</span>, a well-established framework for MHC binding prediction. The data is split into training and testing sets, with the training data further divided into five folds for cross-validation.</p>
+<p>The dataset contains a binary target variable, “hit” (1 if the peptide is presented by the MHC, 0 otherwise), and two features:</p>
+<ul>
+<li><p><strong>“peptide”</strong>: The amino acid sequence of the peptide. These short chains of amino acids are potential antigens that could be presented to the immune system.</p></li>
+<li><p><strong>“allele”</strong>: The name of the MHC class I allele. MHC molecules are highly polymorphic, meaning there are many different versions (alleles) within the human population. Each allele has a slightly different binding groove, affecting which peptides it can bind and present. You can find details on the naming convention <a href="https://hla.alleles.org/nomenclature/naming.html">here (nomenclature)</a>.</p></li>
+</ul>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Predicting MHC antigen presentation is a complex field. This project provides a simplified introduction to the problem. For a more in-depth understanding, we recommend exploring <em>NetMHCPan</em> <span class="citation" data-cites="10.1093/nar/gkaa379">(<a href="#ref-10.1093/nar/gkaa379" role="doc-biblioref">Reynisson et al. 2020</a>)</span> and <em>MHCflurry</em> <span class="citation" data-cites="2020mhcflurry">(<a href="#ref-2020mhcflurry" role="doc-biblioref">O’Donnell, Rubinsteyn, and Laserson 2020</a>)</span> and the references cited within those publications. Note that the specific data used in this project is derived from NetMHCPan4.1 but must remain private.</p>
+</div>
+</div>
+<p>We begin with Exploratory Data Analysis (EDA) to understand the characteristics of our data.</p>
+<section id="eda" class="level3 quarto-embed-nb-cell">
+<h3 class="anchored" data-anchor-id="eda">EDA</h3>
+<div id="cell-1" class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Import data loading functions</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mhcpred.data <span class="im">import</span> get_train_data, get_test_data</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Load training and test data</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>df_train <span class="op">=</span> get_train_data()</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>df_test <span class="op">=</span> get_test_data()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-2" class="cell" data-executetime="{&quot;end_time&quot;:&quot;2025-02-05T13:43:52.307258Z&quot;,&quot;start_time&quot;:&quot;2025-02-05T13:43:52.300772Z&quot;}" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View first few rows of training data</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>df_train.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">peptide</th>
+<th data-quarto-table-cell-role="th">allele</th>
+<th data-quarto-table-cell-role="th">hit</th>
+<th data-quarto-table-cell-role="th">fold</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>YFPLAPFNQL</td>
+<td>HLA-C*14:02</td>
+<td>True</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>KESKINQVF</td>
+<td>HLA-B*44:02</td>
+<td>True</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>QPHDPLVPLSA</td>
+<td>HLA-B*54:01</td>
+<td>True</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>RTIADSLINSF</td>
+<td>HLA-B*57:03</td>
+<td>True</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>EEKTIIKKL</td>
+<td>HLA-B*44:03</td>
+<td>True</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="cell-3" class="cell" data-executetime="{&quot;end_time&quot;:&quot;2025-02-05T13:45:54.622597Z&quot;,&quot;start_time&quot;:&quot;2025-02-05T13:45:54.468772Z&quot;}" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get allele counts in training data</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>df_train[[<span class="st">"allele"</span>]].value_counts()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>allele     
+HLA-A*02:01    265252
+HLA-B*07:02    201038
+HLA-B*57:01    184773
+HLA-A*29:02    181136
+HLA-B*40:02    145817
+                ...  
+HLA-A*69:01        12
+HLA-A*02:06         6
+HLA-A*26:02         6
+HLA-A*26:03         6
+HLA-A*25:01         6
+Name: count, Length: 130, dtype: int64</code></pre>
+</div>
+</div>
+<div id="cell-4" class="cell" data-executetime="{&quot;end_time&quot;:&quot;2025-02-05T13:45:55.572188Z&quot;,&quot;start_time&quot;:&quot;2025-02-05T13:45:55.537389Z&quot;}" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>df_test[<span class="st">"allele"</span>].value_counts()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>allele
+HLA-A*02:02    77053
+HLA-A*02:06    54510
+HLA-A*02:11    48445
+HLA-B*53:01    46991
+HLA-B*15:17    45917
+HLA-A*02:05    45136
+HLA-B*15:03    44968
+HLA-A*33:01    43333
+HLA-A*66:01    41538
+HLA-C*12:03    36448
+HLA-C*03:03    35568
+HLA-A*11:01    33424
+HLA-A*30:02    33180
+HLA-C*08:02    32416
+HLA-A*23:01    30467
+HLA-A*32:01    28036
+HLA-B*40:02    23768
+HLA-B*14:02    21601
+HLA-B*37:01    20048
+HLA-B*40:01    18908
+HLA-B*45:01    18750
+HLA-B*18:01    18284
+HLA-B*58:01    17946
+HLA-B*15:02    16702
+HLA-B*15:01    16624
+HLA-A*30:01    15837
+HLA-C*07:02    15293
+HLA-B*46:01    14015
+HLA-B*38:01     9509
+HLA-B*35:03     8275
+HLA-A*26:01     7730
+HLA-C*05:01     7033
+HLA-A*25:01     6906
+HLA-A*68:01     5648
+HLA-B*08:01     3365
+HLA-B*07:02     2469
+Name: count, dtype: int64</code></pre>
+</div>
+</div>
+<div id="cell-5" class="cell" data-executetime="{&quot;end_time&quot;:&quot;2025-02-05T13:45:56.870493Z&quot;,&quot;start_time&quot;:&quot;2025-02-05T13:45:56.743371Z&quot;}" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get positive samples per allele in training</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>df_train.groupby(<span class="st">"allele"</span>).hit.<span class="bu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<pre><code>allele
+HLA-A*01:01     7156
+HLA-A*01:03        7
+HLA-A*02:01    13025
+HLA-A*02:03     1873
+HLA-A*02:04     3155
+               ...  
+HLA-C*12:04        3
+HLA-C*14:02     2441
+HLA-C*15:02     1873
+HLA-C*16:01     2970
+HLA-C*17:01      602
+Name: hit, Length: 130, dtype: int64</code></pre>
+</div>
+</div>
+<div id="cell-6" class="cell" data-executetime="{&quot;end_time&quot;:&quot;2025-02-05T13:45:57.928913Z&quot;,&quot;start_time&quot;:&quot;2025-02-05T13:45:57.925379Z&quot;}" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>df_train.hit.<span class="bu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>197547</code></pre>
+</div>
+</div>
+<div id="cell-7" class="cell" data-executetime="{&quot;end_time&quot;:&quot;2025-02-05T13:45:58.855838Z&quot;,&quot;start_time&quot;:&quot;2025-02-05T13:45:58.852857Z&quot;}" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="bu">len</span>(df_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>3679405</code></pre>
+</div>
+</div>
+<div id="cell-8" class="cell" data-executetime="{&quot;end_time&quot;:&quot;2025-02-05T13:46:00.506378Z&quot;,&quot;start_time&quot;:&quot;2025-02-05T13:46:00.502194Z&quot;}" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ~5.37% positive rate</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>df_train.hit.<span class="bu">sum</span>() <span class="op">/</span> <span class="bu">len</span>(df_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>0.05368993084479692</code></pre>
+</div>
+</div>
+<div id="cell-9" class="cell" data-executetime="{&quot;end_time&quot;:&quot;2025-02-05T13:46:05.063785Z&quot;,&quot;start_time&quot;:&quot;2025-02-05T13:46:05.026823Z&quot;}" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>df_test.groupby(<span class="st">"allele"</span>).hit.<span class="bu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>allele
+HLA-A*02:02    3063
+HLA-A*02:05    2016
+HLA-A*02:06    1975
+HLA-A*02:11    2035
+HLA-A*11:01    2309
+HLA-A*23:01    1697
+HLA-A*25:01     396
+HLA-A*26:01     555
+HLA-A*30:01     892
+HLA-A*30:02    2415
+HLA-A*32:01    1436
+HLA-A*33:01    2138
+HLA-A*66:01    1988
+HLA-A*68:01     433
+HLA-B*07:02     159
+HLA-B*08:01     180
+HLA-B*14:02    1056
+HLA-B*15:01     769
+HLA-B*15:02     637
+HLA-B*15:03    1953
+HLA-B*15:17    1712
+HLA-B*18:01     784
+HLA-B*35:03     330
+HLA-B*37:01    1253
+HLA-B*38:01     619
+HLA-B*40:01    1268
+HLA-B*40:02    1333
+HLA-B*45:01     760
+HLA-B*46:01     575
+HLA-B*53:01    2016
+HLA-B*58:01     866
+HLA-C*03:03    2003
+HLA-C*05:01     383
+HLA-C*07:02     593
+HLA-C*08:02    1546
+HLA-C*12:03    1273
+Name: hit, dtype: int64</code></pre>
+</div>
+</div>
+<div id="cell-10" class="cell" data-executetime="{&quot;end_time&quot;:&quot;2025-02-05T13:46:06.399065Z&quot;,&quot;start_time&quot;:&quot;2025-02-05T13:46:06.395786Z&quot;}" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>df_test.hit.<span class="bu">sum</span>() <span class="op">/</span> <span class="bu">len</span>(df_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>0.04800130213150049</code></pre>
+</div>
+</div>
+<div id="cell-11" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find alleles only in test set</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span>(df_test.allele.unique()) <span class="op">-</span> <span class="bu">set</span>(df_train.allele.unique())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>{'HLA-A*02:02', 'HLA-A*02:11', 'HLA-A*33:01', 'HLA-B*53:01'}</code></pre>
+</div>
+</div>
+<ul>
+<li><strong>Dataset Class Imbalance</strong>
+<ul>
+<li><strong>Training Set:</strong>
+<ul>
+<li>Total samples: 3,679,405</li>
+<li>Positive rate: 5.37%</li>
+</ul></li>
+<li><strong>Test Set:</strong>
+<ul>
+<li>Total samples: 453,934</li>
+<li>Positive rate: 4.8%</li>
+</ul></li>
+</ul></li>
+<li><strong>Allele Distribution</strong>
+<ul>
+<li>Most frequent: HLA-A*02:01 (265,252 samples)</li>
+<li>Least frequent: Multiple alleles with only 6 samples</li>
+<li>Distribution: Highly imbalanced across alleles</li>
+</ul></li>
+<li><strong>Test-Only Alleles</strong>
+<ul>
+<li>HLA-A*02:02</li>
+<li>HLA-A*02:11</li>
+<li>HLA-A*33:01</li>
+<li>HLA-B*53:01</li>
+</ul></li>
+</ul>
+<a class="quarto-notebook-link" id="nblink-1" href="notebooks/_EDA-preview.html#cell-0">Source: EDA</a></section>
+<section id="using-mhcflurry-pretrained-models-for-prediction" class="level3">
+<h3 class="anchored" data-anchor-id="using-mhcflurry-pretrained-models-for-prediction">Using MHCflurry Pretrained Models for Prediction</h3>
+<p>We leverage the <a href="https://github.com/openvax/mhcflurry">mhcflurry package</a> to build our classifier. MHCflurry is a tool specifically designed for MHC binding affinity prediction. See also the associated paper <span class="citation" data-cites="2020mhcflurry">(<a href="#ref-2020mhcflurry" role="doc-biblioref">O’Donnell, Rubinsteyn, and Laserson 2020</a>)</span>. MHCflurry is a software package focused on predicting how strongly peptides bind to MHC class I molecules. It’s based on machine learning models trained on a large dataset of experimentally measured peptide-MHC binding affinities. The current version uses neural networks trained with a mix of binding affinity and mass spectrometry data (ligand presentation).</p>
+<p>We use the Binding Affinity pretrained model from mhcflurry to predict the binding affinity of peptides to MHC class I molecules using <code>Class1AffinityPredictor</code>. The following code assumes you have installed <code>mhcflurry</code> and downloaded the required pretrained models.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mhcflurry-downloads</span> fetch models_class1_presentation</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/mhcflurry_benchmark.py</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> predict_with_mhcflurry() <span class="op">-&gt;</span> pd.DataFrame:</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    predictor <span class="op">=</span> Class1AffinityPredictor.load()</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    df_test <span class="op">=</span> get_test_data()</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    mhcflurry_predictions <span class="op">=</span> predictor.predict_to_dataframe(</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>        peptides<span class="op">=</span>df_test.peptide.values,</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>        alleles<span class="op">=</span>df_test.allele.values,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>        allele<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> pd.merge(df_test, mhcflurry_predictions, on<span class="op">=</span>[<span class="st">"allele"</span>, <span class="st">"peptide"</span>], how<span class="op">=</span><span class="st">"left"</span>)</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    df.to_csv(<span class="bu">str</span>(output_path <span class="op">/</span> <span class="st">"mhcflurry_predictions.csv"</span>), index<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The output is of the form:</p>
+<div id="tbl-mhcflurry-pretrained-predictions" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-mhcflurry-pretrained-predictions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: MHCflurry pretrained model predictions.
+</figcaption>
+<div aria-describedby="tbl-mhcflurry-pretrained-predictions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 6%">
+<col style="width: 11%">
+<col style="width: 12%">
+<col style="width: 16%">
+<col style="width: 17%">
+<col style="width: 22%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">peptide</th>
+<th style="text-align: left;">hit</th>
+<th style="text-align: left;">allele</th>
+<th style="text-align: right;">prediction</th>
+<th style="text-align: right;">prediction_low</th>
+<th style="text-align: right;">prediction_high</th>
+<th style="text-align: right;">prediction_percentile</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">AAPATRAAL</td>
+<td style="text-align: left;">True</td>
+<td style="text-align: left;">HLA-B*35:03</td>
+<td style="text-align: right;">94.297</td>
+<td style="text-align: right;">59.902</td>
+<td style="text-align: right;">144.624</td>
+<td style="text-align: right;">0.205</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AAPSAAREL</td>
+<td style="text-align: left;">True</td>
+<td style="text-align: left;">HLA-B*35:03</td>
+<td style="text-align: right;">116.19</td>
+<td style="text-align: right;">79.847</td>
+<td style="text-align: right;">169.241</td>
+<td style="text-align: right;">0.262</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">AEISQIHQSVTD</td>
+<td style="text-align: left;">True</td>
+<td style="text-align: left;">HLA-B*35:03</td>
+<td style="text-align: right;">26103.26</td>
+<td style="text-align: right;">22695.389</td>
+<td style="text-align: right;">28415</td>
+<td style="text-align: right;">15.739</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ALEEQLQQIRAE</td>
+<td style="text-align: left;">True</td>
+<td style="text-align: left;">HLA-B*35:03</td>
+<td style="text-align: right;">24797.131</td>
+<td style="text-align: right;">19988.967</td>
+<td style="text-align: right;">28062.65</td>
+<td style="text-align: right;">13.571</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">AQDPLLLQM</td>
+<td style="text-align: left;">True</td>
+<td style="text-align: left;">HLA-B*35:03</td>
+<td style="text-align: right;">2164.336</td>
+<td style="text-align: right;">745.888</td>
+<td style="text-align: right;">5390.727</td>
+<td style="text-align: right;">1.413</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ASAPPGPPA</td>
+<td style="text-align: left;">True</td>
+<td style="text-align: left;">HLA-B*35:03</td>
+<td style="text-align: right;">1398.729</td>
+<td style="text-align: right;">387.675</td>
+<td style="text-align: right;">3293.692</td>
+<td style="text-align: right;">1.157</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">DAHKGVAL</td>
+<td style="text-align: left;">True</td>
+<td style="text-align: left;">HLA-B*35:03</td>
+<td style="text-align: right;">84.315</td>
+<td style="text-align: right;">54.736</td>
+<td style="text-align: right;">133.899</td>
+<td style="text-align: right;">0.175</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">DNPIQTVSL</td>
+<td style="text-align: left;">True</td>
+<td style="text-align: left;">HLA-B*35:03</td>
+<td style="text-align: right;">1386.767</td>
+<td style="text-align: right;">565.122</td>
+<td style="text-align: right;">3667.21</td>
+<td style="text-align: right;">1.151</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">DPEAFLVQI</td>
+<td style="text-align: left;">True</td>
+<td style="text-align: left;">HLA-B*35:03</td>
+<td style="text-align: right;">245.485</td>
+<td style="text-align: right;">133.986</td>
+<td style="text-align: right;">394.752</td>
+<td style="text-align: right;">0.484</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The first 3 columns come from the test dataset.</p>
+<ul>
+<li><strong>peptide</strong>: The amino acid sequence of the peptide being evaluated.</li>
+<li><strong>hit</strong>: The ground truth, a boolean value indicating whether the peptide is known to be presented by the given MHC allele (<code>True</code>) or not (<code>False</code>).</li>
+<li><strong>allele</strong>: The name of the MHC class I allele being considered.</li>
+</ul>
+<p>The following columns are added by the binding affinity predictions:</p>
+<ul>
+<li><strong>prediction</strong>: The raw prediction score from the MHCflurry model. Higher values generally indicate a stronger predicted binding affinity. These values are not directly interpretable in isolation.</li>
+<li><strong>prediction_low/prediction_high</strong>: These represent the lower and upper bounds of a 95% confidence interval around the <code>prediction</code> value. They provide an estimate of the uncertainty associated with the prediction.</li>
+<li><strong>prediction_percentile</strong>: This is the most useful column for interpreting the results. It represents the percentile rank of the <code>prediction</code> score compared to a background distribution of scores for random peptides. A lower percentile indicates a stronger predicted binding affinity. For example, a percentile of 1.0 means that the predicted score is in the top 1% of all possible scores.</li>
+</ul>
+<p>The uncertainty estimation comes from the ensemble of neural networks used for the prediction. A percentile threshold (e.g., 2%) is commonly used to determine whether a peptide is likely to bind (lower is better).</p>
+</section>
+<section id="prediction-fitting-a-class1binaryneuralnetwork" class="level3">
+<h3 class="anchored" data-anchor-id="prediction-fitting-a-class1binaryneuralnetwork">Prediction: Fitting a <code>Class1BinaryNeuralNetwork</code></h3>
+<p>We now fit a <code>Class1BinaryNeuralNetwork</code> on the training dataset. The code is available at <a href="https://github.com/nbrosse/mhcpred">https://github.com/nbrosse/mhcpred</a>.</p>
+<p>Here’s a glimpse of the training data structure:</p>
+<div id="tbl-training-data" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-training-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Training data.
+</figcaption>
+<div aria-describedby="tbl-training-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">peptide</th>
+<th style="text-align: left;">allele</th>
+<th style="text-align: left;">hit</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">YFPLAPFNQL</td>
+<td style="text-align: left;">HLA-C*14:02</td>
+<td style="text-align: left;">True</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">KESKINQVF</td>
+<td style="text-align: left;">HLA-B*44:02</td>
+<td style="text-align: left;">True</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">QPHDPLVPLSA</td>
+<td style="text-align: left;">HLA-B*54:01</td>
+<td style="text-align: left;">True</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">RTIADSLINSF</td>
+<td style="text-align: left;">HLA-B*57:03</td>
+<td style="text-align: left;">True</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Challenges arise in encoding the peptide and allele sequences for use in a neural network. Peptides have variable lengths, and alleles are represented by their names.</p>
+<p>The <code>MHCFlurry</code> package provides a mapping between alleles and their corresponding MHC molecule sequences within the <code>allele_sequences.csv</code> file. This mapping is crucial for encoding the alleles.</p>
+<div id="tbl-allele-sequences" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-allele-sequences-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;3: Allele sequences.
+</figcaption>
+<div aria-describedby="tbl-allele-sequences-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Allele</th>
+<th style="text-align: left;">Sequence</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">HLA-A*01:01</td>
+<td style="text-align: left;">YFAMYQENMAHTDANTLYGIIYDRDYTWVARVYRGYA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">HLA-A*01:02</td>
+<td style="text-align: left;">YSAMYQENMAHTDANTLYGIIYDRDYTWVARVYRGYA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">HLA-A*01:03</td>
+<td style="text-align: left;">YFAMYQENMAHTDANTLYGIMYDRDYTWVARVYRGYA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">HLA-A*01:04</td>
+<td style="text-align: left;">YFAMYQENMAHTDANTLYGIIYDRDYTWVARVYRGYX</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">HLA-A*01:06</td>
+<td style="text-align: left;">YFAMYQENMAHTDANTLYGIIYDRDYTWVALAYRGYA</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>First, we import necessary libraries. We also import components from our own <code>mhcpred</code> library, which contains the neural network architecture and data loading functions.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pickle</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Iterator</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mhcflurry.allele_encoding <span class="im">import</span> AlleleEncoding</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mhcflurry.encodable_sequences <span class="im">import</span> EncodableSequences</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mhcpred.class1_binary_nn <span class="im">import</span> Class1BinaryNeuralNetwork</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mhcpred.config <span class="im">import</span> settings</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mhcpred.data <span class="im">import</span> get_test_data, get_train_data</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mhcpred.hyperparameters <span class="im">import</span> base_hyperparameters</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>We load the allele sequences, training data, and test data using helper functions. The allele sequences are crucial for encoding the MHC alleles.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>allele_sequences <span class="op">=</span> pd.read_csv(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">str</span>(data_path <span class="op">/</span> <span class="st">"allele_sequences.csv"</span>), index_col<span class="op">=</span><span class="dv">0</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>).iloc[:, <span class="dv">0</span>]</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>df_total_train <span class="op">=</span> get_train_data()</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>df_test <span class="op">=</span> get_test_data()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>We determine the alleles present in our data and filter the loaded allele sequences to only include those we’ll be using.</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>alleles_in_use <span class="op">=</span> <span class="bu">set</span>(df_total_train.allele).union(<span class="bu">set</span>(df_test.allele))</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>allele_sequences_in_use <span class="op">=</span> allele_sequences[allele_sequences.index.isin(alleles_in_use)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The <a href="https://github.com/openvax/mhcflurry/blob/8e9f35381a476362ca41cb71eb0a90f6573fe4b3/mhcflurry/allele_encoding.py"><code>AlleleEncoding</code> class</a> is designed to cache encodings for a sequence of alleles. It maps allele names to integer indices and sequences, allowing consistent use of these mappings, especially as inputs to neural networks. The <a href="https://github.com/openvax/mhcflurry/blob/8e9f35381a476362ca41cb71eb0a90f6573fe4b3/mhcflurry/encodable_sequences.py"><code>EncodableSequences</code> class</a> is used to encode variable-length peptides into fixed-size numerical matrices. It caches various encodings of a list of sequences and provides methods to encode these sequences into fixed-length categorical or vector representations.</p>
+<p>We also split the training data into training and validation sets using <code>train_test_split</code> from <code>sklearn</code>. Stratified splitting ensures the class balance is maintained across the training and validation sets. The validation data is also preprocessed by encoding the peptides and alleles.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>allele_encoding <span class="op">=</span> AlleleEncoding(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    alleles<span class="op">=</span>allele_sequences_in_use.index.values,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    allele_to_sequence<span class="op">=</span>allele_sequences_in_use.to_dict(),</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>df_train, df_val <span class="op">=</span> train_test_split(</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>    df_total_train, test_size<span class="op">=</span><span class="fl">0.1</span>, shuffle<span class="op">=</span><span class="va">True</span>, stratify<span class="op">=</span>df_total_train.hit.values</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>val_peptides <span class="op">=</span> EncodableSequences(df_val.peptide.values)</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>val_alleles <span class="op">=</span> AlleleEncoding(</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>    alleles<span class="op">=</span>df_val.allele.values,</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>    allele_to_sequence<span class="op">=</span>allele_sequences_in_use.to_dict(),</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><code>AlleleEncoding</code> provides a robust and efficient way to manage and encode allele sequences. It handles the complexities of mapping allele names to indices, storing and padding sequences, and providing different encoding options. The <code>AlleleEncoding</code> class manages allele sequences efficiently:</p>
+<ol type="1">
+<li><strong>Allele Universe vs.&nbsp;Used Alleles:</strong> The class distinguishes between two sets of alleles:</li>
+</ol>
+<ul>
+<li><strong>Allele Universe:</strong> The complete set of alleles the system <em>knows</em> about. This is defined by the <code>allele_to_sequence</code> dictionary, mapping allele names to their amino acid sequences.</li>
+<li><strong>Used Alleles:</strong> The specific set of alleles used in a particular analysis or task. This is provided as a list when creating an <code>AlleleEncoding</code> instance.</li>
+</ul>
+<ol start="2" type="1">
+<li><p><strong><code>allele_to_index</code> Mapping:</strong> A dictionary (<code>self.allele_to_index</code>) is created to map each allele in the <em>universe</em> to a unique integer index. This includes a special index for <code>None</code> values, often used as padding. This mapping ensures consistency: the same allele always gets the same index.</p></li>
+<li><p><strong>Sequence Storage (<code>self.sequences</code>):</strong> The amino acid sequences for all alleles in the <em>universe</em> are stored in a Pandas Series (<code>self.sequences</code>). Critically, these sequences are padded to the same length using “X” characters. This padding is essential for creating fixed-length numerical representations, which many machine learning models require.</p></li>
+<li><p><strong>Borrowing (<code>borrow_from</code>):</strong> The <code>borrow_from</code> parameter allows you to create a new <code>AlleleEncoding</code> instance that <em>inherits</em> the allele universe and mappings from an existing instance. This is a powerful way to ensure consistency across different parts of your code. You don’t have to redefine the <code>allele_to_sequence</code> mapping every time.</p></li>
+<li><p><strong>Encoding:</strong> The class provides methods to encode the allele sequences into numerical matrices, suitable for machine learning.</p></li>
+</ol>
+<ul>
+<li><code>allele_representations(encoding_name)</code>: Encodes the <em>entire allele universe</em>. This is useful for pre-calculating encodings for all known alleles.</li>
+<li><code>fixed_length_vector_encoded_sequences(encoding_name)</code>: Encodes the <em>used alleles</em> (the subset provided when the object was initialized). This uses the pre-calculated encodings from <code>allele_representations</code> and selects only the encodings for the alleles in <code>self.alleles</code>, in the correct order. This gives you a matrix where each row represents an allele sequence.</li>
+</ul>
+<ol start="6" type="1">
+<li><strong>Encoding Methods (<code>encoding_name</code>):</strong> The type of encoding can be specified using the <code>encoding_name</code> parameter. Common options include “BLOSUM62” (a substitution matrix) and “one-hot” encoding.</li>
+</ol>
+<p>BLOSUM62 (Blocks Substitution Matrix) is a widely used substitution matrix in bioinformatics. It represents the likelihood of one amino acid being substituted for another during evolution. The matrix assigns a score to each pair of amino acids, reflecting their similarity. Higher scores indicate a higher probability of substitution (or that the two amino acids are more similar). Negative scores indicate substitutions that are less likely or even unfavorable.</p>
+<p>The <code>AlleleEncoding</code> class uses BLOSUM62 to convert amino acid sequences into numerical representations. Each amino acid in the sequence is replaced by a vector of 21 numbers (20 amino acids + the “X” character). Each of these 21 numbers is the BLOSUM62 score between the amino acid in the sequence and the amino acid represented by the position in the 21-element vector.</p>
+<ol type="1">
+<li><p><strong>Amino Acid Indexing:</strong> First, each amino acid is converted to an index. There’s a mapping from amino acid letter to index.</p></li>
+<li><p><strong>BLOSUM62 Lookup:</strong> For each amino acid in the sequence, the code looks up its corresponding row in the BLOSUM62 matrix. This row represents the similarity scores between that amino acid and all other amino acids (and ‘X’).</p></li>
+<li><p><strong>Vector Representation:</strong> The row from the BLOSUM62 matrix becomes the vector representation of that amino acid. So, “M” would be represented by a vector of 21 numbers (the scores of M with every other amino acid and X), and “A” would also be represented by its own 21-number vector.</p></li>
+<li><p><strong>Sequence Encoding:</strong> The encoded sequence becomes a matrix. If the original sequence was of length <em>n</em>, the encoded sequence is now an <em>n</em> x 21 matrix.</p></li>
+</ol>
+<p>The <code>train_data_iterator</code> function is a generator that yields batches of training data. This function also handles filtering of alleles that might be present in the training data but not in the <code>allele_sequences</code> data to handle potential data inconsistencies.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> train_data_iterator(</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    df_train: pd.DataFrame,</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    train_allele_encoding: AlleleEncoding,</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    batch_size: <span class="bu">int</span> <span class="op">=</span> <span class="dv">1024</span>,</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> Iterator[<span class="bu">tuple</span>[AlleleEncoding, EncodableSequences, np.ndarray]]:</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="co">    This function creates a data generator for training the neural network.</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="co">    It iterates over the training data in batches and yields tuples of </span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="co">    (allele_encoding, peptide_sequences, labels).  It also handles filtering</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="co">    of alleles not found in the initial allele encoding.</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get unique alleles in the training set.</span></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>    alleles <span class="op">=</span> df_train.allele.unique()</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Filter alleles to keep only those for which sequences are available.</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>    usable_alleles <span class="op">=</span> [</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>        c <span class="cf">for</span> c <span class="kw">in</span> alleles <span class="cf">if</span> c <span class="kw">in</span> train_allele_encoding.allele_to_sequence</span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Using </span><span class="sc">%d</span><span class="st"> / </span><span class="sc">%d</span><span class="st"> alleles"</span> <span class="op">%</span> (<span class="bu">len</span>(usable_alleles), <span class="bu">len</span>(alleles)))</span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(</span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Skipped alleles: "</span>,</span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>        [c <span class="cf">for</span> c <span class="kw">in</span> alleles <span class="cf">if</span> c <span class="kw">not</span> <span class="kw">in</span> train_allele_encoding.allele_to_sequence],</span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a>    df_train <span class="op">=</span> df_train.query(<span class="st">"allele in @usable_alleles"</span>)</span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate the number of batches.</span></span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a>    n_splits <span class="op">=</span> np.ceil(<span class="bu">len</span>(df_train) <span class="op">/</span> batch_size)</span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Infinite loop to allow for multiple epochs.</span></span>
+<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="va">True</span>:</span>
+<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Split the training data into batches.</span></span>
+<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>        epoch_dfs <span class="op">=</span> np.array_split(df_train.copy(), n_splits)</span>
+<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> k, df <span class="kw">in</span> <span class="bu">enumerate</span>(epoch_dfs):</span>
+<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="bu">len</span>(df) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a>                <span class="cf">continue</span></span>
+<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Encode peptides and alleles for the current batch.</span></span>
+<span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a>            encodable_peptides <span class="op">=</span> EncodableSequences(df.peptide.values)</span>
+<span id="cb27-37"><a href="#cb27-37" aria-hidden="true" tabindex="-1"></a>            allele_encoding <span class="op">=</span> AlleleEncoding(</span>
+<span id="cb27-38"><a href="#cb27-38" aria-hidden="true" tabindex="-1"></a>                alleles<span class="op">=</span>df.allele.values,</span>
+<span id="cb27-39"><a href="#cb27-39" aria-hidden="true" tabindex="-1"></a>                borrow_from<span class="op">=</span>train_allele_encoding,  <span class="co"># Reuse encoding from main allele_encoding</span></span>
+<span id="cb27-40"><a href="#cb27-40" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb27-41"><a href="#cb27-41" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Yield the encoded data and labels (hit column).</span></span>
+<span id="cb27-42"><a href="#cb27-42" aria-hidden="true" tabindex="-1"></a>            <span class="cf">yield</span> (allele_encoding, encodable_peptides, df.hit.values)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The neural network model is initialized using the <code>Class1BinaryNeuralNetwork</code> class. Base hyperparameters are used for initialization. The model is then trained using the <code>fit_generator</code> method. This method takes the training data generator, validation data, and other parameters like the number of epochs and steps per epoch. The <code>steps_per_epoch</code> is calculated based on the training data size and batch size.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> Class1BinaryNeuralNetwork(<span class="op">**</span>base_hyperparameters)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>steps_per_epoch <span class="op">=</span> np.ceil(<span class="bu">len</span>(df_train) <span class="op">/</span> batch_size)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>batch_size <span class="op">=</span> <span class="dv">1024</span>  <span class="co"># Define batch_size here</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>train_generator <span class="op">=</span> train_data_iterator(df_train, allele_encoding, batch_size) <span class="co">#create the generator</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>model.fit_generator(</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    generator<span class="op">=</span>train_generator,</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    validation_peptide_encoding<span class="op">=</span>val_peptides,</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    validation_affinities<span class="op">=</span>df_val.hit.values,</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    validation_allele_encoding<span class="op">=</span>val_alleles,</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    validation_inequalities<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>    validation_output_indices<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>    steps_per_epoch<span class="op">=</span>steps_per_epoch,</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>    epochs<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The <code>Class1BinaryNeuralNetwork</code> neural network takes two inputs:</p>
+<ul>
+<li><strong>Allele:</strong> A single input representing the MHC allele.</li>
+<li><strong>Peptide:</strong> A sequence of 45 amino acids represented as a 21-dimensional vector for each amino acid (likely using BLOSUM62 encoding or a similar technique).</li>
+</ul>
+<p>The network then processes these inputs through several layers:</p>
+<ol type="1">
+<li><p><strong>Embedding Layer:</strong> The allele input is passed through an embedding layer. This layer learns a 777-dimensional vector representation for each allele, capturing its key characteristics relevant to peptide binding.</p></li>
+<li><p><strong>Flatten Layers:</strong> These layers reshape the input data. The peptide input, which is initially a 45x21 matrix, is flattened into a 945-element vector. Similarly, the 1x777 allele embedding is flattened into a 777-element vector. This prepares the data for the subsequent dense layers.</p></li>
+<li><p><strong>Concatenate Layer:</strong> The flattened representations of the peptide and allele are combined into a single 1722-element vector. This crucial step merges the information from both inputs, allowing the network to learn the combined effect of allele and peptide on binding affinity.</p></li>
+<li><p><strong>Dense Layers:</strong> These are fully connected layers. The first dense layer transforms the 1722-element vector into a 1024-element vector, and the second further reduces it to 512 elements. These layers learn complex non-linear relationships between the combined allele and peptide representation, extracting features crucial for predicting binding affinity.</p></li>
+<li><p><strong>Dropout Layers:</strong> Dropout is a regularization technique. During training, these layers randomly “drop out” (ignore) a fraction of neurons. This prevents the network from overfitting to the training data and improves its ability to generalize to unseen data.</p></li>
+<li><p><strong>Output Layer:</strong> The final dense layer has a single output neuron. This neuron outputs a single value, representing the predicted binding affinity between the given peptide and MHC allele. Since we’re predicting a binary “hit” variable, a sigmoid activation function is used in this layer to output a probability between 0 and 1.</p></li>
+</ol>
+<p>This architecture is designed to effectively learn the complex patterns governing MHC-peptide binding.</p>
+<p>Finally, the trained model is used to make predictions on the test data. The test data is preprocessed in the same way as the training data, and the <code>predict</code> method of the model is used to generate predictions. These predictions are then added to the test dataframe and saved to a CSV file.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>test_peptides <span class="op">=</span> df_test.peptide.values</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>test_allele_encoding <span class="op">=</span> AlleleEncoding(</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>    alleles<span class="op">=</span>df_test.allele.values,</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    allele_to_sequence<span class="op">=</span>allele_sequences_in_use.to_dict(),</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>predictions <span class="op">=</span> model.predict(</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    peptides<span class="op">=</span>test_peptides,</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    allele_encoding<span class="op">=</span>test_allele_encoding,</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>df_test[<span class="st">"predictions"</span>] <span class="op">=</span> predictions</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>df_test.to_csv(<span class="bu">str</span>(output_path <span class="op">/</span> <span class="st">"mhcpred_predictions.csv"</span>), index<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>We evaluate the predictions of the two methods (mhcflurry and mhcpred) using standard binary classification metrics.</p>
+</section>
+<section id="metrics" class="level3 quarto-embed-nb-cell">
+<h3 class="anchored" data-anchor-id="metrics">Metrics</h3>
+<p>This notebook contains training metrics history and classification metrics computed on the predictions by - mhcflurry (benchmark) - mhcpred</p>
+<div id="cell-1" class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pickle</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mhcpred.config <span class="im">import</span> settings</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> accuracy_score, confusion_matrix, balanced_accuracy_score</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> classification_report</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> ConfusionMatrixDisplay</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>models_path <span class="op">=</span> Path(settings.models_path)</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>output_path <span class="op">=</span> Path(settings.output_path)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Information on the training history</strong></p>
+<p>I prefer to use tensorboard, but it is not implemented in the mhcflurry package. The information is quite scarce, but when you execute the code, you have the loss for each step and not only for the whole epoch. Of course, it is a very basic version of logging and should be improved.</p>
+<div id="cell-3" class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="bu">str</span>(models_path <span class="op">/</span> <span class="st">"model.pickle"</span>), <span class="st">"rb"</span>) <span class="im">as</span> f:</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>    model <span class="op">=</span> pickle.load(f)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-4" class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>model.fit_info</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="27">
+<pre><code>[{'learning_rate': 0.0010000000474974513,
+  'loss': [0.09700655937194824, 0.06465369462966919],
+  'val_loss': [0.06880103051662445, 0.05075661838054657],
+  'time': 524.7155420780182,
+  'num_points': 6628048}]</code></pre>
+</div>
+</div>
+<p><strong>Binary classification metrics</strong></p>
+<p>We compute the usual binary classification metrics on the unbalanced test dataset: accuracy, balanced accuracy, confusion matrix and classification report by scikit-learn.</p>
+<p>We report the unbalanced accuracy because the dataset is very unbalanced so the accuracy only is not a good measure of accuracy (the model can predict always False and it works quite well).</p>
+<p><strong>mhcflurry metrics</strong></p>
+<div id="cell-7" class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>mhcflurry_rank_percentile_threshold <span class="op">=</span> <span class="dv">2</span>  <span class="co"># rank threshold for positive hits</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co"># It comes from the mhcflurry article.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-8" class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(<span class="bu">str</span>(output_path <span class="op">/</span> <span class="st">"mhcflurry_predictions.csv"</span>))</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>y_pred <span class="op">=</span> df.prediction_percentile.values <span class="op">&lt;=</span> mhcflurry_rank_percentile_threshold</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>y_true <span class="op">=</span> df.hit.values</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>acc <span class="op">=</span> accuracy_score(y_true<span class="op">=</span>y_true, y_pred<span class="op">=</span>y_pred)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>confusion_mat <span class="op">=</span> confusion_matrix(y_true<span class="op">=</span>y_true, y_pred<span class="op">=</span>y_pred)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>balanced_acc <span class="op">=</span> balanced_accuracy_score(y_true<span class="op">=</span>y_true, y_pred<span class="op">=</span>y_pred)</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>class_report <span class="op">=</span> classification_report(y_true<span class="op">=</span>y_true, y_pred<span class="op">=</span>y_pred, output_dict<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>disp <span class="op">=</span> ConfusionMatrixDisplay(confusion_matrix<span class="op">=</span>confusion_mat)</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>disp.plot()</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="mhc_files/figure-html/notebooks-_metrics-cell-6-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="cell-9" class="cell" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(class_report)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              precision    recall  f1-score   support
+
+       False       0.99      0.98      0.99    900996
+        True       0.67      0.86      0.76     45423
+
+    accuracy                           0.97    946419
+   macro avg       0.83      0.92      0.87    946419
+weighted avg       0.98      0.97      0.97    946419
+</code></pre>
+</div>
+</div>
+<div id="cell-10" class="cell" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>acc, balanced_acc</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="31">
+<pre><code>(0.9731936911663861, 0.9217833819652606)</code></pre>
+</div>
+</div>
+<p>The metrics are quite good. We note that we do not have a good precision on the True class (0.67), the model has a tendency to predict True too often, so we have too many False Positives. We see it on the confusion matrix, 19234 False Positives.</p>
+<p><strong>mhcpred metrics</strong></p>
+<div id="cell-13" class="cell" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>mhcpred_proba_threshold <span class="op">=</span> <span class="fl">0.5</span>  <span class="co"># by default, but we try to tune it later</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-14" class="cell" data-execution_count="33">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(<span class="bu">str</span>(output_path <span class="op">/</span> <span class="st">"mhcpred_predictions.csv"</span>))</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>y_true <span class="op">=</span> df.hit.values</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>y_pred <span class="op">=</span> df.predictions.values <span class="op">&gt;=</span> mhcpred_proba_threshold</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>acc <span class="op">=</span> accuracy_score(y_true<span class="op">=</span>df.hit.values, y_pred<span class="op">=</span>y_pred)</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>confusion_mat <span class="op">=</span> confusion_matrix(y_true<span class="op">=</span>df.hit.values, y_pred<span class="op">=</span>y_pred)</span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>balanced_acc <span class="op">=</span> balanced_accuracy_score(y_true<span class="op">=</span>df.hit.values, y_pred<span class="op">=</span>y_pred)</span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>class_report <span class="op">=</span> classification_report(y_true<span class="op">=</span>y_true, y_pred<span class="op">=</span>y_pred, output_dict<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>disp <span class="op">=</span> ConfusionMatrixDisplay(confusion_matrix<span class="op">=</span>confusion_mat)</span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>disp.plot()</span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="mhc_files/figure-html/notebooks-_metrics-cell-10-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="cell-15" class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>acc, balanced_acc</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="34">
+<pre><code>(0.9731657332258088, 0.7775326900487307)</code></pre>
+</div>
+</div>
+<div id="cell-16" class="cell" data-execution_count="35">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(class_report)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              precision    recall  f1-score   support
+
+       False       0.98      0.99      0.99    900725
+        True       0.82      0.56      0.67     45416
+
+    accuracy                           0.97    946141
+   macro avg       0.90      0.78      0.83    946141
+weighted avg       0.97      0.97      0.97    946141
+</code></pre>
+</div>
+</div>
+<p>mhcpred has worse performances compared to mhcflurry, see the balanced accuracy. On the True class, in that case, the recall is not good (0.56), the model has a tendency to predict False too often, on the confusion matrix we have 20000 True Negatives. It indicates that if we lower the threshold, we may improve the model.</p>
+<p><strong>Threshold tuning</strong></p>
+<p>We plot the precision recall curve to try to identify a better threshold.</p>
+<div id="cell-19" class="cell" data-execution_count="36">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> precision_recall_curve, PrecisionRecallDisplay</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>precision, recall, thresholds <span class="op">=</span> precision_recall_curve(y_true<span class="op">=</span>y_true, probas_pred<span class="op">=</span>df.predictions.values)</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>disp <span class="op">=</span> PrecisionRecallDisplay(precision<span class="op">=</span>precision, recall<span class="op">=</span>recall)</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>disp.plot()</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="mhc_files/figure-html/notebooks-_metrics-cell-13-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="cell-20" class="cell" data-execution_count="37">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>precision_recall_thresholds <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"precision"</span>: precision[:<span class="op">-</span><span class="dv">1</span>],</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"recall"</span>: recall[:<span class="op">-</span><span class="dv">1</span>],</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"thresholds"</span>: thresholds,</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-21" class="cell" data-execution_count="38">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>precision_recall_thresholds</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="38">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">precision</th>
+<th data-quarto-table-cell-role="th">recall</th>
+<th data-quarto-table-cell-role="th">thresholds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>0.048001</td>
+<td>1.000000</td>
+<td>0.000114</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>0.048001</td>
+<td>1.000000</td>
+<td>0.000116</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>0.048001</td>
+<td>1.000000</td>
+<td>0.000117</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>0.048001</td>
+<td>1.000000</td>
+<td>0.000125</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>0.048002</td>
+<td>1.000000</td>
+<td>0.000125</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">889313</td>
+<td>1.000000</td>
+<td>0.000110</td>
+<td>0.992152</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">889314</td>
+<td>1.000000</td>
+<td>0.000088</td>
+<td>0.992280</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">889315</td>
+<td>1.000000</td>
+<td>0.000066</td>
+<td>0.992347</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">889316</td>
+<td>1.000000</td>
+<td>0.000044</td>
+<td>0.992431</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">889317</td>
+<td>1.000000</td>
+<td>0.000022</td>
+<td>0.992971</td>
+</tr>
+</tbody>
+</table>
+
+<p>889318 rows × 3 columns</p>
+</div>
+</div>
+</div>
+<p>A threshold of approx. 0.2 seems to be a good compromise for precision/recall.</p>
+<div id="cell-23" class="cell" data-execution_count="39">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>mhcpred_proba_threshold <span class="op">=</span> <span class="fl">0.2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-24" class="cell" data-execution_count="40">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(<span class="bu">str</span>(output_path <span class="op">/</span> <span class="st">"mhcpred_predictions.csv"</span>))</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>y_true <span class="op">=</span> df.hit.values</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>y_pred <span class="op">=</span> df.predictions.values <span class="op">&gt;=</span> mhcpred_proba_threshold</span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>acc <span class="op">=</span> accuracy_score(y_true<span class="op">=</span>df.hit.values, y_pred<span class="op">=</span>y_pred)</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>confusion_mat <span class="op">=</span> confusion_matrix(y_true<span class="op">=</span>df.hit.values, y_pred<span class="op">=</span>y_pred)</span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>balanced_acc <span class="op">=</span> balanced_accuracy_score(y_true<span class="op">=</span>df.hit.values, y_pred<span class="op">=</span>y_pred)</span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>class_report <span class="op">=</span> classification_report(y_true<span class="op">=</span>y_true, y_pred<span class="op">=</span>y_pred, output_dict<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>disp <span class="op">=</span> ConfusionMatrixDisplay(confusion_matrix<span class="op">=</span>confusion_mat)</span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>disp.plot()</span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="mhc_files/figure-html/notebooks-_metrics-cell-17-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="cell-25" class="cell" data-execution_count="41">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>acc, balanced_acc</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="41">
+<pre><code>(0.9697360118629252, 0.8462451280426622)</code></pre>
+</div>
+</div>
+<div id="cell-26" class="cell" data-execution_count="42">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(class_report)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              precision    recall  f1-score   support
+
+       False       0.99      0.98      0.98    900725
+        True       0.68      0.71      0.69     45416
+
+    accuracy                           0.97    946141
+   macro avg       0.83      0.85      0.84    946141
+weighted avg       0.97      0.97      0.97    946141
+</code></pre>
+</div>
+</div>
+<p>We see that we have improved the balanced accuracy. We have a deterioration of the precision but a better recall.</p>
+<a class="quarto-notebook-link" id="nblink-2" href="notebooks/_metrics-preview.html#cell-0">Source: Metrics</a></section>
+</section>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>Major Histocompatibility Complex (MHC) molecules play a crucial role in the adaptive immune system by:</p>
+<ol type="1">
+<li>Presenting peptide fragments on cell surfaces</li>
+<li>Enabling T-cells to detect foreign or abnormal proteins</li>
+<li>Mediating immune responses against pathogens and cancer cells</li>
+</ol>
+<p>In this analysis, we compared two approaches for MHC-I binding prediction:</p>
+<ul>
+<li>MHCflurry: An established prediction method using neural networks</li>
+<li>MHCpred: Our custom trained implementation using peptide and allele encodings</li>
+</ul>
+<p>Both methods demonstrate capability in predicting peptide-MHC binding affinities. This project provides a simplified introduction to MHC binding prediction using machine learning. The field is complex and rapidly evolving, with many specialized tools and techniques available for more advanced analyses.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-antunes2018" class="csl-entry" role="listitem">
+Antunes, Dinler A., Jayvee R. Abella, Didier Devaurs, Maurício M. Rigo, and Lydia E. Kavraki. 2018. <span>“Structure-based Methods for Binding Mode and Binding Affinity Prediction for Peptide-MHC Complexes.”</span> <em>Current Topics in Medicinal Chemistry</em> 18 (26): 2239–55. <a href="https://doi.org/10.2174/1568026619666181224101744">https://doi.org/10.2174/1568026619666181224101744</a>.
+</div>
+<div id="ref-2020mhcflurry" class="csl-entry" role="listitem">
+O’Donnell, Timothy J, Alex Rubinsteyn, and Uri Laserson. 2020. <span>“MHCflurry 2.0: Improved Pan-Allele Prediction of MHC Class i-Presented Peptides by Incorporating Antigen Processing.”</span> <em>Cell Systems</em> 11 (1): 42–48.
+</div>
+<div id="ref-10.1093/nar/gkaa379" class="csl-entry" role="listitem">
+Reynisson, Birkir, Bruno Alvarez, Sinu Paul, Bjoern Peters, and Morten Nielsen. 2020. <span>“<span class="nocase">NetMHCpan-4.1 and NetMHCIIpan-4.0: improved predictions of MHC antigen presentation by concurrent motif deconvolution and integration of MS MHC eluted ligand data</span>.”</span> <em>Nucleic Acids Research</em> 48 (W1): W449–54. <a href="https://doi.org/10.1093/nar/gkaa379">https://doi.org/10.1093/nar/gkaa379</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/nbrosse\.github\.io\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

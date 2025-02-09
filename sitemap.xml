@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://nbrosse.github.io/index.html</loc>
+    <lastmod>2025-02-09T11:04:11.198Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/mhc/mhc.html</loc>
+    <lastmod>2025-02-09T11:04:11.208Z</lastmod>
+  </url>
+  <url>
     <loc>https://nbrosse.github.io/about.html</loc>
-    <lastmod>2024-05-16T08:09:36.989Z</lastmod>
+    <lastmod>2025-02-09T11:04:11.198Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html</loc>
-    <lastmod>2024-05-16T08:09:37.000Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/index.html</loc>
-    <lastmod>2024-05-16T08:09:36.989Z</lastmod>
+    <lastmod>2025-02-09T11:04:11.206Z</lastmod>
   </url>
 </urlset>
