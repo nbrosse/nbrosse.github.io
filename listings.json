@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/pdf-parsing/pdf-parsing.html",
       "/posts/mhc/mhc.html",
       "/posts/encoding-distances/unimol-gbf.html"
     ]
