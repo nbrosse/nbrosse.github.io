@@ -1,54 +1,54 @@
 ---
 title: "PDF Parsing for LLM Input"
 author: "Nicolas Brosse"
-date: "2025-02-10"
-categories: [deep learning, LLM, PDF parsing]
+date: "2025-02-18"
+categories: [deep learning, LLM]
 bibliography: pdf-parsing-references.bib
-description: "An exploration of current PDF parsing capabilities for Large Language Model (LLM) input, including Python packages, APIs, and the role of deep learning."
+description: "An exploration of current PDF parsing capabilities for Large Language Model (LLM) input."
 ---
 
-This blog post explores the current landscape of PDF parsing for use as input to Large Language Models (LLMs). Extracting meaningful information from PDFs can be challenging due to their complex structure. This article examines several approaches, their strengths, and limitations.
+This blog post explores the current landscape of PDF parsing for use as input to Large Language Models (LLMs). Extracting meaningful information from PDFs can be challenging due to their complex structure. This article examines several approaches, their strengths, and limitations, with a focus on their suitability for LLM integration (markdown output).
 
-We will test the following Python packages and APIs:
+We begin with a detailed presentation of some open-source PDF parsing libraries: Docling, Marker-PDF, and MinerU in @sec-detailed-presentation. In particular, we provide a comprehensive overview of the Docling pipeline, a modular and open-source PDF processing pipeline designed to transform PDFs into a structured representation (the `DoclingDocument`) in @sec-docling. We also discuss Marker-PDF and MinerU in @sec-marker-pdf and @sec-mineru. The objective is to gain an understanding of how modern PDF parsing libraries function, in particular the role of deep learning models in PDF parsing and extraction, focusing on layout analysis, table structure recognition, and Optical Character Recognition (OCR).
 
--   Docling
--   LlamaParse
--   Parsing using a LLM directly
+Following this, we compare and evaluate various PDF parsing libraries and tools in @sec-comparing-libraries, including open-source libraries (Docling, Marker, MinerU, PyMuPDF) and closed-source solutions (LlamaParse, Gemini). We provide a detailed comparison based on a qualitative analysis using a diverse set of test PDFs (slides, reports, scanned documents, and documents with complex tables). The results of this analysis are available through an interactive demo that visualizes the differences between PDF input and Markdown output for each parsing solution.
 
-We will also explore the current capabilities of LLMs to parse PDF images and extract text, leveraging deep learning models. PDFs are a prevalent format for document sharing, but information extraction can be difficult. Deep learning models, especially Language Models (LMs), have shown promise in parsing and extracting structured data. This post provides an overview of challenges, the role of LMs, and the state-of-the-art in the field.
+# Detailed Presentations of PDF Parsing Libraries: Docling, Marker-pdf, MinerU {#sec-detailed-presentation}
 
-We first introduce the Docling pipeline, a modular and open-source PDF processing pipeline designed to transform PDFs into a structured representation in @sec-docling. We choose to present extensively docling pipeline since the package is very active and completely open from end to end with a technical report of the different components @auer2024doclingtechnicalreport, @livathinos2025doclingefficientopensourcetoolkit.
+## Docling: A Modular PDF Processing Pipeline {#sec-docling}
 
-We then compare various PDF parsing libraries and tools, including general-purpose libraries, specialized tools, and cloud-based solutions. Finally, we discuss the role of deep learning models in PDF parsing and extraction, focusing on layout analysis, table structure recognition, and Optical Character Recognition (OCR).
+**Overview**
 
-# A Detailed Presentation of Docling {#sec-docling}
+Docling is a modular and extensible pipeline designed to ingest various document formats, primarily PDFs (but also DOCX, HTML, etc.), and transform them into a unified, structured representation: the `DoclingDocument`. The core aim is to create a standardized representation suitable for downstream tasks, such as feeding data into an LLM. Docling is in active development and is completely open-source. It provides a comprehensive technical documentation [@auer2024doclingtechnicalreport], [@livathinos2025doclingefficientopensourcetoolkit].
 
-**Overview: The Docling Pipeline**
+![Sketch of Docling’s default processing pipeline. Source: [@auer2024doclingtechnicalreport]](figures/docling-pipeline.png){#fig-docling-pipeline fig-alt="Docling's default processing pipeline."}
 
-Docling is a modular and extensible pipeline designed to ingest various document formats, primarily PDFs (but also DOCX, HTML, etc.), and transform them into a unified, structured representation: the `DoclingDocument`. The core aim is to create a standardized representation suitable for downstream tasks, such as feeding data into an LLM.
+The Docling pipeline, as shown in @fig-docling-pipeline, consists of the following stages:
 
-![Sketch of Docling’s default processing pipeline, source [@auer2024doclingtechnicalreport]](figures/docling-pipeline.png){#fig-docling-pipeline fig-alt="Docling's default processing pipeline."}
-
-The overall docling pipeline @fig-docling-pipeline consists of several stages: - PDF Backend, to process raw pdf documents. - AI Models: Layout Analysis, Table Structure Recognition, OCR - Assembly and Post-processing
+-   PDF Backend (for raw PDF document processing)
+-   AI Models (Layout Analysis, Table Structure Recognition, OCR)
+-   Assembly and Post-processing
 
 **PDF Backend**
 
-Two key requirements for processing PDF documents are:
+The PDF backend is responsible for:
 
 a)  Retrieving all text content and their geometric coordinates on each page.
 b)  Rendering the visual representation of each page as it appears in a PDF viewer.
 
-These are encapsulated in Docling's PDF backend interface. While several open-source PDF parsing libraries exist for Python, Docling developers found limitations with each. These include restrictive licensing (e.g., pymupdf), poor speed, or quality issues like merged text cells across disparate tokens or table columns (pypdfium, PyPDF). Therefore, Docling provides multiple backend choices and includes a custom-built PDF parser based on the low-level qpdf library. This parser is open-sourced as a separate package, [`docling-parse`](https://github.com/DS4SD/docling-parse), and powers Docling's default PDF backend. An illustration of the parsing process is shown in @fig-docling-parse.
+These capabilities are encapsulated in Docling's PDF backend interface. Docling provides multiple backend choices, including a custom-built PDF parser based on the low-level qpdf library. This parser is open-sourced as a separate package, [`docling-parse`](https://github.com/DS4SD/docling-parse), and powers Docling's default PDF backend. @fig-docling-parse illustrates the parsing process.
 
 ::: {#fig-docling-parse layout-ncol="2"}
-![Original PDF page](figures/2305.14962v1.pdf_page=0.png)
+![Original PDF page](figures/2305.14962v1.pdf_page=0.png){width="400"}
 
-![Parsed PDF page](figures/2305.14962v1.pdf_page=0.v2.sanitized.png)
+![Parsed PDF page](figures/2305.14962v1.pdf_page=0.v2.sanitized.png){width="400"}
 
-Illustration of docling parse, from [source](https://github.com/DS4SD/docling-parse?tab=readme-ov-file).
+Illustration of docling parse from [source](https://github.com/DS4SD/docling-parse?tab=readme-ov-file).
 :::
 
-``` json
+The `docling-parse` package provides a Python interface to extract text content, images, and annotations from PDFs. It also supports rendering PDF pages as images. The extracted content is serialized to JSON @lst-json-docling-parse, which can be further processed by downstream components.
+
+``` {#lst-json-docling-parse .json lst-cap="Example of docling-parse JSON output"}
 {'annotations': [{'/A': {'/IsMap': False,
     '/S': '/URI',
     '/URI': 'https://www.deloitte.com/global/en/Industries/financial-services/perspectives/pushing-through-undercurrents.html'},
@@ -106,25 +106,25 @@ Illustration of docling parse, from [source](https://github.com/DS4SD/docling-pa
 
 **AI Models**
 
-Docling integrates several AI models: a layout analysis model and TableFormer [@nassar2022tableformertablestructureunderstanding], a table structure recognition model. Pre-trained weights (hosted on Hugging Face) and a separate package for inference code (`docling-ibm-models`) are available.
+Docling integrates several AI models for layout analysis and table structure recognition (TableFormer [@nassar2022tableformertablestructureunderstanding]). Pre-trained weights (hosted on Hugging Face) and a separate package for inference code (`docling-ibm-models`) are available.
 
 **Layout Analysis Model**
 
-This model is an object detector predicting bounding boxes and classes of various elements on a page image. The architecture is derived from RT-DETR and retrained on DocLayNet [@Pfitzmann_2022] and proprietary datasets. The Docling pipeline uses page images at 72 dpi resolution. Bounding box proposals are post-processed to remove overlaps based on confidence and size, and then intersected with text tokens to group them into meaningful units like paragraphs, section titles, and tables.
+This model detects and classifies various elements on a page image by predicting bounding boxes. The architecture is based on RT-DETR and retrained on DocLayNet [@Pfitzmann_2022] and proprietary datasets. The Docling pipeline uses page images at 72 dpi resolution. Bounding box proposals are post-processed to remove overlaps based on confidence and size and then intersected with text tokens to group them into meaningful units (e.g., paragraphs, section titles, tables).
 
-RT-DETR (Real-Time DEtection TRansformer) is a fast and accurate object detection system based on transformers. It uses a "hybrid encoder" to efficiently process image features and an "IoU-aware query selection" to focus on important parts of the image.
+RT-DETR (Real-Time DEtection TRansformer) is an object detection system using a hybrid encoder to process image features and IoU-aware query selection to focus on important parts of the image.
 
 **Table Structure Recognition**
 
-![TableFormer architecture, from [source](https://github.com/DS4SD/docling-ibm-models)](figures/tbm04.png){#fig-tableformer fig-alt="TableFormer"}
+![TableFormer architecture. Source: [DS4SD/docling-ibm-models](https://github.com/DS4SD/docling-ibm-models)](figures/tbm04.png){#fig-tableformer fig-alt="TableFormer Architecture"}
 
-The TableFormer model is a vision-transformer model for table structure recovery @fig-tableformer. It predicts the logical row and column structure of a table based on an input image, determining which cells belong to column headers, row headers, or the table body. TableFormer handles tables with partial or no borderlines, empty cells, row or column spans, and other complexities.
+The TableFormer model (a vision transformer) recovers table structure @fig-tableformer. It predicts the logical row and column structure of a table based on an input image, determining which cells belong to column headers, row headers, or the table body. TableFormer handles tables with partial or no borderlines, empty cells, row or column spans, and other complexities.
 
 The Docling pipeline feeds table objects detected in the layout analysis to the TableFormer model. TableFormer structure predictions are matched back to the PDF cells to avoid re-transcription of text in the table image.
 
 **OCR (Optical Character Recognition)**
 
-Docling optionally supports OCR for scanned PDFs or content in embedded bitmaps. Docling supports multiple OCR engines such as EasyOCR, Tesseract, RapidOCR, and OcrMac. Docling, by default, feeds a high-resolution page image (216 dpi) to the OCR engine to capture small print details.
+Docling optionally supports OCR for scanned PDFs or content in embedded bitmaps. Docling supports multiple OCR engines such as EasyOCR, Tesseract, RapidOCR, and OcrMac. By default, Docling feeds a high-resolution page image (216 dpi) to the OCR engine to capture small print details.
 
 **Assembly and Post-processing**
 
@@ -141,32 +141,34 @@ Additional post-processing steps can include:
 
 -   Classification of figures.
 -   Identification of code blocks or formulas.
-
-New possibilities such as annotation of picture with LLM [example](https://ds4sd.github.io/docling/examples/pictures_description_api/)
+-   Annotation of pictures with LLMs ([example](https://ds4sd.github.io/docling/examples/pictures_description_api/)).
 
 The `DoclingDocument` is a unified representation designed to encapsulate document structure and content in a standardized way. It's a Pydantic datatype supporting text, tables, pictures, and more. It distinguishes between the main body and auxiliary elements ("furniture"). It retains layout information (bounding boxes) and provenance information. The `DoclingDocument` structure is organized into content items (texts, tables, pictures) and content structure (body, furniture, groups) @fig-docling-document.
 
-![DoclingDocument from [source](https://ds4sd.github.io/docling/concepts/docling_document/)](figures/docling_doc_hierarchy_1.png){#fig-docling-document fig-alt="DoclingDocument Hierarchy"}
+![DoclingDocument structure. Source: [DS4SD/docling documentation](https://ds4sd.github.io/docling/concepts/docling_document/)](figures/docling_doc_hierarchy_1.png){#fig-docling-document fig-alt="DoclingDocument Hierarchy"}
 
-# A detailed presentation of marker-pdf {#sec-marker-pdf}
+## Marker-PDF: Accurate PDF Conversion {#sec-marker-pdf}
 
-Marker-pdf pipeline is similar to docling. Raw extraction is done by https://github.com/VikParuchuri/pdftext
+[Marker-pdf](https://github.com/VikParuchuri/marker) pipeline is another interesting option for PDF parsing. Raw extraction is done by [pdftext](https://github.com/VikParuchuri/pdftext), which is based on pypdfium2. Then, it uses Surya [Surya GitHub](https://github.com/VikParuchuri/surya). Surya is a document OCR toolkit that performs:
 
-which is based on pypdfium2 Then, Surya
+-   OCR in 90+ languages.
+-   Line-level text detection in any language.
+-   Layout analysis (table, image, header, etc. detection).
+-   Reading order detection.
+-   Table recognition (detecting rows/columns).
+-   LaTeX OCR.
 
-https://github.com/VikParuchuri/surya
+The JSON output format from Surya is illustrated in @lst-json-surya. This structured output includes detailed information about page dimensions, blocks of text, and individual spans with their corresponding bounding boxes, font information, and text content. Marker itself converts PDFs and images to markdown, JSON, and HTML. The key features of Marker include:
 
-Surya is a document OCR toolkit that does:
+-   Supports a range of documents in all languages.
+-   Formats tables, forms, equations, links, references, and code blocks.
+-   Extracts and saves images along with the markdown.
+-   Removes headers/footers/other artifacts.
+-   Easily extensible with custom formatting and logic.
+-   Optionally boosts accuracy with an LLM.
+-   Works on GPU, CPU, or MPS.
 
-OCR in 90+ languages that benchmarks favorably vs cloud services Line-level text detection in any language Layout analysis (table, image, header, etc detection) Reading order detection Table recognition (detecting rows/columns) LaTeX OCR
-
-Marker
-
-Marker converts PDFs and images to markdown, JSON, and HTML quickly and accurately.
-
-Supports a range of documents in all languages Formats tables, forms, equations, links, references, and code blocks Extracts and saves images along with the markdown Removes headers/footers/other artifacts Easily extensible with your own formatting and logic Optionally boost accuracy with an LLM Works on GPU, CPU, or MPS
-
-``` json
+``` {#lst-json-surya .json lst-cap="Example of Surya JSON output"}
 [
   {
     "page": 0,
@@ -234,97 +236,145 @@ Supports a range of documents in all languages Formats tables, forms, equations,
 ...
 ```
 
-# A detailed presentation of MinerU {#sec-mineru}
+## MinerU: Multi-Module Document Parsing {#sec-mineru}
 
 ![Overview of the MinerU framework processing workflow.](figures/minerU_pipeline.png){#fig-mineru-pipeline fig-alt="Overview of the MinerU framework processing workflow."}
 
-[github repo](https://github.com/opendatalab/MinerU)
+MinerU is a multi-module document parsing framework that uses a multi-stage approach, employing various document parsing models to process document images. The code repository is available at the [MinerU GitHub Repository](https://github.com/opendatalab/MinerU), and technical details can be found in the reference paper [@wang2024mineruopensourcesolutionprecise]. MinerU provides source code, models, and documentation for parsing various document formats efficiently.
 
-[@wang2024mineruopensourcesolutionprecise]
+The MinerU framework processing workflow (@fig-mineru-pipeline) consists of four stages:
 
-Multi-Module Document Parsing. This approach employs various document parsing models to process document images in multiple stages. Initially, layout detection algorithms identify different types of regions, such as images, image captions, tables, table captions, headings, and text. Subse- quently, different recognizers are applied to these specific regions. For instance, OCR is used for text and headings, formula recognition models handle formulas, and table recognition models process tables. Although this method is theoretically capable of producing high-quality document results, existing open-source models often focus solely on academic papers and perform poorly on diverse document types, including textbooks, exam papers, research reports, and newspapers.
+1.  *Document Preprocessing*: Uses PyMuPDF to read PDF files, filters out unprocessable files, and extracts PDF metadata (parseability, language type, page dimensions).
+2.  *Document Content Parsing*: Employs the PDF-Extract-Kit library for layout analysis (layout and formula detection). Applies different recognizers to various regions: OCR for text and titles, formula recognition for formulas, and table recognition for tables.
+3.  *Document Content Post-Processing*: Removes invalid regions, stitches content according to regional positioning, and obtains positioning, content, and sorting information for different document regions.
+4.  *Format Conversion*: Generates user-required formats, such as Markdown, for subsequent use.
 
-MinerU Framework As shown in Figure 1, MinerU processes diverse user-input PDF documents and converts them into desired machine-readable formats (Markdown or JSON) through a series of steps. Specifically, the processing workflow of MinerU is divided into four stages: Document Preprocessing. This stage uses PyMuPDF4 to read PDF files, filter out unprocessable files (e.g., encrypted files), and extract PDF metadata, including the document’s parseability (categorized into parseable and scanned PDFs), language type, and page dimensions. Document Content Parsing. This stage employs the PDF-Extract-Kit, a high-quality PDF document extraction algorithm library, to parse key document contents. It begins with layout analysis, including layout and formula detection. Different recognizers are then applied to various regions: OCR \[28 ; 19 \] for text and titles, formula recognition \[3 ; 25; 33 \] for formulas, and table recognition \[ 37 \] for tables. Document Content Post-Processing. Based on the outputs from the second stage, this stage removes invalid regions, stitches content according to regional positioning information, and ultimately obtains the positioning, content, and sorting information for different document regions. Format Conversion. Based on the results of document post-processing, various formats required by users, such as Markdown, can be generated for subsequent use. 2.1 Document Preprocessing PDF document preprocessing has two main objectives: first, to filter out unprocessable PDFs, such as non-PDF files, encrypted documents, and password-protected documents. Second, to obtain PDF metadata for subsequent use. The acquisition of PDF metadata includes the following aspects: • Language Identification: Currently, MinerU identifies and processes only Chinese and English documents. The language type needs to be specified as a parameter when performing OCR, and the quality of processing for other languages is not guaranteed. • Content Garbled Detection: Some text-based PDFs contain text that appears garbled when copied. Such PDFs need to be identified in advance so that OCR can be used for text recognition in the next step. • Scanned PDF Identification: For text-based PDFs (as opposed to scanned PDFs), MinerU directly uses PyMuPDF for text extraction. However, for scanned PDFs, OCR needs to be enabled. Scanned PDFs are identified based on characteristics such as a larger image area compared to the text area, sometimes covering the entire PDF page, and an average text length per page close to zero. • Page Metadata Extraction: Extracts document metadata such as total page count, page dimensions (width and height), and other relevant attributes. 2.2 Document Content Parsing In the document parsing stage, MinerU uses the PDF-Extract-Kit model library to detect different types of regions and recognize the corresponding region contents (OCR, formula recognition, table recognition, etc.). PDF-Extract-Kit is an algorithm library for PDF parsing, containing various state-of-the-art (SOTA) open-source PDF document parsing algorithms. Unlike other open-source algorithm libraries, PDF-Extract-Kit aims to build a model library that ensures accuracy and speed when dealing with diverse data in real-world scenarios. When the SOTA open-source algorithms in a specific field fail to meet practical needs, PDF-Extract-Kit employs data engineering to construct high- quality, diverse datasets for further model fine-tuning, thereby significantly enhancing the model’s robustness to varied data. The current version of MinerU5 utilizes five models: layout detection, formula detection, table recognition, formula recognition and OCR.
+**Document Preprocessing**
 
-Layout Analysis Layout analysis is the crucial first step in document parsing, aiming to distinguish different types of elements and their corresponding regions on a page. Existing layout detection algorithms \[ 11 ; 39 \] perform well on paper-type documents but struggle with diverse documents such as textbooks and exam papers. Therefore, PDF-Extract-Kit constructs a diverse layout detection training set and trains high-quality models for document region extraction. The data engineering-based model training approach is as follows: • Diverse Data Selection: Collects diverse PDF documents, clusters them based on visual features, and samples data from different cluster centers to obtain an initial diverse document dataset. The categories include scientific papers, general books, textbooks, exam papers, magazines, PPTs, research reports, etc. • Data Annotation: Categorizes the layout annotation types involved in the document com- ponents, including titles, body paragraphs, images, image captions, tables, table captions, image table notes, inline formulas, formula labels, and discard types (such as headers, footers, page numbers, and page notes). Detailed annotation standards are established for each type, and approximately 21K data points are annotated as the training set. • Model Training: Fine-tunes the model for the Layout Detection task based on the layout detection models \[11 ; 31\]. The number of classes parameter is modified to align with our categorized layout types. • Iterative Data Selection and Model Training: During model iteration, partitions a portion of the data as a validation set and uses its results to guide the focus of subsequent data iterations. If a specific category from a particular source of PDF documents scores low, the sampling weight for PDF pages containing that specific category from that source is increased in the next iteration, thereby more efficiently iterating the data and model. 4 The model trained on diverse datasets performs significantly better on varied documents. As shown in Figure 2, the layout detection model trained on diverse layout detection data performs well on documents such as textbooks, far exceeding the performance of open-source SOTA models. 2.2.2 Formula Detection Layout analysis can accurately locate most elements in a document, but formula types, especially inline formulas, can be visually indistinguishable from text, such as "100cm2" and "(α1, α2, . . . , αn)". If formulas are not detected in advance, subsequent text extraction using OCR or Python libraries may result in garbled text, affecting the overall accuracy of the document, which is crucial for scientific documents. Therefore, we trained a dedicated formula detection model. For the formula detection dataset annotation, we defined three categories: inline formulas, displayed formulas, and an ignore class. The ignore class mainly refers to areas that are difficult to determine as formulas, such as "50%", "NaCl", and "1-2 days". Ultimately, we annotated 24,157 inline formulas and 1,829 displayed formulas on 2,890 pages from Chinese and English papers, textbooks, books, and financial reports for training. After obtaining a diverse formula detection dataset, PDF-Extract-Kit trains a YOLO-based model, which performs well in terms of speed and accuracy on various documents. 2.2.3 Formula Recognition Varied documents contain various types of formulas, such as short printed inline formulas and complex displayed formulas. Some documents are scanned, leading to noisy formula content and even the presence of handwritten formulas. Therefore, MinerU employs the self-developed UniMERNet \[ 32 \] model for formula recognition. The UniMERNet model is trained on the large-scale diverse formula recognition dataset UniMER-1M. Thanks to the optimization of the model structure, it achieves good performance on various types of formulas (SPE, CPE, SCE, HWE) in real-world scenarios, comparable to commercial software MathPix \[22; 33\]. 2.2.4 Table Recognition Tables serve as an effective way to present structured data across various contexts, including scientific publications, financial reports, invoices, web pages, and beyond. Extracting tabular data from visual table images, known as the table recognition task, is challenging primarily because tables often contain complex column and row headers, as well as spanning cell operations. By leveraging MinerU, users can perform Table-to-LaTex or Table-to-HTML tasks to extract structured data from tables. MinerU employs TableMaster \[ 40\] and StructEqTable6 for performing the table recognition task. TableMaster is trained using PubTabNet dataset (v2.0.0) \[ 42 \] while StructEqTable is trained using data from DocGenome benchmark \[37\]. TableMaster divides the table recognition task into four sub-tasks including table structure recognition, text line detection, text line recognition, and box assignment, while StructEqTable performs the table recognition task in an end-to-end manner, demonstrating stronger recognition performance and delivering good results even with complex tables. 2.2.5 OCR After excluding special regions (tables, formulas, images, etc.) in the document, we can directly apply OCR to recognize text regions. MinerU uses Paddle-OCR7 integrated into PDF-Extract-Kit for text recognition. However, as shown in Figure 3, direct OCR on the entire page can sometimes result in text from different columns being recognized as a single column, which leads to incorrect text order. Therefore, we perform OCR based on the text regions (titles, text paragraphs) detected by the layout analysis to avoid disrupting the reading order. As shown in Figure 4, When performing OCR on text blocks with inline formulas, we first mask the formulas using the coordinates provided by the formula detection model, then perform OCR, and finally reinsert the formulas back into the OCR results.
+This stage focuses on filtering unprocessable PDFs and obtaining PDF metadata:
 
-2.3 Document Content Post-Processing The post-processing stage primarily addresses the issue of content ordering. Due to potential overlaps among text, images, tables, and formula boxes output by the model, as well as frequent overlaps among text lines obtained through OCR or API, sorting the text and elements poses a significant challenge. This stage focuses on handling the relationships between Bounding Boxes (BBox). Figure 5 shows a visualization of the results before and after resolving overlapping bounding boxes
+-   *Language Identification*: Currently processes Chinese and English documents.
+-   *Content Garbled Detection*: Identifies text-based PDFs with garbled text.
+-   *Scanned PDF Identification*: Distinguishes between text-based and scanned PDFs.
+-   *Page Metadata Extraction*: Extracts document metadata such as total page count, page dimensions, and other attributes.
 
-The solutions to the BBox relationships include the following aspects: Containment Relationships. Remove formulas and text blocks contained within image and table regions, as well as boxes contained within formula boxes. Partial Overlap Relationships. Partially overlapping text boxes are shrunk vertically and horizontally to avoid mutual coverage, ensuring that the final position and content remain unaffected, which facilitates subsequent sorting operations. For partial overlaps between text and tables/images, the integrity of the text is ensured by temporarily ignoring the images and tables. After addressing the nested and partially overlapping BBoxes, MinerU developed a segmentation algorithm based on the human reading order, "top to bottom, left to right." This algorithm divides the entire page into several regions, each containing multiple BBoxes, while ensuring that each region contains at most one column. This ensures that the text is read line by line from top to bottom, adhering to the natural human reading sequence. The segmented groups are then sorted according to their positional relationships, determining the reading order of each element within the PDF.
+**Document Content Parsing**
 
-Model Overview Task Type Description Models Layout Detection Locate different elements in a document: including images, tables, text, titles, formulas DocLayout-YOLO_ft, YOLO-v10_ft, LayoutLMv3_ft Formula Detection Locate formulas in documents: including inline and block formulas YOLOv8_ft Formula Recognition Recognize formula images into LaTeX source code UniMERNet OCR Extract text content from images (including location and recognition) PaddleOCR Table Recognition Recognize table images into corresponding source code (LaTeX/HTML/Markdown) PaddleOCR+TableMaster, StructEqTable
+MinerU uses the PDF-Extract-Kit model library to detect different types of regions and recognize their content:
 
-# Comparing PDF Parsing Libraries
+-   *Layout Analysis*: Identifies different types of elements and their regions on a page.
+-   *Formula Detection*: Detects inline and displayed formulas.
+-   *Formula Recognition*: Recognizes formula images into LaTeX source code using the UniMERNet model.
+-   *Table Recognition*: Extracts tabular data from visual table images using TableMaster and StructEqTable.
+-   *OCR*: Applies Paddle-OCR to recognize text regions.
 
-Comparing PDF parsing libraries involves evaluating several factors: ease of use, functionality, performance, and community support.
+**Document Content Post-Processing**
 
-## PDF sample dataset
+This stage addresses content ordering by handling the relationships between Bounding Boxes (BBoxes):
 
-We test the different PDF parsing options on a small but diverse dataset of pdfs. They are available at the following link: [PDF Parsing Dataset]() and taken from publicly available sources. We have different types of pdf that try to cover different difficulties faced by pdf parsers: - slides, - only images pdf (which require OCR), - reports - tables
+-   *Containment Relationships*: Removes formulas and text blocks contained within image and table regions.
+-   *Partial Overlap Relationships*: Shrinks partially overlapping text boxes and ensures the integrity of text when overlapping with tables/images.
+-   *Segmentation Algorithm*: Divides the page into regions based on human reading order ("top to bottom, left to right").
 
-## General PDF Parsing Libraries
+**Models Overview**
 
-1.  **PyMuPDF (Fitz)**:
-    -   **Strengths**: Fast and efficient, handles a wide range of PDF operations (text extraction, rendering, manipulation).
-    -   **Use Cases**: Suitable for simple and complex PDF tasks, including those requiring high performance.
-    -   **Documentation**: [PyMuPDF Documentation](https://pymupdf.readthedocs.io/en/latest/index.html)
-2.  **PyPDF2 (now PyPDF)**:
-    -   **Strengths**: Widely-used for basic PDF manipulations (merging, splitting, extracting text/metadata).
-    -   **Use Cases**: Ideal for straightforward tasks. Large community support.
-    -   **Documentation**: [PyPDF GitHub](https://github.com/py-pdf/pypdf)
-3.  **PikePDF**:
-    -   **Strengths**: Built on QPDF, robust for complex PDF manipulations.
-    -   **Use Cases**: Suitable for tasks requiring high reliability and complex manipulations.
-    -   **Documentation**: [PikePDF GitHub](https://github.com/pikepdf/pikepdf)
-4.  **PDFPlumber**:
-    -   **Strengths**: Excellent for extracting tabular data. Builds on pdfminer.six with a user-friendly interface.
-    -   **Use Cases**: Best for extracting tables and structured data.
-    -   **Documentation**: [PDFPlumber GitHub](https://github.com/jsvine/pdfplumber)
+| Task Type | Description | Models |
+|:-----------------|:----------------------------|:------------------------|
+| Layout Detection | Locate different elements in a document: including images, tables, text, titles, formulas | DocLayout-YOLO_ft, YOLO-v10_ft, LayoutLMv3_ft |
+| Formula Detection | Locate formulas in documents: including inline and block formulas | YOLOv8_ft |
+| Formula Recognition | Recognize formula images into LaTeX source code | UniMERNet |
+| OCR | Extract text content from images (including location and recognition) | PaddleOCR |
+| Table Recognition | Recognize table images into corresponding source code (LaTeX/HTML/Markdown) | PaddleOCR+TableMaster, StructEqTable |
 
-## Specialized Libraries and Tools
+: MinerU models overview {#tbl-mineru-models}
 
-1.  **Docling**:
-    -   **Strengths**: Focuses on preparing documents for AI applications, cleaning and structuring text data.
-    -   **Use Cases**: Preprocessing documents before feeding them into machine learning models.
-    -   **Documentation**: [Docling GitHub](https://github.com/DS4SD/docling)
-2.  **Unstructured**:
-    -   **Strengths**: Provides tools for partitioning and structuring unstructured data.
-    -   **Use Cases**: Converting unstructured data into a manageable format.
-    -   **Documentation**: [Unstructured Documentation](https://docs.unstructured.io/open-source/core-functionality/partitioning)
-3.  **Markitdown**:
-    -   **Strengths**: Converts file types (including PDFs) to Markdown.
-    -   **Use Cases**: Converting documents to an editable format.
-    -   **Documentation**: [Markitdown GitHub](https://github.com/microsoft/markitdown)
-4.  **MinerU**:
-    -   **Strengths**: Converts PDFs to Markdown and JSON with a focus on high-quality data extraction.
-    -   **Use Cases**: Extracting structured data from PDFs for further processing.
-    -   **Documentation**: [MinerU GitHub](https://github.com/opendatalab/MinerU)
+# Comparing PDF Parsing Libraries {#sec-comparing-libraries}
 
-## Cloud-Based Solutions
+Comparing PDF parsing libraries involves evaluating several factors: ease of use, functionality, performance. This section aims to provide an overview of the comparative performance of the parsing options in the context of different PDF types.
 
-1.  **Adobe PDF Extract API**:
-    -   **Strengths**: Leverages Adobe's PDF expertise. Robust extraction capabilities.
-    -   **Use Cases**: Enterprise-level applications requiring high accuracy and reliability.
-    -   **Documentation**: [Adobe PDF Extract API](https://developer.adobe.com/document-services/docs/overview/pdf-extract-api/)
-2.  **AWS Textract**:
-    -   **Strengths**: Uses machine learning to extract text, forms, and tables from scanned documents.
-    -   **Use Cases**: Processing a large volume of documents with varying formats.
-    -   **Documentation**: [AWS Textract](https://aws.amazon.com/textract/)
+This analysis provides a practical comparison of several PDF parsing libraries, with a unique focus on visualizing the differences between PDF input and Markdown output. The complete code and implementation details are available in the [pdf-parsing repository](https://github.com/nbrosse/pdf-parsing), and an interactive demo can be accessed through the [pdf-parsing-demo](https://huggingface.co/spaces/nbrosse/pdf-parsing-demo) Hugging Face Space.
 
-## Table Extraction
+::: callout-note
+All code is available at the [pdf-parsing repository](https://github.com/nbrosse/pdf-parsing).
+:::
 
-1.  **Camelot**:
-    -   **Strengths**: Specifically designed for extracting tables from PDFs, supporting both lattice and stream type tables.
-    -   **Use Cases**: Extracting complex tables.
-    -   **Documentation**: [Camelot GitHub](https://github.com/camelot-dev/camelot)
+## PDF Sample Dataset
 
-## Conclusion
+We test the different PDF parsing options on a small but diverse dataset of PDFs. These PDFs are available at the following link: [PDF Parsing Dataset](https://github.com/nbrosse/pdf-parsing/tree/main/pdfs). The dataset contains different types of PDFs to cover various difficulties faced by PDF parsers:
 
-The choice of library depends on your specific needs:
+-   Slides
+-   Image-only PDFs (requiring OCR)
+-   Reports
+-   Tables
 
--   For general PDF manipulation, **PyMuPDF** and **PyPDF** are good starting points.
--   For table extraction, **PDFPlumber** and **Camelot** are recommended.
--   For preparing documents for AI, **Docling** and **Unstructured** offer specialized tools.
--   For cloud-based solutions, consider **Adobe PDF Extract API** and **AWS Textract**.
+The PDF files located in the `pdfs` directory were sourced from the following locations:
 
-Each library has its strengths, so the best choice depends on project requirements.
+-   `XC9500_CPLD_Family-1-4.pdf`: Downloaded from <https://media.digikey.com/pdf/Data%20Sheets/AMD/XC9500_CPLD_Family.pdf>
+-   `2023-conocophillips-aim-presentation-1-7.pdf`: Downloaded from <https://static.conocophillips.com/files/2023-conocophillips-aim-presentation.pdf>
+
+The following four PDF files are sourced from the [RAG blog benchmark](https://www.eyelevel.ai/post/most-accurate-rag), specifically from the associated [Google Drive folder](https://drive.google.com/drive/u/0/folders/1l45ljrGfOKsiNFh8QPji2eBAd2hOB51c):
+
+-   `gx-iif-open-data.pdf`
+-   `deloitte-tech-risk-sector-banking.pdf`
+-   `life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023.pdf`
+-   `dttl-tax-technology-report-2023.pdf`
+
+## Qualitative Results 
+
+**Note:** The following results are based on a limited set of tests and should be considered indicative rather than scientifically rigorous.
+
+::: callout-info
+You can directly compare the output Markdown results at the Hugging Face Space demo: [pdf-parsing-demo](https://huggingface.co/spaces/nbrosse/pdf-parsing-demo).
+:::
+
+[Docling](https://github.com/DS4SD/docling) provides decent results for text extraction, layout analysis, and table recognition. The OCR support is also a valuable addition for scanned PDFs. Very recently, it provides support for image description [example](https://ds4sd.github.io/docling/examples/pictures_description_api/), which is a very promising feature.
+
+![Docling parsing results](figures/docling_streamlit.png){#fig-docling-streamlit fig-alt="Docling parsing results"}
+
+[LlamaParse](https://docs.llamaindex.ai/en/stable/llama_cloud/llama_parse/) in default mode also provides good results. It provides descriptions of charts and images and is able to extract tables. However, the quality of the chart and image descriptions is not top-tier. It is also a closed-source solution.
+
+![LlamaParse parsing results](figures/llamaparse_streamlit.png){#fig-llamaparse-streamlit fig-alt="LlamaParse parsing results"}
+
+[Marker](https://github.com/VikParuchuri/marker) provides good results and a description of the images using Gemini.
+
+![Marker parsing results](figures/marker_streamlit.png){#fig-marker-streamlit fig-alt="Marker parsing results"}
+
+[PyMuPDF](https://pymupdf.readthedocs.io/en/latest/) in default mode is a more raw extraction approach, parsing the raw content. The other libraries tend to build upon more fundamental extraction libraries such as PyMuPDF. The results generally require further refinement.
+
+![Pymupdf parsing results](figures/pymupdf_streamlit.png){#fig-pymupdf-streamlit fig-alt="Pymupdf parsing results"}
+
+[Gemini](https://ai.google.dev/aistudio) is very good at parsing the content and providing a description of the images. It is versatile and effective. However, it is closed source.
+
+![Gemini parsing results](figures/gemini_streamlit.png){#fig-gemini-streamlit fig-alt="Gemini parsing results"}
+
+![Gemini parsing results (suppl.)](figures/gemini_streamlit_2.png){#fig-gemini-streamlit-2 fig-alt="Gemini parsing results suppl."}
+
+[MinerU](https://github.com/opendatalab/MinerU) is not part of the app because it is not easy to split the output by page, and tables are under HTML format. However, the results are good, and the layout is very good. It doesn't support image description. MinerU is a very promising library.
+
+![MinerU parsing results](figures/mineru_streamlit.png){#fig-mineru-streamlit fig-alt="MinerU parsing results"}
+
+We tested [unstructured](https://docs.unstructured.io/welcome) (free version), which did not produce satisfying results.
+
+[Markitdown](https://github.com/microsoft/markitdown) is a very new library that we did not test. It seems to rely on ad-hoc solutions and is simply an aggregator of solutions.
+
+We also tested (not extensively) some cloud-based solutions for PDF parsing such as [Adobe PDF Extract API](https://developer.adobe.com/document-services/docs/overview/pdf-extract-api/), [AWS Textract](https://aws.amazon.com/textract/) and [Azure AI Document intelligence](https://azure.microsoft.com/en-us/products/ai-services/ai-document-intelligence) but we were not convinced by the first results. Apparently, they seem to be very good at extracting for large quantity of pdf following the same template.
+
+In terms of table extraction capabilities, we tested Camelot, a specialized library specifically designed for extracting tables from PDFs. Camelot excels at handling both lattice and stream type tables, making it particularly effective for complex table extraction tasks. The library is well-documented and maintained, with comprehensive documentation available on their [GitHub repository](https://github.com/camelot-dev/camelot). The results were good for table extraction. Camelot is a dedicated library for tables.
+
+**Conclusion**: The choice of PDF parsing library depends on the specific requirements of the task at hand. or general-purpose parsing with a strong emphasis on image understanding, consider Gemini. However, be aware that this is a closed-source solution. If an open-source solution is preferred, Docling, Marker and MinerU are strong contenders. For tasks requiring specialized table extraction, Camelot is a reliable choice. 
+
+# Conclusion
+
+This exploration of PDF parsing for Large Language Model (LLM) input has revealed a diverse landscape of tools and techniques, each with its strengths and limitations. We've examined open-source libraries like Docling, MinerU, Marker and PyMuPDF, as well as closed-source solutions such as LlamaParse and direct parsing with Gemini.
+
+Our qualitative comparison, demonstrated through the [pdf-parsing-demo](https://huggingface.co/spaces/nbrosse/pdf-parsing-demo), highlights the trade-offs between accuracy, functionality, and ease of use. While closed-source solutions like Gemini and LlamaParse often provide superior out-of-the-box performance, especially in areas like image description and table extraction, they come with the constraints of licensing and limited customization. Open-source libraries like Docling and MinerU offer greater flexibility but may require more effort to achieve comparable results.
+
+The choice of PDF parsing approach ultimately hinges on the specific requirements of the LLM application. Factors to consider include:
+
+*   **Accuracy and Completeness:** How critical is it to extract all the text and data from the PDF accurately?
+*   **Layout Fidelity:** Is preserving the original layout of the document important?
+*   **Image and Table Understanding:** Are there significant images or tables that need to be extracted and understood?
+*   **Open Source vs. Closed Source:** Does the project require an open-source solution for licensing or customization reasons?
+*   **Complexity of PDFs:** Does the typical PDF being parsed have many images, tables, or just general text?
+
+
