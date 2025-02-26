@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.40">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Nicolas Brosse">
+<meta name="dcterms.date" content="2025-02-26">
+<meta name="description" content="An introduction to Python concurrency, covering core concepts, practical examples, and considerations for its use.">
+
+<title>Python Concurrency – Nicolas’ Notebook</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-313591559204ad6a7884cc02194e8f50.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Nicolas’ Notebook</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Python Concurrency</h1>
+                  <div>
+        <div class="description">
+          An introduction to Python concurrency, covering core concepts, practical examples, and considerations for its use.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">python</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Nicolas Brosse </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">February 26, 2025</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sec-concurrency" id="toc-sec-concurrency" class="nav-link active" data-scroll-target="#sec-concurrency">Exploring Concurrency in Python</a>
+  <ul class="collapse">
+  <li><a href="#what-is-concurrency" id="toc-what-is-concurrency" class="nav-link" data-scroll-target="#what-is-concurrency">What Is Concurrency?</a></li>
+  <li><a href="#what-is-parallelism" id="toc-what-is-parallelism" class="nav-link" data-scroll-target="#what-is-parallelism">What Is Parallelism?</a></li>
+  </ul></li>
+  <li><a href="#sec-when-concurrency" id="toc-sec-when-concurrency" class="nav-link" data-scroll-target="#sec-when-concurrency">When is concurrency useful ?</a></li>
+  <li><a href="#sec-io-bound" id="toc-sec-io-bound" class="nav-link" data-scroll-target="#sec-io-bound">Speeding Up an I/O-Bound Program</a>
+  <ul class="collapse">
+  <li><a href="#synchronous-version" id="toc-synchronous-version" class="nav-link" data-scroll-target="#synchronous-version">Synchronous Version</a></li>
+  <li><a href="#multi-threaded-version" id="toc-multi-threaded-version" class="nav-link" data-scroll-target="#multi-threaded-version">Multi-Threaded Version</a></li>
+  <li><a href="#asynchronous-version" id="toc-asynchronous-version" class="nav-link" data-scroll-target="#asynchronous-version">Asynchronous Version</a></li>
+  <li><a href="#process-based-version" id="toc-process-based-version" class="nav-link" data-scroll-target="#process-based-version">Process-Based Version</a></li>
+  </ul></li>
+  <li><a href="#sec-asyncio" id="toc-sec-asyncio" class="nav-link" data-scroll-target="#sec-asyncio">Asynchronous I/O with AsyncIO</a>
+  <ul class="collapse">
+  <li><a href="#async-and-await-keywords" id="toc-async-and-await-keywords" class="nav-link" data-scroll-target="#async-and-await-keywords"><code>async</code> and <code>await</code> Keywords</a></li>
+  <li><a href="#asynchronous-vs.-synchronous-execution-in-python-a-comparison" id="toc-asynchronous-vs.-synchronous-execution-in-python-a-comparison" class="nav-link" data-scroll-target="#asynchronous-vs.-synchronous-execution-in-python-a-comparison">Asynchronous vs.&nbsp;Synchronous Execution in Python: A Comparison</a></li>
+  <li><a href="#components-of-asyncio" id="toc-components-of-asyncio" class="nav-link" data-scroll-target="#components-of-asyncio">Components of <code>asyncio</code></a></li>
+  <li><a href="#asyncio-examples-in-practice" id="toc-asyncio-examples-in-practice" class="nav-link" data-scroll-target="#asyncio-examples-in-practice">AsyncIO Examples in Practice</a>
+  <ul class="collapse">
+  <li><a href="#chained-coroutines" id="toc-chained-coroutines" class="nav-link" data-scroll-target="#chained-coroutines">Chained Coroutines</a></li>
+  <li><a href="#producerconsumer-pattern-with-asyncio.queue" id="toc-producerconsumer-pattern-with-asyncio.queue" class="nav-link" data-scroll-target="#producerconsumer-pattern-with-asyncio.queue">Producer/Consumer Pattern with <code>asyncio.Queue</code></a></li>
+  <li><a href="#some-utility-functions-from-llama-index-for-handling-asynchronous-tasks" id="toc-some-utility-functions-from-llama-index-for-handling-asynchronous-tasks" class="nav-link" data-scroll-target="#some-utility-functions-from-llama-index-for-handling-asynchronous-tasks">Some Utility Functions from Llama-Index for Handling Asynchronous Tasks</a></li>
+  </ul></li>
+  <li><a href="#considerations-for-using-asyncio" id="toc-considerations-for-using-asyncio" class="nav-link" data-scroll-target="#considerations-for-using-asyncio">Considerations for Using <code>asyncio</code></a></li>
+  </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<p>This blog post is organized as follows:</p>
+<ol type="1">
+<li>First, we introduce core concepts of concurrency in Python (<a href="#sec-concurrency" class="quarto-xref">Section&nbsp;1</a>).</li>
+<li>Then, we discuss when and why to use concurrency (<a href="#sec-when-concurrency" class="quarto-xref">Section&nbsp;2</a>).</li>
+<li>Next, we explore how to speed up I/O-bound programs (<a href="#sec-io-bound" class="quarto-xref">Section&nbsp;3</a>) by comparing four approaches:
+<ul>
+<li>Synchronous version</li>
+<li>Multi-threaded version</li>
+<li>Asynchronous version</li>
+<li>Process-based version</li>
+</ul></li>
+<li>Finally, we dive deep into asynchronous I/O with AsyncIO (<a href="#sec-asyncio" class="quarto-xref">Section&nbsp;4</a>).</li>
+</ol>
+<p>Each section builds on the previous ones to provide a comprehensive understanding of Python concurrency.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This blog post is adapted from the <a href="https://realpython.com/python-concurrency/">Real Python - Python Concurrency</a> and <a href="https://realpython.com/async-io-python/">Real Python - Async IO in Python</a> tutorials. While it summarizes the original content with some modifications and additions, proper attribution is given to Real Python, who retain the copyright of the original material and images. The content is shared for educational purposes.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>All the code snippets in this blog post are regrouped inside the companion GitHub repository <a href="https://github.com/nbrosse/python-concurrency">python-concurrency</a>.</p>
+</div>
+</div>
+<section id="sec-concurrency" class="level1">
+<h1>Exploring Concurrency in Python</h1>
+<p>This section introduces concurrency terminology. Concurrency can take different forms depending on the problem. The different concurrency models translate to Python in specific ways.</p>
+<section id="what-is-concurrency" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-concurrency">What Is Concurrency?</h2>
+<p>Concurrency is the simultaneous occurrence of events. In Python, these events are called:</p>
+<ul>
+<li>Thread</li>
+<li>Task</li>
+<li>Process</li>
+</ul>
+<p>These all represent a sequence of instructions that run in order. They can be stopped, and the CPU can switch to a different one. The state of each sequence is saved so it can be restored.</p>
+<p>Threads, tasks, and processes differ in their details. Multiple system processes can enable Python to run these sequences at the same time.</p>
+<p>Threads and asynchronous tasks run on a single processor, meaning they run one at a time. They take turns to speed up the overall process.</p>
+<p>In a multi-threaded approach, the operating system knows about each thread and can interrupt it to run a different thread. This is also true for processes and is called preemptive multitasking.</p>
+<p>In preemptive multitasking, code in the thread doesn’t need to do anything special to make the switch. A context switch can happen in the middle of a Python statement. This is because Python statements consist of low-level bytecode instructions.</p>
+<p>Asynchronous tasks use cooperative multitasking. The tasks cooperate by announcing when they’re ready to be switched out. The code in the task has to change to make this happen.</p>
+<p>The benefit is that you know where your task will be swapped out, making it easier to understand the flow of execution. A task won’t be swapped out in the middle of a Python statement unless that statement is appropriately marked.</p>
+</section>
+<section id="what-is-parallelism" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-parallelism">What Is Parallelism?</h2>
+<p>Parallelism involves executing separate processes, each running in its own Python interpreter.</p>
+<p>Each process can run on a different CPU core. This means they can run at the same time.</p>
+<p>Here’s a summary of Python modules for concurrency and parallelism:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 54%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Python Module</th>
+<th style="text-align: left;">CPU</th>
+<th style="text-align: left;">Multitasking</th>
+<th style="text-align: left;">Switching Decision</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>asyncio</code></td>
+<td style="text-align: left;">One</td>
+<td style="text-align: left;">Cooperative</td>
+<td style="text-align: left;">The tasks decide when to give up control.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>threading</code></td>
+<td style="text-align: left;">One</td>
+<td style="text-align: left;">Preemptive</td>
+<td style="text-align: left;">The operating system decides when to switch tasks external to Python.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>multiprocessing</code></td>
+<td style="text-align: left;">Many</td>
+<td style="text-align: left;">Preemptive</td>
+<td style="text-align: left;">The processes all run at the same time on different processors.</td>
+</tr>
+</tbody>
+</table>
+<p>These modules will be explored in this blog post.</p>
+<p><code>threading</code> and <code>multiprocessing</code> are low-level building blocks. They can often be replaced with <code>concurrent.futures</code>, which provides a higher-level interface. <code>asyncio</code> offers a different approach to concurrency.</p>
+<p>Each type of concurrency can be useful in its own way.</p>
+</section>
+</section>
+<section id="sec-when-concurrency" class="level1">
+<h1>When is concurrency useful ?</h1>
+<p>Concurrency can be useful for two types of problems:</p>
+<ul>
+<li>I/O-Bound</li>
+<li>CPU-Bound</li>
+</ul>
+<p>I/O-bound problems slow down your program because it waits for input or output (I/O) from an external resource. They occur when your program interacts with things that are slower than your CPU, such as the file system and network connections.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/IOBound.4810a888b457.png" class="img-fluid figure-img" alt="Timing Diagram of an IO Bound Program"></p>
+<figcaption>Timing Diagram of an IO Bound Program</figcaption>
+</figure>
+</div>
+<p>Blue boxes show work time, and red boxes show waiting time for I/O operations. Network requests can take longer than CPU instructions, so your program may spend most of its time waiting.</p>
+<p>CPU-bound programs do significant computation without network or file access. The CPU limits the speed of your program. Here’s a diagram for a CPU-bound program:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/CPUBound.d2d32cb2626c.png" class="img-fluid figure-img" alt="Timing Diagram of an CPU Bound Program"></p>
+<figcaption>Timing Diagram of an CPU Bound Program</figcaption>
+</figure>
+</div>
+<p>Different forms of concurrency work better or worse with I/O-bound and CPU-bound programs. Adding concurrency introduces extra code and complications, so you need to decide if the speedup is worth the effort.</p>
+<p>Here’s a summary:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 56%">
+<col style="width: 43%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>I/O-Bound Process</th>
+<th>CPU-Bound Process</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Your program spends most of its time talking to a slow device.</td>
+<td>Your program spends most of its time doing CPU operations.</td>
+</tr>
+<tr class="even">
+<td>Speeding it up involves overlapping the times spent waiting for these devices.</td>
+<td>Speeding it up involves finding ways to do more computations in the same amount of time.</td>
+</tr>
+</tbody>
+</table>
+<p>For I/O-bound programs, see <a href="#sec-io-bound" class="quarto-xref">Section&nbsp;3</a> for detailed examples and timing comparisons. For CPU-bound programs, refer to the <a href="https://realpython.com/python-concurrency/">Real Python - Python Concurrency</a> tutorial which covers CPU-intensive tasks in depth.</p>
+</section>
+<section id="sec-io-bound" class="level1">
+<h1>Speeding Up an I/O-Bound Program</h1>
+<p>This section focuses on I/O-bound programs and downloading content over the network. Web pages are used as an example, but it could be any network traffic.</p>
+<section id="synchronous-version" class="level2">
+<h2 class="anchored" data-anchor-id="synchronous-version">Synchronous Version</h2>
+<p>This version doesn’t use concurrency:</p>
+<div id="lst-io-non-concurrent" class="python listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-io-non-concurrent-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;1: io_non_concurrent.py
+</figcaption>
+<div aria-describedby="lst-io-non-concurrent-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-io-non-concurrent"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="lst-io-non-concurrent-1"><a href="#lst-io-non-concurrent-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="lst-io-non-concurrent-2"><a href="#lst-io-non-concurrent-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-non-concurrent-3"><a href="#lst-io-non-concurrent-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="lst-io-non-concurrent-4"><a href="#lst-io-non-concurrent-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-non-concurrent-5"><a href="#lst-io-non-concurrent-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> main():</span>
+<span id="lst-io-non-concurrent-6"><a href="#lst-io-non-concurrent-6" aria-hidden="true" tabindex="-1"></a>    sites <span class="op">=</span> [</span>
+<span id="lst-io-non-concurrent-7"><a href="#lst-io-non-concurrent-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">"https://www.jython.org"</span>,</span>
+<span id="lst-io-non-concurrent-8"><a href="#lst-io-non-concurrent-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">"http://olympus.realpython.org/dice"</span>,</span>
+<span id="lst-io-non-concurrent-9"><a href="#lst-io-non-concurrent-9" aria-hidden="true" tabindex="-1"></a>    ] <span class="op">*</span> <span class="dv">80</span></span>
+<span id="lst-io-non-concurrent-10"><a href="#lst-io-non-concurrent-10" aria-hidden="true" tabindex="-1"></a>    start_time <span class="op">=</span> time.perf_counter()</span>
+<span id="lst-io-non-concurrent-11"><a href="#lst-io-non-concurrent-11" aria-hidden="true" tabindex="-1"></a>    download_all_sites(sites)</span>
+<span id="lst-io-non-concurrent-12"><a href="#lst-io-non-concurrent-12" aria-hidden="true" tabindex="-1"></a>    duration <span class="op">=</span> time.perf_counter() <span class="op">-</span> start_time</span>
+<span id="lst-io-non-concurrent-13"><a href="#lst-io-non-concurrent-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Downloaded </span><span class="sc">{</span><span class="bu">len</span>(sites)<span class="sc">}</span><span class="ss"> sites in </span><span class="sc">{</span>duration<span class="sc">}</span><span class="ss"> seconds"</span>)</span>
+<span id="lst-io-non-concurrent-14"><a href="#lst-io-non-concurrent-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-non-concurrent-15"><a href="#lst-io-non-concurrent-15" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> download_all_sites(sites):</span>
+<span id="lst-io-non-concurrent-16"><a href="#lst-io-non-concurrent-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> requests.Session() <span class="im">as</span> session:</span>
+<span id="lst-io-non-concurrent-17"><a href="#lst-io-non-concurrent-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> url <span class="kw">in</span> sites:</span>
+<span id="lst-io-non-concurrent-18"><a href="#lst-io-non-concurrent-18" aria-hidden="true" tabindex="-1"></a>            download_site(url, session)</span>
+<span id="lst-io-non-concurrent-19"><a href="#lst-io-non-concurrent-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-non-concurrent-20"><a href="#lst-io-non-concurrent-20" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> download_site(url, session):</span>
+<span id="lst-io-non-concurrent-21"><a href="#lst-io-non-concurrent-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> session.get(url) <span class="im">as</span> response:</span>
+<span id="lst-io-non-concurrent-22"><a href="#lst-io-non-concurrent-22" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Read </span><span class="sc">{</span><span class="bu">len</span>(response.content)<span class="sc">}</span><span class="ss"> bytes from </span><span class="sc">{</span>url<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="lst-io-non-concurrent-23"><a href="#lst-io-non-concurrent-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-non-concurrent-24"><a href="#lst-io-non-concurrent-24" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
+<span id="lst-io-non-concurrent-25"><a href="#lst-io-non-concurrent-25" aria-hidden="true" tabindex="-1"></a>    main()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p>This program downloads site contents from a list of addresses and prints their sizes. A session object from <code>requests</code> is used. Creating a <code>Session</code> object allows the library to retain state across requests and reuse the connection to speed things up. The session is created in <code>download_all_sites()</code> and then the list of sites is iterated through, downloading each one. Finally, the execution time is printed. Here’s an example of the final output:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python io_non_concurrent.py</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Read</span> 10966 from https://www.jython.org</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Read</span> 276 from http://olympus.realpython.org/dice</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a> <span class="ex">⋮</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Downloaded</span> 160 sites in 14.289619207382202 seconds</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>These results may vary depending on network conditions.</p>
+</section>
+<section id="multi-threaded-version" class="level2">
+<h2 class="anchored" data-anchor-id="multi-threaded-version">Multi-Threaded Version</h2>
+<p>Writing a multi-threaded program takes more effort. Here’s the same program using <code>concurrent.futures</code> and <code>threading</code>:</p>
+<div id="lst-io-threads" class="python listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-io-threads-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;2: io_threads.py
+</figcaption>
+<div aria-describedby="lst-io-threads-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-io-threads"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="lst-io-threads-1"><a href="#lst-io-threads-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> threading</span>
+<span id="lst-io-threads-2"><a href="#lst-io-threads-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="lst-io-threads-3"><a href="#lst-io-threads-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> concurrent.futures <span class="im">import</span> ThreadPoolExecutor</span>
+<span id="lst-io-threads-4"><a href="#lst-io-threads-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="lst-io-threads-5"><a href="#lst-io-threads-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-threads-6"><a href="#lst-io-threads-6" aria-hidden="true" tabindex="-1"></a>thread_local <span class="op">=</span> threading.local()</span>
+<span id="lst-io-threads-7"><a href="#lst-io-threads-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-threads-8"><a href="#lst-io-threads-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> main():</span>
+<span id="lst-io-threads-9"><a href="#lst-io-threads-9" aria-hidden="true" tabindex="-1"></a>    sites <span class="op">=</span> [</span>
+<span id="lst-io-threads-10"><a href="#lst-io-threads-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">"https://www.jython.org"</span>,</span>
+<span id="lst-io-threads-11"><a href="#lst-io-threads-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">"http://olympus.realpython.org/dice"</span>,</span>
+<span id="lst-io-threads-12"><a href="#lst-io-threads-12" aria-hidden="true" tabindex="-1"></a>    ] <span class="op">*</span> <span class="dv">80</span></span>
+<span id="lst-io-threads-13"><a href="#lst-io-threads-13" aria-hidden="true" tabindex="-1"></a>    start_time <span class="op">=</span> time.perf_counter()</span>
+<span id="lst-io-threads-14"><a href="#lst-io-threads-14" aria-hidden="true" tabindex="-1"></a>    download_all_sites(sites)</span>
+<span id="lst-io-threads-15"><a href="#lst-io-threads-15" aria-hidden="true" tabindex="-1"></a>    duration <span class="op">=</span> time.perf_counter() <span class="op">-</span> start_time</span>
+<span id="lst-io-threads-16"><a href="#lst-io-threads-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Downloaded </span><span class="sc">{</span><span class="bu">len</span>(sites)<span class="sc">}</span><span class="ss"> sites in </span><span class="sc">{</span>duration<span class="sc">}</span><span class="ss"> seconds"</span>)</span>
+<span id="lst-io-threads-17"><a href="#lst-io-threads-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-threads-18"><a href="#lst-io-threads-18" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> download_all_sites(sites):</span>
+<span id="lst-io-threads-19"><a href="#lst-io-threads-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> ThreadPoolExecutor(max_workers<span class="op">=</span><span class="dv">5</span>) <span class="im">as</span> executor:</span>
+<span id="lst-io-threads-20"><a href="#lst-io-threads-20" aria-hidden="true" tabindex="-1"></a>        executor.<span class="bu">map</span>(download_site, sites)</span>
+<span id="lst-io-threads-21"><a href="#lst-io-threads-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-threads-22"><a href="#lst-io-threads-22" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> download_site(url):</span>
+<span id="lst-io-threads-23"><a href="#lst-io-threads-23" aria-hidden="true" tabindex="-1"></a>    session <span class="op">=</span> get_session_for_thread()</span>
+<span id="lst-io-threads-24"><a href="#lst-io-threads-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> session.get(url) <span class="im">as</span> response:</span>
+<span id="lst-io-threads-25"><a href="#lst-io-threads-25" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Read </span><span class="sc">{</span><span class="bu">len</span>(response.content)<span class="sc">}</span><span class="ss"> bytes from </span><span class="sc">{</span>url<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="lst-io-threads-26"><a href="#lst-io-threads-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-threads-27"><a href="#lst-io-threads-27" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_session_for_thread():</span>
+<span id="lst-io-threads-28"><a href="#lst-io-threads-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> <span class="bu">hasattr</span>(thread_local, <span class="st">"session"</span>):</span>
+<span id="lst-io-threads-29"><a href="#lst-io-threads-29" aria-hidden="true" tabindex="-1"></a>        thread_local.session <span class="op">=</span> requests.Session()</span>
+<span id="lst-io-threads-30"><a href="#lst-io-threads-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> thread_local.session</span>
+<span id="lst-io-threads-31"><a href="#lst-io-threads-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-threads-32"><a href="#lst-io-threads-32" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
+<span id="lst-io-threads-33"><a href="#lst-io-threads-33" aria-hidden="true" tabindex="-1"></a>    main()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p>The overall structure is the same.</p>
+<p>A <code>ThreadPoolExecutor</code> is created to manage the threads. In this case, five workers or threads are requested. The correct number of threads is not constant from one task to another. With IO-bound problems, you’re not limited to the number of CPU cores. However, at some point, diminishing returns will occur due to the overhead of switching threads. Experimentation is recommended. A <code>ThreadPoolExecutor</code> creates a pool of threads, each of which can run concurrently. The executor controls how and when each of the threads in the pool will run. Using a thread pool can be beneficial when you have limited system resources but still want to handle many tasks.</p>
+<p>In this version, the executor calls <code>download_site()</code> instead of doing it manually in a loop. The <code>executor.map()</code> method distributes the workload across the available threads. This method takes:</p>
+<ul>
+<li>A function to be executed on each data item</li>
+<li>A collection of data items to be processed by that function</li>
+</ul>
+<p>Since the function passed to <code>.map()</code> must take one argument, <code>download_site()</code> was modified to only accept a URL.</p>
+<p>Because the operating system controls when tasks get interrupted, any data shared between the threads needs to be thread-safe. <code>requests.Session()</code> isn’t thread-safe.</p>
+<p>One strategy is to use a thread-safe data structure. Another strategy is to use thread-local storage. When <code>threading.local()</code> is called, an object that resembles a global variable but is specific to each individual thread is created.</p>
+<p>When <code>get_session_for_thread()</code> is called, the session it looks up is specific to the particular thread on which it’s running. So each thread will create a session the first time it calls <code>get_session_for_thread()</code> and then will use that session on each subsequent call.</p>
+<p>Here’s the output:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python io_threads.py</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Read</span> 10966 from https://www.jython.org</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Read</span> 276 from http://olympus.realpython.org/dice</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a> <span class="ex">⋮</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Downloaded</span> 160 sites in 3.190047219999542 seconds</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>This is faster than the non-concurrent version.</p>
+<p>Here’s the execution timing diagram:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/Threading.3eef48da829e.png" class="img-fluid figure-img" alt="Timing Diagram of a Threading Solution"></p>
+<figcaption>Timing Diagram of a Threading Solution</figcaption>
+</figure>
+</div>
+<p>The program uses multiple threads to have many open requests out to web sites at the same time. It takes more code to make this happen, and you have to give some thought to what data is shared between threads. Threads can interact in ways that are subtle and hard to detect. These interactions can cause race conditions that frequently result in random, intermittent bugs that can be difficult to find.</p>
+</section>
+<section id="asynchronous-version" class="level2">
+<h2 class="anchored" data-anchor-id="asynchronous-version">Asynchronous Version</h2>
+<p>Using multithreading can cut down the total execution time. Python’s <code>asyncio</code> module enables asynchronous I/O and can be even faster.</p>
+<p>Asynchronous processing is a concurrency model that’s suited for I/O-bound tasks. It avoids the overhead of context switching between threads by employing the event loop, non-blocking operations, and coroutines. Asynchronous code needs only one thread of execution to run concurrently.</p>
+<p>The event loop controls how and when each asynchronous task gets to execute. It continuously loops through your tasks while monitoring their state. When the current task starts waiting for an I/O operation to finish, the loop suspends it and switches to another task. When the expected event occurs, the loop resumes the suspended task in the next iteration.</p>
+<p>A coroutine is similar to a thread but more lightweight. You can spawn many more coroutines than threads without significant overhead.</p>
+<p>Blocking function calls aren’t allowed in coroutines. A blocking call prevents other code from running while it’s waiting for data to arrive. A non-blocking call can give up control and wait to be notified when the data is ready.</p>
+<p>In Python, you create a coroutine object by calling an asynchronous function, also known as a coroutine function. These are defined with the <code>async def</code> statement. Only within the body of an asynchronous function can you use the <code>await</code> keyword, which pauses the execution of the coroutine until the awaited task is completed:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> main():</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> asyncio.sleep(<span class="fl">3.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>In this case, <code>main()</code> is defined as an asynchronous function. The <code>await</code> keyword makes a non-blocking call to <code>asyncio.sleep()</code>, simulating a delay. While <code>main()</code> awaits the wake-up event, other tasks could potentially run.</p>
+<p><strong>Note:</strong> To run the sample code above, you’ll need to either wrap the call to <code>main()</code> in <code>asyncio.run()</code> or <code>await main()</code> in Python’s asyncio REPL.</p>
+<p>The Requests library is blocking, so a non-blocking counterpart, such as <code>aiohttp</code>, is needed. After installing this library, you can use it in the asynchronous version of the code:</p>
+<div id="lst-io-asyncio" class="python listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-io-asyncio-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;3: io_asyncio.py
+</figcaption>
+<div aria-describedby="lst-io-asyncio-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-io-asyncio"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="lst-io-asyncio-1"><a href="#lst-io-asyncio-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
+<span id="lst-io-asyncio-2"><a href="#lst-io-asyncio-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="lst-io-asyncio-3"><a href="#lst-io-asyncio-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> aiohttp</span>
+<span id="lst-io-asyncio-4"><a href="#lst-io-asyncio-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-asyncio-5"><a href="#lst-io-asyncio-5" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> main():</span>
+<span id="lst-io-asyncio-6"><a href="#lst-io-asyncio-6" aria-hidden="true" tabindex="-1"></a>    sites <span class="op">=</span> [</span>
+<span id="lst-io-asyncio-7"><a href="#lst-io-asyncio-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">"https://www.jython.org"</span>,</span>
+<span id="lst-io-asyncio-8"><a href="#lst-io-asyncio-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">"http://olympus.realpython.org/dice"</span>,</span>
+<span id="lst-io-asyncio-9"><a href="#lst-io-asyncio-9" aria-hidden="true" tabindex="-1"></a>    ] <span class="op">*</span> <span class="dv">80</span></span>
+<span id="lst-io-asyncio-10"><a href="#lst-io-asyncio-10" aria-hidden="true" tabindex="-1"></a>    start_time <span class="op">=</span> time.perf_counter()</span>
+<span id="lst-io-asyncio-11"><a href="#lst-io-asyncio-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> download_all_sites(sites)</span>
+<span id="lst-io-asyncio-12"><a href="#lst-io-asyncio-12" aria-hidden="true" tabindex="-1"></a>    duration <span class="op">=</span> time.perf_counter() <span class="op">-</span> start_time</span>
+<span id="lst-io-asyncio-13"><a href="#lst-io-asyncio-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Downloaded </span><span class="sc">{</span><span class="bu">len</span>(sites)<span class="sc">}</span><span class="ss"> sites in </span><span class="sc">{</span>duration<span class="sc">}</span><span class="ss"> seconds"</span>)</span>
+<span id="lst-io-asyncio-14"><a href="#lst-io-asyncio-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-asyncio-15"><a href="#lst-io-asyncio-15" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> download_all_sites(sites):</span>
+<span id="lst-io-asyncio-16"><a href="#lst-io-asyncio-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">async</span> <span class="cf">with</span> aiohttp.ClientSession() <span class="im">as</span> session:</span>
+<span id="lst-io-asyncio-17"><a href="#lst-io-asyncio-17" aria-hidden="true" tabindex="-1"></a>        tasks <span class="op">=</span> [download_site(url, session) <span class="cf">for</span> url <span class="kw">in</span> sites]</span>
+<span id="lst-io-asyncio-18"><a href="#lst-io-asyncio-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">await</span> asyncio.gather(<span class="op">*</span>tasks, return_exceptions<span class="op">=</span><span class="va">True</span>)</span>
+<span id="lst-io-asyncio-19"><a href="#lst-io-asyncio-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-asyncio-20"><a href="#lst-io-asyncio-20" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> download_site(url, session):</span>
+<span id="lst-io-asyncio-21"><a href="#lst-io-asyncio-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">async</span> <span class="cf">with</span> session.get(url) <span class="im">as</span> response:</span>
+<span id="lst-io-asyncio-22"><a href="#lst-io-asyncio-22" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Read </span><span class="sc">{</span><span class="bu">len</span>(<span class="cf">await</span> response.read())<span class="sc">}</span><span class="ss"> bytes from </span><span class="sc">{</span>url<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="lst-io-asyncio-23"><a href="#lst-io-asyncio-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-asyncio-24"><a href="#lst-io-asyncio-24" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
+<span id="lst-io-asyncio-25"><a href="#lst-io-asyncio-25" aria-hidden="true" tabindex="-1"></a>    asyncio.run(main())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p>This version looks similar to the synchronous one.</p>
+<p>Here are the main differences:</p>
+<ul>
+<li><code>asyncio</code> is imported from Python’s standard library.</li>
+<li>The <code>aiohttp</code> library is imported.</li>
+<li>Functions are redefined as asynchronous ones with the <code>async</code> keyword.</li>
+<li>The <code>await</code> keyword is prepended to <code>download_all_sites()</code>.</li>
+<li>The <code>async with</code> statement is leveraged to create asynchronous context managers.</li>
+<li>A list of tasks is created using a list comprehension.</li>
+<li><code>asyncio.gather()</code> is used to run all the tasks concurrently.</li>
+<li>The completion of the session’s HTTP GET request is awaited before printing.</li>
+</ul>
+<p>The session is shared across all tasks because they’re all running on the same thread.</p>
+<p>One of the advantages of asyncio is that it scales well. Each task takes fewer resources and less time to create than a thread.</p>
+<p>The asynchronous version is the fastest:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python io_asyncio.py</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Read</span> 10966 bytes from https://www.jython.org</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Read</span> 10966 bytes from https://www.jython.org</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a> <span class="ex">⋮</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Downloaded</span> 160 sites in 0.49083488899850636 seconds</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Here’s the execution timing diagram:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/Asyncio.31182d3731cf.png" class="img-fluid figure-img" alt="Timing Diagram of a Asyncio Solution"></p>
+<figcaption>Timing Diagram of a Asyncio Solution</figcaption>
+</figure>
+</div>
+<p>Adding <code>async</code> and <code>await</code> can be a complication, but it forces you to think about when a given task will get swapped out. The asyncio example can be run with hundreds of tasks without slowing it down. You need special asynchronous versions of libraries to gain the full advantage of asyncio. If one of the tasks doesn’t cooperate, then all the advantages of cooperative multitasking get thrown away. See <a href="#sec-asyncio" class="quarto-xref">Section&nbsp;4</a> for a deep dive into asynchronous I/O with AsyncIOs</p>
+</section>
+<section id="process-based-version" class="level2">
+<h2 class="anchored" data-anchor-id="process-based-version">Process-Based Version</h2>
+<p>The examples so far have run on a single CPU. The <code>multiprocessing</code> module was designed to break down that barrier and run your code across multiple CPUs. It does this by creating a new instance of the Python interpreter to run on each CPU. Bringing up a separate Python interpreter is a heavyweight operation. Unlike the previous approaches, using multiprocessing allows you to take full advantage of the all CPUs that your computer has. Here’s the sample code:</p>
+<div id="lst-io-processes" class="python listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-io-processes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;4: io_processes.py
+</figcaption>
+<div aria-describedby="lst-io-processes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-io-processes"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="lst-io-processes-1"><a href="#lst-io-processes-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> atexit</span>
+<span id="lst-io-processes-2"><a href="#lst-io-processes-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> multiprocessing</span>
+<span id="lst-io-processes-3"><a href="#lst-io-processes-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="lst-io-processes-4"><a href="#lst-io-processes-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> concurrent.futures <span class="im">import</span> ProcessPoolExecutor</span>
+<span id="lst-io-processes-5"><a href="#lst-io-processes-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="lst-io-processes-6"><a href="#lst-io-processes-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-processes-7"><a href="#lst-io-processes-7" aria-hidden="true" tabindex="-1"></a>session: requests.Session</span>
+<span id="lst-io-processes-8"><a href="#lst-io-processes-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-processes-9"><a href="#lst-io-processes-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> main():</span>
+<span id="lst-io-processes-10"><a href="#lst-io-processes-10" aria-hidden="true" tabindex="-1"></a>    sites <span class="op">=</span> [</span>
+<span id="lst-io-processes-11"><a href="#lst-io-processes-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">"https://www.jython.org"</span>,</span>
+<span id="lst-io-processes-12"><a href="#lst-io-processes-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">"http://olympus.realpython.org/dice"</span>,</span>
+<span id="lst-io-processes-13"><a href="#lst-io-processes-13" aria-hidden="true" tabindex="-1"></a>    ] <span class="op">*</span> <span class="dv">80</span></span>
+<span id="lst-io-processes-14"><a href="#lst-io-processes-14" aria-hidden="true" tabindex="-1"></a>    start_time <span class="op">=</span> time.perf_counter()</span>
+<span id="lst-io-processes-15"><a href="#lst-io-processes-15" aria-hidden="true" tabindex="-1"></a>    download_all_sites(sites)</span>
+<span id="lst-io-processes-16"><a href="#lst-io-processes-16" aria-hidden="true" tabindex="-1"></a>    duration <span class="op">=</span> time.perf_counter() <span class="op">-</span> start_time</span>
+<span id="lst-io-processes-17"><a href="#lst-io-processes-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Downloaded </span><span class="sc">{</span><span class="bu">len</span>(sites)<span class="sc">}</span><span class="ss"> sites in </span><span class="sc">{</span>duration<span class="sc">}</span><span class="ss"> seconds"</span>)</span>
+<span id="lst-io-processes-18"><a href="#lst-io-processes-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-processes-19"><a href="#lst-io-processes-19" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> download_all_sites(sites):</span>
+<span id="lst-io-processes-20"><a href="#lst-io-processes-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> ProcessPoolExecutor(initializer<span class="op">=</span>init_process) <span class="im">as</span> executor:</span>
+<span id="lst-io-processes-21"><a href="#lst-io-processes-21" aria-hidden="true" tabindex="-1"></a>        executor.<span class="bu">map</span>(download_site, sites)</span>
+<span id="lst-io-processes-22"><a href="#lst-io-processes-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-processes-23"><a href="#lst-io-processes-23" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> download_site(url):</span>
+<span id="lst-io-processes-24"><a href="#lst-io-processes-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> session.get(url) <span class="im">as</span> response:</span>
+<span id="lst-io-processes-25"><a href="#lst-io-processes-25" aria-hidden="true" tabindex="-1"></a>        name <span class="op">=</span> multiprocessing.current_process().name</span>
+<span id="lst-io-processes-26"><a href="#lst-io-processes-26" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">:Read </span><span class="sc">{</span><span class="bu">len</span>(response.content)<span class="sc">}</span><span class="ss"> bytes from </span><span class="sc">{</span>url<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="lst-io-processes-27"><a href="#lst-io-processes-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-processes-28"><a href="#lst-io-processes-28" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> init_process():</span>
+<span id="lst-io-processes-29"><a href="#lst-io-processes-29" aria-hidden="true" tabindex="-1"></a>    <span class="kw">global</span> session</span>
+<span id="lst-io-processes-30"><a href="#lst-io-processes-30" aria-hidden="true" tabindex="-1"></a>    session <span class="op">=</span> requests.Session()</span>
+<span id="lst-io-processes-31"><a href="#lst-io-processes-31" aria-hidden="true" tabindex="-1"></a>    atexit.register(session.close)</span>
+<span id="lst-io-processes-32"><a href="#lst-io-processes-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-io-processes-33"><a href="#lst-io-processes-33" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
+<span id="lst-io-processes-34"><a href="#lst-io-processes-34" aria-hidden="true" tabindex="-1"></a>    main()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p>This looks similar to the multi-threaded example.</p>
+<p>Here’s what this code does:</p>
+<ul>
+<li>A global variable is declared to hold the session object.</li>
+<li><code>ThreadPoolExecutor</code> is replaced with <code>ProcessPoolExecutor</code> from <code>concurrent.futures</code> and <code>init_process()</code> is passed.</li>
+<li>A custom initializer function is defined that each process will call shortly after starting.</li>
+<li>A cleanup function is registered with <code>atexit</code>.</li>
+</ul>
+<p>The pool creates a number of separate Python interpreter processes. The communication between the main process and the other processes is handled. The pool instance doesn’t specify how many processes to create. By default, it’ll determine the number of CPUs and match that. For an I/O-bound problem, increasing the number of processes won’t make things faster.</p>
+<p><strong>Note:</strong> If you need to exchange data between your processes, then it requires expensive inter-process communication (IPC) and data serialization.</p>
+<p>Each process in the pool has its own memory space. They can’t easily share things like a session object. The initializer function parameter is built for this case. A global session variable can be initialized to hold the single session for each process.</p>
+<p>Here’s the output:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python io_processes.py</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ForkProcess-3:Read</span> 10966 bytes from https://www.jython.org</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ex">ForkProcess-4:Read</span> 276 bytes from http://olympus.realpython.org/dice</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a> <span class="ex">⋮</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Downloaded</span> 160 sites in 3.428215079999063 seconds</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>On a computer with four CPU cores, it runs about four times faster than the synchronous version. It’s slower than the multi-threaded version and much slower than the asynchronous version.</p>
+<p>The execution timing diagram for this code looks like this:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/MProc.7cf3be371bbc.png" class="img-fluid figure-img" alt="Timing Diagram of a Multiprocessing Solution"></p>
+<figcaption>Timing Diagram of a Multiprocessing Solution</figcaption>
+</figure>
+</div>
+<p>There are separate processes executing in parallel. The diagrams of each one resemble the non-concurrent version. Multiprocessing is more useful for CPU-bound examples.</p>
+</section>
+</section>
+<section id="sec-asyncio" class="level1">
+<h1>Asynchronous I/O with AsyncIO</h1>
+<p>Asynchronous programming offers an efficient way to create responsive applications, particularly for I/O-bound tasks. Python’s <code>asyncio</code> library, along with the <code>async</code> and <code>await</code> keywords, provides a framework for building concurrent applications. This section explores the core concepts of <code>asyncio</code>, illustrates use cases, and outlines considerations for its adoption.</p>
+<p>Asynchronous I/O (AsyncIO) allows routines to pause while awaiting external operations (e.g., network requests, file reads) and permits other routines to execute. This improves efficiency by utilizing idle time.</p>
+<p>Concurrency and parallelism are distinct. Concurrency makes multiple tasks <em>appear</em> to run simultaneously, even on a single core. Parallelism involves running multiple tasks <em>at the same time</em>, using multiple CPU cores. <code>asyncio</code> primarily facilitates concurrency using a single thread.</p>
+<section id="async-and-await-keywords" class="level2">
+<h2 class="anchored" data-anchor-id="async-and-await-keywords"><code>async</code> and <code>await</code> Keywords</h2>
+<p>The <code>async</code> and <code>await</code> keywords are fundamental to <code>asyncio</code>.</p>
+<ul>
+<li><code>async def</code>: Defines a <em>coroutine</em>, a function that can be suspended and resumed.</li>
+<li><code>await</code>: Pauses execution inside a coroutine until an <em>awaitable</em> object (another coroutine or a <code>Future</code>) completes. When a coroutine encounters <code>await</code>, it yields control back to the event loop.</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> f(x):</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> <span class="cf">await</span> z(x)  <span class="co"># OK - `await` and `return` allowed in coroutines</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> y</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> g(x):</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">yield</span> x  <span class="co"># OK - this is an async generator</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>A function defined with <code>async def</code> is a coroutine. It may use <code>await</code>, <code>return</code>, or <code>yield</code>, but all are optional.</p>
+<p>Using <code>await</code> and/or <code>return</code> creates a coroutine function. To call a coroutine function, you must await it to get its results. It is less common to use <code>yield</code> in an <code>async def</code> block. This creates an asynchronous generator, iterated over with <code>async for</code>. Anything defined with <code>async def</code> may not use <code>yield from</code>, which will raise a <code>SyntaxError</code>.</p>
+<p>Example:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> my_coroutine():</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Coroutine started"</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> asyncio.sleep(<span class="dv">1</span>)  <span class="co"># Simulate an I/O operation</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Coroutine finished"</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> main():</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> my_coroutine()</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    asyncio.run(main())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>This code demonstrates:</p>
+<ol type="1">
+<li><code>my_coroutine</code> is defined as an <code>async</code> function, making it a coroutine.</li>
+<li><code>await asyncio.sleep(1)</code> pauses the coroutine for 1 second, simulating an I/O operation. The event loop can schedule other coroutines.</li>
+<li><code>asyncio.run(main())</code> starts the event loop and runs the <code>main</code> coroutine.</li>
+</ol>
+</section>
+<section id="asynchronous-vs.-synchronous-execution-in-python-a-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="asynchronous-vs.-synchronous-execution-in-python-a-comparison">Asynchronous vs.&nbsp;Synchronous Execution in Python: A Comparison</h2>
+<p>This section compares the execution time of asynchronous and synchronous code in Python using a simple example. The example consists of a <code>count</code> function that prints “One”, waits for 1 second, and then prints “Two”. We execute this function three times, once using <code>asyncio</code> for asynchronous execution and once using a simple <code>for</code> loop for synchronous execution.</p>
+<p><strong>Asynchronous Example</strong></p>
+<div id="lst-countasync" class="python listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-countasync-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;5: countasync.py
+</figcaption>
+<div aria-describedby="lst-countasync-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-countasync"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="lst-countasync-1"><a href="#lst-countasync-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
+<span id="lst-countasync-2"><a href="#lst-countasync-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="lst-countasync-3"><a href="#lst-countasync-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-countasync-4"><a href="#lst-countasync-4" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> count():</span>
+<span id="lst-countasync-5"><a href="#lst-countasync-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"One"</span>)</span>
+<span id="lst-countasync-6"><a href="#lst-countasync-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> asyncio.sleep(<span class="dv">1</span>)</span>
+<span id="lst-countasync-7"><a href="#lst-countasync-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Two"</span>)</span>
+<span id="lst-countasync-8"><a href="#lst-countasync-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-countasync-9"><a href="#lst-countasync-9" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> main():</span>
+<span id="lst-countasync-10"><a href="#lst-countasync-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> asyncio.gather(count(), count(), count())</span>
+<span id="lst-countasync-11"><a href="#lst-countasync-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-countasync-12"><a href="#lst-countasync-12" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
+<span id="lst-countasync-13"><a href="#lst-countasync-13" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> time.perf_counter()</span>
+<span id="lst-countasync-14"><a href="#lst-countasync-14" aria-hidden="true" tabindex="-1"></a>    asyncio.run(main())</span>
+<span id="lst-countasync-15"><a href="#lst-countasync-15" aria-hidden="true" tabindex="-1"></a>    elapsed <span class="op">=</span> time.perf_counter() <span class="op">-</span> s</span>
+<span id="lst-countasync-16"><a href="#lst-countasync-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="va">__file__</span><span class="sc">}</span><span class="ss"> executed in </span><span class="sc">{</span>elapsed<span class="sc">:0.2f}</span><span class="ss"> seconds."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p><strong>Explanation:</strong></p>
+<ul>
+<li><code>async def count():</code> defines an asynchronous function. The <code>await asyncio.sleep(1)</code> line allows the event loop to switch to other tasks while waiting for the sleep to complete, enabling concurrency.</li>
+<li><code>async def main():</code> defines another asynchronous function that uses <code>asyncio.gather()</code> to run three instances of <code>count()</code> concurrently. <code>asyncio.gather()</code> ensures that all provided awaitables complete before it returns.</li>
+<li><code>asyncio.run(main())</code> starts the asyncio event loop and runs the <code>main()</code> function.</li>
+</ul>
+<p><strong>Output:</strong></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python countasync.py</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">One</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">One</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="ex">One</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Two</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="ex">Two</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="ex">Two</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="ex">countasync.py</span> executed in 1.01 seconds.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>As observed, the execution time is approximately 1 second. This is because all three <code>count()</code> functions are executed concurrently. The <code>asyncio.sleep(1)</code> calls allow the event loop to switch between the functions, effectively overlapping the wait times. The small amount over 1 second likely represents overhead from the asyncio event loop and the <code>print</code> function.</p>
+<p><strong>Synchronous Example</strong></p>
+<div id="lst-countsync" class="python listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-countsync-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;6: countsync.py
+</figcaption>
+<div aria-describedby="lst-countsync-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-countsync"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="lst-countsync-1"><a href="#lst-countsync-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="lst-countsync-2"><a href="#lst-countsync-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-countsync-3"><a href="#lst-countsync-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> count():</span>
+<span id="lst-countsync-4"><a href="#lst-countsync-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"One"</span>)</span>
+<span id="lst-countsync-5"><a href="#lst-countsync-5" aria-hidden="true" tabindex="-1"></a>    time.sleep(<span class="dv">1</span>)</span>
+<span id="lst-countsync-6"><a href="#lst-countsync-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Two"</span>)</span>
+<span id="lst-countsync-7"><a href="#lst-countsync-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-countsync-8"><a href="#lst-countsync-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> main():</span>
+<span id="lst-countsync-9"><a href="#lst-countsync-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">3</span>):</span>
+<span id="lst-countsync-10"><a href="#lst-countsync-10" aria-hidden="true" tabindex="-1"></a>        count()</span>
+<span id="lst-countsync-11"><a href="#lst-countsync-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-countsync-12"><a href="#lst-countsync-12" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
+<span id="lst-countsync-13"><a href="#lst-countsync-13" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> time.perf_counter()</span>
+<span id="lst-countsync-14"><a href="#lst-countsync-14" aria-hidden="true" tabindex="-1"></a>    main()</span>
+<span id="lst-countsync-15"><a href="#lst-countsync-15" aria-hidden="true" tabindex="-1"></a>    elapsed <span class="op">=</span> time.perf_counter() <span class="op">-</span> s</span>
+<span id="lst-countsync-16"><a href="#lst-countsync-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="va">__file__</span><span class="sc">}</span><span class="ss"> executed in </span><span class="sc">{</span>elapsed<span class="sc">:0.2f}</span><span class="ss"> seconds."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p><strong>Explanation:</strong></p>
+<ul>
+<li><code>def count():</code> defines a regular synchronous function.</li>
+<li><code>time.sleep(1)</code> pauses the execution of the current thread for 1 second. No other code can execute during this time.</li>
+<li><code>def main():</code> calls the <code>count()</code> function three times in a loop. Each call blocks until it completes.</li>
+</ul>
+<p><strong>Output:</strong></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python3 countsync.py</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">One</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Two</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="ex">One</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Two</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="ex">One</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="ex">Two</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="ex">countsync.py</span> executed in 3.01 seconds.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>As observed, the execution time is approximately 3 seconds. This is because each <code>count()</code> function call takes 1 second of sleep time, and the functions are executed sequentially.</p>
+</section>
+<section id="components-of-asyncio" class="level2">
+<h2 class="anchored" data-anchor-id="components-of-asyncio">Components of <code>asyncio</code></h2>
+<ul>
+<li><strong>Event Loop:</strong> Manages coroutine execution and I/O events. <code>asyncio.run()</code> creates and manages it.</li>
+<li><strong>Coroutines:</strong> Functions defined with <code>async def</code> that can be suspended and resumed.</li>
+<li><strong>Tasks:</strong> Represent a coroutine scheduled to run in the event loop, created using <code>asyncio.create_task()</code>. Tasks are essential for running coroutines concurrently.</li>
+<li><strong>Futures:</strong> Represent the result of an asynchronous operation. Coroutines may <code>await</code> Futures, allowing them to wait for the completion of an asynchronous operation without blocking the entire program.</li>
+<li><strong>Queues:</strong> <code>asyncio</code> provides queue classes (<code>asyncio.Queue</code>) similar to the standard <code>queue.Queue</code> but designed for asynchronous use. Queues are useful for coordinating communication between coroutines.</li>
+</ul>
+<p><strong>The Event Loop</strong></p>
+<p>The event loop monitors coroutines, identifies idle coroutines, and schedules executable tasks. It wakes up idle coroutines when their awaited resources become available.</p>
+<p><code>asyncio.run()</code> manages the event loop implicitly:</p>
+<p><code>asyncio.run()</code> obtains the event loop, runs tasks until completion, and then closes the loop.</p>
+<p>Key points about the event loop:</p>
+<ol type="1">
+<li>Coroutines require the event loop to execute.</li>
+<li>By default, an AsyncIO event loop runs in a single thread and on a single CPU core, which is often sufficient.</li>
+</ol>
+<p>There’s a more long-winded way of managing the asyncio event loop, <code>with get_event_loop()</code>. The typical pattern looks like this and is taken from <a href="https://github.com/run-llama/llama_index/blob/main/llama-index-core/llama_index/core/async_utils.py">llama-index <code>async_utils.py</code></a>.</p>
+<div id="lst-asyncio-run" class="python listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-asyncio-run-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;7: asyncio_run
+</figcaption>
+<div aria-describedby="lst-asyncio-run-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-asyncio-run"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="lst-asyncio-run-1"><a href="#lst-asyncio-run-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> asyncio_run(coro: Coroutine) <span class="op">-&gt;</span> Any:</span>
+<span id="lst-asyncio-run-2"><a href="#lst-asyncio-run-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Gets an existing event loop to run the coroutine.</span></span>
+<span id="lst-asyncio-run-3"><a href="#lst-asyncio-run-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-asyncio-run-4"><a href="#lst-asyncio-run-4" aria-hidden="true" tabindex="-1"></a><span class="co">    If there is no existing event loop, creates a new one.</span></span>
+<span id="lst-asyncio-run-5"><a href="#lst-asyncio-run-5" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="lst-asyncio-run-6"><a href="#lst-asyncio-run-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="lst-asyncio-run-7"><a href="#lst-asyncio-run-7" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Check if there's an existing event loop</span></span>
+<span id="lst-asyncio-run-8"><a href="#lst-asyncio-run-8" aria-hidden="true" tabindex="-1"></a>        loop <span class="op">=</span> asyncio.get_event_loop()</span>
+<span id="lst-asyncio-run-9"><a href="#lst-asyncio-run-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-asyncio-run-10"><a href="#lst-asyncio-run-10" aria-hidden="true" tabindex="-1"></a>        <span class="co"># If we're here, there's an existing loop but it's not running</span></span>
+<span id="lst-asyncio-run-11"><a href="#lst-asyncio-run-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> loop.run_until_complete(coro)</span>
+<span id="lst-asyncio-run-12"><a href="#lst-asyncio-run-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-asyncio-run-13"><a href="#lst-asyncio-run-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">RuntimeError</span> <span class="im">as</span> e:</span>
+<span id="lst-asyncio-run-14"><a href="#lst-asyncio-run-14" aria-hidden="true" tabindex="-1"></a>        <span class="co"># If we can't get the event loop, we're likely in a different thread, or its already running</span></span>
+<span id="lst-asyncio-run-15"><a href="#lst-asyncio-run-15" aria-hidden="true" tabindex="-1"></a>        <span class="co"># asyncio.get_event_loop() raises RuntimeError if there's no running loop in the current thread.</span></span>
+<span id="lst-asyncio-run-16"><a href="#lst-asyncio-run-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<span id="lst-asyncio-run-17"><a href="#lst-asyncio-run-17" aria-hidden="true" tabindex="-1"></a>            <span class="co"># If the first attempt failed, try creating and running a new event loop.</span></span>
+<span id="lst-asyncio-run-18"><a href="#lst-asyncio-run-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> asyncio.run(coro)  <span class="co"># asyncio.run() creates a new event loop, runs the coroutine, and closes the loop.</span></span>
+<span id="lst-asyncio-run-19"><a href="#lst-asyncio-run-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> <span class="pp">RuntimeError</span> <span class="im">as</span> e:</span>
+<span id="lst-asyncio-run-20"><a href="#lst-asyncio-run-20" aria-hidden="true" tabindex="-1"></a>            <span class="co"># If asyncio.run() also raises RuntimeError, it likely means there's a nested asyncio call.</span></span>
+<span id="lst-asyncio-run-21"><a href="#lst-asyncio-run-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">RuntimeError</span>(</span>
+<span id="lst-asyncio-run-22"><a href="#lst-asyncio-run-22" aria-hidden="true" tabindex="-1"></a>                <span class="st">"Detected nested async. Please use nest_asyncio.apply() to allow nested event loops."</span></span>
+<span id="lst-asyncio-run-23"><a href="#lst-asyncio-run-23" aria-hidden="true" tabindex="-1"></a>                <span class="st">"Or, use async entry methods like `aquery()`, `aretriever`, `achat`, etc."</span></span>
+<span id="lst-asyncio-run-24"><a href="#lst-asyncio-run-24" aria-hidden="true" tabindex="-1"></a>            )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p>This function aims to run an asyncio coroutine. It first tries to get the current event loop. If one exists and is not running, it runs the coroutine in that loop. If getting the current loop fails (<code>RuntimeError</code>), it means there’s no running loop in the current thread. In that case, it tries to create a new loop using <code>asyncio.run()</code>. If creating a new loop also fails (another <code>RuntimeError</code>), it likely indicates a nested asyncio scenario (trying to run asyncio code within already running asyncio code). The error suggests using <code>nest_asyncio</code> or asynchronous alternatives to avoid nested loops. Nesting is generally discouraged in asyncio. <code>nest_asyncio</code> allows nesting, but it can lead to unexpected behavior. It is generally recommended to re-factor code that uses nested async calls.</p>
+</section>
+<section id="asyncio-examples-in-practice" class="level2">
+<h2 class="anchored" data-anchor-id="asyncio-examples-in-practice">AsyncIO Examples in Practice</h2>
+<section id="chained-coroutines" class="level3">
+<h3 class="anchored" data-anchor-id="chained-coroutines">Chained Coroutines</h3>
+<div id="lst-chained" class="python listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-chained-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;8: chained.py
+</figcaption>
+<div aria-describedby="lst-chained-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-chained"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="lst-chained-1"><a href="#lst-chained-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
+<span id="lst-chained-2"><a href="#lst-chained-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> random</span>
+<span id="lst-chained-3"><a href="#lst-chained-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="lst-chained-4"><a href="#lst-chained-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-chained-5"><a href="#lst-chained-5" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> part1(n: <span class="bu">int</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="lst-chained-6"><a href="#lst-chained-6" aria-hidden="true" tabindex="-1"></a>    i <span class="op">=</span> random.randint(<span class="dv">0</span>, <span class="dv">10</span>)</span>
+<span id="lst-chained-7"><a href="#lst-chained-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"part1(</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">) sleeping for </span><span class="sc">{</span>i<span class="sc">}</span><span class="ss"> seconds."</span>)</span>
+<span id="lst-chained-8"><a href="#lst-chained-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> asyncio.sleep(i)</span>
+<span id="lst-chained-9"><a href="#lst-chained-9" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> <span class="ss">f"result</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">-1"</span></span>
+<span id="lst-chained-10"><a href="#lst-chained-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Returning part1(</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">) == </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">."</span>)</span>
+<span id="lst-chained-11"><a href="#lst-chained-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> result</span>
+<span id="lst-chained-12"><a href="#lst-chained-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-chained-13"><a href="#lst-chained-13" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> part2(n: <span class="bu">int</span>, arg: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="lst-chained-14"><a href="#lst-chained-14" aria-hidden="true" tabindex="-1"></a>    i <span class="op">=</span> random.randint(<span class="dv">0</span>, <span class="dv">10</span>)</span>
+<span id="lst-chained-15"><a href="#lst-chained-15" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"part2</span><span class="sc">{</span>n<span class="sc">,</span> arg<span class="sc">}</span><span class="ss"> sleeping for </span><span class="sc">{</span>i<span class="sc">}</span><span class="ss"> seconds."</span>)</span>
+<span id="lst-chained-16"><a href="#lst-chained-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> asyncio.sleep(i)</span>
+<span id="lst-chained-17"><a href="#lst-chained-17" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> <span class="ss">f"result</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">-2 derived from </span><span class="sc">{</span>arg<span class="sc">}</span><span class="ss">"</span></span>
+<span id="lst-chained-18"><a href="#lst-chained-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Returning part2</span><span class="sc">{</span>n<span class="sc">,</span> arg<span class="sc">}</span><span class="ss"> == </span><span class="sc">{</span>result<span class="sc">}</span><span class="ss">."</span>)</span>
+<span id="lst-chained-19"><a href="#lst-chained-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> result</span>
+<span id="lst-chained-20"><a href="#lst-chained-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-chained-21"><a href="#lst-chained-21" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> chain(n: <span class="bu">int</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="lst-chained-22"><a href="#lst-chained-22" aria-hidden="true" tabindex="-1"></a>    start <span class="op">=</span> time.perf_counter()</span>
+<span id="lst-chained-23"><a href="#lst-chained-23" aria-hidden="true" tabindex="-1"></a>    p1 <span class="op">=</span> <span class="cf">await</span> part1(n)</span>
+<span id="lst-chained-24"><a href="#lst-chained-24" aria-hidden="true" tabindex="-1"></a>    p2 <span class="op">=</span> <span class="cf">await</span> part2(n, p1)</span>
+<span id="lst-chained-25"><a href="#lst-chained-25" aria-hidden="true" tabindex="-1"></a>    end <span class="op">=</span> time.perf_counter() <span class="op">-</span> start</span>
+<span id="lst-chained-26"><a href="#lst-chained-26" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"--&gt;Chained result</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss"> =&gt; </span><span class="sc">{</span>p2<span class="sc">}</span><span class="ss"> (took </span><span class="sc">{</span>end<span class="sc">:0.2f}</span><span class="ss"> seconds)."</span>)</span>
+<span id="lst-chained-27"><a href="#lst-chained-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-chained-28"><a href="#lst-chained-28" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> main(<span class="op">*</span>args):</span>
+<span id="lst-chained-29"><a href="#lst-chained-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> asyncio.gather(<span class="op">*</span>(chain(n) <span class="cf">for</span> n <span class="kw">in</span> args))</span>
+<span id="lst-chained-30"><a href="#lst-chained-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-chained-31"><a href="#lst-chained-31" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
+<span id="lst-chained-32"><a href="#lst-chained-32" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> sys</span>
+<span id="lst-chained-33"><a href="#lst-chained-33" aria-hidden="true" tabindex="-1"></a>    random.seed(<span class="dv">444</span>)</span>
+<span id="lst-chained-34"><a href="#lst-chained-34" aria-hidden="true" tabindex="-1"></a>    args <span class="op">=</span> [<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>] <span class="cf">if</span> <span class="bu">len</span>(sys.argv) <span class="op">==</span> <span class="dv">1</span> <span class="cf">else</span> <span class="bu">map</span>(<span class="bu">int</span>, sys.argv[<span class="dv">1</span>:])</span>
+<span id="lst-chained-35"><a href="#lst-chained-35" aria-hidden="true" tabindex="-1"></a>    start <span class="op">=</span> time.perf_counter()</span>
+<span id="lst-chained-36"><a href="#lst-chained-36" aria-hidden="true" tabindex="-1"></a>    asyncio.run(main(<span class="op">*</span>args))</span>
+<span id="lst-chained-37"><a href="#lst-chained-37" aria-hidden="true" tabindex="-1"></a>    end <span class="op">=</span> time.perf_counter() <span class="op">-</span> start</span>
+<span id="lst-chained-38"><a href="#lst-chained-38" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Program finished in </span><span class="sc">{</span>end<span class="sc">:0.2f}</span><span class="ss"> seconds."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p>Example output:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python3 chained.py 9 6 3</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">part1</span><span class="er">(</span><span class="ex">9</span><span class="kw">)</span> <span class="ex">sleeping</span> for 4 seconds.</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ex">part1</span><span class="er">(</span><span class="ex">6</span><span class="kw">)</span> <span class="ex">sleeping</span> for 4 seconds.</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="ex">part1</span><span class="er">(</span><span class="ex">3</span><span class="kw">)</span> <span class="ex">sleeping</span> for 0 seconds.</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Returning</span> part1<span class="er">(</span><span class="ex">3</span><span class="kw">)</span> <span class="ex">==</span> result3-1.</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="ex">part2</span><span class="er">(</span><span class="ex">3,</span> <span class="st">'result3-1'</span><span class="kw">)</span> <span class="ex">sleeping</span> for 4 seconds.</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="ex">Returning</span> part1<span class="er">(</span><span class="ex">9</span><span class="kw">)</span> <span class="ex">==</span> result9-1.</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="ex">part2</span><span class="er">(</span><span class="ex">9,</span> <span class="st">'result9-1'</span><span class="kw">)</span> <span class="ex">sleeping</span> for 7 seconds.</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="ex">Returning</span> part1<span class="er">(</span><span class="ex">6</span><span class="kw">)</span> <span class="ex">==</span> result6-1.</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="ex">part2</span><span class="er">(</span><span class="ex">6,</span> <span class="st">'result6-1'</span><span class="kw">)</span> <span class="ex">sleeping</span> for 4 seconds.</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="ex">Returning</span> part2<span class="er">(</span><span class="ex">3,</span> <span class="st">'result3-1'</span><span class="kw">)</span> <span class="ex">==</span> result3-2 derived from result3-1.</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="ex">--</span><span class="op">&gt;</span>Chained result3 =<span class="op">&gt;</span> result3-2 derived from result3-1 <span class="er">(</span><span class="ex">took</span> 4.00 seconds<span class="kw">)</span><span class="bu">.</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="ex">Returning</span> part2<span class="er">(</span><span class="ex">6,</span> <span class="st">'result6-1'</span><span class="kw">)</span> <span class="ex">==</span> result6-2 derived from result6-1.</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="ex">--</span><span class="op">&gt;</span>Chained result6 =<span class="op">&gt;</span> result6-2 derived from result6-1 <span class="er">(</span><span class="ex">took</span> 8.01 seconds<span class="kw">)</span><span class="bu">.</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="ex">Returning</span> part2<span class="er">(</span><span class="ex">9,</span> <span class="st">'result9-1'</span><span class="kw">)</span> <span class="ex">==</span> result9-2 derived from result9-1.</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="ex">--</span><span class="op">&gt;</span>Chained result9 =<span class="op">&gt;</span> result9-2 derived from result9-1 <span class="er">(</span><span class="ex">took</span> 11.01 seconds<span class="kw">)</span><span class="bu">.</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="ex">Program</span> finished in 11.01 seconds.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><code>part1()</code> sleeps for a variable time, and <code>part2()</code> starts as results become available. This example demonstrates how <code>asyncio.gather</code> can run multiple coroutines concurrently, and how <code>await</code> ensures that the second coroutine in each chain only runs after the first has completed. Each <code>chain</code> function represents an independent, sequential process. The final result showcases the execution time of individual chains and the total program execution time. Note that the total program time is roughly the longest individual chain time, demonstrating concurrency.</p>
+</section>
+<section id="producerconsumer-pattern-with-asyncio.queue" class="level3">
+<h3 class="anchored" data-anchor-id="producerconsumer-pattern-with-asyncio.queue">Producer/Consumer Pattern with <code>asyncio.Queue</code></h3>
+<div id="lst-asyncq" class="python listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-asyncq-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;9: asyncq.py
+</figcaption>
+<div aria-describedby="lst-asyncq-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-asyncq"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="lst-asyncq-1"><a href="#lst-asyncq-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
+<span id="lst-asyncq-2"><a href="#lst-asyncq-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> itertools <span class="im">as</span> it</span>
+<span id="lst-asyncq-3"><a href="#lst-asyncq-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="lst-asyncq-4"><a href="#lst-asyncq-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> random</span>
+<span id="lst-asyncq-5"><a href="#lst-asyncq-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="lst-asyncq-6"><a href="#lst-asyncq-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-asyncq-7"><a href="#lst-asyncq-7" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> makeitem(size: <span class="bu">int</span> <span class="op">=</span> <span class="dv">5</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="lst-asyncq-8"><a href="#lst-asyncq-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> os.urandom(size).<span class="bu">hex</span>()</span>
+<span id="lst-asyncq-9"><a href="#lst-asyncq-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-asyncq-10"><a href="#lst-asyncq-10" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> randsleep(caller<span class="op">=</span><span class="va">None</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="lst-asyncq-11"><a href="#lst-asyncq-11" aria-hidden="true" tabindex="-1"></a>    i <span class="op">=</span> random.randint(<span class="dv">0</span>, <span class="dv">10</span>)</span>
+<span id="lst-asyncq-12"><a href="#lst-asyncq-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> caller:</span>
+<span id="lst-asyncq-13"><a href="#lst-asyncq-13" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>caller<span class="sc">}</span><span class="ss"> sleeping for </span><span class="sc">{</span>i<span class="sc">}</span><span class="ss"> seconds."</span>)</span>
+<span id="lst-asyncq-14"><a href="#lst-asyncq-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> asyncio.sleep(i)</span>
+<span id="lst-asyncq-15"><a href="#lst-asyncq-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-asyncq-16"><a href="#lst-asyncq-16" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> produce(name: <span class="bu">int</span>, q: asyncio.Queue) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="lst-asyncq-17"><a href="#lst-asyncq-17" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> random.randint(<span class="dv">0</span>, <span class="dv">10</span>)</span>
+<span id="lst-asyncq-18"><a href="#lst-asyncq-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _ <span class="kw">in</span> it.repeat(<span class="va">None</span>, n):  <span class="co"># Synchronous loop for each single producer</span></span>
+<span id="lst-asyncq-19"><a href="#lst-asyncq-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">await</span> randsleep(caller<span class="op">=</span><span class="ss">f"Producer </span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="lst-asyncq-20"><a href="#lst-asyncq-20" aria-hidden="true" tabindex="-1"></a>        i <span class="op">=</span> <span class="cf">await</span> makeitem()</span>
+<span id="lst-asyncq-21"><a href="#lst-asyncq-21" aria-hidden="true" tabindex="-1"></a>        t <span class="op">=</span> time.perf_counter()</span>
+<span id="lst-asyncq-22"><a href="#lst-asyncq-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">await</span> q.put((i, t))</span>
+<span id="lst-asyncq-23"><a href="#lst-asyncq-23" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Producer </span><span class="sc">{</span>name<span class="sc">}</span><span class="ss"> added &lt;</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">&gt; to queue."</span>)</span>
+<span id="lst-asyncq-24"><a href="#lst-asyncq-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-asyncq-25"><a href="#lst-asyncq-25" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> consume(name: <span class="bu">int</span>, q: asyncio.Queue) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="lst-asyncq-26"><a href="#lst-asyncq-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="va">True</span>:</span>
+<span id="lst-asyncq-27"><a href="#lst-asyncq-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">await</span> randsleep(caller<span class="op">=</span><span class="ss">f"Consumer </span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="lst-asyncq-28"><a href="#lst-asyncq-28" aria-hidden="true" tabindex="-1"></a>        i, t <span class="op">=</span> <span class="cf">await</span> q.get()</span>
+<span id="lst-asyncq-29"><a href="#lst-asyncq-29" aria-hidden="true" tabindex="-1"></a>        now <span class="op">=</span> time.perf_counter()</span>
+<span id="lst-asyncq-30"><a href="#lst-asyncq-30" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Consumer </span><span class="sc">{</span>name<span class="sc">}</span><span class="ss"> got element &lt;</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">&gt;"</span></span>
+<span id="lst-asyncq-31"><a href="#lst-asyncq-31" aria-hidden="true" tabindex="-1"></a>              <span class="ss">f" in </span><span class="sc">{</span>now<span class="op">-</span>t<span class="sc">:0.5f}</span><span class="ss"> seconds."</span>)</span>
+<span id="lst-asyncq-32"><a href="#lst-asyncq-32" aria-hidden="true" tabindex="-1"></a>        q.task_done()</span>
+<span id="lst-asyncq-33"><a href="#lst-asyncq-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-asyncq-34"><a href="#lst-asyncq-34" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> main(nprod: <span class="bu">int</span>, ncon: <span class="bu">int</span>):</span>
+<span id="lst-asyncq-35"><a href="#lst-asyncq-35" aria-hidden="true" tabindex="-1"></a>    q <span class="op">=</span> asyncio.Queue()</span>
+<span id="lst-asyncq-36"><a href="#lst-asyncq-36" aria-hidden="true" tabindex="-1"></a>    producers <span class="op">=</span> [asyncio.create_task(produce(n, q)) <span class="cf">for</span> n <span class="kw">in</span> <span class="bu">range</span>(nprod)]</span>
+<span id="lst-asyncq-37"><a href="#lst-asyncq-37" aria-hidden="true" tabindex="-1"></a>    consumers <span class="op">=</span> [asyncio.create_task(consume(n, q)) <span class="cf">for</span> n <span class="kw">in</span> <span class="bu">range</span>(ncon)]</span>
+<span id="lst-asyncq-38"><a href="#lst-asyncq-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> asyncio.gather(<span class="op">*</span>producers)</span>
+<span id="lst-asyncq-39"><a href="#lst-asyncq-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> q.join()  <span class="co"># Implicitly awaits consumers, too</span></span>
+<span id="lst-asyncq-40"><a href="#lst-asyncq-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> c <span class="kw">in</span> consumers:</span>
+<span id="lst-asyncq-41"><a href="#lst-asyncq-41" aria-hidden="true" tabindex="-1"></a>        c.cancel()</span>
+<span id="lst-asyncq-42"><a href="#lst-asyncq-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-asyncq-43"><a href="#lst-asyncq-43" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
+<span id="lst-asyncq-44"><a href="#lst-asyncq-44" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> argparse</span>
+<span id="lst-asyncq-45"><a href="#lst-asyncq-45" aria-hidden="true" tabindex="-1"></a>    random.seed(<span class="dv">444</span>)</span>
+<span id="lst-asyncq-46"><a href="#lst-asyncq-46" aria-hidden="true" tabindex="-1"></a>    parser <span class="op">=</span> argparse.ArgumentParser()</span>
+<span id="lst-asyncq-47"><a href="#lst-asyncq-47" aria-hidden="true" tabindex="-1"></a>    parser.add_argument(<span class="st">"-p"</span>, <span class="st">"--nprod"</span>, <span class="bu">type</span><span class="op">=</span><span class="bu">int</span>, default<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="lst-asyncq-48"><a href="#lst-asyncq-48" aria-hidden="true" tabindex="-1"></a>    parser.add_argument(<span class="st">"-c"</span>, <span class="st">"--ncon"</span>, <span class="bu">type</span><span class="op">=</span><span class="bu">int</span>, default<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="lst-asyncq-49"><a href="#lst-asyncq-49" aria-hidden="true" tabindex="-1"></a>    ns <span class="op">=</span> parser.parse_args()</span>
+<span id="lst-asyncq-50"><a href="#lst-asyncq-50" aria-hidden="true" tabindex="-1"></a>    start <span class="op">=</span> time.perf_counter()</span>
+<span id="lst-asyncq-51"><a href="#lst-asyncq-51" aria-hidden="true" tabindex="-1"></a>    asyncio.run(main(<span class="op">**</span>ns.__dict__))</span>
+<span id="lst-asyncq-52"><a href="#lst-asyncq-52" aria-hidden="true" tabindex="-1"></a>    elapsed <span class="op">=</span> time.perf_counter() <span class="op">-</span> start</span>
+<span id="lst-asyncq-53"><a href="#lst-asyncq-53" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Program completed in </span><span class="sc">{</span>elapsed<span class="sc">:0.5f}</span><span class="ss"> seconds."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p>Output</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python3 asyncq.py <span class="at">-p</span> 2 <span class="at">-c</span> 2</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Producer</span> 0 sleeping for 2 seconds.</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Producer</span> 1 sleeping for 2 seconds.</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="ex">Consumer</span> 0 sleeping for 2 seconds.</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Consumer</span> 1 sleeping for 4 seconds.</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="ex">Producer</span> 0 added <span class="op">&lt;</span>50679576b9<span class="op">&gt;</span> to queue.</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="ex">Producer</span> 0 sleeping for 3 seconds.</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="ex">Producer</span> 1 added <span class="op">&lt;</span>413dd61b37<span class="op">&gt;</span> to queue.</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="ex">Consumer</span> 0 got element <span class="op">&lt;</span>50679576b9<span class="op">&gt;</span> in 0.00015 seconds.</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="ex">Consumer</span> 0 sleeping for 1 seconds.</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="ex">Producer</span> 1 added <span class="op">&lt;</span>1b64e8bb2f<span class="op">&gt;</span> to queue.</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="ex">Consumer</span> 1 got element <span class="op">&lt;</span>413dd61b37<span class="op">&gt;</span> in 0.00012 seconds.</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="ex">Consumer</span> 1 sleeping for 5 seconds.</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="ex">Producer</span> 1 added <span class="op">&lt;</span>413dd61b37<span class="op">&gt;</span> to queue.</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="ex">Consumer</span> 0 got element <span class="op">&lt;</span>1b64e8bb2f<span class="op">&gt;</span> in 0.00009 seconds.</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="ex">Consumer</span> 0 sleeping for 5 seconds.</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="ex">Program</span> completed in 7.02420 seconds.</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>This example illustrates the producer-consumer pattern using <code>asyncio.Queue</code>. Multiple producers generate random items and place them in the queue, while multiple consumers retrieve items from the queue and process them. <code>asyncio.Queue</code> handles synchronization between producers and consumers, ensuring that consumers don’t try to retrieve items from an empty queue and that producers don’t overwhelm the consumers. The <code>q.join()</code> method ensures that the main function waits until all items in the queue have been processed before canceling the consumers and exiting. The producers are stopped when they are finished producing items, while the consumers are stopped after the queue is emptied, preventing an infinite loop. The time elapsed between item production and consumption is measured, demonstrating the efficiency of the asynchronous queue in handling concurrent operations.</p>
+</section>
+<section id="some-utility-functions-from-llama-index-for-handling-asynchronous-tasks" class="level3">
+<h3 class="anchored" data-anchor-id="some-utility-functions-from-llama-index-for-handling-asynchronous-tasks">Some Utility Functions from Llama-Index for Handling Asynchronous Tasks</h3>
+<p>This section presents three utility functions from the <a href="https://github.com/run-llama/llama_index/blob/main/llama-index-core/llama_index/core/async_utils.py">llama-index library</a> that help manage asynchronous tasks in different ways:</p>
+<ol type="1">
+<li>A function to execute a list of async tasks (with optional progress bar)</li>
+<li>A function to run tasks in batches to avoid memory issues</li>
+<li>A function to run tasks with a limited number of workers</li>
+</ol>
+<p>These functions build on the core asyncio concepts covered earlier and provide practical solutions for common async programming needs.</p>
+<div id="lst-run-async-tasks" class="python listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-run-async-tasks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;10: llamaindex_async_utils.py
+</figcaption>
+<div aria-describedby="lst-run-async-tasks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-run-async-tasks"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="lst-run-async-tasks-1"><a href="#lst-run-async-tasks-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_async_tasks(</span>
+<span id="lst-run-async-tasks-2"><a href="#lst-run-async-tasks-2" aria-hidden="true" tabindex="-1"></a>    tasks: List[Coroutine],</span>
+<span id="lst-run-async-tasks-3"><a href="#lst-run-async-tasks-3" aria-hidden="true" tabindex="-1"></a>    show_progress: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>,</span>
+<span id="lst-run-async-tasks-4"><a href="#lst-run-async-tasks-4" aria-hidden="true" tabindex="-1"></a>    progress_bar_desc: <span class="bu">str</span> <span class="op">=</span> <span class="st">"Running async tasks"</span>,</span>
+<span id="lst-run-async-tasks-5"><a href="#lst-run-async-tasks-5" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> List[Any]:</span>
+<span id="lst-run-async-tasks-6"><a href="#lst-run-async-tasks-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Run a list of async tasks."""</span></span>
+<span id="lst-run-async-tasks-7"><a href="#lst-run-async-tasks-7" aria-hidden="true" tabindex="-1"></a>    tasks_to_execute: List[Any] <span class="op">=</span> tasks</span>
+<span id="lst-run-async-tasks-8"><a href="#lst-run-async-tasks-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> show_progress:</span>
+<span id="lst-run-async-tasks-9"><a href="#lst-run-async-tasks-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<span id="lst-run-async-tasks-10"><a href="#lst-run-async-tasks-10" aria-hidden="true" tabindex="-1"></a>            <span class="im">import</span> nest_asyncio</span>
+<span id="lst-run-async-tasks-11"><a href="#lst-run-async-tasks-11" aria-hidden="true" tabindex="-1"></a>            <span class="im">from</span> tqdm.asyncio <span class="im">import</span> tqdm</span>
+<span id="lst-run-async-tasks-12"><a href="#lst-run-async-tasks-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-run-async-tasks-13"><a href="#lst-run-async-tasks-13" aria-hidden="true" tabindex="-1"></a>            <span class="co"># jupyter notebooks already have an event loop running</span></span>
+<span id="lst-run-async-tasks-14"><a href="#lst-run-async-tasks-14" aria-hidden="true" tabindex="-1"></a>            <span class="co"># we need to reuse it instead of creating a new one</span></span>
+<span id="lst-run-async-tasks-15"><a href="#lst-run-async-tasks-15" aria-hidden="true" tabindex="-1"></a>            nest_asyncio.<span class="bu">apply</span>()</span>
+<span id="lst-run-async-tasks-16"><a href="#lst-run-async-tasks-16" aria-hidden="true" tabindex="-1"></a>            loop <span class="op">=</span> asyncio.get_event_loop()</span>
+<span id="lst-run-async-tasks-17"><a href="#lst-run-async-tasks-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-run-async-tasks-18"><a href="#lst-run-async-tasks-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">async</span> <span class="kw">def</span> _tqdm_gather() <span class="op">-&gt;</span> List[Any]:</span>
+<span id="lst-run-async-tasks-19"><a href="#lst-run-async-tasks-19" aria-hidden="true" tabindex="-1"></a>                <span class="cf">return</span> <span class="cf">await</span> tqdm.gather(<span class="op">*</span>tasks_to_execute, desc<span class="op">=</span>progress_bar_desc)</span>
+<span id="lst-run-async-tasks-20"><a href="#lst-run-async-tasks-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-run-async-tasks-21"><a href="#lst-run-async-tasks-21" aria-hidden="true" tabindex="-1"></a>            tqdm_outputs: List[Any] <span class="op">=</span> loop.run_until_complete(_tqdm_gather())</span>
+<span id="lst-run-async-tasks-22"><a href="#lst-run-async-tasks-22" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> tqdm_outputs</span>
+<span id="lst-run-async-tasks-23"><a href="#lst-run-async-tasks-23" aria-hidden="true" tabindex="-1"></a>        <span class="co"># run the operation w/o tqdm on hitting a fatal</span></span>
+<span id="lst-run-async-tasks-24"><a href="#lst-run-async-tasks-24" aria-hidden="true" tabindex="-1"></a>        <span class="co"># may occur in some environments where tqdm.asyncio</span></span>
+<span id="lst-run-async-tasks-25"><a href="#lst-run-async-tasks-25" aria-hidden="true" tabindex="-1"></a>        <span class="co"># is not supported</span></span>
+<span id="lst-run-async-tasks-26"><a href="#lst-run-async-tasks-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> <span class="pp">Exception</span>:</span>
+<span id="lst-run-async-tasks-27"><a href="#lst-run-async-tasks-27" aria-hidden="true" tabindex="-1"></a>            <span class="cf">pass</span></span>
+<span id="lst-run-async-tasks-28"><a href="#lst-run-async-tasks-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-run-async-tasks-29"><a href="#lst-run-async-tasks-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">async</span> <span class="kw">def</span> _gather() <span class="op">-&gt;</span> List[Any]:</span>
+<span id="lst-run-async-tasks-30"><a href="#lst-run-async-tasks-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="cf">await</span> asyncio.gather(<span class="op">*</span>tasks_to_execute)</span>
+<span id="lst-run-async-tasks-31"><a href="#lst-run-async-tasks-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-run-async-tasks-32"><a href="#lst-run-async-tasks-32" aria-hidden="true" tabindex="-1"></a>    outputs: List[Any] <span class="op">=</span> asyncio_run(_gather())</span>
+<span id="lst-run-async-tasks-33"><a href="#lst-run-async-tasks-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> outputs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p>This function runs a list of asynchronous tasks concurrently using <code>asyncio.gather()</code>.</p>
+<ul>
+<li>It takes a list of coroutines (tasks), a boolean to show progress, and an optional progress bar description.</li>
+<li>If <code>show_progress</code> is <code>True</code>, it attempts to use <code>tqdm.asyncio</code> to display a progress bar.
+<ul>
+<li>It uses <code>nest_asyncio.apply()</code> to handle cases where the code is running in an environment like Jupyter notebooks, which already have an event loop.</li>
+<li>It defines an inner coroutine <code>_tqdm_gather()</code> that uses <code>tqdm.gather()</code> to run the tasks and display the progress.</li>
+<li>It runs <code>_tqdm_gather()</code> using <code>asyncio_run()</code>.</li>
+<li>If any exception occurs during the tqdm process (e.g., <code>tqdm.asyncio</code> is not supported), it falls back to running the tasks without a progress bar.</li>
+</ul></li>
+<li>If <code>show_progress</code> is <code>False</code> or the tqdm process fails, it defines an inner coroutine <code>_gather()</code> that uses <code>asyncio.gather()</code> to run the tasks concurrently.</li>
+<li>It runs <code>_gather()</code> using <code>asyncio_run()</code>.</li>
+<li>It returns a list of the results from the completed tasks.</li>
+</ul>
+<div id="lst-batch-gather" class="python listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-batch-gather-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;11: llamaindex_async_utils.py
+</figcaption>
+<div aria-describedby="lst-batch-gather-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-batch-gather"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="lst-batch-gather-1"><a href="#lst-batch-gather-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> chunks(iterable: Iterable, size: <span class="bu">int</span>) <span class="op">-&gt;</span> Iterable:</span>
+<span id="lst-batch-gather-2"><a href="#lst-batch-gather-2" aria-hidden="true" tabindex="-1"></a>    args <span class="op">=</span> [<span class="bu">iter</span>(iterable)] <span class="op">*</span> size</span>
+<span id="lst-batch-gather-3"><a href="#lst-batch-gather-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> zip_longest(<span class="op">*</span>args, fillvalue<span class="op">=</span><span class="va">None</span>)</span>
+<span id="lst-batch-gather-4"><a href="#lst-batch-gather-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-batch-gather-5"><a href="#lst-batch-gather-5" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> batch_gather(</span>
+<span id="lst-batch-gather-6"><a href="#lst-batch-gather-6" aria-hidden="true" tabindex="-1"></a>    tasks: List[Coroutine], batch_size: <span class="bu">int</span> <span class="op">=</span> <span class="dv">10</span>, verbose: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span></span>
+<span id="lst-batch-gather-7"><a href="#lst-batch-gather-7" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> List[Any]:</span>
+<span id="lst-batch-gather-8"><a href="#lst-batch-gather-8" aria-hidden="true" tabindex="-1"></a>    output: List[Any] <span class="op">=</span> []</span>
+<span id="lst-batch-gather-9"><a href="#lst-batch-gather-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> task_chunk <span class="kw">in</span> chunks(tasks, batch_size):</span>
+<span id="lst-batch-gather-10"><a href="#lst-batch-gather-10" aria-hidden="true" tabindex="-1"></a>        task_chunk <span class="op">=</span> (task <span class="cf">for</span> task <span class="kw">in</span> task_chunk <span class="cf">if</span> task <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>)</span>
+<span id="lst-batch-gather-11"><a href="#lst-batch-gather-11" aria-hidden="true" tabindex="-1"></a>        output_chunk <span class="op">=</span> <span class="cf">await</span> asyncio.gather(<span class="op">*</span>task_chunk)</span>
+<span id="lst-batch-gather-12"><a href="#lst-batch-gather-12" aria-hidden="true" tabindex="-1"></a>        output.extend(output_chunk)</span>
+<span id="lst-batch-gather-13"><a href="#lst-batch-gather-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> verbose:</span>
+<span id="lst-batch-gather-14"><a href="#lst-batch-gather-14" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"Completed </span><span class="sc">{</span><span class="bu">len</span>(output)<span class="sc">}</span><span class="ss"> out of </span><span class="sc">{</span><span class="bu">len</span>(tasks)<span class="sc">}</span><span class="ss"> tasks"</span>)</span>
+<span id="lst-batch-gather-15"><a href="#lst-batch-gather-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> output</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p>The function <code>chunks</code> splits an iterable into chunks of a specified size.</p>
+<ul>
+<li>It takes an iterable and the desired chunk size as input.</li>
+<li>It creates multiple iterators from the input iterable using <code>[iter(iterable)] * size</code>.</li>
+<li>It uses <code>zip_longest()</code> to group elements from these iterators into tuples, effectively creating the chunks.</li>
+<li>The <code>fillvalue=None</code> argument ensures that shorter chunks are padded with <code>None</code> if the input iterable is not evenly divisible by the chunk size.</li>
+<li>The function returns an iterator that yields the chunks. For example, <code>chunks([1, 2, 3, 4, 5, 6, 7], 3)</code> will return <code>[(1, 2, 3), (4, 5, 6), (7, None, None)]</code></li>
+</ul>
+<p>The function <code>batch_gather</code> runs a list of asynchronous tasks in batches.</p>
+<ul>
+<li>It takes a list of coroutines (tasks), a batch size, and a boolean for verbose output.</li>
+<li>It uses the <code>chunks()</code> function to split the tasks into batches.</li>
+<li>For each batch (<code>task_chunk</code>), it filters out any <code>None</code> values (which might have been added by <code>chunks()</code> due to padding).</li>
+<li>It uses <code>asyncio.gather()</code> to run the tasks in the current batch concurrently.</li>
+<li>The results from each batch are added to the output list.</li>
+<li>If <code>verbose</code> is <code>True</code>, it prints a message indicating how many tasks have been completed so far.</li>
+<li>The function returns a list of the results from all the completed tasks. This is useful when you have a very large list of coroutines, as sending them all to <code>asyncio.gather</code> could result in memory errors.</li>
+</ul>
+<div id="lst-run_jobs" class="python listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-run_jobs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;12: llamaindex_async_utils.py
+</figcaption>
+<div aria-describedby="lst-run_jobs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-run_jobs"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="lst-run_jobs-1"><a href="#lst-run_jobs-1" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> run_jobs(</span>
+<span id="lst-run_jobs-2"><a href="#lst-run_jobs-2" aria-hidden="true" tabindex="-1"></a>    jobs: List[Coroutine[Any, Any, T]],</span>
+<span id="lst-run_jobs-3"><a href="#lst-run_jobs-3" aria-hidden="true" tabindex="-1"></a>    show_progress: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>,</span>
+<span id="lst-run_jobs-4"><a href="#lst-run_jobs-4" aria-hidden="true" tabindex="-1"></a>    workers: <span class="bu">int</span> <span class="op">=</span> DEFAULT_NUM_WORKERS,</span>
+<span id="lst-run_jobs-5"><a href="#lst-run_jobs-5" aria-hidden="true" tabindex="-1"></a>    desc: Optional[<span class="bu">str</span>] <span class="op">=</span> <span class="va">None</span>,</span>
+<span id="lst-run_jobs-6"><a href="#lst-run_jobs-6" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> List[T]:</span>
+<span id="lst-run_jobs-7"><a href="#lst-run_jobs-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Run jobs.</span></span>
+<span id="lst-run_jobs-8"><a href="#lst-run_jobs-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-run_jobs-9"><a href="#lst-run_jobs-9" aria-hidden="true" tabindex="-1"></a><span class="co">    Args:</span></span>
+<span id="lst-run_jobs-10"><a href="#lst-run_jobs-10" aria-hidden="true" tabindex="-1"></a><span class="co">        jobs (List[Coroutine]):</span></span>
+<span id="lst-run_jobs-11"><a href="#lst-run_jobs-11" aria-hidden="true" tabindex="-1"></a><span class="co">            List of jobs to run.</span></span>
+<span id="lst-run_jobs-12"><a href="#lst-run_jobs-12" aria-hidden="true" tabindex="-1"></a><span class="co">        show_progress (bool):</span></span>
+<span id="lst-run_jobs-13"><a href="#lst-run_jobs-13" aria-hidden="true" tabindex="-1"></a><span class="co">            Whether to show progress bar.</span></span>
+<span id="lst-run_jobs-14"><a href="#lst-run_jobs-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-run_jobs-15"><a href="#lst-run_jobs-15" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="lst-run_jobs-16"><a href="#lst-run_jobs-16" aria-hidden="true" tabindex="-1"></a><span class="co">        List[Any]:</span></span>
+<span id="lst-run_jobs-17"><a href="#lst-run_jobs-17" aria-hidden="true" tabindex="-1"></a><span class="co">            List of results.</span></span>
+<span id="lst-run_jobs-18"><a href="#lst-run_jobs-18" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="lst-run_jobs-19"><a href="#lst-run_jobs-19" aria-hidden="true" tabindex="-1"></a>    semaphore <span class="op">=</span> asyncio.Semaphore(workers)</span>
+<span id="lst-run_jobs-20"><a href="#lst-run_jobs-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-run_jobs-21"><a href="#lst-run_jobs-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">async</span> <span class="kw">def</span> worker(job: Coroutine) <span class="op">-&gt;</span> Any:</span>
+<span id="lst-run_jobs-22"><a href="#lst-run_jobs-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">async</span> <span class="cf">with</span> semaphore:</span>
+<span id="lst-run_jobs-23"><a href="#lst-run_jobs-23" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="cf">await</span> job</span>
+<span id="lst-run_jobs-24"><a href="#lst-run_jobs-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-run_jobs-25"><a href="#lst-run_jobs-25" aria-hidden="true" tabindex="-1"></a>    pool_jobs <span class="op">=</span> [worker(job) <span class="cf">for</span> job <span class="kw">in</span> jobs]</span>
+<span id="lst-run_jobs-26"><a href="#lst-run_jobs-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-run_jobs-27"><a href="#lst-run_jobs-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> show_progress:</span>
+<span id="lst-run_jobs-28"><a href="#lst-run_jobs-28" aria-hidden="true" tabindex="-1"></a>        <span class="im">from</span> tqdm.asyncio <span class="im">import</span> tqdm_asyncio</span>
+<span id="lst-run_jobs-29"><a href="#lst-run_jobs-29" aria-hidden="true" tabindex="-1"></a>        results <span class="op">=</span> <span class="cf">await</span> tqdm_asyncio.gather(<span class="op">*</span>pool_jobs, desc<span class="op">=</span>desc)</span>
+<span id="lst-run_jobs-30"><a href="#lst-run_jobs-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="lst-run_jobs-31"><a href="#lst-run_jobs-31" aria-hidden="true" tabindex="-1"></a>        results <span class="op">=</span> <span class="cf">await</span> asyncio.gather(<span class="op">*</span>pool_jobs)</span>
+<span id="lst-run_jobs-32"><a href="#lst-run_jobs-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-run_jobs-33"><a href="#lst-run_jobs-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p>This function runs a list of asynchronous jobs (coroutines) with a specified number of workers and optional progress tracking.</p>
+<ul>
+<li>It uses a semaphore to limit the number of concurrent workers.</li>
+<li>It defines an inner coroutine <code>worker()</code> that acquires the semaphore before running a job and releases it afterward, ensuring that only a limited number of jobs run concurrently.</li>
+<li>It creates a list of worker tasks (<code>pool_jobs</code>) by mapping each job to the <code>worker()</code> coroutine.</li>
+<li>If <code>show_progress</code> is <code>True</code>, it uses <code>tqdm_asyncio.gather()</code> to run the worker tasks and display a progress bar.</li>
+<li>If <code>show_progress</code> is <code>False</code>, it uses <code>asyncio.gather()</code> to run the worker tasks concurrently without a progress bar.</li>
+<li>The function returns a list of the results from the completed jobs. This is useful when you want to limit the number of concurrent asyncio tasks being run, perhaps because of rate limiting by an API, or resource constraints on your system.</li>
+</ul>
+</section>
+</section>
+<section id="considerations-for-using-asyncio" class="level2">
+<h2 class="anchored" data-anchor-id="considerations-for-using-asyncio">Considerations for Using <code>asyncio</code></h2>
+<p><code>asyncio</code> is suitable for I/O-bound tasks:</p>
+<ul>
+<li>Network applications: web servers, chat applications, API clients.</li>
+<li>Web scraping: fetching data from multiple websites concurrently.</li>
+<li>Real-time applications: handling asynchronous events and data streams.</li>
+</ul>
+<p>It is <em>not</em> appropriate for CPU-bound tasks like complex calculations or image processing. For CPU-bound tasks, consider <code>multiprocessing</code>.</p>
+<p><strong>Advantages of <code>asyncio</code></strong></p>
+<ul>
+<li>Efficiency: Reduces blocking and increases resource utilization.</li>
+<li>Scalability: Handles concurrent connections with limited overhead.</li>
+<li>Concurrency with a single thread: Reduces multithreading complexities.</li>
+</ul>
+</section>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>In conclusion, Python provides diverse concurrency options to address different performance bottlenecks. For I/O-bound operations, where programs spend considerable time waiting for external resources, techniques like multi-threading and, especially, asynchronous I/O with <code>asyncio</code> can dramatically improve performance by overlapping wait times. <code>asyncio</code> allows for concurrent execution within a single thread, minimizing overhead and maximizing efficiency through cooperative multitasking.</p>
+<p>In contrast, CPU-bound operations, which are limited by processing power, may benefit from parallelism using the <code>multiprocessing</code> module. This approach leverages multiple CPU cores to execute tasks simultaneously, although it introduces inter-process communication overhead. While threading offers a middle ground, it is subject to the Global Interpreter Lock (GIL) in CPython, limiting its effectiveness for CPU-bound tasks. Choosing the appropriate concurrency model depends on the specific nature of the problem.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/nbrosse\.github\.io\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
