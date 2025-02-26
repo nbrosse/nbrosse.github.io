@@ -1,7 +1,7 @@
 ---
 title: "Python Concurrency"
 author: "Nicolas Brosse"
-date: "2025-02-25"
+date: "2025-02-26"
 categories: [python]
 description: "An introduction to Python concurrency, covering core concepts, practical examples, and considerations for its use."
 ---
@@ -19,10 +19,13 @@ This blog post is organized as follows:
 
 Each section builds on the previous ones to provide a comprehensive understanding of Python concurrency.
 
-::: {.callout-note}
-This blog post originates from [Real Python - Python Concurrency](https://realpython.com/python-concurrency/) and [Real Python - Async IO in Python](https://realpython.com/async-io-python/) websites. It is a summary of the original content, with some modifications and additional content.
-All the pictures are from the Real Python websites.
+::: {.callout-important}
+This blog post is adapted from the [Real Python - Python Concurrency](https://realpython.com/python-concurrency/) and [Real Python - Async IO in Python](https://realpython.com/async-io-python/) tutorials. While it summarizes the original content with some modifications and additions, proper attribution is given to Real Python, who retain the copyright of the original material and images. The content is shared for educational purposes.
 :::
+
+::: {.callout-note}
+All the code snippets in this blog post are regrouped inside the companion GitHub repository [python-concurrency](https://github.com/nbrosse/python-concurrency).
+::: 
 
 # Exploring Concurrency in Python {#sec-concurrency}
 
@@ -97,8 +100,8 @@ Here’s a summary:
 | Your program spends most of its time talking to a slow device. | Your program spends most of its time doing CPU operations. |
 | Speeding it up involves overlapping the times spent waiting for these devices. | Speeding it up involves finding ways to do more computations in the same amount of time. |
 
-I/O-bound programs are looked at @sec-io-bound. 
-For CPU-bound programs, see [Real Python - Python Concurrency](https://realpython.com/python-concurrency/).
+For I/O-bound programs, see @sec-io-bound for detailed examples and timing comparisons. 
+For CPU-bound programs, refer to the [Real Python - Python Concurrency](https://realpython.com/python-concurrency/) tutorial which covers CPU-intensive tasks in depth.
 
 # Speeding Up an I/O-Bound Program {#sec-io-bound}
 
@@ -138,7 +141,7 @@ if __name__ == "__main__":
 
 This program downloads site contents from a list of addresses and prints their sizes. A session object from `requests` is used. Creating a `Session` object allows the library to retain state across requests and reuse the connection to speed things up. The session is created in `download_all_sites()` and then the list of sites is iterated through, downloading each one. Finally, the execution time is printed. Here’s an example of the final output:
 
-```         
+```bash
 $ python io_non_concurrent.py
 Read 10966 from https://www.jython.org
 Read 276 from http://olympus.realpython.org/dice
@@ -207,7 +210,7 @@ When `get_session_for_thread()` is called, the session it looks up is specific t
 
 Here’s the output:
 
-```         
+```bash         
 $ python io_threads.py
 Read 10966 from https://www.jython.org
 Read 276 from http://olympus.realpython.org/dice
@@ -222,9 +225,7 @@ Here’s the execution timing diagram:
 ![Timing Diagram of a Threading Solution](figures/Threading.3eef48da829e.png){fig-alt="Timing Diagram of a Threading Solution"}
 
 The program uses multiple threads to have many open requests out to web sites at the same time.
-
 It takes more code to make this happen, and you have to give some thought to what data is shared between threads.
-
 Threads can interact in ways that are subtle and hard to detect. These interactions can cause race conditions that frequently result in random, intermittent bugs that can be difficult to find.
 
 ## Asynchronous Version
@@ -252,7 +253,7 @@ In this case, `main()` is defined as an asynchronous function. The `await` keywo
 
 **Note:** To run the sample code above, you’ll need to either wrap the call to `main()` in `asyncio.run()` or `await main()` in Python’s asyncio REPL.
 
-The Requests library is blocking, so a non-blocking counterpart, such as aiohttp, is needed.
+The Requests library is blocking, so a non-blocking counterpart, such as `aiohttp`, is needed.
 After installing this library, you can use it in the asynchronous version of the code:
 
 ``` {#lst-io-asyncio .python lst-cap="io_asyncio.py"}
@@ -302,7 +303,7 @@ One of the advantages of asyncio is that it scales well. Each task takes fewer r
 
 The asynchronous version is the fastest:
 
-```         
+```bash         
 $ python io_asyncio.py
 Read 10966 bytes from https://www.jython.org
 Read 10966 bytes from https://www.jython.org
@@ -315,18 +316,15 @@ Here’s the execution timing diagram:
 ![Timing Diagram of a Asyncio Solution](figures/Asyncio.31182d3731cf.png){fig-alt="Timing Diagram of a Asyncio Solution"}
 
 Adding `async` and `await` can be a complication, but it forces you to think about when a given task will get swapped out.
-
 The asyncio example can be run with hundreds of tasks without slowing it down.
 You need special asynchronous versions of libraries to gain the full advantage of asyncio.
 If one of the tasks doesn’t cooperate, then all the advantages of cooperative multitasking get thrown away.
-See @sec-asyncio for more information on asynchronous I/O with AsyncIO.
+See @sec-asyncio for a deep dive into asynchronous I/O with AsyncIOs
 
 ## Process-Based Version
 
 The examples so far have run on a single CPU. The `multiprocessing` module was designed to break down that barrier and run your code across multiple CPUs. It does this by creating a new instance of the Python interpreter to run on each CPU.
-
 Bringing up a separate Python interpreter is a heavyweight operation.
-
 Unlike the previous approaches, using multiprocessing allows you to take full advantage of the all CPUs that your computer has. Here’s the sample code:
 
 ``` {#lst-io-processes .python lst-cap="io_processes.py"}
@@ -379,13 +377,13 @@ The pool creates a number of separate Python interpreter processes. The communic
 The pool instance doesn’t specify how many processes to create. By default, it’ll determine the number of CPUs and match that.
 For an I/O-bound problem, increasing the number of processes won’t make things faster.
 
-**Note:** If you need to exchange data between your processes, then it’ll require expensive inter-process communication (IPC) and data serialization.
+**Note:** If you need to exchange data between your processes, then it requires expensive inter-process communication (IPC) and data serialization.
 
 Each process in the pool has its own memory space. They can’t easily share things like a session object. The initializer function parameter is built for this case. A global session variable can be initialized to hold the single session for each process.
 
 Here’s the output:
 
-```         
+```bash         
 $ python io_processes.py
 ForkProcess-3:Read 10966 bytes from https://www.jython.org
 ForkProcess-4:Read 276 bytes from http://olympus.realpython.org/dice
@@ -457,11 +455,11 @@ This code demonstrates:
 
 ## Asynchronous vs. Synchronous Execution in Python: A Comparison
 
-This section compares the execution time of asynchronous and synchronous code in Python using a simple example. The example consists of a `count` function that prints "One", waits for 1 second, and then prints "Two".  We execute this function three times, once using `asyncio` for asynchronous execution and once using a simple `for` loop for synchronous execution.
+This section compares the execution time of asynchronous and synchronous code in Python using a simple example. The example consists of a `count` function that prints "One", waits for 1 second, and then prints "Two". We execute this function three times, once using `asyncio` for asynchronous execution and once using a simple `for` loop for synchronous execution.
 
 **Asynchronous Example**
 
-```python {#lst-countasync .python lst-cap="countasync.py"}
+``` {#lst-countasync .python lst-cap="countasync.py"}
 import asyncio
 import time
 
@@ -482,13 +480,13 @@ if __name__ == "__main__":
 
 **Explanation:**
 
-*   `async def count():` defines an asynchronous function.  The `await asyncio.sleep(1)` line allows the event loop to switch to other tasks while waiting for the sleep to complete, enabling concurrency.
+*   `async def count():` defines an asynchronous function. The `await asyncio.sleep(1)` line allows the event loop to switch to other tasks while waiting for the sleep to complete, enabling concurrency.
 *   `async def main():` defines another asynchronous function that uses `asyncio.gather()` to run three instances of `count()` concurrently.  `asyncio.gather()` ensures that all provided awaitables complete before it returns.
 *   `asyncio.run(main())` starts the asyncio event loop and runs the `main()` function.
 
 **Output:**
 
-```shell
+```bash
 $ python countasync.py
 One
 One
@@ -499,11 +497,11 @@ Two
 countasync.py executed in 1.01 seconds.
 ```
 
-As observed, the execution time is approximately 1 second. This is because all three `count()` functions are executed concurrently. The `asyncio.sleep(1)` calls allow the event loop to switch between the functions, effectively overlapping the wait times.  The small amount over 1 second likely represents overhead from the asyncio event loop and the `print` function.
+As observed, the execution time is approximately 1 second. This is because all three `count()` functions are executed concurrently. The `asyncio.sleep(1)` calls allow the event loop to switch between the functions, effectively overlapping the wait times. The small amount over 1 second likely represents overhead from the asyncio event loop and the `print` function.
 
 **Synchronous Example**
 
-```python {#lst-countsync .python lst-cap="countsync.py"}
+```{#lst-countsync .python lst-cap="countsync.py"}
 import time
 
 def count():
@@ -526,11 +524,11 @@ if __name__ == "__main__":
 
 *   `def count():` defines a regular synchronous function.
 *   `time.sleep(1)` pauses the execution of the current thread for 1 second. No other code can execute during this time.
-*   `def main():` calls the `count()` function three times in a loop.  Each call blocks until it completes.
+*   `def main():` calls the `count()` function three times in a loop. Each call blocks until it completes.
 
 **Output:**
 
-```shell
+```bash
 $ python3 countsync.py
 One
 Two
@@ -564,7 +562,39 @@ Key points about the event loop:
 1.  Coroutines require the event loop to execute.
 2.  By default, an AsyncIO event loop runs in a single thread and on a single CPU core, which is often sufficient.
 
-## Examples
+There’s a more long-winded way of managing the asyncio event loop, `with get_event_loop()`. 
+The typical pattern looks like this and is taken from [llama-index `async_utils.py`](https://github.com/run-llama/llama_index/blob/main/llama-index-core/llama_index/core/async_utils.py).
+
+```{#lst-asyncio-run .python lst-cap="asyncio_run"}
+def asyncio_run(coro: Coroutine) -> Any:
+    """Gets an existing event loop to run the coroutine.
+
+    If there is no existing event loop, creates a new one.
+    """
+    try:
+        # Check if there's an existing event loop
+        loop = asyncio.get_event_loop()
+
+        # If we're here, there's an existing loop but it's not running
+        return loop.run_until_complete(coro)
+
+    except RuntimeError as e:
+        # If we can't get the event loop, we're likely in a different thread, or its already running
+        # asyncio.get_event_loop() raises RuntimeError if there's no running loop in the current thread.
+        try:
+            # If the first attempt failed, try creating and running a new event loop.
+            return asyncio.run(coro)  # asyncio.run() creates a new event loop, runs the coroutine, and closes the loop.
+        except RuntimeError as e:
+            # If asyncio.run() also raises RuntimeError, it likely means there's a nested asyncio call.
+            raise RuntimeError(
+                "Detected nested async. Please use nest_asyncio.apply() to allow nested event loops."
+                "Or, use async entry methods like `aquery()`, `aretriever`, `achat`, etc."
+            )
+```
+
+This function aims to run an asyncio coroutine. It first tries to get the current event loop. If one exists and is not running, it runs the coroutine in that loop. If getting the current loop fails (`RuntimeError`), it means there's no running loop in the current thread. In that case, it tries to create a new loop using `asyncio.run()`. If creating a new loop also fails (another `RuntimeError`), it likely indicates a nested asyncio scenario (trying to run asyncio code within already running asyncio code). The error suggests using `nest_asyncio` or asynchronous alternatives to avoid nested loops. Nesting is generally discouraged in asyncio. `nest_asyncio` allows nesting, but it can lead to unexpected behavior. It is generally recommended to re-factor code that uses nested async calls.
+
+## AsyncIO Examples in Practice
 
 ### Chained Coroutines
 
@@ -611,7 +641,7 @@ if __name__ == "__main__":
 
 Example output:
 
-```shell
+```bash
 $ python3 chained.py 9 6 3
 part1(9) sleeping for 4 seconds.
 part1(6) sleeping for 4 seconds.
@@ -631,11 +661,11 @@ Returning part2(9, 'result9-1') == result9-2 derived from result9-1.
 Program finished in 11.01 seconds.
 ```
 
-`part1()` sleeps for a variable time, and `part2()` starts as results become available.  This example demonstrates how `asyncio.gather` can run multiple coroutines concurrently, and how `await` ensures that the second coroutine in each chain only runs after the first has completed. Each `chain` function represents an independent, sequential process. The final result showcases the execution time of individual chains and the total program execution time. Note that the total program time is roughly the longest individual chain time, demonstrating concurrency.
+`part1()` sleeps for a variable time, and `part2()` starts as results become available. This example demonstrates how `asyncio.gather` can run multiple coroutines concurrently, and how `await` ensures that the second coroutine in each chain only runs after the first has completed. Each `chain` function represents an independent, sequential process. The final result showcases the execution time of individual chains and the total program execution time. Note that the total program time is roughly the longest individual chain time, demonstrating concurrency.
 
 ### Producer/Consumer Pattern with `asyncio.Queue`
 
-```python {#lst-asyncq .python lst-cap="asyncq.py"}
+``` {#lst-asyncq .python lst-cap="asyncq.py"}
 import asyncio
 import itertools as it
 import os
@@ -693,7 +723,7 @@ if __name__ == "__main__":
 
 Output
 
-```shell
+```bash
 $ python3 asyncq.py -p 2 -c 2
 Producer 0 sleeping for 2 seconds.
 Producer 1 sleeping for 2 seconds.
@@ -715,6 +745,145 @@ Program completed in 7.02420 seconds.
 
 This example illustrates the producer-consumer pattern using `asyncio.Queue`. Multiple producers generate random items and place them in the queue, while multiple consumers retrieve items from the queue and process them.  `asyncio.Queue` handles synchronization between producers and consumers, ensuring that consumers don't try to retrieve items from an empty queue and that producers don't overwhelm the consumers. The `q.join()` method ensures that the main function waits until all items in the queue have been processed before canceling the consumers and exiting. The producers are stopped when they are finished producing items, while the consumers are stopped after the queue is emptied, preventing an infinite loop. The time elapsed between item production and consumption is measured, demonstrating the efficiency of the asynchronous queue in handling concurrent operations.
 
+### Some Utility Functions from Llama-Index for Handling Asynchronous Tasks
+
+This section presents three utility functions from the [llama-index library](https://github.com/run-llama/llama_index/blob/main/llama-index-core/llama_index/core/async_utils.py) that help manage asynchronous tasks in different ways:
+
+1. A function to execute a list of async tasks (with optional progress bar)
+2. A function to run tasks in batches to avoid memory issues
+3. A function to run tasks with a limited number of workers
+
+These functions build on the core asyncio concepts covered earlier and provide practical solutions for common async programming needs.
+
+``` {#lst-run-async-tasks .python lst-cap="llamaindex_async_utils.py"}
+def run_async_tasks(
+    tasks: List[Coroutine],
+    show_progress: bool = False,
+    progress_bar_desc: str = "Running async tasks",
+) -> List[Any]:
+    """Run a list of async tasks."""
+    tasks_to_execute: List[Any] = tasks
+    if show_progress:
+        try:
+            import nest_asyncio
+            from tqdm.asyncio import tqdm
+
+            # jupyter notebooks already have an event loop running
+            # we need to reuse it instead of creating a new one
+            nest_asyncio.apply()
+            loop = asyncio.get_event_loop()
+
+            async def _tqdm_gather() -> List[Any]:
+                return await tqdm.gather(*tasks_to_execute, desc=progress_bar_desc)
+
+            tqdm_outputs: List[Any] = loop.run_until_complete(_tqdm_gather())
+            return tqdm_outputs
+        # run the operation w/o tqdm on hitting a fatal
+        # may occur in some environments where tqdm.asyncio
+        # is not supported
+        except Exception:
+            pass
+
+    async def _gather() -> List[Any]:
+        return await asyncio.gather(*tasks_to_execute)
+
+    outputs: List[Any] = asyncio_run(_gather())
+    return outputs
+```
+
+This function runs a list of asynchronous tasks concurrently using `asyncio.gather()`.
+
+*   It takes a list of coroutines (tasks), a boolean to show progress, and an optional progress bar description.
+*   If `show_progress` is `True`, it attempts to use `tqdm.asyncio` to display a progress bar.
+    *   It uses `nest_asyncio.apply()` to handle cases where the code is running in an environment like Jupyter notebooks, which already have an event loop.
+    *   It defines an inner coroutine `_tqdm_gather()` that uses `tqdm.gather()` to run the tasks and display the progress.
+    *   It runs `_tqdm_gather()` using `asyncio_run()`.
+    *   If any exception occurs during the tqdm process (e.g., `tqdm.asyncio` is not supported), it falls back to running the tasks without a progress bar.
+*   If `show_progress` is `False` or the tqdm process fails, it defines an inner coroutine `_gather()` that uses `asyncio.gather()` to run the tasks concurrently.
+*   It runs `_gather()` using `asyncio_run()`.
+*   It returns a list of the results from the completed tasks.
+
+``` {#lst-batch-gather .python lst-cap="llamaindex_async_utils.py"}
+def chunks(iterable: Iterable, size: int) -> Iterable:
+    args = [iter(iterable)] * size
+    return zip_longest(*args, fillvalue=None)
+
+async def batch_gather(
+    tasks: List[Coroutine], batch_size: int = 10, verbose: bool = False
+) -> List[Any]:
+    output: List[Any] = []
+    for task_chunk in chunks(tasks, batch_size):
+        task_chunk = (task for task in task_chunk if task is not None)
+        output_chunk = await asyncio.gather(*task_chunk)
+        output.extend(output_chunk)
+        if verbose:
+            print(f"Completed {len(output)} out of {len(tasks)} tasks")
+    return output
+```
+
+The function `chunks` splits an iterable into chunks of a specified size.
+
+*   It takes an iterable and the desired chunk size as input.
+*   It creates multiple iterators from the input iterable using `[iter(iterable)] * size`.
+*   It uses `zip_longest()` to group elements from these iterators into tuples, effectively creating the chunks.
+*   The `fillvalue=None` argument ensures that shorter chunks are padded with `None` if the input iterable is not evenly divisible by the chunk size.
+*   The function returns an iterator that yields the chunks. For example, `chunks([1, 2, 3, 4, 5, 6, 7], 3)` will return `[(1, 2, 3), (4, 5, 6), (7, None, None)]`
+
+The function `batch_gather` runs a list of asynchronous tasks in batches.
+
+*   It takes a list of coroutines (tasks), a batch size, and a boolean for verbose output.
+*   It uses the `chunks()` function to split the tasks into batches.
+*   For each batch (`task_chunk`), it filters out any `None` values (which might have been added by `chunks()` due to padding).
+*   It uses `asyncio.gather()` to run the tasks in the current batch concurrently.
+*   The results from each batch are added to the output list.
+*   If `verbose` is `True`, it prints a message indicating how many tasks have been completed so far.
+*   The function returns a list of the results from all the completed tasks. This is useful when you have a very large list of coroutines, as sending them all to `asyncio.gather` could result in memory errors.
+
+``` {#lst-run_jobs .python lst-cap="llamaindex_async_utils.py"}
+async def run_jobs(
+    jobs: List[Coroutine[Any, Any, T]],
+    show_progress: bool = False,
+    workers: int = DEFAULT_NUM_WORKERS,
+    desc: Optional[str] = None,
+) -> List[T]:
+    """Run jobs.
+
+    Args:
+        jobs (List[Coroutine]):
+            List of jobs to run.
+        show_progress (bool):
+            Whether to show progress bar.
+
+    Returns:
+        List[Any]:
+            List of results.
+    """
+    semaphore = asyncio.Semaphore(workers)
+
+    async def worker(job: Coroutine) -> Any:
+        async with semaphore:
+            return await job
+
+    pool_jobs = [worker(job) for job in jobs]
+
+    if show_progress:
+        from tqdm.asyncio import tqdm_asyncio
+        results = await tqdm_asyncio.gather(*pool_jobs, desc=desc)
+    else:
+        results = await asyncio.gather(*pool_jobs)
+
+    return results
+```
+
+This function runs a list of asynchronous jobs (coroutines) with a specified number of workers and optional progress tracking.
+
+*   It uses a semaphore to limit the number of concurrent workers.
+*   It defines an inner coroutine `worker()` that acquires the semaphore before running a job and releases it afterward, ensuring that only a limited number of jobs run concurrently.
+*   It creates a list of worker tasks (`pool_jobs`) by mapping each job to the `worker()` coroutine.
+*   If `show_progress` is `True`, it uses `tqdm_asyncio.gather()` to run the worker tasks and display a progress bar.
+*   If `show_progress` is `False`, it uses `asyncio.gather()` to run the worker tasks concurrently without a progress bar.
+*   The function returns a list of the results from the completed jobs. This is useful when you want to limit the number of concurrent asyncio tasks being run, perhaps because of rate limiting by an API, or resource constraints on your system.
+
 ## Considerations for Using `asyncio`
 
 `asyncio` is suitable for I/O-bound tasks:
@@ -730,3 +899,9 @@ It is *not* appropriate for CPU-bound tasks like complex calculations or image p
 -   Efficiency: Reduces blocking and increases resource utilization.
 -   Scalability: Handles concurrent connections with limited overhead.
 -   Concurrency with a single thread: Reduces multithreading complexities.
+
+# Conclusion
+
+In conclusion, Python provides diverse concurrency options to address different performance bottlenecks. For I/O-bound operations, where programs spend considerable time waiting for external resources, techniques like multi-threading and, especially, asynchronous I/O with `asyncio` can dramatically improve performance by overlapping wait times. `asyncio` allows for concurrent execution within a single thread, minimizing overhead and maximizing efficiency through cooperative multitasking.
+
+In contrast, CPU-bound operations, which are limited by processing power, may benefit from parallelism using the `multiprocessing` module. This approach leverages multiple CPU cores to execute tasks simultaneously, although it introduces inter-process communication overhead. While threading offers a middle ground, it is subject to the Global Interpreter Lock (GIL) in CPython, limiting its effectiveness for CPU-bound tasks. Choosing the appropriate concurrency model depends on the specific nature of the problem.
