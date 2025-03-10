@@ -200,6 +200,12 @@ div.csl-indent {
       </div>
     </div>
     
+      <div>
+      <div class="quarto-title-meta-heading">Modified</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date-modified">March 10, 2025</p>
+      </div>
+    </div>
       
     </div>
     
@@ -236,7 +242,20 @@ div.csl-indent {
 
 <p>This blog post explores the current landscape of PDF parsing for use as input to Large Language Models (LLMs). Extracting meaningful information from PDFs can be challenging due to their complex structure. This article examines several approaches, their strengths, and limitations, with a focus on their suitability for LLM integration (markdown output).</p>
 <p>We begin with a detailed presentation of some open-source PDF parsing libraries: Docling, Marker-PDF, and MinerU in <a href="#sec-detailed-presentation" class="quarto-xref">Section&nbsp;1</a>. In particular, we provide a comprehensive overview of the Docling pipeline, a modular and open-source PDF processing pipeline designed to transform PDFs into a structured representation (the <code>DoclingDocument</code>) in <a href="#sec-docling" class="quarto-xref">Section&nbsp;1.1</a>. We also discuss Marker-PDF and MinerU in <a href="#sec-marker-pdf" class="quarto-xref">Section&nbsp;1.2</a> and <a href="#sec-mineru" class="quarto-xref">Section&nbsp;1.3</a>. The objective is to gain an understanding of how modern PDF parsing libraries function, in particular the role of deep learning models in PDF parsing and extraction, focusing on layout analysis, table structure recognition, and Optical Character Recognition (OCR).</p>
-<p>Following this, we compare and evaluate various PDF parsing libraries and tools in <a href="#sec-comparing-libraries" class="quarto-xref">Section&nbsp;2</a>, including open-source libraries (Docling, Marker, MinerU, PyMuPDF) and closed-source solutions (LlamaParse, Gemini). We provide a detailed comparison based on a qualitative analysis using a diverse set of test PDFs (slides, reports, scanned documents, and documents with complex tables). The results of this analysis are available through an interactive demo that visualizes the differences between PDF input and Markdown output for each parsing solution.</p>
+<p>Following this, we compare and evaluate various PDF parsing libraries and tools in <a href="#sec-comparing-libraries" class="quarto-xref">Section&nbsp;2</a>, including open-source libraries (Docling, Marker, MinerU, PyMuPDF) and closed-source solutions (LlamaParse, Gemini, Mistral). We provide a detailed comparison based on a qualitative analysis using a diverse set of test PDFs (slides, reports, scanned documents, and documents with complex tables). The results of this analysis are available through an interactive demo that visualizes the differences between PDF input and Markdown output for each parsing solution.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Update on 2025-03-10: Added Mistral OCR as a new parsing method. <a href="https://mistral.ai/fr/news/mistral-ocr">Mistral OCR</a> is now available through the Mistral API and provides robust document processing capabilities.</p>
+</div>
+</div>
 <section id="sec-detailed-presentation" class="level1">
 <h1>Detailed Presentations of PDF Parsing Libraries: Docling, Marker-pdf, MinerU</h1>
 <section id="sec-docling" class="level2">
@@ -706,6 +725,17 @@ Figure&nbsp;11: Gemini parsing results (suppl.)
 </figcaption>
 </figure>
 </div>
+<p><a href="https://docs.mistral.ai/capabilities/document/">Mistral OCR</a> is a closed-source solution that provides good results. It is particularly effective at extracting text and tables. However, it does not support image description by default.</p>
+<div id="fig-mistral-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Mistral parsing results">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mistral-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/mistral-parsing.png" class="img-fluid figure-img" alt="Mistral parsing results">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mistral-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12: Mistral parsing results
+</figcaption>
+</figure>
+</div>
 <p><a href="https://github.com/opendatalab/MinerU">MinerU</a> is not part of the app because it is not easy to split the output by page, and tables are under HTML format. However, the results are good, and the layout is very good. It doesn’t support image description. MinerU is a very promising library.</p>
 <div id="fig-mineru-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="MinerU parsing results">
 <figure class="quarto-float quarto-float-fig figure">
@@ -713,7 +743,7 @@ Figure&nbsp;11: Gemini parsing results (suppl.)
 <img src="figures/mineru_streamlit.png" class="img-fluid figure-img" alt="MinerU parsing results">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mineru-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12: MinerU parsing results
+Figure&nbsp;13: MinerU parsing results
 </figcaption>
 </figure>
 </div>
