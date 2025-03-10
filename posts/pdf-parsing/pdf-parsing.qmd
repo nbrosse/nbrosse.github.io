@@ -2,6 +2,7 @@
 title: "PDF Parsing for LLM Input"
 author: "Nicolas Brosse"
 date: "2025-02-18"
+date-modified: "2025-03-10"
 categories: [deep learning, LLM]
 bibliography: pdf-parsing-references.bib
 description: "An exploration of current PDF parsing capabilities for Large Language Model (LLM) input."
@@ -11,7 +12,11 @@ This blog post explores the current landscape of PDF parsing for use as input to
 
 We begin with a detailed presentation of some open-source PDF parsing libraries: Docling, Marker-PDF, and MinerU in @sec-detailed-presentation. In particular, we provide a comprehensive overview of the Docling pipeline, a modular and open-source PDF processing pipeline designed to transform PDFs into a structured representation (the `DoclingDocument`) in @sec-docling. We also discuss Marker-PDF and MinerU in @sec-marker-pdf and @sec-mineru. The objective is to gain an understanding of how modern PDF parsing libraries function, in particular the role of deep learning models in PDF parsing and extraction, focusing on layout analysis, table structure recognition, and Optical Character Recognition (OCR).
 
-Following this, we compare and evaluate various PDF parsing libraries and tools in @sec-comparing-libraries, including open-source libraries (Docling, Marker, MinerU, PyMuPDF) and closed-source solutions (LlamaParse, Gemini). We provide a detailed comparison based on a qualitative analysis using a diverse set of test PDFs (slides, reports, scanned documents, and documents with complex tables). The results of this analysis are available through an interactive demo that visualizes the differences between PDF input and Markdown output for each parsing solution.
+Following this, we compare and evaluate various PDF parsing libraries and tools in @sec-comparing-libraries, including open-source libraries (Docling, Marker, MinerU, PyMuPDF) and closed-source solutions (LlamaParse, Gemini, Mistral). We provide a detailed comparison based on a qualitative analysis using a diverse set of test PDFs (slides, reports, scanned documents, and documents with complex tables). The results of this analysis are available through an interactive demo that visualizes the differences between PDF input and Markdown output for each parsing solution.
+
+::: callout-note
+Update on 2025-03-10: Added Mistral OCR as a new parsing method. [Mistral OCR](https://mistral.ai/fr/news/mistral-ocr) is now available through the Mistral API and provides robust document processing capabilities.
+:::
 
 # Detailed Presentations of PDF Parsing Libraries: Docling, Marker-pdf, MinerU {#sec-detailed-presentation}
 
@@ -319,7 +324,7 @@ The following four PDF files are sourced from the [RAG blog benchmark](https://w
 -   `life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023.pdf`
 -   `dttl-tax-technology-report-2023.pdf`
 
-## Qualitative Results 
+## Qualitative Results
 
 **Note:** The following results are based on a limited set of tests and should be considered indicative rather than scientifically rigorous.
 
@@ -349,6 +354,10 @@ You can directly compare the output Markdown results at the Hugging Face Space d
 
 ![Gemini parsing results (suppl.)](figures/gemini_streamlit_2.png){#fig-gemini-streamlit-2 fig-alt="Gemini parsing results suppl."}
 
+[Mistral OCR](https://docs.mistral.ai/capabilities/document/) is a closed-source solution that provides good results. It is particularly effective at extracting text and tables. However, it does not support image description by default.
+
+![Mistral parsing results](figures/mistral-parsing.png){#fig-mistral-streamlit fig-alt="Mistral parsing results"}
+
 [MinerU](https://github.com/opendatalab/MinerU) is not part of the app because it is not easy to split the output by page, and tables are under HTML format. However, the results are good, and the layout is very good. It doesn't support image description. MinerU is a very promising library.
 
 ![MinerU parsing results](figures/mineru_streamlit.png){#fig-mineru-streamlit fig-alt="MinerU parsing results"}
@@ -361,7 +370,7 @@ We also tested (not extensively) some cloud-based solutions for PDF parsing such
 
 In terms of table extraction capabilities, we tested Camelot, a specialized library specifically designed for extracting tables from PDFs. Camelot excels at handling both lattice and stream type tables, making it particularly effective for complex table extraction tasks. The library is well-documented and maintained, with comprehensive documentation available on their [GitHub repository](https://github.com/camelot-dev/camelot). The results were good for table extraction. Camelot is a dedicated library for tables.
 
-**Conclusion**: The choice of PDF parsing library depends on the specific requirements of the task at hand. or general-purpose parsing with a strong emphasis on image understanding, consider Gemini. However, be aware that this is a closed-source solution. If an open-source solution is preferred, Docling, Marker and MinerU are strong contenders. For tasks requiring specialized table extraction, Camelot is a reliable choice. 
+**Conclusion**: The choice of PDF parsing library depends on the specific requirements of the task at hand. or general-purpose parsing with a strong emphasis on image understanding, consider Gemini. However, be aware that this is a closed-source solution. If an open-source solution is preferred, Docling, Marker and MinerU are strong contenders. For tasks requiring specialized table extraction, Camelot is a reliable choice.
 
 # Conclusion
 
@@ -371,10 +380,8 @@ Our qualitative comparison, demonstrated through the [pdf-parsing-demo](https://
 
 The choice of PDF parsing approach ultimately hinges on the specific requirements of the LLM application. Factors to consider include:
 
-*   **Accuracy and Completeness:** How critical is it to extract all the text and data from the PDF accurately?
-*   **Layout Fidelity:** Is preserving the original layout of the document important?
-*   **Image and Table Understanding:** Are there significant images or tables that need to be extracted and understood?
-*   **Open Source vs. Closed Source:** Does the project require an open-source solution for licensing or customization reasons?
-*   **Complexity of PDFs:** Does the typical PDF being parsed have many images, tables, or just general text?
-
-
+-   **Accuracy and Completeness:** How critical is it to extract all the text and data from the PDF accurately?
+-   **Layout Fidelity:** Is preserving the original layout of the document important?
+-   **Image and Table Understanding:** Are there significant images or tables that need to be extracted and understood?
+-   **Open Source vs. Closed Source:** Does the project require an open-source solution for licensing or customization reasons?
+-   **Complexity of PDFs:** Does the typical PDF being parsed have many images, tables, or just general text?
