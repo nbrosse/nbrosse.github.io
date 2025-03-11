@@ -1,0 +1,19 @@
+---
+title: "PDF RAG"
+author: "Nicolas Brosse"
+date: "2025-03-10"
+categories: [deep learning, LLM, RAG]
+bibliography: pdf-rag-references.bib
+description: "PDF RAG"
+---
+
+In this blog post, we focus on RAG (Retrieval-Augmented Generation) specifically for PDF documents. We will study how PDFs can be processed for use with Language Models (LLMs). We'll explore ethical considerations of data extraction and processing. The code relies on llama index methods that are versatile but can be unstable. First, we'll examine PDF page parsing, particularly focusing on heading handling, which differs significantly from traditional PDF processing.
+
+One of the main difficulties in PDF parsing is that it is generally done page by page, causing the loss of the overall document structure. We lose the appropriate headings that help retrieve the general structure of the document, and we end up with a very local and focused view. For example, when converting PDF to markdown, the heading structure specified by the markdown is generally incorrect - the headers and their levels don't correspond to what is expected.
+
+We face an additional challenge because PDFs can be either portrait-formatted reports or landscape-formatted slides. In both cases, the PDF is processed page by page, resulting in the loss of the overall document structure. However, the processing approach may need to differ depending on whether we're dealing with slides or reports.
+
+[PDF parsing for LLM Input](https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html)
+[pdf-rag github repo](https://github.com/nbrosse/pdf-rag)
+
+This blog post explores the current landscape of PDF parsing for use as input to Large Language Models (LLMs). Extracting meaningful information from PDFs can be challenging due to their complex structure. This article examines several approaches, their strengths, and limitations, with a focus on their suitability for LLM integration (markdown output).
