@@ -9,11 +9,442 @@ description: "PDF RAG"
 
 In this blog post, we focus on RAG (Retrieval-Augmented Generation) specifically for PDF documents. We will study how PDFs can be processed for use with Language Models (LLMs). We'll explore ethical considerations of data extraction and processing. The code relies on llama index methods that are versatile but can be unstable. First, we'll examine PDF page parsing, particularly focusing on heading handling, which differs significantly from traditional PDF processing.
 
+PDFs are ubiquitous in businesses and throughout the human world. What's remarkable is the sheer diversity of PDF types we encounter. These range from reports of just a few pages to documents spanning hundreds of pages, generally including a table of contents. We also frequently deal with slide decks, or presentations, which are common in corporate settings. These can vary from just a few slides to dozens or even hundreds, often with their own unique tables of contents and organizational structures.
+
+It's fascinating to consider how differently humans and computers process this information. Humans, when facing lengthy documents, generally tend to look at the table of contents and assess the document's overall structure to identify areas of interest.
+
+However, machines, especially with page-by-page parsing, often lose the document's overall structure. One way to address this is to use embeddings and chunking, attempting to find similarities through embeddings or semantic similarity to identify potentially relevant chunks of information.
+
+This highlights the core challenge of the method: the need to process data differently as a human than as a machine, particularly to gain a holistic view of the problem.
+
+This has led us to try reformatting and raw conversions with PDF parsing. The goal is to reformat by asking a large language model (LLM) to reprocess the document chunk by chunk, given that some documents can be very long. The aim is to provide a more comprehensive overview. We're using Gemini, which has a very large context, which makes this approach quite helpful. We are observing an improvement in the markdown formatting, particularly with better title identification. It's not always perfect, but there's a more effective segmentation based on titles and markdown, resulting in better adherence to the overall document structure compared to what we had before.
+
+This makes it easier to have a structure a bit more coherent when you cut through markdowns, especially in reports. For slides, we would cut in a very different way. We will use page page page cutting, trying to identify the summaries.
+
+[llama-index](https://docs.llamaindex.ai/en/stable/)
+
+
+[pdf-rag github repo](https://github.com/nbrosse/pdf-rag)
+[HF space demo](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo)
+
+# PDF to Markdown Conversion
+
+[PDF parsing for LLM Input](https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html)
+
+Why VLM to parse ? 
+Because it is cheap, fast and efficient. In particular, it enables to describe pictures into meaningful descriptions.
+First, let's describe the raw conversion process.
+
+Similar to [LlamaParse](https://docs.cloud.llamaindex.ai/llamaparse/getting_started) but cheaper !
+
+## Raw Conversion
+
+File `src/pdf_rag/readers.py`:
+The code implements a `VLMPDFReader` class that uses Vision Language Models (VLMs) to convert PDF documents to markdown format. Here's how it works:
+
+### Key Features
+
+- Uses both **Gemini** and **Mistral** models for processing
+- Supports both single PDFs and batch processing
+- Includes caching mechanism to avoid reprocessing
+- Handles API rate limiting and retries
+- Processes PDFs page by page with parallel execution
+
+### Architecture
+
+The conversion process follows these steps:
+
+1. **Initialization**
+   - Sets up API clients for Gemini and Mistral
+   - Validates API keys and cache directory
+   - Loads conversion template
+
+2. **PDF Processing**
+   - Loads PDF file using `PdfReader`
+   - Processes each page individually
+   - Converts PDF pages to images for VLM processing
+
+3. **VLM Processing Pipeline**
+   - First attempts conversion with Gemini
+   - Falls back to Mistral if Gemini returns "RECITATION"
+   - Uses a template to guide the conversion
+
+4. **Output Generation**
+   - Combines processed pages
+   - Adds page markers for reference
+   - Caches results to avoid reprocessing
+   - Returns document with metadata
+
+### Error Handling
+
+- Validates input files and parameters
+- Implements retry logic for API failures
+- Handles async runtime errors
+- Includes progress reporting
+
+### Usage Example
+
+```python
+reader = VLMPDFReader(
+    cache_dir="./cache",
+    api_key_gemini="your_gemini_key",  # or use env var GEMINI_API_KEY
+    api_key_mistral="your_mistral_key"  # or use env var MISTRAL_API_KEY
+)
+
+# Single file
+doc = reader.load_data("path/to/document.pdf")
+
+# Multiple files
+docs = reader.load_data(["doc1.pdf", "doc2.pdf"])
+```
+
+RECITATION 	The response candidate content was flagged for recitation reasons.
+
+The RECITATION error in the Gemini API occurs when the model detects that it is generating content that closely resembles its training data, particularly copyrighted material. This error is designed to prevent the model from reproducing protected content verbatim. The issue arises unpredictably and can halt content generation mid-stream, leading to incomplete responses.
+
+### Key Points:
+- **Error Message**: "Content generation stopped. Reason: RECITATION."
+- **Cause**: The model identifies that the generated content is too similar to its training data, especially copyrighted material.
+- **Impact**: Stops content generation abruptly, leading to incomplete outputs.
+- **Unpredictability**: The error occurs randomly and is difficult to anticipate.
+- **Workarounds**: Some users have found temporary solutions, such as adjusting the API's temperature and topP parameters, or including specific instructions in the prompt to avoid recitation. However, these methods are not foolproof and may affect the quality of the generated content.
+
+### User Frustrations:
+- The error is seen as overly restrictive, especially when the generated content does not actually infringe on copyrights.
+- It affects various use cases, including text analysis, OCR on public documents, and even simple conversations.
+- Users have expressed a desire for a parameter to disable recitation checks, but this feature is not currently available.
+
+### Community Feedback:
+- Many users have reported encountering this issue, and it remains a persistent problem despite efforts to mitigate it.
+- Some users have suggested that the error is more prevalent in certain versions of the API and less so in others.
+
+Overall, the RECITATION error is a significant challenge for developers using the Gemini API, highlighting the tension between content safety and usability
+
+The class is designed to be robust and efficient, with built-in caching and parallel processing capabilities to handle large documents or multiple files efficiently.
+
+Template : 
+
+```
+You are a specialized document transcription assistant converting PDF documents to Markdown format.
+Your primary goal is to create an accurate, complete, and well-structured Markdown representation.
+
+<instructions>
+1. Language and Content:
+   - MAINTAIN the original document language throughout ALL content
+   - ALL elements (headings, tables, descriptions) must use source language
+   - Preserve language-specific formatting and punctuation
+   - Do NOT translate any content
+
+2. Text Content:
+   - Convert all text to proper Markdown syntax
+   - Use appropriate heading levels (# ## ###)
+   - Preserve emphasis (bold, italic, underline)
+   - Convert bullet points to Markdown lists (-, *, +)
+   - Maintain original document structure and hierarchy
+
+3. Visual Elements (CRITICAL):
+   a. Tables:
+      - MUST represent ALL data cells accurately in original language
+      - Use proper Markdown table syntax |---|
+      - Include header rows
+      - Add caption above table: [Table X: Description] in document language
+      
+   b. Charts/Graphs:
+      - Create detailed tabular representation of ALL data points
+      - Include X/Y axis labels and units in original language
+      - List ALL data series names as written
+      - Add caption: [Graph X: Description] in document language
+      
+   c. Images/Figures:
+      - Format as: ![Figure X: Detailed description](image_reference)
+      - Describe key visual elements in original language
+      - Include measurements/scales if present
+      - Note any text or labels within images
+
+4. Quality Requirements:
+   - NO content may be omitted
+   - Verify all numerical values are preserved
+   - Double-check table column/row counts match original
+   - Ensure all labels and legends are included
+   - Maintain document language consistently throughout
+
+5. Structure Check:
+   - Begin each section with clear heading
+   - Use consistent list formatting
+   - Add blank lines between elements
+   - Preserve original content order
+   - Verify language consistency across sections
+</instructions>
+```
+
+Let me add a description of the PDFDirectoryReader class.
+
+The `PDFDirectoryReader` class extends `BasePydanticReader` to provide batch processing capabilities for PDF files within a directory structure. It acts as a wrapper around the `VLMPDFReader`, adding directory handling and metadata extraction features.
+
+### Key Features
+
+- **Directory-based Processing**: Handles both single PDF files and directories containing multiple PDFs
+- **Metadata Extraction**: Automatically extracts and includes file metadata like:
+  - Creation date
+  - Last modified date
+  - File size
+  - File type
+  - Relative path information
+- **Configuration Management**: 
+  - Validates directory paths and creates cache directories
+  - Manages API keys for both Gemini and Mistral models
+  - Supports environment variable configuration
+- **Parallel Processing**: Configurable number of workers for concurrent processing
+
+### Usage Example
+
+```python
+reader = PDFDirectoryReader(
+    root_dir="./documents",
+    cache_dir="./cache",
+    num_workers=4,
+    show_progress=True
+)
+
+# Process single PDF file
+docs = reader.load_data("documents/sample.pdf")
+
+# Process directory of PDFs
+docs = reader.load_data("documents/reports/")
+
+# Async processing
+docs = await reader.aload_data("documents/reports/")
+```
+
+### Key Methods
+
+1. **load_data**: Synchronous processing of PDF files
+2. **aload_data**: Asynchronous processing of PDF files
+3. **_file_metadata_func**: Extracts comprehensive file metadata
+4. **_pre_load_data**: Validates and prepares files for processing
+
+The class implements robust error handling and validation, ensuring that all required directories exist and API keys are properly configured before processing begins.
+
+## Difficulties and drawbacks of raw conversion
+
+The raw conversion process has several limitations and drawbacks that can affect the quality and accuracy of the output. Some of the key challenges include:
+
 One of the main difficulties in PDF parsing is that it is generally done page by page, causing the loss of the overall document structure. We lose the appropriate headings that help retrieve the general structure of the document, and we end up with a very local and focused view. For example, when converting PDF to markdown, the heading structure specified by the markdown is generally incorrect - the headers and their levels don't correspond to what is expected.
 
 We face an additional challenge because PDFs can be either portrait-formatted reports or landscape-formatted slides. In both cases, the PDF is processed page by page, resulting in the loss of the overall document structure. However, the processing approach may need to differ depending on whether we're dealing with slides or reports.
 
-[PDF parsing for LLM Input](https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html)
-[pdf-rag github repo](https://github.com/nbrosse/pdf-rag)
+## Reformatting
 
-This blog post explores the current landscape of PDF parsing for use as input to Large Language Models (LLMs). Extracting meaningful information from PDFs can be challenging due to their complex structure. This article examines several approaches, their strengths, and limitations, with a focus on their suitability for LLM integration (markdown output).
+Necessity of reformatting
+
+File `src/pdf_rag/transforms.py`:
+
+# ReformatMarkdownComponent Class
+
+The `ReformatMarkdownComponent` class is a specialized component that extends `GeminiTransformComponent` to reformat markdown content using the Gemini API. Here's a detailed breakdown of its functionality:
+
+### Key Features
+
+1. **Configuration Options**
+   - `max_iters`: Maximum iterations for reformatting (default: 50)
+   - `in_place`: Whether to modify nodes directly or create copies (default: True)
+   - `num_workers`: Number of concurrent workers (default: 4)
+   - `show_progress`: Display progress during processing (default: True)
+
+2. **Caching Mechanism**
+   - Stores reformatted content in `.reformatted.md` files
+   - Avoids reprocessing previously reformatted content
+   - Uses file path and cache directory from node metadata
+
+3. **Processing Pipeline**
+   - Handles individual nodes asynchronously
+   - Uses Jinja2 templates for content reformatting
+   - Supports both landscape and portrait formats
+   - Accumulates reformatted content iteratively
+
+### Usage Example
+
+```python
+component = ReformatMarkdownComponent(
+    api_key="your_gemini_key",  # or use env var GEMINI_API_KEY
+    num_workers=4,
+    show_progress=True
+)
+
+# Process nodes
+processed_nodes = component(nodes)
+
+# Async processing
+processed_nodes = await component.acall(nodes)
+```
+
+### Key Methods
+
+1. **_aprocess_node**: Core processing method that:
+   - Checks if node is already reformatted
+   - Handles caching logic
+   - Applies template-based reformatting
+   - Updates node content and metadata
+
+2. **aprocess_nodes**: Batch processing method that:
+   - Handles multiple nodes concurrently
+   - Manages worker pool
+   - Preserves or copies nodes based on settings
+
+3. **process_nodes**: Synchronous wrapper for batch processing
+   - Converts async operation to sync
+   - Maintains compatibility with non-async code
+
+The component is designed to improve document structure by:
+- Fixing heading hierarchies
+- Maintaining consistent formatting
+- Preserving language and content
+- Handling both report and presentation formats
+
+Template
+
+```
+<document>
+{{ document }}
+</document>
+
+{% if processed %}
+<processed>
+{{ processed }}
+</processed>
+{% endif %}
+
+You are a professional technical documentation editor specializing in markdown documents.
+Your task is to transform the document into a well-structured markdown document with clear hierarchy and organization.
+
+<instructions>
+1. Content Preservation (CRITICAL):
+   - PRESERVE ALL original content without exception
+   - Do not summarize or condense any information
+   - Maintain all technical details, examples, and code snippets
+   - Keep all original links, references, and citations
+   - Preserve all numerical data and specifications
+   {% if landscape %}
+   - Preserve `---end page ...` markers
+   {% endif %}
+
+2. Document Structure:
+   - Ensure exactly one H1 (#) title at the start
+   - Use maximum 3 levels of headers (H1 -> H2 -> H3)
+   - Avoid excessive nesting - prefer flatter structure
+   - Group related sections under appropriate headers
+   - If an existing TOC is present, maintain and update it
+   - Only create new TOC if none exists
+
+3. Formatting Standards:
+   - Use consistent bullet points/numbering
+   - Format code blocks with appropriate language tags
+   - Properly format links and references
+   - Use tables where data is tabular
+   - Include blank lines between sections
+
+4. Quality Checks:
+   - Compare final document with original for completeness
+   - Verify all technical information is preserved
+   - Ensure all examples remain intact
+   - Maintain all nuances and specific details
+
+5. Metadata & Front Matter:
+   - Include creation/update dates if present
+   - Preserve author information
+   - Maintain any existing tags/categories
+</instructions>
+
+{% if processed %}
+Please continue reformatting from where it was left off, maintaining consistency with the processed portion.
+Ensure NO content is omitted - preserve everything from the original document.
+All sections should seamlessly integrate with the existing structure.
+End your response with <end>.
+{% else %}
+Provide the complete reformatted document following the above guidelines.
+WARNING: Do not omit ANY content - preserve everything from the original document.
+Ensure all sections are properly nested and formatted.
+End your response with <end>.
+{% endif %}
+```
+
+
+## Extractors
+
+
+Let me describe the extractor classes that handle different aspects of PDF document processing:
+
+# PDF Document Extractors
+
+## Base Class: GeminiBaseExtractor
+
+The `GeminiBaseExtractor` serves as the foundation for all extractors, providing:
+
+- Gemini API integration with configurable temperature and model selection
+- API key validation and management
+- Abstract interface for extraction operations
+- Parallel processing capabilities
+
+## Specialized Extractors
+
+### 1. ContextExtractor
+Extracts contextual information from documents:
+- Processes document content using a specialized template
+- Returns structured JSON with document context
+- Handles parallel processing of multiple nodes
+
+### 2. TableOfContentsExtractor
+Extracts existing tables of contents from documents:
+- Focuses on first 10 pages by default
+- Supports both portrait and landscape formats
+- Returns empty string if no TOC found
+- Uses templated approach for extraction
+
+### 3. TableOfContentsCreator
+Creates new tables of contents:
+- **Portrait Mode**:
+  - Analyzes markdown headers
+  - Includes line numbers for reference
+  - Requires reformatted content
+  
+- **Landscape Mode**:
+  - Generates TOC using Gemini
+  - Includes validation step
+  - Two-phase process: draft and check
+
+### 4. LandscapePagesExtractor
+Specialized for landscape (presentation) documents:
+- Requires existing TOC (extracted or created)
+- Processes document content page by page
+- Uses template-based extraction
+- Returns structured page information
+
+### 5. StructureExtractor
+Handles document structure analysis:
+- **Portrait Mode**:
+  - Uses created TOC for structure
+  - Simple structure representation
+  
+- **Landscape Mode**:
+  - Combines TOC and page information
+  - Creates comprehensive structure
+  - Requires both TOC and page metadata
+
+### Usage Example
+
+```python
+# Initialize extractor
+extractor = TableOfContentsExtractor(
+    api_key="your_gemini_key",  # or use env var GEMINI_API_KEY
+    head_pages=10,
+    temperature=0.1
+)
+
+# Process nodes
+results = await extractor.aextract(nodes)
+```
+
+Each extractor is designed to work asynchronously and handle batch processing efficiently, with built-in error handling and progress reporting.
+
+
+
