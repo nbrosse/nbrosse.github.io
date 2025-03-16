@@ -4,7 +4,7 @@ author: "Nicolas Brosse"
 date: "2025-03-10"
 categories: [deep learning, LLM, RAG]
 bibliography: pdf-rag-references.bib
-description: "PDF RAG: Exploring techniques for processing PDF documents with Language Models, including raw conversion, reformatting, and structure parsing."
+description: "PDF RAG: Exploring techniques for processing PDF documents with Language Models, including raw conversion, reformatting, structure parsing and RAG."
 ---
 
 In this blog post, we focus on RAG (Retrieval-Augmented Generation) specifically for PDF documents. We will study how PDFs can be processed for use with Language Models (LLMs). The code relies on [llama-index](https://docs.llamaindex.ai/en/stable/) package which is versatile but evolving rapidly and unstable.
@@ -17,17 +17,15 @@ However, machines, especially with page-by-page parsing, often lose the document
 
 This highlights the core challenge of the method: the need to process data differently as a human than as a machine, particularly to gain a holistic view of the problem.
 
-In @sec-metadata-structure, we delve into PDF metadata and structure extraction, focusing on the raw conversion process. We explore the challenges and limitations of raw conversion and the necessity of reformatting to improve document structure.
-
-First, we'll examine PDF page parsing, particularly focusing on heading handling. This has led us to try raw conversions and reformatting with PDF parsing. The goal is to reformat by asking a large language model (LLM) to reprocess the document chunk by chunk, given that some documents can be very long. The aim is to provide a more comprehensive overview. We're using Gemini, which has a very large context, which makes this approach quite helpful. We are observing an improvement in the markdown formatting, particularly with better title identification. It's not always perfect, but there's a more effective segmentation based on titles and markdown, resulting in better adherence to the overall document structure compared to what we had before. 
-
-This makes it easier to have a structure a bit more coherent when you cut through markdowns, especially in reports. For slides, we would cut in a very different way. We will use page page page cutting, trying to identify the summaries.
+In @sec-metadata-structure, we delve into PDF metadata and structure extraction. We explore the challenges and limitations of raw conversion and the necessity of reformatting to improve document structure. We also discuss the parsing of document structure to create a hierarchical index for efficient document retrieval.
+In @sec-pdf-rag, we implement a multi-document PDF RAG system.
 
 ::: callout-note
-**llama-index:** A powerful framework for building LLM applications. [llama-index](https://docs.llamaindex.ai/en/stable/)
+**[llama-index](https://docs.llamaindex.ai/en/stable/):** A powerful framework for building LLM applications.
 The package is however evolving rapidly and functionalities are subject to change.
 
 **pdf-rag GitHub Repo & HF Space PDF Metadata Demo:** Check out the code and a demo. 
+
 - [pdf-rag GitHub Repo](https://github.com/nbrosse/pdf-rag) 
 - [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo)
 :::
@@ -37,8 +35,9 @@ The package is however evolving rapidly and functionalities are subject to chang
 The process of extracting textual content from PDF documents involves several key steps. 
 First, we convert PDF to markdown format as detailed in @sec-pdf-markdown. 
 Then, we apply reformatting techniques to improve the document structure in @sec-pdf-reformatting. 
-Metadata extraction in @sec-sec-pdf-metadata focuses on capturing valuable information like author, date, and language. 
-Finally, we parse the document structure to create a hierarchical index for efficient document retrieval.
+Metadata extraction in @sec-pdf-metadata focuses on capturing valuable information like author, date, and language. 
+Finally, we parse the document structure to create a hierarchical index for efficient document retrieval in @sec-parsing-structure.
+The overall execution of these steps is managed by the ingestion pipeline detailed in @sec-ingestion-pipeline.
 This systematic approach aims to create a more coherent and structured representation of the document content, through raw conversion, reformatting, and structural parsing.
 
 ## PDF to Markdown Conversion {#sec-pdf-markdown}
@@ -341,11 +340,13 @@ End your response with &ltend>.
 PDFs can be either portrait-formatted reports or landscape-formatted slides. In both cases, the PDF is processed page by page, resulting in the loss of the overall document structure. However, the processing approach needs to differ depending on whether we're dealing with slides or reports.
 
 For slides (landscape format):
+
 - Have a clear page-by-page structure 
 - Each slide is a discrete unit
 - Page markers are essential for maintaining structure
 
 For reports (portrait format):
+
 - Do not rely on page breaks
 - Have a clear heading hierarchy
 - Structure comes from nested headers
@@ -664,9 +665,11 @@ The visualization interface is shown in @fig-hf-demo-metadata.
 
 ![HF space demo for metadata and structure extraction from PDF](figures/hf-demo-metadata.png){#fig-hf-demo-metadata fig-alt="HF space demo for metadata and structure extraction from PDF"}
 
-### Parsing Structure {#sec-parsing-structure}
+## Parsing Structure {#sec-parsing-structure}
 
-#### Parsing Structures from Extracted Metadata {#sec-parsing-structures-extracted-metadata}
+In this section, we focus on parsing the structure of extracted metadata to create a hierarchical index for efficient document retrieval. We distinguish between portrait (report) and landscape (presentation) structures and describe the benefits of each.
+
+### Parsing Structures from Extracted Metadata {#sec-parsing-structures-extracted-metadata}
 
 At the end of the extraction, we have two types of parsed structure. The portrait (report) structure and the landscape (presentation) structure. We will describe the differences between the two and their benefits.
 
@@ -678,7 +681,7 @@ At the end of the extraction, we have two types of parsed structure. The portrai
 -   Content Focus: Emphasizes content hierarchy and relationships
 -   Example Use Case: Technical reports, research papers, documentation
 
-``` markdown
+```{#lst-portrait-structure-ex .markdown lst-cap="Portrait structure example"}
 # Deloitte. [line 0]
 ## Pushing through undercurrents [line 2]
 ### Technology's impact on systemic risk: A look at banking [line 3]
@@ -697,7 +700,7 @@ At the end of the extraction, we have two types of parsed structure. The portrai
 -   Sequential Listing: Lists pages sequentially within each section
 -   Example Use Case: Slide decks, presentations, visual-heavy documents
 
-``` markdown
+```{#lst-landscape-structure-ex .markdown lst-cap="Landscape structure example"}
 # Everest Group® Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023
 - Page 1 : Everest Group® Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023
 
@@ -759,13 +762,15 @@ The function `parse_landscape_structure` (in `src/pdf_rag/structure_parsers.py`)
 
 Both functions return a `TreeNode` object that can be traversed using breadth-first search (bfs) and supports standard tree operations like adding/removing children and setting parents.
 
-Here are the parsed structures for the portrait and landscape documents. You can also find them on the huggingface space demo for metadata and structure [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo).
+Here are the parsed structures for the portrait and landscape documents examples shown above, @lst-landscape-structure-parsed for @lst-landscape-structure-ex and @lst-portrait-structure-parsed for @lst-portrait-structure-ex.
+You can also find them on the huggingface space demo for metadata and structure [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo).
 
 Indentation shows parent/child relationships For landscape-oriented content, Numbers in \[\] represent: 
+
 - Positive numbers: page numbers 
 - Negative numbers: abstract nodes grouping related sections
 
-```         
+```{#lst-landscape-structure-parsed lst-cap="Landscape structure parsed"}         
 life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023 [-1]
   Everest Group® Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023 [-2]
     Everest Group® Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023 [1]
@@ -792,10 +797,11 @@ life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023 [-1]
 ```
 
 For portrait-oriented content, Numbers in \[\] represent: 
+
 - Positive numbers: line numbers 
 - Negative numbers: abstract nodes grouping related sections
 
-```         
+```{#lst-portrait-structure-parsed lst-cap="Portrait structure parsed"}         
 deloitte-tech-risk-sector-banking [-1]
   Deloitte. [0]
     Pushing through undercurrents [2]
@@ -807,38 +813,61 @@ deloitte-tech-risk-sector-banking [-1]
       Contacts [63]
 ```
 
-#### Tree Index {#sec-tree-index}
+### Tree Index {#sec-tree-index}
 
-The final step is - to create a hierarchical index of the processed documents - to support two types of node parsing: - `MarkdownLineNodeParser`: For portrait-oriented content - `MarkdownPageNodeParser`: For landscape-oriented content - to optionally export to a Neo4j database
+Given these parsed structures, we now have access to a structured representation of the document content, divided by line numbers (portrait) or page numbers (landscape). The next step is to create a hierarchical index of the processed documents to support efficient traversal and querying.
+We need several components to build this index. First, we need two types of node parsing
+- `MarkdownLineNodeParser`: For portrait-oriented content,
+- `MarkdownPageNodeParser`: For landscape-oriented content
 
-to create a hierarchical index of the processed documents. The `TreeIndex` class extends `BaseIndex` to provide a hierarchical tree-based indexing structure for document nodes. It's specifically designed to handle both portrait (reports) and landscape (presentations) document structures.
+Here's a description of the two Markdown node parser classes.
 
+**MarkdownLineNodeParser**
+
+- Parses portrait-oriented documents (like reports) by splitting on headers
+- Tracks header hierarchy and line numbers 
+- Preserves code blocks by avoiding header parsing within them
+- Builds text nodes with header path and line number metadata
+- Used for documents where structure comes from markdown headers
+
+**MarkdownPageNodeParser**
+
+- Parses landscape-oriented documents (like presentations) by splitting on page markers 
+- Splits on `--- end page N` markers
+- Optionally chunks content using a sentence splitter
+- Builds text nodes with page number metadata
+- Used for documents with clear page-based structure like slide decks
+
+The key difference is that `MarkdownLineNodeParser` focuses on header-based structure while `MarkdownPageNodeParser` focuses on page-based structure, matching the different needs of reports versus presentations.
+
+Using these parsers, we get document nodes that we can incorporate into a hierarchical index. The `TreeIndex` class (in `src/pdf_rag/tree_index.py`) extends `BaseIndex` to provide a hierarchical tree-based indexing structure for document nodes. It's specifically designed to handle both portrait (reports) and landscape (presentations) formatted documents.
+
+::: {.callout-note}
 Note that the `TreeIndex` class is part of the LlamaIndex framework, which provides a flexible and extensible indexing system for document nodes. It supports various indexing structures, including tree-based, graph-based, and vector-based indexes, to suit different document types and use cases. It is worked in progress we provide a first draft of the tree Index but do not use it. The class is not yet fully implemented.
+:::
 
-The `TreeIndex` class extends `BaseIndex` to provide a hierarchical tree-based indexing structure for document nodes. It's specifically designed to handle both portrait (reports) and landscape (presentations) formatted documents.
+The key features of the `TreeIndex` class (in `src/pdf_rag/tree_index.py`) include:
 
-**1. Data Structure**
+1. Data Structure
 
 -   Uses `IndexStructTree` to maintain hierarchical relationships
 -   Stores nodes in a tree structure with parent-child relationships
 -   Supports both root-level and nested nodes
 -   Maintains bidirectional references (parent-to-children and child-to-parent)
 
-**2. Node Management**
+2. Node Management
 
 -   Node insertion with automatic relationship building
 -   Node deletion with relationship cleanup
 -   Reference document tracking
 -   Support for abstract nodes (section headers) and content nodes (pages)
 
-**3. Neo4j Integration**
+3. Neo4j Integration
 
 -   Export functionality to Neo4j graph database
 -   Creates nodes and relationships in Neo4j
 -   Maintains document structure and metadata
 -   Supports constraints and cleanup operations
-
-![Neo4j visualisation](figures/neo4j.png){#fig-neo4j-visualisation fig-alt="Neo4j visualisation"}
 
 **Usage Example**
 
@@ -859,24 +888,21 @@ config = Neo4jConfig(
 index.export_to_neo4j(config=config)
 ```
 
-This implementation is particularly useful for maintaining document structure while enabling efficient traversal and querying of document hierarchies.
+For now, we provide a basic implementation of the `TreeIndex` class to demonstrate the concept of hierarchical indexing. A visual representation of the index is shown in @fig-neo4j-visualisation.
 
-### Script and Ingestion pipeline {#sec-ingestion-pipeline}
+![Neo4j visualisation of TreeIndex](figures/neo4j.png){#fig-neo4j-visualisation fig-alt="Neo4j visualisation of TreeIndex"}
 
-File: `src/scripts/metadata_structure.py`
+## Script and Ingestion Pipeline {#sec-ingestion-pipeline}
 
-Let us now describe the ingestion pipeline to have a glimpse of what the metadata looks like.
+The script `src/scripts/metadata_structure.py` executes all the extractors in sequence through an ingestion pipeline. This process enriches documents with comprehensive metadata including author information, document context, table of contents, and structural relationships. The resulting metadata provides a rich foundation for document analysis and retrieval. It stores the processed data in both a local storage and optionally in a Neo4j database.
 
-The script in `src/scripts/metadata_structure.py` executes all the extractors in sequence through an ingestion pipeline. This process enriches documents with comprehensive metadata including author information, document context, table of contents, and structural relationships. The resulting metadata provides a rich foundation for document analysis and retrieval.
-
-The Python script `src/scripts/metadata_structure.py` implements an extraction pipeline for processing PDF documents. It is designed to extract, transform, and index content from PDFs using various AI models (Gemini and Mistral) and store the processed data in both a local storage and optionally in a Neo4j database.
-
-Configuration (`PipelineConfig`) - Handles configuration through a dataclass including: - Directory paths - API keys for Gemini and Mistral - Neo4j connection details - Pipeline execution options
-
-The configuration file is in YAML format and includes settings for the pipeline, API keys, and file paths.
+To execute the script, you need to provide a configuration file in YAML format. An example configuration file is provided in `configs/metadata_structure_example.yaml`.
+The configuration file includes settings for the pipeline, API keys, and file paths. The script supports three main modes:
+-   `ingest`: Runs only the ingestion pipeline
+-   `tree`: Creates the tree index
+-   `all`: Runs both ingestion and indexing
 
 The pipeline first ingests the PDF documents using `PDFDirectoryReader` to read PDF files.
-
 Then it processes the documents through the ingestion pipeline, which includes several transformations:
 
 1.  `ReformatMarkdownComponent`: Reformats content to markdown
@@ -887,14 +913,7 @@ Then it processes the documents through the ingestion pipeline, which includes s
 6.  `StructureExtractor`: Extracts document structure
 
 It stores the results in a `SimpleDocumentStore` for persistence and loading of processed data.
-
-Tree Indexing
-
--   Creates a hierarchical index of the processed documents
--   Supports two types of node parsing:
-    -   `MarkdownLineNodeParser`: For portrait-oriented content
-    -   `MarkdownPageNodeParser`: For landscape-oriented content
--   Optional export to Neo4j database
+Then, the script creates a hierarchical index of the processed documents using the `TreeIndex` class. The index is stored in a local directory and optionally exported to a Neo4j database.
 
 **Usage**
 
@@ -902,24 +921,25 @@ Tree Indexing
 python scripts/metadata_structure.py --config path/to/config.yaml
 ```
 
--   `ingest`: Runs only the ingestion pipeline
-
--   `tree`: Creates the tree index
-
--   `all`: Runs both ingestion and indexing
-
--   Multi-worker processing support
-
--   Caching mechanism
-
--   Progress tracking
-
--   Persistent storage
-
--   Configuration validation
-
--   Environment variable support
-
--   Optional Neo4j integration
-
 This script is particularly useful for organizations needing to process large collections of PDF documents and create searchable, structured knowledge bases from them.
+A Shiny app is provided to visualize and explore the metadata and structure of processed documents. The app allows you to:
+
+- Browse processed documents and their metadata
+- View extracted table of contents
+- Explore document structure trees
+- Compare raw and reformatted markdown content
+- Visualize document hierarchies
+
+You can run the app locally using:
+
+```bash
+python src/app/app-metadata.py
+```
+
+A live demo showcasing these capabilities is available on the [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo). The visualization interface, shown in @fig-hf-demo-metadata, provides an interactive way to explore document metadata and structure.
+
+# PDF RAG {#sec-pdf-rag}
+
+The PDF RAG (PDF Retrieval and Generation) module is designed to facilitate document retrieval and generation tasks using Vision Language Models (VLMs) and advanced indexing techniques. It leverages the metadata and structure extracted from PDF documents to enable efficient search, summarization, and content generation.
+
+[Multi-Document Agents llama-index notebook](https://docs.llamaindex.ai/en/stable/examples/agent/multi_document_agents-v1/)
