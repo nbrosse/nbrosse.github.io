@@ -19,19 +19,27 @@ This highlights the core challenge of the method: the need to process data diffe
 
 In @sec-metadata-structure, we delve into PDF metadata and structure extraction, focusing on the raw conversion process. We explore the challenges and limitations of raw conversion and the necessity of reformatting to improve document structure.
 
-First, we'll examine PDF page parsing, particularly focusing on heading handling. This has led us to try raw conversions and reformatting with PDF parsing. The goal is to reformat by asking a large language model (LLM) to reprocess the document chunk by chunk, given that some documents can be very long. The aim is to provide a more comprehensive overview. We're using Gemini, which has a very large context, which makes this approach quite helpful. We are observing an improvement in the markdown formatting, particularly with better title identification. It's not always perfect, but there's a more effective segmentation based on titles and markdown, resulting in better adherence to the overall document structure compared to what we had before.
+First, we'll examine PDF page parsing, particularly focusing on heading handling. This has led us to try raw conversions and reformatting with PDF parsing. The goal is to reformat by asking a large language model (LLM) to reprocess the document chunk by chunk, given that some documents can be very long. The aim is to provide a more comprehensive overview. We're using Gemini, which has a very large context, which makes this approach quite helpful. We are observing an improvement in the markdown formatting, particularly with better title identification. It's not always perfect, but there's a more effective segmentation based on titles and markdown, resulting in better adherence to the overall document structure compared to what we had before. 
 
 This makes it easier to have a structure a bit more coherent when you cut through markdowns, especially in reports. For slides, we would cut in a very different way. We will use page page page cutting, trying to identify the summaries.
 
 ::: callout-note
 **llama-index:** A powerful framework for building LLM applications. [llama-index](https://docs.llamaindex.ai/en/stable/)
+The package is however evolving rapidly and functionalities are subject to change.
 
-**pdf-rag GitHub Repo & HF Space Demo:** Check out the code and a demo. - [pdf-rag GitHub Repo](https://github.com/nbrosse/pdf-rag) - [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo)
+**pdf-rag GitHub Repo & HF Space PDF Metadata Demo:** Check out the code and a demo. 
+- [pdf-rag GitHub Repo](https://github.com/nbrosse/pdf-rag) 
+- [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo)
 :::
 
 # PDF Metadata and Structure Extraction {#sec-metadata-structure}
 
-We first convert PDF to markdown in @sec-pdf-markdown, then reformat the markdown to improve the structure. The goal is to create a more coherent and structured representation of the document content. This process involves several steps, including raw conversion, reformatting, and structure parsing.
+The process of extracting textual content from PDF documents involves several key steps. 
+First, we convert PDF to markdown format as detailed in @sec-pdf-markdown. 
+Then, we apply reformatting techniques to improve the document structure in @sec-pdf-reformatting. 
+Metadata extraction in @sec-sec-pdf-metadata focuses on capturing valuable information like author, date, and language. 
+Finally, we parse the document structure to create a hierarchical index for efficient document retrieval.
+This systematic approach aims to create a more coherent and structured representation of the document content, through raw conversion, reformatting, and structural parsing.
 
 ## PDF to Markdown Conversion {#sec-pdf-markdown}
 
@@ -43,7 +51,7 @@ For RAG applications with PDFs, we'll focus on using Vision Language Models (VLM
 -   Choice of different API providers
 -   End-to-end process management
 
-File `src/pdf_rag/readers.py`: The code implements a `VLMPDFReader` class that uses Vision Language Models (VLMs) to convert PDF documents to markdown format. Here's how it works.
+The code implements a `VLMPDFReader` class (in `src/pdf_rag/readers.py`) that uses Vision Language Models (VLMs) to convert PDF documents to markdown format. Here's how it works.
 
 **Key Features**
 
@@ -99,11 +107,11 @@ The RECITATION error in the Gemini API occurs when the model detects that it is 
 
 Key Points:
 
--   **Error Message**: "Content generation stopped. Reason: RECITATION."
--   **Cause**: The model identifies that the generated content is too similar to its training data, especially copyrighted material.
--   **Impact**: Stops content generation abruptly, leading to incomplete outputs.
--   **Unpredictability**: The error occurs randomly and is difficult to anticipate.
--   **Workarounds**: Some users have found temporary solutions, such as adjusting the API's temperature and topP parameters, or including specific instructions in the prompt to avoid recitation. However, these methods are not foolproof and may affect the quality of the generated content.
+-   Error Message: "Content generation stopped. Reason: RECITATION."
+-   Cause: The model identifies that the generated content is too similar to its training data, especially copyrighted material.
+-   Impact: Stops content generation abruptly, leading to incomplete outputs.
+-   Unpredictability: The error occurs randomly and is difficult to anticipate.
+-   Workarounds: Some users have found temporary solutions, such as adjusting the API's temperature and topP parameters, or including specific instructions in the prompt to avoid recitation. However, these methods are not foolproof and may affect the quality of the generated content.
 
 In this case of failure, we fall back to the Mistral model to parse the problematic pdf page.
 
@@ -169,24 +177,26 @@ Your primary goal is to create an accurate, complete, and well-structured Markdo
 </pre>
 </details>
 
-![Raw conversion](figures/md_raw_conversion.png){#fig-pdf-raw-conversion fig-alt="Raw conversion"}
+An example of raw conversion is shown in @fig-pdf-raw-conversion.
 
-We also have a `PDFDirectoryReader` class to provide batch processing capabilities for PDF files within a directory structure. It acts as a wrapper around the `VLMPDFReader`, adding directory handling and metadata extraction features.
+![Raw conversion from PDF to Markdown using VLM](figures/md_raw_conversion.png){#fig-pdf-raw-conversion fig-alt="Raw conversion from PDF to Markdown using VLM"}
+
+We also have a `PDFDirectoryReader` class (in `src/pdf_rag/readers.py`) to provide batch processing capabilities for PDF files within a directory structure. It acts as a wrapper around the `VLMPDFReader`, adding directory handling and metadata extraction features.
 
 **Key Features**
 
--   **Directory-based Processing**: Handles both single PDF files and directories containing multiple PDFs
--   **Metadata Extraction**: Automatically extracts and includes file metadata like:
+-   Directory-based Processing: Handles both single PDF files and directories containing multiple PDFs
+-   Metadata Extraction: Automatically extracts and includes file metadata like:
     -   Creation date
     -   Last modified date
     -   File size
     -   File type
     -   Relative path information
--   **Configuration Management**:
+-   Configuration Management:
     -   Validates directory paths and creates cache directories
     -   Manages API keys for both Gemini and Mistral models
     -   Supports environment variable configuration
--   **Parallel Processing**: Configurable number of workers for concurrent processing
+-   Parallel Processing: Configurable number of workers for concurrent processing
 
 **Usage Example**
 
@@ -208,36 +218,27 @@ docs = reader.load_data("documents/reports/")
 docs = await reader.aload_data("documents/reports/")
 ```
 
-**Difficulties and drawbacks of raw conversion**
+**Difficulties and Drawbacks of Raw VLM Conversion**
 
-The raw conversion process has several limitations and drawbacks that can affect the quality and accuracy of the output. Some of the key challenges include:
-
-One of the main difficulties in PDF parsing is that it is generally done page by page, causing the loss of the overall document structure. We lose the appropriate headings that help retrieve the general structure of the document, and we end up with a very local and focused view. For example, when converting PDF to markdown, the heading structure specified by the markdown is generally incorrect - the headers and their levels don't correspond to what is expected.
-
-We face an additional challenge because PDFs can be either portrait-formatted reports or landscape-formatted slides. In both cases, the PDF is processed page by page, resulting in the loss of the overall document structure. However, the processing approach may need to differ depending on whether we're dealing with slides or reports.
+The raw conversion process has several limitations and drawbacks that can affect the quality and accuracy of the output. One of the main difficulties in PDF parsing is that it is generally done page by page, causing the loss of the overall document structure. We lose the appropriate headings that help retrieve the general structure of the document, and we end up with a very local and focused view. For example, when converting PDF to markdown, the heading structure specified by the markdown is generally incorrect - the headers and their levels don't correspond to what is expected.
 
 ## PDF Reformatting {#sec-pdf-reformatting}
 
-This has led us to try reformatting with PDF parsing. The goal is to reformat by asking a large language model (LLM) to reprocess the document chunk by chunk, given that some documents can be very long. The aim is to provide a more comprehensive overview. We're using Gemini, which has a very large context, which makes this approach quite helpful. We are observing an improvement in the markdown formatting, particularly with better title identification. It's not always perfect, but there's a more effective segmentation based on titles and markdown, resulting in better adherence to the overall document structure compared to what we had before.
+The loss of document structure during raw conversion necessitates reformatting to improve the overall document organization and coherence. Reformatting involves restructuring the content to ensure proper hierarchy, headings, and formatting. This step is crucial for enhancing readability and navigation within the document.
+In practice, we use a Large Language Model (LLM) to reprocess the document chunk by chunk, given that some documents can be very long. The aim is to provide a more comprehensive overview. We're using Gemini, which has a very large context, which makes this approach quite helpful. We are observing an improvement in the markdown formatting, particularly with better title identification. It's not always perfect, but there's a more effective segmentation based on titles and markdown, resulting in better adherence to the overall document structure compared to what we had before. This makes it easier to have a structure a bit more coherent when you cut through markdowns, especially in reports.
 
-This makes it easier to have a structure a bit more coherent when you cut through markdowns, especially in reports.
+The `ReformatMarkdownComponent` class (in `src/pdf_rag/transforms.py`) reformats markdown content using the Gemini API. Here's a detailed breakdown of its functionalities:
 
-File `src/pdf_rag/transforms.py`: `ReformatMarkdownComponent` Class
-
-The `ReformatMarkdownComponent` class reformats markdown content using the Gemini API. Here's a detailed breakdown of its functionality:
-
-**Key Features**
-
-1.  **Configuration Options**
+1.  Configuration Options
     -   `max_iters`: Maximum iterations for reformatting (default: 50)
     -   `in_place`: Whether to modify nodes directly or create copies (default: True)
     -   `num_workers`: Number of concurrent workers (default: 4)
     -   `show_progress`: Display progress during processing (default: True)
-2.  **Caching Mechanism**
+2.  Caching Mechanism
     -   Stores reformatted content in `.reformatted.md` files
     -   Avoids reprocessing previously reformatted content
     -   Uses file path and cache directory from node metadata
-3.  **Processing Pipeline**
+3.  Processing Pipeline
     -   Handles individual nodes asynchronously
     -   Uses Jinja2 templates for content reformatting
     -   Supports both landscape and portrait formats
@@ -261,16 +262,16 @@ processed_nodes = await component.acall(nodes)
 
 The component is designed to improve document structure through:
 
--   **Heading Hierarchies**: Ensures proper nesting and levels (H1 -\> H2 -\> H3)
--   **Consistent Formatting**: Standardizes markdown syntax, lists, and spacing
--   **Content Preservation**: Maintains original language, technical details, and metadata
--   **Format Handling**: Supports both portrait (reports) and landscape (presentations) layouts
--   **Quality Checks**: Validates completeness and structure accuracy
+-   Heading Hierarchies: Ensures proper nesting and levels (H1 -\> H2 -\> H3)
+-   Consistent Formatting: Standardizes markdown syntax, lists, and spacing
+-   Content Preservation: Maintains original language, technical details, and metadata
+-   Format Handling: Supports both portrait (reports) and landscape (presentations) layouts
+-   Quality Checks: Validates completeness and structure accuracy
 
 Here is the associated template prompt for Gemini.
 
 <details>
-<summary>Click to view template</summary>
+<summary>Click to view template prompt for Gemini</summary>
 <pre>
 &ltdocument>
 {{ document }}
@@ -337,7 +338,29 @@ End your response with &ltend>.
 </pre>
 </details>
 
-![Reformatted](figures/md_raw_reformatted_conversion.png){#fig-markdown-reformatted fig-alt="Reformatted"}
+PDFs can be either portrait-formatted reports or landscape-formatted slides. In both cases, the PDF is processed page by page, resulting in the loss of the overall document structure. However, the processing approach needs to differ depending on whether we're dealing with slides or reports.
+
+For slides (landscape format):
+- Have a clear page-by-page structure 
+- Each slide is a discrete unit
+- Page markers are essential for maintaining structure
+
+For reports (portrait format):
+- Do not rely on page breaks
+- Have a clear heading hierarchy
+- Structure comes from nested headers
+
+Note that the template prompt has a conditional part based on format:
+
+```
+{% if landscape %}
+- Preserve `---end page ...` markers
+{% endif %}
+```
+
+An example of Markdown reformatting is shown in @fig-markdown-reformatted.
+
+![Markdown reformatting using LLM](figures/md_raw_reformatted_conversion.png){#fig-markdown-reformatted fig-alt="Markdown reformatting using LLM"}
 
 ## PDF Metadata Extraction {#sec-pdf-metadata}
 
@@ -350,7 +373,7 @@ Once we've converted and reformatted the PDF content into markdown format using 
 
 These extractors work together to create a comprehensive metadata layer that enhances document searchability and understanding.
 
-File: `src/pdf_rag/extractors.py`
+All the extractors are defined in the file `src/pdf_rag/extractors.py`. Note that as experienced with reformatting markdown in @sec-pdf-reformatting, landscape-based vs portrait-based PDFs require different processing approaches. The extractors are designed to handle these differences effectively.
 
 The `GeminiBaseExtractor` serves as the foundation for all extractors, providing:
 
@@ -630,9 +653,16 @@ results = await extractor.aextract(nodes)
 
 Each extractor is designed to work asynchronously and handle batch processing efficiently, with built-in error handling and progress reporting.
 
-To have a glimpse of what the metadata looks like, we can run the ingestion pipeline using the script in `src/scripts/metadata_structure.py`. We present and explain in details the ingestion pipeline in @sec-ingestion-pipeline. Then run the Python shiny app in `src/app/app-metadata.py` to visualize the metadata and structure of the documents. A demo is available on the [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo).
+To visualize the metadata and structure of processed documents, you can:
 
-![HF space demo for metadata and structure](figures/hf-demo-metadata.png){#fig-hf-demo-metadata fig-alt="HF space demo for metadata and structure"}
+1. Run the ingestion pipeline using the script in `src/scripts/metadata_structure.py` (detailed in @sec-ingestion-pipeline)
+
+2. View the results in the Python Shiny app at `src/app/app-metadata.py`
+
+A live demo is available on the [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo).
+The visualization interface is shown in @fig-hf-demo-metadata.
+
+![HF space demo for metadata and structure extraction from PDF](figures/hf-demo-metadata.png){#fig-hf-demo-metadata fig-alt="HF space demo for metadata and structure extraction from PDF"}
 
 ### Parsing Structure {#sec-parsing-structure}
 
@@ -641,6 +671,12 @@ To have a glimpse of what the metadata looks like, we can run the ingestion pipe
 At the end of the extraction, we have two types of parsed structure. The portrait (report) structure and the landscape (presentation) structure. We will describe the differences between the two and their benefits.
 
 **Portrait (Report) Structure**
+
+-   Hierarchical Headers: Uses markdown heading levels (#, ##, ###, ####) to represent document hierarchy
+-   Line Numbers: Each heading includes line numbers `[line X]` for precise content location
+-   Linear Flow: Follows a traditional document structure with nested sections
+-   Content Focus: Emphasizes content hierarchy and relationships
+-   Example Use Case: Technical reports, research papers, documentation
 
 ``` markdown
 # Deloitte. [line 0]
@@ -653,13 +689,13 @@ At the end of the extraction, we have two types of parsed structure. The portrai
 ### Contacts [line 63]
 ```
 
--   Hierarchical Headers: Uses markdown heading levels (#, ##, ###, ####) to represent document hierarchy
--   Line Numbers: Each heading includes line numbers `[line X]` for precise content location
--   Linear Flow: Follows a traditional document structure with nested sections
--   Content Focus: Emphasizes content hierarchy and relationships
--   Example Use Case: Technical reports, research papers, documentation
-
 **Landscape (Presentation) Structure**
+
+-   Page-Based Organization: Groups content by pages under main sections
+-   Explicit Page Numbers: Each entry shows "Page X : Title" format
+-   Flat Section Hierarchy: Uses mainly top-level headings (#) for major sections
+-   Sequential Listing: Lists pages sequentially within each section
+-   Example Use Case: Slide decks, presentations, visual-heavy documents
 
 ``` markdown
 # Everest Group® Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023
@@ -692,31 +728,20 @@ At the end of the extraction, we have two types of parsed structure. The portrai
 - Page 15 : Everest Group®
 ```
 
--   Page-Based Organization: Groups content by pages under main sections
--   Explicit Page Numbers: Each entry shows "Page X : Title" format
--   Flat Section Hierarchy: Uses mainly top-level headings (#) for major sections
--   Sequential Listing: Lists pages sequentially within each section
--   Example Use Case: Slide decks, presentations, visual-heavy documents
+**Benefits**
 
-Benefits
-
-1.  **Document Navigation**
+1.  Document Navigation
     -   Portrait: Quick access to specific content sections via line numbers
     -   Landscape: Easy location of specific slides via page numbers
-2.  **Content Retrieval**
+2.  Content Retrieval
     -   Portrait: Granular access to nested content hierarchies
     -   Landscape: Efficient slide/page-based content lookup
-3.  **Structure Preservation**
+3.  Structure Preservation
     -   Portrait: Maintains detailed document hierarchy and relationships
     -   Landscape: Preserves presentation flow and slide organization
 
-Then, we can use File: `src/pdf_rag/structure_parsers.py` to parse this structure into a formal tree representation.
-
-Here's a detailed description of both parsing functions:
-
-`parse_portrait_structure`
-
-This function parses the structure of portrait-formatted documents (like reports) and creates a tree representation.
+We then use distinct parsers to process these structures into formal tree representations. Here's a detailed description of both parsing functions.
+The function `parse_portrait_structure` (in `src/pdf_rag/structure_parsers.py`) parses the structure of portrait-formatted documents (like reports) and creates a tree representation.
 
 -   Takes a `BaseNode` document as input
 -   Creates a hierarchical tree structure based on document headers
@@ -724,9 +749,7 @@ This function parses the structure of portrait-formatted documents (like reports
 -   Validates line numbers are in ascending order
 -   Returns a `TreeNode` representing the document structure
 
-`parse_landscape_structure`
-
-This function parses the structure of landscape-formatted documents (like presentations) and creates a tree representation.
+The function `parse_landscape_structure` (in `src/pdf_rag/structure_parsers.py`) parses the structure of landscape-formatted documents (like presentations) and creates a tree representation.
 
 -   Takes a `BaseNode` document as input
 -   Handles both section headers and page entries
@@ -736,9 +759,11 @@ This function parses the structure of landscape-formatted documents (like presen
 
 Both functions return a `TreeNode` object that can be traversed using breadth-first search (bfs) and supports standard tree operations like adding/removing children and setting parents.
 
-Here are the parsed structures for the portrait and landscape documents: You can also find them on the huggingface space demo for metadata and structure [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo).
+Here are the parsed structures for the portrait and landscape documents. You can also find them on the huggingface space demo for metadata and structure [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo).
 
-Indentation shows parent/child relationships For landscape-oriented content, Numbers in \[\] represent: Positive numbers: page numbers Negative numbers: abstract nodes grouping related sections
+Indentation shows parent/child relationships For landscape-oriented content, Numbers in \[\] represent: 
+- Positive numbers: page numbers 
+- Negative numbers: abstract nodes grouping related sections
 
 ```         
 life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023 [-1]
@@ -766,7 +791,9 @@ life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023 [-1]
     Everest Group® [15]
 ```
 
-For portrait-oriented content, Numbers in \[\] represent: Positive numbers: line numbers Negative numbers: abstract nodes grouping related sections
+For portrait-oriented content, Numbers in \[\] represent: 
+- Positive numbers: line numbers 
+- Negative numbers: abstract nodes grouping related sections
 
 ```         
 deloitte-tech-risk-sector-banking [-1]
