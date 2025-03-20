@@ -1000,7 +1000,7 @@ The constructor initializes various components including:
     *   This method is the heart of the per-document agent creation process.
     *   It takes a `pdf_file` path as input.
     *   It first checks if the vector and summary indexes already exist at the paths defined by `_get_vector_summary_paths`. If they do, it loads them from disk; otherwise, it creates them.
-    *   **Index Creation:**  Loads the PDF data using `self._pdf_reader`, parses it into nodes using `self._markdown_parser`, and then builds both a `VectorStoreIndex` (for semantic search) and a `SummaryIndex` (for generating summaries).  These are persisted to disk using `storage_context.persist`.
+    *   **Index Creation:**  Loads the PDF data using `self._pdf_reader`, parses it into nodes using `self._markdown_parser`, and then builds both a `VectorStoreIndex` (for semantic search) and a `SummaryIndex` (for generating summaries). These are persisted to disk using `storage_context.persist`.
     *   **Query Engine Creation:** Creates two query engines: `vector_query_engine` using the vector index and `summary_query_engine` using the summary index. The `vector_query_engine` uses `FullPagePostprocessor` to retrieve the full page for context.
     *   **Summary Extraction:** Extracts a summary of the document using the `summary_query_engine` and stores it in a text file.
     *   **Tool Definition:** Defines two `QueryEngineTool`s: one for the vector query engine and one for the summary query engine. These tools are used by the ReAct agent to answer questions. Each tool has a descriptive name and description that informs the agent when to use it.
@@ -1033,7 +1033,7 @@ The constructor initializes various components including:
     *   It then iterates through the agents and creates a `QueryEngineTool` for each agent, using the document summary as the tool description.
     *   **Object Index:** Creates an `ObjectIndex` from the `QueryEngineTool`s, and then a `VectorStoreIndex` on these objects (tools).
     *   **Custom Object Retriever:** Creates a `CustomObjectRetriever` that wraps the vector store retriever from the object index. This `CustomObjectRetriever` is critical: it *adds a query planning tool* to the retrieval process. This query planning tool is a `SubQuestionQueryEngine` which is specifically designed for comparing multiple documents.
-    *   **Top Agent Creation:** Creates the `ReActAgent` using the `CustomObjectRetriever` as the `tool_retriever`.  The system prompt instructs the agent to always use the tools provided.
+    *   **Top Agent Creation:** Creates the `ReActAgent` using the `CustomObjectRetriever` as the `tool_retriever`. The system prompt instructs the agent to always use the tools provided.
     *   It is decorated with `@cached_property` so it's only built once.
 
 7.  **`abuild_top_agent(self) -> ReActAgent`**:
@@ -1074,7 +1074,7 @@ Here's a breakdown of the critical part of `CustomObjectRetriever.retrieve`:
         return retrieved_tools
 ```
 
-*   A `SubQuestionQueryEngine` is created, using all the per-document `tools`.  The `LLMQuestionGenerator` helps break down complex questions into sub-questions that can be answered by the individual tools.
+*   A `SubQuestionQueryEngine` is created, using all the per-document `tools`. The `LLMQuestionGenerator` helps break down complex questions into sub-questions that can be answered by the individual tools.
 *   A `QueryEngineTool` is created for the `SubQuestionQueryEngine`, with a description emphasizing its use for comparison queries.
 *   This `sub_question_tool` is added to the list of retrieved tools.
 
@@ -1149,7 +1149,7 @@ Here's a step-by-step explanation:
 
 **Key Observations:**
 
-*   **ReAct Loop:** The agent follows the ReAct loop (Reason, Act, Observe).  It reasons about the question, selects a tool (Action), observes the tool's output (Observation), and then decides on the next step.
+*   **ReAct Loop:** The agent follows the ReAct loop (Reason, Act, Observe). It reasons about the question, selects a tool (Action), observes the tool's output (Observation), and then decides on the next step.
 *   **Tool Selection:** The agent correctly identifies and uses the appropriate tool (document) for each question. This demonstrates the agent's ability to choose the right knowledge source.
 *   **Semantic Search:** The use of `vector_tool_deloitte-tech-risk-sector-banking` indicates the agent is leveraging semantic search to retrieve relevant information from the document's vector index.
 *   **Concise Answers:** The agent provides concise and relevant answers based on the retrieved information.
