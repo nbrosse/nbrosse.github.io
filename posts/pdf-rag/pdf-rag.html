@@ -1,0 +1,2336 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.40">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Nicolas Brosse">
+<meta name="dcterms.date" content="2025-03-20">
+<meta name="description" content="PDF RAG: Exploring techniques for processing PDF documents with Language Models, including raw conversion, reformatting, structure parsing and RAG.">
+
+<title>PDF RAG: Enhanced PDF Processing – Nicolas’ Notebook</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-313591559204ad6a7884cc02194e8f50.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Nicolas’ Notebook</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">PDF RAG: Enhanced PDF Processing</h1>
+                  <div>
+        <div class="description">
+          PDF RAG: Exploring techniques for processing PDF documents with Language Models, including raw conversion, reformatting, structure parsing and RAG.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">deep learning</div>
+                <div class="quarto-category">LLM</div>
+                <div class="quarto-category">RAG</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Nicolas Brosse </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">March 20, 2025</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sec-metadata-structure" id="toc-sec-metadata-structure" class="nav-link active" data-scroll-target="#sec-metadata-structure">PDF Metadata and Structure Extraction</a>
+  <ul class="collapse">
+  <li><a href="#sec-pdf-markdown" id="toc-sec-pdf-markdown" class="nav-link" data-scroll-target="#sec-pdf-markdown">PDF to Markdown Conversion</a></li>
+  <li><a href="#sec-pdf-reformatting" id="toc-sec-pdf-reformatting" class="nav-link" data-scroll-target="#sec-pdf-reformatting">PDF Reformatting</a></li>
+  <li><a href="#sec-pdf-metadata" id="toc-sec-pdf-metadata" class="nav-link" data-scroll-target="#sec-pdf-metadata">PDF Metadata Extraction</a>
+  <ul class="collapse">
+  <li><a href="#contextextractor" id="toc-contextextractor" class="nav-link" data-scroll-target="#contextextractor">1. <code>ContextExtractor</code></a></li>
+  <li><a href="#tableofcontentsextractor" id="toc-tableofcontentsextractor" class="nav-link" data-scroll-target="#tableofcontentsextractor">2. <code>TableOfContentsExtractor</code></a></li>
+  <li><a href="#tableofcontentscreator" id="toc-tableofcontentscreator" class="nav-link" data-scroll-target="#tableofcontentscreator">3. <code>TableOfContentsCreator</code></a></li>
+  <li><a href="#landscapepagesextractor" id="toc-landscapepagesextractor" class="nav-link" data-scroll-target="#landscapepagesextractor">4. <code>LandscapePagesExtractor</code></a></li>
+  <li><a href="#structureextractor" id="toc-structureextractor" class="nav-link" data-scroll-target="#structureextractor">5. <code>StructureExtractor</code></a></li>
+  </ul></li>
+  <li><a href="#sec-parsing-structure" id="toc-sec-parsing-structure" class="nav-link" data-scroll-target="#sec-parsing-structure">Parsing Structure</a>
+  <ul class="collapse">
+  <li><a href="#sec-parsing-structures-extracted-metadata" id="toc-sec-parsing-structures-extracted-metadata" class="nav-link" data-scroll-target="#sec-parsing-structures-extracted-metadata">Parsing Structures from Extracted Metadata</a></li>
+  <li><a href="#sec-tree-index" id="toc-sec-tree-index" class="nav-link" data-scroll-target="#sec-tree-index">Tree Index</a></li>
+  </ul></li>
+  <li><a href="#sec-ingestion-pipeline" id="toc-sec-ingestion-pipeline" class="nav-link" data-scroll-target="#sec-ingestion-pipeline">Script and Ingestion Pipeline</a></li>
+  </ul></li>
+  <li><a href="#sec-pdf-rag" id="toc-sec-pdf-rag" class="nav-link" data-scroll-target="#sec-pdf-rag">PDF RAG: Multi-Document Query System</a>
+  <ul class="collapse">
+  <li><a href="#sec-pdf-rag-description" id="toc-sec-pdf-rag-description" class="nav-link" data-scroll-target="#sec-pdf-rag-description">Description</a></li>
+  <li><a href="#sec-pdf-rag-example" id="toc-sec-pdf-rag-example" class="nav-link" data-scroll-target="#sec-pdf-rag-example">Example Usage</a></li>
+  </ul></li>
+  <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion">Conclusion</a></li>
+  </ul>
+<div class="quarto-alternate-notebooks"><h2>Notebooks</h2><ul><li><a href="notebooks/_query_multi_pdfs_example-preview.html"><i class="bi bi-journal-code"></i>ReActAgent: Querying Multiple PDFs Example</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block page-columns page-full" id="quarto-document-content">
+
+
+
+
+
+<p>In this blog post, we focus on RAG (Retrieval-Augmented Generation) specifically for PDF documents. We will study how PDFs can be processed for use with Language Models (LLMs). The code relies on <a href="https://docs.llamaindex.ai/en/stable/">llama-index</a> package which is versatile but evolving rapidly and unstable.</p>
+<p>PDFs are ubiquitous in businesses and throughout the human world. What’s remarkable is the sheer diversity of PDF types we encounter. These range from reports of just a few pages to documents spanning hundreds of pages, generally including a table of contents. We also frequently deal with slide decks, or presentations, which are common in corporate settings. These can vary from just a few slides to dozens or even hundreds, often with their own unique tables of contents and organizational structures.</p>
+<p>It’s fascinating to consider how differently humans and computers process this information. Humans, when facing lengthy documents, generally tend to look at the table of contents and assess the document’s overall structure to identify areas of interest.</p>
+<p>However, machines, especially with page-by-page parsing, often lose the document’s overall structure. One way to address this is to use embeddings and chunking, attempting to find similarities through embeddings or semantic similarity to identify potentially relevant chunks of information.</p>
+<p>This highlights the core challenge of the method: the need to process data differently as a human than as a machine, particularly to gain a holistic view of the problem.</p>
+<p>In <a href="#sec-metadata-structure" class="quarto-xref">Section&nbsp;1</a>, we delve into PDF metadata and structure extraction. We explore the challenges and limitations of raw conversion and the necessity of reformatting to improve document structure. We also discuss the parsing of document structure to create a hierarchical index for efficient document retrieval. In <a href="#sec-pdf-rag" class="quarto-xref">Section&nbsp;2</a>, we implement a multi-document PDF RAG system based on LlamaIndex, focusing on query-based document retrieval and generation.</p>
+<p>Some important resources for this blog post include:</p>
+<ul>
+<li><a href="https://github.com/nbrosse/pdf-rag">pdf-rag GitHub Repo</a>: Contains the complete code for the PDF metadata extraction and RAG system described in this post</li>
+<li><a href="https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo">HF Space Demo for PDF Metadata</a>: Interactive demo showcasing the metadata and structure extraction capabilities</li>
+<li><a href="https://docs.llamaindex.ai/en/stable/">llama-index</a>: Framework used for building the LLM application (note: actively evolving package with frequent updates)</li>
+</ul>
+<p>All code paths referenced in this post are relative to the <a href="https://github.com/nbrosse/pdf-rag">pdf-rag GitHub Repo</a>.</p>
+<section id="sec-metadata-structure" class="level1">
+<h1>PDF Metadata and Structure Extraction</h1>
+<p>The process of extracting textual content from PDF documents involves several key steps. First, we convert PDF to markdown format as detailed in <a href="#sec-pdf-markdown" class="quarto-xref">Section&nbsp;1.1</a>. Then, we apply reformatting techniques to improve the document structure in <a href="#sec-pdf-reformatting" class="quarto-xref">Section&nbsp;1.2</a>. Metadata extraction in <a href="#sec-pdf-metadata" class="quarto-xref">Section&nbsp;1.3</a> focuses on capturing valuable information like author, date, and language. Finally, we parse the document structure to create a hierarchical index for efficient document retrieval in <a href="#sec-parsing-structure" class="quarto-xref">Section&nbsp;1.4</a>. The overall execution of these steps is managed by the ingestion pipeline detailed in <a href="#sec-ingestion-pipeline" class="quarto-xref">Section&nbsp;1.5</a>. This systematic approach aims to create a more coherent and structured representation of the document content, through raw conversion, reformatting, and structural parsing.</p>
+<section id="sec-pdf-markdown" class="level2">
+<h2 class="anchored" data-anchor-id="sec-pdf-markdown">PDF to Markdown Conversion</h2>
+<p>For PDF to Markdown conversion, we refer to the related blog post <a href="https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html">PDF parsing for LLM Input</a> which describes different methods to parse PDFs for LLM input.</p>
+<p>For RAG applications with PDFs, we’ll focus on using Vision Language Models (VLMs) for PDF-to-Markdown conversion. As discussed in the related blog post <a href="https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html">PDF parsing for LLM Input</a>, VLMs offer a straightforward and effective solution. While the approach is more expensive than basic text extraction, it provides valuable capabilities like image description integration. Similar to <a href="https://docs.cloud.llamaindex.ai/llamaparse/getting_started">LlamaParse</a> but with more flexibility, our implementation allows:</p>
+<ul>
+<li>Full control over model selection</li>
+<li>Choice of different API providers</li>
+<li>End-to-end process management</li>
+</ul>
+<p>The code implements a <code>VLMPDFReader</code> class (in <code>src/pdf_rag/readers.py</code>) that uses Vision Language Models (VLMs) to convert PDF documents to markdown format. Here’s how it works.</p>
+<p><strong>Key Features</strong></p>
+<ul>
+<li>Uses both Gemini and Mistral models for processing.</li>
+<li>Supports both single PDFs and batch processing.</li>
+<li>Includes a caching mechanism to avoid reprocessing.</li>
+<li>Handles API rate limiting and retries.</li>
+<li>Processes PDFs page by page with parallel execution.</li>
+</ul>
+<p><strong>Architecture</strong></p>
+<p>The conversion process follows these steps:</p>
+<ol type="1">
+<li><strong>Initialization</strong>
+<ul>
+<li>Sets up API clients for Gemini and Mistral.</li>
+<li>Validates API keys and cache directory.</li>
+<li>Loads conversion template.</li>
+</ul></li>
+<li><strong>PDF Processing</strong>
+<ul>
+<li>Loads PDF file using <code>PdfReader</code>.</li>
+<li>Processes each page individually.</li>
+<li>Converts PDF pages to images for VLM processing.</li>
+</ul></li>
+<li><strong>VLM Processing Pipeline</strong>
+<ul>
+<li>First attempts conversion with Gemini.</li>
+<li>Falls back to Mistral if Gemini returns “RECITATION”.</li>
+<li>Uses a template to guide the conversion.</li>
+</ul></li>
+<li><strong>Output Generation</strong>
+<ul>
+<li>Combines processed pages.</li>
+<li>Adds page markers for reference.</li>
+<li>Caches results to avoid reprocessing.</li>
+<li>Returns document with metadata.</li>
+</ul></li>
+</ol>
+<p><strong>Usage Example</strong></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>reader <span class="op">=</span> VLMPDFReader(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    cache_dir<span class="op">=</span><span class="st">"./cache"</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    api_key_gemini<span class="op">=</span><span class="st">"your_gemini_key"</span>,  <span class="co"># or use env var GEMINI_API_KEY</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    api_key_mistral<span class="op">=</span><span class="st">"your_mistral_key"</span>  <span class="co"># or use env var MISTRAL_API_KEY</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Single file</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>doc <span class="op">=</span> reader.load_data(<span class="st">"path/to/document.pdf"</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Multiple files</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> reader.load_data([<span class="st">"doc1.pdf"</span>, <span class="st">"doc2.pdf"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Why do we use Gemini and Mistral models ?</p>
+<p><strong>The “RECITATION” Error in Gemini API</strong></p>
+<p>The RECITATION error in the Gemini API occurs when the model detects that it is generating content that closely resembles its training data, particularly copyrighted material. This error is designed to prevent the model from reproducing protected content verbatim. The issue arises unpredictably and can halt content generation mid-stream, leading to incomplete responses.</p>
+<p>In this case of failure, we fall back to the Mistral model to parse the problematic pdf page.</p>
+<p>Overall, the RECITATION error is a significant challenge for developers using the Gemini API, highlighting the tension between content safety and usability</p>
+<p><code>VLMPDFReader</code> is designed to be robust and efficient, with built-in caching and parallel processing capabilities to handle large documents or multiple files efficiently.</p>
+<p>Here is the associated template prompt for the VLM.</p>
+<details>
+<summary>
+Click to view template
+</summary>
+<pre>You are a specialized document transcription assistant converting PDF documents to Markdown format.
+Your primary goal is to create an accurate, complete, and well-structured Markdown representation.
+
+&lt;instructions&gt;
+1. Language and Content:
+   - MAINTAIN the original document language throughout ALL content
+   - ALL elements (headings, tables, descriptions) must use source language
+   - Preserve language-specific formatting and punctuation
+   - Do NOT translate any content
+
+2. Text Content:
+   - Convert all text to proper Markdown syntax
+   - Use appropriate heading levels (# ## ###)
+   - Preserve emphasis (bold, italic, underline)
+   - Convert bullet points to Markdown lists (-, *, +)
+   - Maintain original document structure and hierarchy
+
+3. Visual Elements (CRITICAL):
+   a. Tables:
+      - MUST represent ALL data cells accurately in original language
+      - Use proper Markdown table syntax |---|
+      - Include header rows
+      - Add caption above table: [Table X: Description] in document language
+
+   b. Charts/Graphs:
+      - Create detailed tabular representation of ALL data points
+      - Include X/Y axis labels and units in original language
+      - List ALL data series names as written
+      - Add caption: [Graph X: Description] in document language
+
+   c. Images/Figures:
+      - Format as: ![Figure X: Detailed description](image_reference)
+      - Describe key visual elements in original language
+      - Include measurements/scales if present
+      - Note any text or labels within images
+
+4. Quality Requirements:
+   - NO content may be omitted
+   - Verify all numerical values are preserved
+   - Double-check table column/row counts match original
+   - Ensure all labels and legends are included
+   - Maintain document language consistently throughout
+
+5. Structure Check:
+   - Begin each section with clear heading
+   - Use consistent list formatting
+   - Add blank lines between elements
+   - Preserve original content order
+   - Verify language consistency across sections
+&lt;/instructions&gt;
+</pre>
+</details>
+<p>An example of raw conversion is shown in <a href="#fig-pdf-raw-conversion" class="quarto-xref">Figure&nbsp;1</a>.</p>
+<div id="fig-pdf-raw-conversion" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Raw conversion from PDF to Markdown using VLM">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pdf-raw-conversion-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/md_raw_conversion.png" class="img-fluid figure-img" alt="Raw conversion from PDF to Markdown using VLM">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pdf-raw-conversion-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Raw conversion from PDF to Markdown using VLM
+</figcaption>
+</figure>
+</div>
+<p>We also have a <code>PDFDirectoryReader</code> class (in <code>src/pdf_rag/readers.py</code>) to provide batch processing capabilities for PDF files within a directory structure. It acts as a wrapper around the <code>VLMPDFReader</code>, adding directory handling and metadata extraction features.</p>
+<p><strong>Key Features</strong></p>
+<ul>
+<li>Directory-based Processing: Handles both single PDF files and directories containing multiple PDFs</li>
+<li>Metadata Extraction: Automatically extracts and includes file metadata like:
+<ul>
+<li>Creation date</li>
+<li>Last modified date</li>
+<li>File size</li>
+<li>File type</li>
+<li>Relative path information</li>
+</ul></li>
+<li>Configuration Management:
+<ul>
+<li>Validates directory paths and creates cache directories</li>
+<li>Manages API keys for both Gemini and Mistral models</li>
+<li>Supports environment variable configuration</li>
+</ul></li>
+<li>Parallel Processing: Configurable number of workers for concurrent processing</li>
+</ul>
+<p><strong>Usage Example</strong></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>reader <span class="op">=</span> PDFDirectoryReader(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    root_dir<span class="op">=</span><span class="st">"./documents"</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    cache_dir<span class="op">=</span><span class="st">"./cache"</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    num_workers<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    show_progress<span class="op">=</span><span class="va">True</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Process single PDF file</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> reader.load_data(<span class="st">"documents/sample.pdf"</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Process directory of PDFs</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> reader.load_data(<span class="st">"documents/reports/"</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Async processing</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>docs <span class="op">=</span> <span class="cf">await</span> reader.aload_data(<span class="st">"documents/reports/"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><strong>Difficulties and Drawbacks of Raw VLM Conversion</strong></p>
+<p>The raw conversion process has several limitations and drawbacks that can affect the quality and accuracy of the output. One of the main difficulties in PDF parsing is that it is generally done page by page, causing the loss of the overall document structure. We lose the appropriate headings that help retrieve the general structure of the document, and we end up with a very local and focused view. For example, when converting PDF to markdown, the heading structure specified by the markdown is generally incorrect - the headers and their levels don’t correspond to what is expected.</p>
+</section>
+<section id="sec-pdf-reformatting" class="level2">
+<h2 class="anchored" data-anchor-id="sec-pdf-reformatting">PDF Reformatting</h2>
+<p>The loss of document structure during raw conversion necessitates reformatting to improve the overall document organization and coherence. Reformatting involves restructuring the content to ensure proper hierarchy, headings, and formatting. This step is crucial for enhancing readability and navigation within the document. In practice, we use a Large Language Model (LLM) to reprocess the document chunk by chunk, given that some documents can be very long. The aim is to provide a more comprehensive overview. We’re using Gemini, which has a very large context, which makes this approach quite helpful. We are observing an improvement in the markdown formatting, particularly with better title identification. It’s not always perfect, but there’s a more effective segmentation based on titles and markdown, resulting in better adherence to the overall document structure compared to what we had before. This makes it easier to have a structure a bit more coherent when you cut through markdowns, especially in reports.</p>
+<p>The <code>ReformatMarkdownComponent</code> class (in <code>src/pdf_rag/transforms.py</code>) reformats markdown content using the Gemini API. Here’s a detailed breakdown of its functionalities:</p>
+<ol type="1">
+<li>Configuration Options
+<ul>
+<li><code>max_iters</code>: Maximum iterations for reformatting (default: 50)</li>
+<li><code>in_place</code>: Whether to modify nodes directly or create copies (default: True)</li>
+<li><code>num_workers</code>: Number of concurrent workers (default: 4)</li>
+<li><code>show_progress</code>: Display progress during processing (default: True)</li>
+</ul></li>
+<li>Caching Mechanism
+<ul>
+<li>Stores reformatted content in <code>.reformatted.md</code> files</li>
+<li>Avoids reprocessing previously reformatted content</li>
+<li>Uses file path and cache directory from node metadata</li>
+</ul></li>
+<li>Processing Pipeline
+<ul>
+<li>Handles individual nodes asynchronously</li>
+<li>Uses Jinja2 templates for content reformatting</li>
+<li>Supports both landscape and portrait formats</li>
+<li>Accumulates reformatted content iteratively</li>
+</ul></li>
+</ol>
+<p><strong>Usage Example</strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>component <span class="op">=</span> ReformatMarkdownComponent(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    api_key<span class="op">=</span><span class="st">"your_gemini_key"</span>,  <span class="co"># or use env var GEMINI_API_KEY</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    num_workers<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    show_progress<span class="op">=</span><span class="va">True</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Process nodes</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>processed_nodes <span class="op">=</span> component(nodes)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Async processing</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>processed_nodes <span class="op">=</span> <span class="cf">await</span> component.acall(nodes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The component is designed to improve document structure through:</p>
+<ul>
+<li>Heading Hierarchies: Ensures proper nesting and levels (H1 -&gt; H2 -&gt; H3)</li>
+<li>Consistent Formatting: Standardizes markdown syntax, lists, and spacing</li>
+<li>Content Preservation: Maintains original language, technical details, and metadata</li>
+<li>Format Handling: Supports both portrait (reports) and landscape (presentations) layouts</li>
+<li>Quality Checks: Validates completeness and structure accuracy</li>
+</ul>
+<p>Here is the associated template prompt for Gemini.</p>
+<details>
+<summary>
+Click to view template prompt for Gemini
+</summary>
+<pre>&lt;document&gt;
+{{ document }}
+&lt;/document&gt;
+
+{% if processed %}
+&lt;processed&gt;
+{{ processed }}
+&lt;/processed&gt;
+{% endif %}
+
+You are a professional technical documentation editor specializing in markdown documents.
+Your task is to transform the document into a well-structured markdown document with clear hierarchy and organization.
+
+&lt;instructions&gt;
+1. Content Preservation (CRITICAL):
+    - PRESERVE ALL original content without exception
+    - Do not summarize or condense any information
+    - Maintain all technical details, examples, and code snippets
+    - Keep all original links, references, and citations
+    - Preserve all numerical data and specifications
+    {% if landscape %}
+    - Preserve `---end page ...` markers
+    {% endif %}
+
+2. Document Structure:
+    - Ensure exactly one H1 (#) title at the start
+    - Use maximum 3 levels of headers (H1 -&gt; H2 -&gt; H3)
+    - Avoid excessive nesting - prefer flatter structure
+    - Group related sections under appropriate headers
+    - If an existing TOC is present, maintain and update it
+    - Only create new TOC if none exists
+
+3. Formatting Standards:
+    - Use consistent bullet points/numbering
+    - Format code blocks with appropriate language tags
+    - Properly format links and references
+    - Use tables where data is tabular
+    - Include blank lines between sections
+
+4. Quality Checks:
+    - Compare final document with original for completeness
+    - Verify all technical information is preserved
+    - Ensure all examples remain intact
+    - Maintain all nuances and specific details
+
+5. Metadata &amp; Front Matter:
+    - Include creation/update dates if present
+    - Preserve author information
+    - Maintain any existing tags/categories
+&lt;/instructions&gt;
+
+{% if processed %}
+Please continue reformatting from where it was left off, maintaining consistency with the processed portion.
+Ensure NO content is omitted - preserve everything from the original document.
+All sections should seamlessly integrate with the existing structure.
+End your response with &lt;end&gt;.
+{% else %}
+Provide the complete reformatted document following the above guidelines.
+WARNING: Do not omit ANY content - preserve everything from the original document.
+Ensure all sections are properly nested and formatted.
+End your response with &lt;end&gt;.
+{% endif %}
+</pre>
+</details>
+<p>PDFs can be either portrait-formatted reports or landscape-formatted slides. In both cases, the PDF is processed page by page, resulting in the loss of the overall document structure. However, the processing approach needs to differ depending on whether we’re dealing with slides or reports.</p>
+<p>For slides (landscape format):</p>
+<ul>
+<li>Have a clear page-by-page structure</li>
+<li>Each slide is a discrete unit</li>
+<li>Page markers are essential for maintaining structure</li>
+</ul>
+<p>For reports (portrait format):</p>
+<ul>
+<li>Do not rely on page breaks</li>
+<li>Have a clear heading hierarchy</li>
+<li>Structure comes from nested headers</li>
+</ul>
+<p>Note that the template prompt has a conditional part based on format:</p>
+<pre><code>{% if landscape %}
+- Preserve `---end page ...` markers
+{% endif %}</code></pre>
+<p>An example of Markdown reformatting is shown in <a href="#fig-markdown-reformatted" class="quarto-xref">Figure&nbsp;2</a>.</p>
+<div id="fig-markdown-reformatted" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Markdown reformatting using LLM">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-markdown-reformatted-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/md_raw_reformatted_conversion.png" class="img-fluid figure-img" alt="Markdown reformatting using LLM">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-markdown-reformatted-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Markdown reformatting using LLM
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="sec-pdf-metadata" class="level2">
+<h2 class="anchored" data-anchor-id="sec-pdf-metadata">PDF Metadata Extraction</h2>
+<p>Once we’ve converted and reformatted the PDF content into markdown format using Vision Language Models (VLMs), the next step is extracting valuable metadata from the documents. This section explores a series of specialized extractors built on the LlamaIndex framework, each designed to capture specific aspects of PDF documents:</p>
+<ul>
+<li>Document context (author, date, language)</li>
+<li>Table of contents (both extraction and creation)</li>
+<li>Page structure (especially for presentations)</li>
+<li>Document hierarchy and relationships</li>
+</ul>
+<p>These extractors work together to create a comprehensive metadata layer that enhances document searchability and understanding.</p>
+<p>All the extractors are defined in the file <code>src/pdf_rag/extractors.py</code>. Note that as experienced with reformatting markdown in <a href="#sec-pdf-reformatting" class="quarto-xref">Section&nbsp;1.2</a>, landscape-based vs portrait-based PDFs require different processing approaches. The extractors are designed to handle these differences effectively.</p>
+<p>The <code>GeminiBaseExtractor</code> serves as the foundation for all extractors, providing:</p>
+<ul>
+<li>Gemini API integration with configurable temperature and model selection</li>
+<li>API key validation and management</li>
+<li>Abstract interface for extraction operations</li>
+<li>Parallel processing capabilities</li>
+</ul>
+<section id="contextextractor" class="level3">
+<h3 class="anchored" data-anchor-id="contextextractor">1. <code>ContextExtractor</code></h3>
+<p>Extracts contextual information from documents:</p>
+<ul>
+<li>Processes document content using a specialized template</li>
+<li>Returns structured JSON with document context</li>
+<li>Handles parallel processing of multiple nodes</li>
+</ul>
+<details>
+<summary>
+Click to view template prompt for Gemini
+</summary>
+<pre>&lt;document&gt;
+{{ document }}
+&lt;/document&gt;
+
+Please analyze the above document and provide output in the following JSON format:
+
+{
+    "author": "detected_author",
+    "publication_date": "YYYY-MM-DD",
+    "language": "detected_language in ISO 639-1 language code format",
+    "document_type": "type_if_identifiable"
+    "themes": [
+        {
+            "name": "Theme name",
+            "description": "Brief explanation"
+        }
+    ],
+    "entities": [
+            {
+                "name": "Entity name",
+                "role": "Role/significance"
+            }
+    ],
+    "time_periods": [
+        {
+            "start_date": "YYYY-MM-DD",
+            "end_date": "YYYY-MM-DD",
+            "period_description": "Description of events/developments in this timeframe",
+            "is_approximate": boolean,
+        }
+    ],
+    "keywords": [
+        "keyword1",
+        "keyword2"
+    ],
+    "summary": "Concise summary text focusing on main points"
+}
+
+Note: Keep descriptions concise and factual.
+If an item is missing, answer with "".
+Answer in the language of the document.
+</pre>
+</details>
+</section>
+<section id="tableofcontentsextractor" class="level3">
+<h3 class="anchored" data-anchor-id="tableofcontentsextractor">2. <code>TableOfContentsExtractor</code></h3>
+<p>Extracts existing tables of contents from documents:</p>
+<ul>
+<li>Focuses on the first 10 pages by default</li>
+<li>Supports both portrait and landscape formats</li>
+<li>Returns an empty string if no TOC is found</li>
+<li>Uses a templated approach for extraction</li>
+</ul>
+<details>
+<summary>
+Click to view template prompt for Gemini
+</summary>
+<pre>&lt;doc&gt;
+{{ doc }}
+&lt;/doc&gt;
+
+{% if format == 'landscape' %}
+Extract the table of contents (TOC) from the document if present and specify the page number where the table of contents is located.
+The table of contents, if it exists, is located on a single page.
+Note that each page in the document ends with a marker '--- end page n' where n is the page number.
+
+Output format:
+- If a table of contents exists:
+  First line: "Table of contents found on page X"
+  Following lines: Complete TOC with its original structure and hierarchy
+- If no table of contents exists: Respond with exactly "&lt;none&gt;"
+{% else %}
+Extract the table of contents (TOC) from the document if it exists.
+IMPORTANT: the table of contents must be contained in consecutive lines in the source document itself.
+
+Output format:
+- If a table of contents exists: complete TOC with its original structure and hierarchy
+- If no table of contents exists: Respond with exactly "&lt;none&gt;"
+{% endif %}
+</pre>
+</details>
+</section>
+<section id="tableofcontentscreator" class="level3">
+<h3 class="anchored" data-anchor-id="tableofcontentscreator">3. <code>TableOfContentsCreator</code></h3>
+<p>Creates new tables of contents:</p>
+<ul>
+<li><strong>Portrait Mode</strong>:
+<ul>
+<li>Analyzes markdown headers</li>
+<li>Includes line numbers for reference</li>
+<li>Requires reformatted content</li>
+</ul></li>
+<li><strong>Landscape Mode</strong>:
+<ul>
+<li>Generates TOC using Gemini</li>
+<li>Includes a validation step</li>
+<li>Two-phase process: draft and check</li>
+</ul></li>
+</ul>
+<details>
+<summary>
+Click to view draft template prompt for Gemini
+</summary>
+<pre>&lt;doc&gt;
+{{ doc }}
+&lt;/doc&gt;
+
+Generate a hierarchical table of contents for the slides deck above by:
+
+1. IDENTIFY SECTION BREAKS
+- Section breaks are marked by "--- end page {n}" where n is the page number
+
+2. EXTRACT SECTION INFO
+- Get the title text from each section break page
+- Record the corresponding page number
+- Validate that page numbers are unique and ascending
+
+3. FORMAT OUTPUT
+Format each entry as:
+# {Section Title} (Page {n})
+
+Example output:
+# Introduction (Page 1)
+# Key Concepts (Page 5)
+# Implementation (Page 12)
+
+Requirements:
+- Page numbers must be unique and sequential
+- Ignore any formatting in the section titles
+
+The TOC should help readers quickly navigate the main sections of the deck.
+</pre>
+</details>
+<details>
+<summary>
+Click to view check template prompt for Gemini
+</summary>
+<pre>&lt;toc&gt;
+{{ toc }}
+&lt;/toc&gt;
+
+Generate a standardized table of contents following these rules:
+
+1. FORMAT REQUIREMENTS
+- Each entry: "# {Title} (Page {n})"
+- Page numbers must be integers in parentheses
+- One entry per line, no blank lines
+- Preserve original markdown formatting in titles
+- Page numbers ascending order
+
+2. VALIDATION
+- Reject duplicate page numbers
+- Reject duplicate titles
+- Page numbers must exist and be &gt; 0
+- Title cannot be empty
+
+Example valid output:
+# Executive Summary (Page 1)
+# Market Analysis (Page 3)
+# Financial Projections (Page 7)
+</pre>
+</details>
+</section>
+<section id="landscapepagesextractor" class="level3">
+<h3 class="anchored" data-anchor-id="landscapepagesextractor">4. <code>LandscapePagesExtractor</code></h3>
+<p>Specialized for landscape (presentation) documents:</p>
+<ul>
+<li>Requires an existing TOC (extracted or created)</li>
+<li>Processes document content page by page</li>
+<li>Uses template-based extraction</li>
+<li>Returns structured page information</li>
+</ul>
+<details>
+<summary>
+Click to view template prompt for Gemini
+</summary>
+<pre>&lt;doc&gt;
+{{ doc }}
+&lt;/doc&gt;
+
+&lt;toc&gt;
+{{ toc }}
+&lt;/toc&gt;
+
+Extract and list all pages from the slides deck in &lt;doc&gt;, using the table of contents in &lt;toc&gt; as reference.
+
+Rules:
+1. Format each line exactly as: Page N : [title]
+2. List pages in ascending numerical order (1, 2, 3...)
+3. When a page has no title, use the title from its preceding page
+4. Include all pages, even those without content
+
+Example:
+Page 1 : Introduction
+Page 2 : Market Analysis
+Page 3 : Market Analysis
+Page 4 : Key Findings
+</pre>
+</details>
+</section>
+<section id="structureextractor" class="level3">
+<h3 class="anchored" data-anchor-id="structureextractor">5. <code>StructureExtractor</code></h3>
+<p>Handles document structure analysis:</p>
+<ul>
+<li><strong>Portrait Mode</strong>:
+<ul>
+<li>Uses the created TOC for structure</li>
+<li>Simple structure representation</li>
+</ul></li>
+<li><strong>Landscape Mode</strong>:
+<ul>
+<li>Combines TOC and page information</li>
+<li>Creates a comprehensive structure</li>
+<li>Requires both TOC and page metadata</li>
+</ul></li>
+</ul>
+<details>
+<summary>
+Click to view template prompt for Gemini
+</summary>
+<pre>&lt;toc&gt;
+{{ toc }}
+&lt;/toc&gt;
+
+&lt;pages&gt;
+{{ pages }}
+&lt;/pages&gt;
+
+Analyze the table of contents (TOC) in &lt;toc&gt; and the pages of the slides deck provided in &lt;pages&gt;.
+Group the pages under their corresponding TOC sections using this format:
+
+# [TOC Section]
+- Page X : [Full Page Title]
+- Page Y : [Full Page Title]
+
+Rules:
+- Each TOC section should have an appropriate level heading with #, ##, or ###.
+- List all pages that belong under each section
+- Maintain original page numbers and full titles
+- Include pages even if their titles are slightly different from TOC entries
+- Group subsections under their main section
+- List pages in numerical order within each section
+- Don't omit any pages
+- If a page doesn't clearly fit under a TOC section, place it under "Other Pages"
+
+Example:
+# Introduction
+- Page 1 : Welcome Slide
+- Page 2 : Project Overview
+
+# Key Findings
+- Page 3 : Financial Results
+- Page 4 : Market Analysis
+</pre>
+</details>
+<p><strong>Usage Example</strong></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize extractor</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>extractor <span class="op">=</span> TableOfContentsExtractor(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    api_key<span class="op">=</span><span class="st">"your_gemini_key"</span>,  <span class="co"># or use env var GEMINI_API_KEY</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    head_pages<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    temperature<span class="op">=</span><span class="fl">0.1</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Process nodes</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> <span class="cf">await</span> extractor.aextract(nodes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Each extractor is designed to work asynchronously and handle batch processing efficiently, with built-in error handling and progress reporting.</p>
+<p>To visualize the metadata and structure of processed documents, you can:</p>
+<ol type="1">
+<li><p>Run the ingestion pipeline using the script in <code>src/scripts/metadata_structure.py</code> (detailed in <a href="#sec-ingestion-pipeline" class="quarto-xref">Section&nbsp;1.5</a>)</p></li>
+<li><p>View the results in the Python Shiny app at <code>src/app/app-metadata.py</code></p></li>
+</ol>
+<p>A live demo is available on the <a href="https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo">HF Space Demo for PDF Metadata</a>. The visualization interface is shown in <a href="#fig-hf-demo-metadata" class="quarto-xref">Figure&nbsp;3</a>.</p>
+<div id="fig-hf-demo-metadata" class="quarto-float quarto-figure quarto-figure-center anchored" alt="HF space demo for metadata and structure extraction from PDF">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-hf-demo-metadata-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/hf-demo-metadata.png" class="img-fluid figure-img" alt="HF space demo for metadata and structure extraction from PDF">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-hf-demo-metadata-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: HF space demo for metadata and structure extraction from PDF
+</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="sec-parsing-structure" class="level2">
+<h2 class="anchored" data-anchor-id="sec-parsing-structure">Parsing Structure</h2>
+<p>In this section, we focus on parsing the structure of extracted metadata to create a hierarchical index for efficient document retrieval. We distinguish between portrait (report) and landscape (presentation) structures and describe the benefits of each.</p>
+<section id="sec-parsing-structures-extracted-metadata" class="level3">
+<h3 class="anchored" data-anchor-id="sec-parsing-structures-extracted-metadata">Parsing Structures from Extracted Metadata</h3>
+<p>At the end of the extraction, we have two types of parsed structure. The portrait (report) structure and the landscape (presentation) structure. We will describe the differences between the two and their benefits.</p>
+<p><strong>Portrait (Report) Structure</strong></p>
+<ul>
+<li>Hierarchical Headers: Uses markdown heading levels (#, ##, ###, ####) to represent document hierarchy</li>
+<li>Line Numbers: Each heading includes line numbers <code>[line X]</code> for precise content location</li>
+<li>Linear Flow: Follows a traditional document structure with nested sections</li>
+<li>Content Focus: Emphasizes content hierarchy and relationships</li>
+<li>Example Use Case: Technical reports, research papers, documentation</li>
+</ul>
+<div id="lst-portrait-structure-ex" class="markdown listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-portrait-structure-ex-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;1: Portrait structure example
+</figcaption>
+<div aria-describedby="lst-portrait-structure-ex-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-portrait-structure-ex"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="lst-portrait-structure-ex-1"><a href="#lst-portrait-structure-ex-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Deloitte. [line 0]</span></span>
+<span id="lst-portrait-structure-ex-2"><a href="#lst-portrait-structure-ex-2" aria-hidden="true" tabindex="-1"></a><span class="fu">## Pushing through undercurrents [line 2]</span></span>
+<span id="lst-portrait-structure-ex-3"><a href="#lst-portrait-structure-ex-3" aria-hidden="true" tabindex="-1"></a><span class="fu">### Technology's impact on systemic risk: A look at banking [line 3]</span></span>
+<span id="lst-portrait-structure-ex-4"><a href="#lst-portrait-structure-ex-4" aria-hidden="true" tabindex="-1"></a><span class="fu">### Risk 1: Risk exposure from Banking as a Service offerings [line 15]</span></span>
+<span id="lst-portrait-structure-ex-5"><a href="#lst-portrait-structure-ex-5" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Table 1: Risk exposure from Banking as a Service offerings [line 29]</span></span>
+<span id="lst-portrait-structure-ex-6"><a href="#lst-portrait-structure-ex-6" aria-hidden="true" tabindex="-1"></a><span class="fu">### Risk 2: Inadequate stability mechanisms for stablecoin arrangements [line 38]</span></span>
+<span id="lst-portrait-structure-ex-7"><a href="#lst-portrait-structure-ex-7" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Table 1: Information about forces that could amplify the risk and how the industry mitigate it? [line 52]</span></span>
+<span id="lst-portrait-structure-ex-8"><a href="#lst-portrait-structure-ex-8" aria-hidden="true" tabindex="-1"></a><span class="fu">### Contacts [line 63]</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p><strong>Landscape (Presentation) Structure</strong></p>
+<ul>
+<li>Page-Based Organization: Groups content by pages under main sections</li>
+<li>Explicit Page Numbers: Each entry shows “Page X : Title” format</li>
+<li>Flat Section Hierarchy: Uses mainly top-level headings (#) for major sections</li>
+<li>Sequential Listing: Lists pages sequentially within each section</li>
+<li>Example Use Case: Slide decks, presentations, visual-heavy documents</li>
+</ul>
+<div id="lst-landscape-structure-ex" class="markdown listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-landscape-structure-ex-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;2: Landscape structure example
+</figcaption>
+<div aria-describedby="lst-landscape-structure-ex-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="sourceCode" id="lst-landscape-structure-ex"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="lst-landscape-structure-ex-1"><a href="#lst-landscape-structure-ex-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Everest Group® Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023</span></span>
+<span id="lst-landscape-structure-ex-2"><a href="#lst-landscape-structure-ex-2" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 1 : Everest Group® Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023</span>
+<span id="lst-landscape-structure-ex-3"><a href="#lst-landscape-structure-ex-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-landscape-structure-ex-4"><a href="#lst-landscape-structure-ex-4" aria-hidden="true" tabindex="-1"></a><span class="fu"># Introduction</span></span>
+<span id="lst-landscape-structure-ex-5"><a href="#lst-landscape-structure-ex-5" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 2 : Introduction</span>
+<span id="lst-landscape-structure-ex-6"><a href="#lst-landscape-structure-ex-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-landscape-structure-ex-7"><a href="#lst-landscape-structure-ex-7" aria-hidden="true" tabindex="-1"></a><span class="fu"># Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023</span></span>
+<span id="lst-landscape-structure-ex-8"><a href="#lst-landscape-structure-ex-8" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 3 : Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023</span>
+<span id="lst-landscape-structure-ex-9"><a href="#lst-landscape-structure-ex-9" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 4 : Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023</span>
+<span id="lst-landscape-structure-ex-10"><a href="#lst-landscape-structure-ex-10" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 12 : Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023</span>
+<span id="lst-landscape-structure-ex-11"><a href="#lst-landscape-structure-ex-11" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 13 : Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023</span>
+<span id="lst-landscape-structure-ex-12"><a href="#lst-landscape-structure-ex-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-landscape-structure-ex-13"><a href="#lst-landscape-structure-ex-13" aria-hidden="true" tabindex="-1"></a><span class="fu"># Deloitte profile</span></span>
+<span id="lst-landscape-structure-ex-14"><a href="#lst-landscape-structure-ex-14" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 5 : Deloitte profile (page 1 of 6)</span>
+<span id="lst-landscape-structure-ex-15"><a href="#lst-landscape-structure-ex-15" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 6 : Deloitte profile (page 2 of 6)</span>
+<span id="lst-landscape-structure-ex-16"><a href="#lst-landscape-structure-ex-16" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 7 : Deloitte profile (page 3 of 6)</span>
+<span id="lst-landscape-structure-ex-17"><a href="#lst-landscape-structure-ex-17" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 8 : Deloitte profile (page 4 of 6)</span>
+<span id="lst-landscape-structure-ex-18"><a href="#lst-landscape-structure-ex-18" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 9 : Deloitte profile (page 5 of 6)</span>
+<span id="lst-landscape-structure-ex-19"><a href="#lst-landscape-structure-ex-19" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 10 : Deloitte profile (page 6 of 6)</span>
+<span id="lst-landscape-structure-ex-20"><a href="#lst-landscape-structure-ex-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-landscape-structure-ex-21"><a href="#lst-landscape-structure-ex-21" aria-hidden="true" tabindex="-1"></a><span class="fu"># Appendix</span></span>
+<span id="lst-landscape-structure-ex-22"><a href="#lst-landscape-structure-ex-22" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 11 : Appendix</span>
+<span id="lst-landscape-structure-ex-23"><a href="#lst-landscape-structure-ex-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-landscape-structure-ex-24"><a href="#lst-landscape-structure-ex-24" aria-hidden="true" tabindex="-1"></a><span class="fu"># FAQs</span></span>
+<span id="lst-landscape-structure-ex-25"><a href="#lst-landscape-structure-ex-25" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 14 : FAQs</span>
+<span id="lst-landscape-structure-ex-26"><a href="#lst-landscape-structure-ex-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="lst-landscape-structure-ex-27"><a href="#lst-landscape-structure-ex-27" aria-hidden="true" tabindex="-1"></a><span class="fu"># Everest Group®</span></span>
+<span id="lst-landscape-structure-ex-28"><a href="#lst-landscape-structure-ex-28" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Page 15 : Everest Group®</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</figure>
+</div>
+<p><strong>Benefits</strong></p>
+<ol type="1">
+<li>Document Navigation
+<ul>
+<li>Portrait: Quick access to specific content sections via line numbers</li>
+<li>Landscape: Easy location of specific slides via page numbers</li>
+</ul></li>
+<li>Content Retrieval
+<ul>
+<li>Portrait: Granular access to nested content hierarchies</li>
+<li>Landscape: Efficient slide/page-based content lookup</li>
+</ul></li>
+<li>Structure Preservation
+<ul>
+<li>Portrait: Maintains detailed document hierarchy and relationships</li>
+<li>Landscape: Preserves presentation flow and slide organization</li>
+</ul></li>
+</ol>
+<p>We then use distinct parsers to process these structures into formal tree representations. Here’s a detailed description of both parsing functions. The function <code>parse_portrait_structure</code> (in <code>src/pdf_rag/structure_parsers.py</code>) parses the structure of portrait-formatted documents (like reports) and creates a tree representation.</p>
+<ul>
+<li>Takes a <code>BaseNode</code> document as input</li>
+<li>Creates a hierarchical tree structure based on document headers</li>
+<li>Headers must follow format: <code>#{level} {title} [line {number}]</code></li>
+<li>Validates line numbers are in ascending order</li>
+<li>Returns a <code>TreeNode</code> representing the document structure</li>
+</ul>
+<p>The function <code>parse_landscape_structure</code> (in <code>src/pdf_rag/structure_parsers.py</code>) parses the structure of landscape-formatted documents (like presentations) and creates a tree representation.</p>
+<ul>
+<li>Takes a <code>BaseNode</code> document as input</li>
+<li>Handles both section headers and page entries</li>
+<li>Creates a hierarchical structure with page numbers</li>
+<li>Tracks missing or duplicate pages</li>
+<li>Creates an “Uncategorized” section for orphaned pages</li>
+</ul>
+<p>Both functions return a <code>TreeNode</code> object that can be traversed using breadth-first search (bfs) and supports standard tree operations like adding/removing children and setting parents.</p>
+<p>Here are the parsed structures for both document formats, shown in <a href="#lst-landscape-structure-parsed" class="quarto-xref">Listing&nbsp;3</a> and <a href="#lst-portrait-structure-parsed" class="quarto-xref">Listing&nbsp;4</a>, which correspond to the raw structures in <a href="#lst-landscape-structure-ex" class="quarto-xref">Listing&nbsp;2</a> and <a href="#lst-portrait-structure-ex" class="quarto-xref">Listing&nbsp;1</a> respectively. These visualizations are also available in the <a href="https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo">HF Space Demo for PDF Metadata</a>.</p>
+<p>Indentation shows parent/child relationships For landscape-oriented content, Numbers in [] represent:</p>
+<ul>
+<li>Positive numbers: page numbers</li>
+<li>Negative numbers: abstract nodes grouping related sections</li>
+</ul>
+<div id="lst-landscape-structure-parsed" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-landscape-structure-parsed-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;3: Landscape structure parsed
+</figcaption>
+<div aria-describedby="lst-landscape-structure-parsed-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<pre id="lst-landscape-structure-parsed"><code>life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023 [-1]
+  Everest Group® Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023 [-2]
+    Everest Group® Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023 [1]
+  Introduction [-3]
+    Introduction [2]
+  Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023 [-4]
+    Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023 [3]
+    Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023 [4]
+    Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023 [12]
+    Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023 [13]
+  Deloitte profile [-5]
+    Deloitte profile (page 1 of 6) [5]
+    Deloitte profile (page 2 of 6) [6]
+    Deloitte profile (page 3 of 6) [7]
+    Deloitte profile (page 4 of 6) [8]
+    Deloitte profile (page 5 of 6) [9]
+    Deloitte profile (page 6 of 6) [10]
+  Appendix [-6]
+    Appendix [11]
+  FAQs [-7]
+    FAQs [14]
+  Everest Group® [-8]
+    Everest Group® [15]</code></pre>
+</div>
+</figure>
+</div>
+<p>For portrait-oriented content, Numbers in [] represent:</p>
+<ul>
+<li>Positive numbers: line numbers</li>
+<li>Negative numbers: abstract nodes grouping related sections</li>
+</ul>
+<div id="lst-portrait-structure-parsed" class="listing quarto-float quarto-figure quarto-figure-left anchored">
+<figure class="quarto-float quarto-float-lst figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-portrait-structure-parsed-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Listing&nbsp;4: Portrait structure parsed
+</figcaption>
+<div aria-describedby="lst-portrait-structure-parsed-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<pre id="lst-portrait-structure-parsed"><code>deloitte-tech-risk-sector-banking [-1]
+  Deloitte. [0]
+    Pushing through undercurrents [2]
+      Technology's impact on systemic risk: A look at banking [3]
+      Risk 1: Risk exposure from Banking as a Service offerings [15]
+        Table 1: Risk exposure from Banking as a Service offerings [29]
+      Risk 2: Inadequate stability mechanisms for stablecoin arrangements [38]
+        Table 1: Information about forces that could amplify the risk and how the industry mitigate it? [52]
+      Contacts [63]</code></pre>
+</div>
+</figure>
+</div>
+</section>
+<section id="sec-tree-index" class="level3">
+<h3 class="anchored" data-anchor-id="sec-tree-index">Tree Index</h3>
+<p>Given these parsed structures, we now have access to a structured representation of the document content, divided by line numbers (portrait) or page numbers (landscape). The next step is to create a hierarchical index of the processed documents to support efficient traversal and querying. We need several components to build this index. First, we need two types of node parsing</p>
+<ul>
+<li><code>MarkdownLineNodeParser</code>: For portrait-oriented content,</li>
+<li><code>MarkdownPageNodeParser</code>: For landscape-oriented content</li>
+</ul>
+<p>Here’s a description of the two Markdown node parser classes.</p>
+<p><strong>MarkdownLineNodeParser</strong></p>
+<ul>
+<li>Parses portrait-oriented documents (like reports) by splitting on headers</li>
+<li>Tracks header hierarchy and line numbers</li>
+<li>Preserves code blocks by avoiding header parsing within them</li>
+<li>Builds text nodes with header path and line number metadata</li>
+<li>Used for documents where structure comes from markdown headers</li>
+</ul>
+<p><strong>MarkdownPageNodeParser</strong></p>
+<ul>
+<li>Parses landscape-oriented documents (like presentations) by splitting on page markers</li>
+<li>Splits on <code>--- end page N</code> markers</li>
+<li>Optionally chunks content using a sentence splitter</li>
+<li>Builds text nodes with page number metadata</li>
+<li>Used for documents with clear page-based structure like slide decks</li>
+</ul>
+<p>The key difference is that <code>MarkdownLineNodeParser</code> focuses on header-based structure while <code>MarkdownPageNodeParser</code> focuses on page-based structure, matching the different needs of reports versus presentations.</p>
+<p>Using these parsers, we obtain document nodes that can be integrated into a hierarchical index. The <code>TreeIndex</code> class, located in <code>src/pdf_rag/tree_index.py</code>, extends <code>BaseIndex</code> to offer a hierarchical tree-based indexing structure for document nodes. It is specifically designed to manage both portrait (reports) and landscape (presentations) formatted documents. The <code>TreeIndex</code> class leverages the LlamaIndex framework, which provides a flexible and extensible indexing system for document nodes. Please note that this class is a work in progress; we have provided an initial draft of <code>TreeIndex</code>, but it is not yet fully implemented and should not be used in its current state.</p>
+<p>The key features of the <code>TreeIndex</code> class (in <code>src/pdf_rag/tree_index.py</code>) include:</p>
+<ol type="1">
+<li>Data Structure</li>
+</ol>
+<ul>
+<li>Uses <code>IndexStructTree</code> to maintain hierarchical relationships</li>
+<li>Stores nodes in a tree structure with parent-child relationships</li>
+<li>Supports both root-level and nested nodes</li>
+<li>Maintains bidirectional references (parent-to-children and child-to-parent)</li>
+</ul>
+<ol start="2" type="1">
+<li>Node Management</li>
+</ol>
+<ul>
+<li>Node insertion with automatic relationship building</li>
+<li>Node deletion with relationship cleanup</li>
+<li>Reference document tracking</li>
+<li>Support for abstract nodes (section headers) and content nodes (pages)</li>
+</ul>
+<ol start="3" type="1">
+<li>Neo4j Integration</li>
+</ol>
+<ul>
+<li>Export functionality to Neo4j graph database</li>
+<li>Creates nodes and relationships in Neo4j</li>
+<li>Maintains document structure and metadata</li>
+<li>Supports constraints and cleanup operations</li>
+</ul>
+<p><strong>Usage Example</strong></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create index with nodes</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>index <span class="op">=</span> TreeIndex(</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    nodes<span class="op">=</span>document_nodes,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    show_progress<span class="op">=</span><span class="va">True</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Export to Neo4j</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>config <span class="op">=</span> Neo4jConfig(</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    uri<span class="op">=</span><span class="st">"neo4j://localhost:7687"</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    username<span class="op">=</span><span class="st">"neo4j"</span>,</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    password<span class="op">=</span><span class="st">"password"</span>,</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    database<span class="op">=</span><span class="st">"neo4j"</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>index.export_to_neo4j(config<span class="op">=</span>config)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>For now, we provide a basic implementation of the <code>TreeIndex</code> class to demonstrate the concept of hierarchical indexing. A visual representation of the index is shown in <a href="#fig-neo4j-visualisation" class="quarto-xref">Figure&nbsp;4</a>.</p>
+<div id="fig-neo4j-visualisation" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Neo4j visualisation of TreeIndex">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-neo4j-visualisation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/neo4j.png" class="img-fluid figure-img" alt="Neo4j visualisation of TreeIndex">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-neo4j-visualisation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Neo4j visualisation of TreeIndex
+</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="sec-ingestion-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="sec-ingestion-pipeline">Script and Ingestion Pipeline</h2>
+<p>The script <code>src/scripts/metadata_structure.py</code> executes all the extractors in sequence through an ingestion pipeline. This process enriches documents with comprehensive metadata including author information, document context, table of contents, and structural relationships. The resulting metadata provides a rich foundation for document analysis and retrieval. It stores the processed data in both a local storage and optionally in a Neo4j database.</p>
+<p>To execute the script, you need to provide a configuration file in YAML format. An example configuration file is provided in <code>configs/metadata_structure_example.yaml</code>. The configuration file includes settings for the pipeline, API keys, and file paths. The script supports three main modes:</p>
+<ul>
+<li><code>ingest</code>: Runs only the ingestion pipeline</li>
+<li><code>tree</code>: Creates the tree index</li>
+<li><code>all</code>: Runs both ingestion and indexing</li>
+</ul>
+<p>The pipeline first ingests the PDF documents using <code>PDFDirectoryReader</code> to read PDF files. Then it processes the documents through the ingestion pipeline, which includes several transformations:</p>
+<ol type="1">
+<li><code>ReformatMarkdownComponent</code>: Reformats content to markdown</li>
+<li><code>ContextExtractor</code>: Extracts contextual information</li>
+<li><code>TableOfContentsExtractor</code>: Extracts table of contents</li>
+<li><code>TableOfContentsCreator</code>: Creates structured TOC</li>
+<li><code>LandscapePagesExtractor</code>: Handles landscape-oriented pages</li>
+<li><code>StructureExtractor</code>: Extracts document structure</li>
+</ol>
+<p>It stores the results in a <code>SimpleDocumentStore</code> for persistence and loading of processed data. Then, the script creates a hierarchical index of the processed documents using the <code>TreeIndex</code> class. The index is stored in a local directory and optionally exported to a Neo4j database.</p>
+<p><strong>Usage</strong></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/metadata_structure.py <span class="at">--config</span> path/to/config.yaml</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>This script is particularly useful to process large collections of PDF documents and create searchable, structured knowledge bases from them. A Shiny app is provided to visualize and explore the metadata and structure of processed documents. The app allows you to:</p>
+<ul>
+<li>Browse processed documents and their metadata</li>
+<li>View extracted table of contents</li>
+<li>Explore document structure trees</li>
+<li>Compare raw and reformatted markdown content</li>
+<li>Visualize document hierarchies</li>
+</ul>
+<p>You can run the app locally using:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> src/app/app-metadata.py</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>A live demo showcasing these capabilities is available on the <a href="https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo">HF Space Demo for PDF Metadata</a>. The visualization interface, shown in <a href="#fig-hf-demo-metadata" class="quarto-xref">Figure&nbsp;3</a>, provides an interactive way to explore document metadata and structure.</p>
+</section>
+</section>
+<section id="sec-pdf-rag" class="level1 page-columns page-full">
+<h1>PDF RAG: Multi-Document Query System</h1>
+<p>In this section, we describe a simple multi-document PDF RAG (Retrieval Augmented Generation) system using LlamaIndex. The system processes multiple PDF documents, creates specialized agents per document, and combines them into a top-level agent for cross-document queries. The system is designed to facilitate:</p>
+<ul>
+<li>Document comparison tasks</li>
+<li>Cross-document information retrieval</li>
+<li>Summarization across multiple documents</li>
+<li>Fact-checking across document sets</li>
+</ul>
+<p>Note that the system operates independently of the metadata and structure extracted from PDF documents in <a href="#sec-metadata-structure" class="quarto-xref">Section&nbsp;1</a>, as the <code>TreeIndex</code> described in <a href="#sec-tree-index" class="quarto-xref">Section&nbsp;1.4.2</a> is not yet fully implemented. The code in <code>src/pdf_rag/react_agent_multi_pdfs.py</code> is adapted from the <a href="https://docs.llamaindex.ai/en/stable/examples/agent/multi_document_agents-v1/">Multi-Document Agents LlamaIndex Notebook</a>.</p>
+<section id="sec-pdf-rag-description" class="level2">
+<h2 class="anchored" data-anchor-id="sec-pdf-rag-description">Description</h2>
+<p>The code <code>src/pdf_rag/react_agent_multi_pdfs.py</code> implements a <code>ReActAgentMultiPdfs</code> class designed for querying information from multiple PDF documents using a ReAct agent approach. The core idea is to build an agent for each PDF document, and then a “top-level” agent orchestrates the use of these individual agents to answer complex queries. It leverages LlamaIndex for indexing, querying, and agent creation, and uses Gemini for LLM and embeddings. It includes both synchronous and asynchronous methods for building agents and processing queries to utilize concurrency.</p>
+<p><strong>Class Definition:</strong></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ReActAgentMultiPdfs:</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        api_key_gemini: <span class="bu">str</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        api_key_mistral: <span class="bu">str</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        root_dir: Path,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        pdfs_dir: Path,</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        cache_dir: Path,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        storage_dir: Path,</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        num_workers: <span class="bu">int</span> <span class="op">=</span> <span class="dv">16</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        chunks_top_k: <span class="bu">int</span> <span class="op">=</span> <span class="dv">5</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>        nodes_top_k: <span class="bu">int</span> <span class="op">=</span> <span class="dv">10</span>,</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>        max_iterations: <span class="bu">int</span> <span class="op">=</span> <span class="dv">20</span>,</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>        verbose: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>,</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>        <span class="co"># ... initialization logic ...</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The <code>ReActAgentMultiPdfs</code> class is initialized with several parameters:</p>
+<ul>
+<li><code>api_key_gemini</code>: API key for the Google Gemini model.</li>
+<li><code>api_key_mistral</code>: API key for the Mistral AI model.</li>
+<li><code>root_dir</code>: The root directory of the project.</li>
+<li><code>pdfs_dir</code>: The directory containing the PDF files to process.</li>
+<li><code>cache_dir</code>: The directory to store cached data.</li>
+<li><code>storage_dir</code>: The directory to store the persisted indexes.</li>
+<li><code>num_workers</code>: Number of workers to use for parallel processing.</li>
+<li><code>chunks_top_k</code>: Number of top chunks to retrieve from the vector index for each document.</li>
+<li><code>nodes_top_k</code>: Number of top nodes to retrieve from the object index.</li>
+<li><code>max_iterations</code>: Maximum number of iterations for the ReAct agent.</li>
+<li><code>verbose</code>: Whether to print verbose output.</li>
+</ul>
+<p>The constructor initializes various components including:</p>
+<ul>
+<li><code>PDFDirectoryReader</code>: Used to load data from PDF files.</li>
+<li><code>MarkdownPageNodeParser</code>: Used to parse documents into nodes.</li>
+</ul>
+<p><strong>Key Methods:</strong></p>
+<ol type="1">
+<li><p><strong><code>_get_vector_summary_paths(self, pdf_file: Path) -&gt; tuple[str, Path, Path, Path]</code></strong>:</p>
+<ul>
+<li>This helper function takes a <code>pdf_file</code> path and returns paths for storing the vector index, summary index, and summary text file, respectively.</li>
+<li>It ensures that the paths are unique based on the PDF filename and are stored within the specified <code>storage_dir</code>.</li>
+<li>Critically it cleans the filenames, replacing spaces and parentheses with underscores, which is essential to avoid issues with LLM tool parsing.</li>
+</ul></li>
+<li><p><strong><code>build_agent_per_doc(self, pdf_file: Path) -&gt; tuple[ReActAgent, str]</code></strong>:</p>
+<ul>
+<li>This method is the heart of the per-document agent creation process.</li>
+<li>It takes a <code>pdf_file</code> path as input.</li>
+<li>It first checks if the vector and summary indexes already exist at the paths defined by <code>_get_vector_summary_paths</code>. If they do, it loads them from disk; otherwise, it creates them.</li>
+<li><strong>Index Creation:</strong> Loads the PDF data using <code>self._pdf_reader</code>, parses it into nodes using <code>self._markdown_parser</code>, and then builds both a <code>VectorStoreIndex</code> (for semantic search) and a <code>SummaryIndex</code> (for generating summaries). These are persisted to disk using <code>storage_context.persist</code>.</li>
+<li><strong>Query Engine Creation:</strong> Creates two query engines: <code>vector_query_engine</code> using the vector index and <code>summary_query_engine</code> using the summary index. The <code>vector_query_engine</code> uses <code>FullPagePostprocessor</code> to retrieve the full page for context.</li>
+<li><strong>Summary Extraction:</strong> Extracts a summary of the document using the <code>summary_query_engine</code> and stores it in a text file.</li>
+<li><strong>Tool Definition:</strong> Defines two <code>QueryEngineTool</code>s: one for the vector query engine and one for the summary query engine. These tools are used by the ReAct agent to answer questions. Each tool has a descriptive name and description that informs the agent when to use it.</li>
+<li><strong>Agent Creation:</strong> Creates a <code>ReActAgent</code> from the defined tools and a system prompt that instructs the agent on how to use the tools. The system prompt emphasizes the need to use the tools and avoid relying on prior knowledge.</li>
+<li>Returns the created <code>ReActAgent</code> and the document summary.</li>
+</ul></li>
+<li><p><strong><code>abuild_agent_per_doc(self, pdf_file: Path) -&gt; tuple[ReActAgent, str]</code></strong>:</p>
+<ul>
+<li>This is the asynchronous version of <code>build_agent_per_doc</code>.</li>
+<li>It uses <code>async</code> and <code>await</code> keywords to perform asynchronous operations, particularly when loading data using <code>self._pdf_reader.aload_data</code> and querying the summary engine.</li>
+<li>The rest of the logic is very similar to the synchronous version.</li>
+</ul></li>
+<li><p><strong><code>build_agents(self) -&gt; tuple[dict[str, ReActAgent], dict[str, dict]]</code></strong>:</p>
+<ul>
+<li>This method iterates through all PDF files in the <code>self._pdfs_dir</code> directory.</li>
+<li>For each PDF file, it calls <code>self.build_agent_per_doc</code> to create an agent and extract a summary.</li>
+<li>It stores the agents in a dictionary <code>agents_dict</code> and the summaries in a dictionary <code>extra_info_dict</code>.</li>
+<li>Returns the dictionaries of agents and extra information.</li>
+</ul></li>
+<li><p><strong><code>abuild_agents(self) -&gt; tuple[dict[str, ReActAgent], dict[str, dict]]</code></strong>:</p>
+<ul>
+<li>This is the asynchronous version of <code>build_agents</code>.</li>
+<li>It uses <code>asyncio.gather</code> (via <code>run_jobs</code> from LlamaIndex) to build the agents concurrently, improving performance.</li>
+<li>The logic is otherwise similar to the synchronous version.</li>
+</ul></li>
+<li><p><strong><code>top_agent(self) -&gt; ReActAgent</code></strong>:</p>
+<ul>
+<li>This method creates the “top-level” ReAct agent that orchestrates the use of the per-document agents.</li>
+<li>It first calls <code>self.build_agents</code> to create the per-document agents.</li>
+<li>It then iterates through the agents and creates a <code>QueryEngineTool</code> for each agent, using the document summary as the tool description.</li>
+<li><strong>Object Index:</strong> Creates an <code>ObjectIndex</code> from the <code>QueryEngineTool</code>s, and then a <code>VectorStoreIndex</code> on these objects (tools).</li>
+<li><strong>Custom Object Retriever:</strong> Creates a <code>CustomObjectRetriever</code> that wraps the vector store retriever from the object index. This <code>CustomObjectRetriever</code> is critical: it <em>adds a query planning tool</em> to the retrieval process. This query planning tool is a <code>SubQuestionQueryEngine</code> which is specifically designed for comparing multiple documents.</li>
+<li><strong>Top Agent Creation:</strong> Creates the <code>ReActAgent</code> using the <code>CustomObjectRetriever</code> as the <code>tool_retriever</code>. The system prompt instructs the agent to always use the tools provided.</li>
+<li>It is decorated with <code>@cached_property</code> so it’s only built once.</li>
+</ul></li>
+<li><p><strong><code>abuild_top_agent(self) -&gt; ReActAgent</code></strong>:</p>
+<ul>
+<li>This is the asynchronous version of <code>top_agent</code>.</li>
+<li>It uses <code>await self.abuild_agents()</code> to build the agents asynchronously.</li>
+<li>The rest of the logic is similar to the synchronous version.</li>
+</ul></li>
+<li><p><strong><code>process_queries(self, queries: list[str]) -&gt; list[Any]</code></strong>:</p>
+<ul>
+<li>Processes a list of queries using the synchronous <code>top_agent</code>.</li>
+</ul></li>
+<li><p><strong><code>aprocess_queries(self, queries: list[str]) -&gt; list[Any]</code></strong>:</p>
+<ul>
+<li>Processes a list of queries using the asynchronous <code>top_agent</code>.</li>
+</ul></li>
+</ol>
+<p><strong>Custom Object Retriever (<code>CustomObjectRetriever</code>)</strong></p>
+<p>The <code>CustomObjectRetriever</code> class inherits from <code>ObjectRetriever</code> and overrides the <code>retrieve</code> method. The important modification here is the addition of a <code>SubQuestionQueryEngine</code> as a tool. This tool is specifically designed for comparison queries across multiple documents.</p>
+<p>Here’s a breakdown of the critical part of <code>CustomObjectRetriever.retrieve</code>:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>        sub_question_engine <span class="op">=</span> SubQuestionQueryEngine.from_defaults(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>            query_engine_tools<span class="op">=</span>tools,</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>            llm<span class="op">=</span><span class="va">self</span>._llm,</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>            question_gen<span class="op">=</span>LLMQuestionGenerator.from_defaults(llm<span class="op">=</span><span class="va">self</span>._llm),</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        sub_question_description <span class="op">=</span> <span class="ss">f"""</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="ss">        Useful for any queries that involve comparing multiple documents. ALWAYS use this tool for comparison queries - make sure to call this</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="ss">        tool with the original query. Do NOT use the other tools for any queries involving multiple documents.</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="ss">        """</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        sub_question_tool <span class="op">=</span> QueryEngineTool(</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>            query_engine<span class="op">=</span>sub_question_engine,</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>            metadata<span class="op">=</span>ToolMetadata(name<span class="op">=</span><span class="st">"compare_tool"</span>, description<span class="op">=</span>sub_question_description),</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>        retrieved_tools <span class="op">=</span> tools <span class="op">+</span> [sub_question_tool]</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> retrieved_tools</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<ul>
+<li>A <code>SubQuestionQueryEngine</code> is created, using all the per-document <code>tools</code>. The <code>LLMQuestionGenerator</code> helps break down complex questions into sub-questions that can be answered by the individual tools.</li>
+<li>A <code>QueryEngineTool</code> is created for the <code>SubQuestionQueryEngine</code>, with a description emphasizing its use for comparison queries.</li>
+<li>This <code>sub_question_tool</code> is added to the list of retrieved tools.</li>
+</ul>
+<p><strong>Key Concepts:</strong></p>
+<ul>
+<li><strong>ReAct Agent:</strong> A type of agent that interleaves reasoning and acting. It uses a language model to generate thoughts, actions, and observations.</li>
+<li><strong>Vector Store Index:</strong> An index that stores vector embeddings of text data. This allows for efficient semantic search.</li>
+<li><strong>Summary Index:</strong> An index that stores summaries of text data. This allows for efficient summarization of documents.</li>
+<li><strong>Query Engine:</strong> A component that allows you to query an index.</li>
+<li><strong>QueryEngineTool:</strong> A tool that allows an agent to query a query engine.</li>
+<li><strong>ObjectIndex:</strong> An index that stores objects (in this case, QueryEngineTools).</li>
+<li><strong>ObjectRetriever:</strong> A component that allows you to retrieve objects from an object index.</li>
+<li><strong>SubQuestionQueryEngine</strong>: A query engine that breaks down complex questions into sub-questions and answers them using a set of tools. It excels at comparison queries.</li>
+<li><strong>Gemini:</strong> The LLM and embedding model used for this agent.</li>
+</ul>
+<p><strong>Overall Functionality:</strong></p>
+<p>The <code>ReActAgentMultiPdfs</code> class provides a system for answering complex questions based on multiple PDF documents. It works by creating an agent for each document and then creating a top-level agent that can orchestrate the use of these individual agents. The <code>CustomObjectRetriever</code> plays a crucial role in enabling the top-level agent to handle comparison queries by including a sub-question query engine as a tool. The asynchronous methods offer a way to speed up processing when dealing with many documents. This architecture allows the system to answer questions that require information from multiple documents, such as “What are the key differences between document A and document B?”</p>
+</section>
+<section id="sec-pdf-rag-example" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sec-pdf-rag-example">Example Usage</h2>
+<p>We provide an example usage in the notebook <code>notebooks/query_multi_pdfs_example.ipynb</code>. The notebook demonstrates how to use the <code>ReActAgentMultiPdfs</code> class to process multiple PDF documents and answer queries across them. It includes:</p>
+<ul>
+<li>Setting up the ReActAgent with multiple PDF documents</li>
+<li>Processing queries about documents</li>
+<li>Analyzing the agent’s reasoning process and tool selection</li>
+</ul>
+<p>The complete example code and sample outputs are shown below, and the full notebook is available at <a href="https://github.com/nbrosse/pdf-rag/blob/main/notebooks/query_multi_pdfs_example.ipynb">ReActAgent: Querying Multiple PDFs Example</a>.</p>
+<div class="quarto-embed-nb-cell page-columns page-full">
+<div id="379e304426a9197c" class="cell" data-executetime="{&quot;end_time&quot;:&quot;2025-03-13T14:08:34.237406Z&quot;,&quot;start_time&quot;:&quot;2025-03-13T14:08:32.078463Z&quot;}">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dataclasses <span class="im">import</span> dataclass, field</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> omegaconf <span class="im">import</span> OmegaConf, ValidationError</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pdf_rag.react_agent_multi_pdfs <span class="im">import</span> ReActAgentMultiPdfs</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dotenv <span class="im">import</span> load_dotenv</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>load_dotenv()</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="at">@dataclass</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ReActAgentConfig:</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    data_dir: Path <span class="op">|</span> <span class="bu">str</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    api_key_gemini: <span class="bu">str</span> <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    api_key_mistral: <span class="bu">str</span> <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    num_workers: <span class="bu">int</span> <span class="op">=</span> <span class="dv">16</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    chunks_top_k: <span class="bu">int</span> <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    nodes_top_k: <span class="bu">int</span> <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    max_iterations: <span class="bu">int</span> <span class="op">=</span> <span class="dv">20</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>    verbose: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>    queries: <span class="bu">list</span>[<span class="bu">str</span>] <span class="op">=</span> field(default_factory<span class="op">=</span><span class="bu">list</span>)</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> __post_init__(<span class="va">self</span>):</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.data_dir <span class="op">=</span> Path(<span class="va">self</span>.data_dir)</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.root_dir <span class="op">=</span> <span class="va">self</span>.data_dir <span class="op">/</span> <span class="st">"pdfs"</span></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.pdfs_dir <span class="op">=</span> <span class="va">self</span>.data_dir <span class="op">/</span> <span class="st">"pdfs"</span></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.cache_dir <span class="op">=</span> <span class="va">self</span>.data_dir <span class="op">/</span> <span class="st">"cache"</span></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.storage_dir <span class="op">=</span> <span class="va">self</span>.data_dir <span class="op">/</span> <span class="st">"storage_queries"</span></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.api_key_gemini <span class="op">=</span> <span class="va">self</span>.api_key_gemini <span class="kw">or</span> os.environ.get(<span class="st">"GEMINI_API_KEY"</span>)</span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.api_key_mistral <span class="op">=</span> <span class="va">self</span>.api_key_mistral <span class="kw">or</span> os.environ.get(<span class="st">"MISTRAL_API_KEY"</span>)</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> <span class="va">self</span>.api_key_gemini:</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">ValueError</span>(</span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>                <span class="st">"Gemini API Key is required. Provide api_key_gemini or set GEMINI_API_KEY environment variable."</span></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> <span class="va">self</span>.api_key_mistral:</span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>            <span class="cf">raise</span> <span class="pp">ValueError</span>(</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>                <span class="st">"Mistral API Key is required. Provide api_key_mistral or set MISTRAL_API_KEY environment variable."</span></span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_and_validate_config(config_path: <span class="bu">str</span>) <span class="op">-&gt;</span> ReActAgentConfig:</span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>        config <span class="op">=</span> OmegaConf.load(config_path)</span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>        react_agent_schema <span class="op">=</span> OmegaConf.structured(ReActAgentConfig)</span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>        react_agent_config <span class="op">=</span> OmegaConf.merge(react_agent_schema, config)</span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>        react_agent_config <span class="op">=</span> ReActAgentConfig(<span class="op">**</span>react_agent_config)</span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"Configuration loaded and validated successfully:"</span>)</span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> react_agent_config</span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> ValidationError <span class="im">as</span> e:</span>
+<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> ValidationError(<span class="ss">f"Validation error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">Exception</span>(<span class="ss">f"Error loading configuration: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="initial_id" class="cell column-page" data-executetime="{&quot;end_time&quot;:&quot;2025-03-13T14:10:22.956888Z&quot;,&quot;start_time&quot;:&quot;2025-03-13T14:08:39.865103Z&quot;}">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>config_path <span class="op">=</span> <span class="st">"../configs/query_multi_pdfs_nicolas.yaml"</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>config <span class="op">=</span> load_and_validate_config(config_path)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>react_agent_multi_pdfs <span class="op">=</span> ReActAgentMultiPdfs(</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    api_key_gemini<span class="op">=</span>config.api_key_gemini,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    api_key_mistral<span class="op">=</span>config.api_key_mistral,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    root_dir<span class="op">=</span>config.root_dir,</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    pdfs_dir<span class="op">=</span>config.pdfs_dir,</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    cache_dir<span class="op">=</span>config.cache_dir,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    storage_dir<span class="op">=</span>config.storage_dir,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    num_workers<span class="op">=</span>config.num_workers,</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    chunks_top_k<span class="op">=</span>config.chunks_top_k,</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    nodes_top_k<span class="op">=</span>config.nodes_top_k,</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    max_iterations<span class="op">=</span>config.max_iterations,</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    verbose<span class="op">=</span>config.verbose,</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>responses <span class="op">=</span> react_agent_multi_pdfs.process_queries(queries<span class="op">=</span>config.queries)</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> q, r <span class="kw">in</span> <span class="bu">zip</span>(config.queries, responses):</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="dv">30</span> <span class="op">*</span> <span class="st">"-"</span>)</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Query: </span><span class="sc">{</span>q<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Response: </span><span class="sc">{</span>r<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Configuration loaded and validated successfully:</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&gt; Running step 0dc45634-70c7-4656-9b12-fc2b086848ce. Step input: What are the vulnerabilities introduced by relying on application programming interfaces (APIs) in Banking as a Service (BaaS)?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_deloitte-tech-risk-sector-banking
+Action Input: {'input': 'vulnerabilities of APIs in Banking as a Service (BaaS)'}
+&gt; Running step b574597e-591e-42f5-b2fe-075603369f1c. Step input: vulnerabilities of APIs in Banking as a Service (BaaS)
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_deloitte-tech-risk-sector-banking
+Action Input: {'input': 'API vulnerabilities in Banking as a Service (BaaS)'}
+Observation: BaaS increasingly relies on application programming interfaces, introducing vulnerabilities that can pose risks for banks, such as customers' sensitive data and funds being at risk from phishing and social engineering attacks, flawed APIs providing a back door for hackers to penetrate banks' systems and noncompliance with data privacy rules by BaaS providers exposing partner banks to reputational risks.
+
+&gt; Running step ab6397c0-d075-499f-8d74-ce5ef25de495. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Banking as a Service (BaaS) relies heavily on APIs, which introduces vulnerabilities. These vulnerabilities can lead to risks for banks, including customer data and funds being at risk from phishing and social engineering, flawed APIs providing a backdoor for hackers, and noncompliance with data privacy rules by BaaS providers exposing partner banks to reputational risks.
+Observation: Banking as a Service (BaaS) relies heavily on APIs, which introduces vulnerabilities. These vulnerabilities can lead to risks for banks, including customer data and funds being at risk from phishing and social engineering, flawed APIs providing a backdoor for hackers, and noncompliance with data privacy rules by BaaS providers exposing partner banks to reputational risks.
+&gt; Running step 8b2c762a-4a21-47ad-81f9-5dba4bb5e0f3. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Relying on application programming interfaces (APIs) in Banking as a Service (BaaS) introduces vulnerabilities that can put customer data and funds at risk from phishing and social engineering. Flawed APIs can also provide a backdoor for hackers. Furthermore, noncompliance with data privacy rules by BaaS providers can expose partner banks to reputational risks.
+&gt; Running step 17a33cea-70cf-4150-98a9-73d9e08299cf. Step input: What mitigation opportunities are there to ensure strong security for BaaS platforms and API connectivity?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_deloitte-tech-risk-sector-banking
+Action Input: {'input': 'mitigation strategies for BaaS platforms and API security'}
+&gt; Running step 0cde1ce4-d18b-4957-b0a9-0e8526141ad8. Step input: mitigation strategies for BaaS platforms and API security
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_deloitte-tech-risk-sector-banking
+Action Input: {'input': 'mitigation strategies for BaaS platforms and API security'}
+Observation: To ensure strong security for BaaS platforms and API connectivity, the industry can use input validation protocols and apply network segmentation and access control measures. They can also improve due diligence on BaaS providers and help BaaS and other fintech providers get better at risk management and compliance through institutional knowledge transfer from banks to BaaS partners.
+
+&gt; Running step 176b5919-f695-4091-8e2b-7ccc379b4dd0. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: To ensure strong security for BaaS platforms and API connectivity, the industry can use input validation protocols and apply network segmentation and access control measures. They can also improve due diligence on BaaS providers and help BaaS and other fintech providers get better at risk management and compliance through institutional knowledge transfer from banks to BaaS partners.
+Observation: To ensure strong security for BaaS platforms and API connectivity, the industry can use input validation protocols and apply network segmentation and access control measures. They can also improve due diligence on BaaS providers and help BaaS and other fintech providers get better at risk management and compliance through institutional knowledge transfer from banks to BaaS partners.
+&gt; Running step bf56f882-81b4-4053-9376-1dd9a231b405. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: To ensure strong security for BaaS platforms and API connectivity, the industry can use input validation protocols and apply network segmentation and access control measures. Improving due diligence on BaaS providers and facilitating institutional knowledge transfer from banks to BaaS partners for better risk management and compliance are also beneficial mitigation strategies.
+&gt; Running step 69fc5519-d8d6-4ea3-ab8f-6ee9d32adcb7. Step input: How can the industry best improve due diligence on BaaS providers in this landscape?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_deloitte-tech-risk-sector-banking
+Action Input: {'input': 'due diligence on BaaS providers'}
+&gt; Running step 57cce3c7-58b1-46a5-ae23-684437434197. Step input: due diligence on BaaS providers
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_deloitte-tech-risk-sector-banking
+Action Input: {'input': 'due diligence on BaaS providers'}
+Observation: Improving due diligence on BaaS providers is a mitigation opportunity for the risk exposure that comes from Banking as a Service offerings.
+
+&gt; Running step fa50b051-1a5f-4068-bbe5-0ace2f8b0a20. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Improving due diligence on BaaS providers is a mitigation opportunity for the risk exposure that comes from Banking as a Service offerings.
+Observation: Improving due diligence on BaaS providers is a mitigation opportunity for the risk exposure that comes from Banking as a Service offerings.
+&gt; Running step a835048a-e05e-4c02-b3bd-32f47024b7b4. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: The industry can improve due diligence on BaaS providers by implementing strong security measures for BaaS platforms and thoroughly vetting BaaS partners.
+&gt; Running step 23143917-1992-4bf2-b67d-d81cb14b7fdc. Step input: What are the common objectives of the Open Data ecosystem?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_gx-iif-open-data
+Action Input: {'input': 'common objectives of Open Data ecosystem'}
+&gt; Running step ac79ff95-9ad1-4e03-a0ea-f75ff7b28194. Step input: common objectives of Open Data ecosystem
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_gx-iif-open-data
+Action Input: {'input': 'common objectives of Open Data ecosystem'}
+Observation: Open Data ecosystems share common objectives, including promoting innovation to increase consumer choice, creating more secure methods of data sharing, improving consumer data privacy and portability, and fostering cross-sectoral collaboration and interoperability.
+
+&gt; Running step 674ae599-801a-4725-8ea7-5ffe05a0a371. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Open Data ecosystems generally aim to promote innovation to increase consumer choice, create more secure methods of data sharing, improve consumer data privacy and portability, and foster cross-sectoral collaboration and interoperability.
+Observation: Open Data ecosystems generally aim to promote innovation to increase consumer choice, create more secure methods of data sharing, improve consumer data privacy and portability, and foster cross-sectoral collaboration and interoperability.
+&gt; Running step 46685aec-07d0-46f4-b8ad-4424cfc72ebd. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: The common objectives of the Open Data ecosystem are to promote innovation, create secure data sharing methods, improve consumer data privacy and portability, and foster cross-sectoral collaboration and interoperability.
+&gt; Running step 537f15c8-4be9-4f96-be10-6d63a2959001. Step input: What are key strategic decisions to be made by ecosystem participants?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_gx-iif-open-data
+Action Input: {'input': 'strategic decisions for open data ecosystem participants'}
+&gt; Running step 4f1f9e8c-aca3-4b46-8546-f4584318dc4c. Step input: strategic decisions for open data ecosystem participants
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: summary_tool_gx-iif-open-data
+Action Input: {'input': 'strategic decisions for open data ecosystem participants'}
+Observation: When looking at the key strategic decisions to be made by ecosystem participants, the following hypotheses are of particular interest:
+
+- Ecosystems are built on symbiotic relationships and generate value in standard ways;
+- Data sharing is (and will continue to be) critical to ecosystems, but client consent and permission are priorities;
+- Interoperability will likely be key to increasing the value capture in ecosystems;
+- Broadening the set of data used by Fls and non-Fls could realize significant benefits for consumers, authorities, and the private sector; and
+- Cyber-security and operational resilience will likely play a key role in building trust in Open Data ecosystems.
+
+&gt; Running step 3c89568b-6983-4a14-ac6b-bb1d53104325. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: The key strategic decisions for open data ecosystem participants revolve around symbiotic relationships, data sharing with client consent, interoperability, broadening data usage, and ensuring cyber-security and operational resilience to build trust.
+Observation: The key strategic decisions for open data ecosystem participants revolve around symbiotic relationships, data sharing with client consent, interoperability, broadening data usage, and ensuring cyber-security and operational resilience to build trust.
+&gt; Running step 106b85da-5fee-4418-9a40-1bea7d6f56cc. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Key strategic decisions for ecosystem participants involve establishing symbiotic relationships, facilitating data sharing with client consent, ensuring interoperability, broadening data usage, and prioritizing cyber-security and operational resilience to foster trust.
+&gt; Running step 54f9c69d-a738-4028-bc14-10b1efec857a. Step input: How can the public and private sectors collaborate to promote innovation, secure data sharing, and data privacy within the Open Data ecosystem?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_gx-iif-open-data
+Action Input: {'input': 'collaboration between public and private sectors in Open Data ecosystem to promote innovation, secure data sharing, and data privacy'}
+&gt; Running step c8953756-0575-4165-9a6e-a29c23a8bbd1. Step input: collaboration between public and private sectors in Open Data ecosystem to promote innovation, secure data sharing, and data privacy
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_gx-iif-open-data
+Action Input: {'input': 'collaboration between public and private sectors in Open Data ecosystem to promote innovation, secure data sharing, and data privacy'}
+Observation: Open Data ecosystems promote innovation to increase consumer choice, create more secure methods of data sharing, improve consumer data privacy and portability, and foster cross-sectoral collaboration and interoperability. To leverage the potential of Open Data, data from different industries can be merged through sector-specific approaches that bring together private entities, the public sector, and consumers to create common data spaces for certain industries, while a holistic approach to data would help develop more customer-centric solutions.
+
+&gt; Running step be48c51d-9b67-4dfe-adf7-11b0591c0d09. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Open Data ecosystems foster cross-sectoral collaboration between private entities, the public sector, and consumers to create common data spaces for certain industries, promoting innovation, secure data sharing, and data privacy.
+Observation: Open Data ecosystems foster cross-sectoral collaboration between private entities, the public sector, and consumers to create common data spaces for certain industries, promoting innovation, secure data sharing, and data privacy.
+&gt; Running step 5d9dd1d3-8e6e-4291-b0aa-f5ba27b3c62a. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: The public and private sectors can collaborate within the Open Data ecosystem by fostering cross-sectoral partnerships to create common data spaces. This collaboration promotes innovation, secure data sharing methods, and improvements in consumer data privacy.
+&gt; Running step 54dc5bbe-979a-435f-871c-c2c4dc733b26. Step input: What are the key characteristics that define the Leaders, Major Contenders, and Aspirants within the Life Sciences Smart Manufacturing Services PEAK Matrix?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023
+Action Input: {'input': 'key characteristics of Leaders, Major Contenders, and Aspirants in Life Sciences Smart Manufacturing Services PEAK Matrix'}
+&gt; Running step f6a15c99-4121-4b3d-a5ed-3024171d1e1e. Step input: key characteristics of Leaders, Major Contenders, and Aspirants in Life Sciences Smart Manufacturing Services PEAK Matrix
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023
+Action Input: {'input': 'key characteristics of Leaders, Major Contenders, and Aspirants in Life Sciences Smart Manufacturing Services PEAK Matrix'}
+Observation: **Leaders:** They act as digital transformation partners, providing end-to-end capabilities and a balanced set of offerings across the life sciences manufacturing value chain. They demonstrate flexibility and innovation in engagement models, possess a specialized talent pool, and have strong partnerships and investments in areas like digital twins and cybersecurity. They also have a clear roadmap for enhancing their capabilities through IP development and strategic initiatives.
+
+**Major Contenders:** This group includes a mix of midsize and large firms with a less balanced portfolio than Leaders, often specializing in specific areas of the value chain. They may have limited solutions for high-growth areas like specialty drugs or sustainable manufacturing. They address smart manufacturing use cases by leveraging cross-industry resources and focus on the mid-tier client segment.
+
+**Aspirants:** Aspirants have a restricted focus on specific areas within the life sciences manufacturing value chain and limited digital service capabilities. They have a limited partnership ecosystem and focus on leveraging horizontal capabilities rather than developing domain-specific services. They concentrate on capturing market share in the small and midsize buyer segment.
+
+&gt; Running step 2b6e54f6-31a9-4178-92e2-1c4a3efb5561. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Here are the key characteristics of Leaders, Major Contenders, and Aspirants in the Life Sciences Smart Manufacturing Services PEAK Matrix:
+
+**Leaders:** Act as digital transformation partners, providing end-to-end capabilities and a balanced set of offerings across the life sciences manufacturing value chain. They demonstrate flexibility and innovation in engagement models, possess a specialized talent pool, and have strong partnerships and investments in areas like digital twins and cybersecurity. They also have a clear roadmap for enhancing their capabilities through IP development and strategic initiatives.
+
+**Major Contenders:** Include a mix of midsize and large firms with a less balanced portfolio than Leaders, often specializing in specific areas of the value chain. They may have limited solutions for high-growth areas like specialty drugs or sustainable manufacturing. They address smart manufacturing use cases by leveraging cross-industry resources and focus on the mid-tier client segment.
+
+**Aspirants:** Have a restricted focus on specific areas within the life sciences manufacturing value chain and limited digital service capabilities. They have a limited partnership ecosystem and focus on leveraging horizontal capabilities rather than developing domain-specific services. They concentrate on capturing market share in the small and midsize buyer segment.
+Observation: Here are the key characteristics of Leaders, Major Contenders, and Aspirants in the Life Sciences Smart Manufacturing Services PEAK Matrix:
+
+**Leaders:** Act as digital transformation partners, providing end-to-end capabilities and a balanced set of offerings across the life sciences manufacturing value chain. They demonstrate flexibility and innovation in engagement models, possess a specialized talent pool, and have strong partnerships and investments in areas like digital twins and cybersecurity. They also have a clear roadmap for enhancing their capabilities through IP development and strategic initiatives.
+
+**Major Contenders:** Include a mix of midsize and large firms with a less balanced portfolio than Leaders, often specializing in specific areas of the value chain. They may have limited solutions for high-growth areas like specialty drugs or sustainable manufacturing. They address smart manufacturing use cases by leveraging cross-industry resources and focus on the mid-tier client segment.
+
+**Aspirants:** Have a restricted focus on specific areas within the life sciences manufacturing value chain and limited digital service capabilities. They have a limited partnership ecosystem and focus on leveraging horizontal capabilities rather than developing domain-specific services. They concentrate on capturing market share in the small and midsize buyer segment.
+&gt; Running step 5d2cea8b-eee1-4ee4-a8ab-98b0d453474a. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: The key characteristics are:
+
+*   **Leaders:** Act as digital transformation partners with end-to-end capabilities, balanced offerings, flexible engagement models, specialized talent, strong partnerships, and a clear roadmap for enhancing capabilities.
+*   **Major Contenders:** Have a less balanced portfolio, often specializing in specific areas, with limited solutions for high-growth areas. They leverage cross-industry resources and focus on the mid-tier client segment.
+*   **Aspirants:** Have a restricted focus, limited digital service capabilities and partnership ecosystem, and concentrate on capturing market share in the small and midsize buyer segment.
+&gt; Running step 423c986e-395b-403b-afe0-8acada1ae7f1. Step input: What are some of the solutions that can assist biopharma and MedTech manufacturers with insights that help optimize manufacturing processes and improve product quality?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023
+Action Input: {'input': 'solutions for biopharma and MedTech manufacturers to optimize manufacturing processes and improve product quality'}
+&gt; Running step bccdeb0c-a589-460a-b810-59927dee9e0e. Step input: solutions for biopharma and MedTech manufacturers to optimize manufacturing processes and improve product quality
+Thought: The current language of the user is: english. I need to use a tool to help me answer the question.
+Action: summary_tool_life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023
+Action Input: {'input': 'solutions for biopharma and MedTech manufacturers to optimize manufacturing processes and improve product quality'}
+Observation: CognitiveSpark for manufacturing is a cloud-based, AI-powered solution designed to assist biopharma and MedTech manufacturers with insights that help optimize manufacturing processes and improve product quality.
+&gt; Running step 2d287b00-2e7d-474e-94fe-75e04853131d. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: CognitiveSpark for manufacturing is a cloud-based, AI-powered solution designed to assist biopharma and MedTech manufacturers with insights that help optimize manufacturing processes and improve product quality.
+Observation: CognitiveSpark for manufacturing is a cloud-based, AI-powered solution designed to assist biopharma and MedTech manufacturers with insights that help optimize manufacturing processes and improve product quality.
+&gt; Running step a8339752-282e-4d96-861c-339fe81db351. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: CognitiveSpark for manufacturing is a cloud-based, AI-powered solution designed to assist biopharma and MedTech manufacturers with insights that help optimize manufacturing processes and improve product quality.
+&gt; Running step e3b4b9cd-9da2-4737-9c43-662051410718. Step input: How are different areas of a manufacturing line benefiting from AI?
+Thought: The current language of the user is: English. I need to find information about how AI is benefiting manufacturing lines. I don't have a specific tool that directly addresses this, but the "tool_life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023" tool seems most relevant as it discusses smart manufacturing in the life sciences, which likely involves AI applications.
+Action: tool_life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023
+Action Input: {'input': 'AI applications in life sciences manufacturing'}
+&gt; Running step 8285ebfe-60e4-4c07-b369-84bf63a817a8. Step input: AI applications in life sciences manufacturing
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023
+Action Input: {'input': 'AI applications in life sciences manufacturing'}
+Observation: Life sciences enterprises are investing in critical use cases, including digital twins and predictive maintenance, and exploring opportunities such as sustainable and personalized medicine manufacturing. Service providers are becoming end-to-end digital transformation partners, co-developing solutions to assist enterprises in their digital journeys. One solution enables visibility of multi-tier supply networks and senses upcoming risks to mitigate disruptions. Another platform solution enables a comprehensive view of manufacturing operations across the organization with connected data, creating dynamic data visualizations that provide useful insights and recommended actions, assisting in predictive analytics and quality analytics.
+
+&gt; Running step 2dc34498-25fe-491a-9487-ea77a5562c2b. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Life sciences companies are investing in AI applications like digital twins and predictive maintenance, and exploring opportunities in sustainable and personalized medicine manufacturing. Service providers are offering end-to-end digital transformation partnerships, co-developing solutions for digital journeys. These solutions include providing visibility into multi-tier supply networks to mitigate disruptions and offering platforms for a comprehensive view of manufacturing operations with connected data, dynamic data visualizations, predictive analytics, and quality analytics.
+Observation: Life sciences companies are investing in AI applications like digital twins and predictive maintenance, and exploring opportunities in sustainable and personalized medicine manufacturing. Service providers are offering end-to-end digital transformation partnerships, co-developing solutions for digital journeys. These solutions include providing visibility into multi-tier supply networks to mitigate disruptions and offering platforms for a comprehensive view of manufacturing operations with connected data, dynamic data visualizations, predictive analytics, and quality analytics.
+&gt; Running step 3cd8ceec-02a0-4544-95a6-673923dca8b5. Step input: None
+Thought: The current language of the user is: English. The tool provided some information about AI applications in life sciences manufacturing, including digital twins, predictive maintenance, supply chain visibility, and platforms for comprehensive views of manufacturing operations with connected data, dynamic data visualizations, predictive analytics, and quality analytics. This gives a good overview of how AI is benefiting different areas of a manufacturing line.
+Answer: AI is benefiting different areas of manufacturing lines through applications like digital twins and predictive maintenance. It also provides better visibility into supply chains and offers platforms for a comprehensive view of manufacturing operations with connected data, dynamic data visualizations, predictive analytics, and quality analytics.
+&gt; Running step b23d31dd-3e78-4d90-bbe9-0c17280967db. Step input: What are ConocoPhillips' key financial priorities for the next 10 years?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_2023-conocophillips-aim-presentation
+Action Input: {'input': "ConocoPhillips' 10-year financial plan"}
+&gt; Running step c1216a19-59b1-4f3e-ba31-3e5bc2653a3c. Step input: ConocoPhillips' 10-year financial plan
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: summary_tool_2023-conocophillips-aim-presentation
+Action Input: {'input': "ConocoPhillips' 10-year financial plan"}
+Observation: ConocoPhillips has a compelling 10-year plan that includes the following:
+
+*   Peer-leading ROCE improving through time
+*   Top quartile ordinary dividend growth
+*   &gt;90% market cap distributed
+*   ~$35/BBL WTI FCF Breakeven
+*   ~6% CFO CAGR, ~11% FCF CAGR
+*   Unhedged for price upside
+
+&gt; Running step 85f186e1-6701-49c4-9ede-8877d99b5f7d. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: ConocoPhillips' 10-year financial plan aims for peer-leading ROCE improvement, top quartile ordinary dividend growth, distribution of over 90% of market cap, a ~$35/BBL WTI FCF breakeven, ~6% CFO CAGR, ~11% FCF CAGR, and being unhedged for price upside.
+Observation: ConocoPhillips' 10-year financial plan aims for peer-leading ROCE improvement, top quartile ordinary dividend growth, distribution of over 90% of market cap, a ~$35/BBL WTI FCF breakeven, ~6% CFO CAGR, ~11% FCF CAGR, and being unhedged for price upside.
+&gt; Running step ec8ff47a-d551-4907-93fb-d325380bc4ba. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: ConocoPhillips' key financial priorities for the next 10 years include: peer-leading ROCE improvement, top quartile ordinary dividend growth, distribution of over 90% of market cap, a ~$35/BBL WTI FCF breakeven, ~6% CFO CAGR, ~11% FCF CAGR, and remaining unhedged for price upside.
+&gt; Running step 296a9b6f-5116-4992-8417-a98b9ecf7e52. Step input: How does ConocoPhillips plan to meet it's Net-Zero and Emissions targets?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_2023-conocophillips-aim-presentation
+Action Input: {'input': 'ConocoPhillips Net-Zero and Emissions targets'}
+&gt; Running step b2a1e6ee-2120-498d-b83d-bfaa372b0646. Step input: ConocoPhillips Net-Zero and Emissions targets
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_2023-conocophillips-aim-presentation
+Action Input: {'input': 'ConocoPhillips Net-Zero and Emissions targets'}
+Observation: ConocoPhillips is progressing toward its 2050 net-zero ambition and accelerating its 2030 GHG emissions intensity reduction target. They plan to reduce GHG intensity 50-60% by 2030 and have a near-zero methane intensity target of &lt;1.5 kg CO2e/BOE. They are also aiming for zero routine flaring by 2025.
+
+&gt; Running step 9b83e468-2f60-431e-940d-646ae3abca87. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: ConocoPhillips is working towards its 2050 net-zero ambition. They are accelerating their 2030 GHG emissions intensity reduction target to 50-60% and have a near-zero methane intensity target of &lt;1.5 kg CO2e/BOE. They also aim for zero routine flaring by 2025.
+Observation: ConocoPhillips is working towards its 2050 net-zero ambition. They are accelerating their 2030 GHG emissions intensity reduction target to 50-60% and have a near-zero methane intensity target of &lt;1.5 kg CO2e/BOE. They also aim for zero routine flaring by 2025.
+&gt; Running step 52cb3db4-88f0-4e6c-98a2-85289b0dd630. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: ConocoPhillips plans to meet its Net-Zero ambition by 2050. They are accelerating their 2030 GHG emissions intensity reduction target to 50-60% and have a near-zero methane intensity target of &lt;1.5 kg CO2e/BOE. They also aim for zero routine flaring by 2025.
+&gt; Running step a9a3e10f-d4aa-4e20-afd1-fb3b6a6f4cb2. Step input: What is ConocoPhillips strategy to grow production?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_2023-conocophillips-aim-presentation
+Action Input: {'input': 'ConocoPhillips production growth strategy'}
+&gt; Running step 379518d2-dcd9-4126-96b0-6b262201571f. Step input: ConocoPhillips production growth strategy
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_2023-conocophillips-aim-presentation
+Action Input: {'input': 'ConocoPhillips production growth strategy'}
+Observation: ConocoPhillips has a strategy for capital-efficient production growth that underpins growing distribution capacity. They have a material low cost of supply resource base, leveraging existing infrastructure, with an average cost of supply of ~$30/BBL. Their production mix consists of approximately 60% oil, 5% NGL, 5% North American Gas, and 30% International Gas. They anticipate a 4% CAGR at ~40% reinvestment rate over the next 10 years at $60/BBL WTI.
+
+&gt; Running step 36765352-5b93-4eac-b04d-c74a685229f3. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: ConocoPhillips' production growth strategy focuses on capital-efficient growth to support increasing distribution capacity. They leverage a substantial, low-cost supply resource base, utilizing existing infrastructure, with an average supply cost of approximately $30 per barrel. Their production is composed of roughly 60% oil, 5% NGL, 5% North American Gas, and 30% International Gas. They project a 4% compound annual growth rate (CAGR) with about a 40% reinvestment rate over the next decade, assuming a West Texas Intermediate (WTI) crude oil price of $60 per barrel.
+Observation: ConocoPhillips' production growth strategy focuses on capital-efficient growth to support increasing distribution capacity. They leverage a substantial, low-cost supply resource base, utilizing existing infrastructure, with an average supply cost of approximately $30 per barrel. Their production is composed of roughly 60% oil, 5% NGL, 5% North American Gas, and 30% International Gas. They project a 4% compound annual growth rate (CAGR) with about a 40% reinvestment rate over the next decade, assuming a West Texas Intermediate (WTI) crude oil price of $60 per barrel.
+&gt; Running step 4fb25291-2915-4d64-b88a-2eba67a1f58d. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: ConocoPhillips' strategy to grow production involves capital-efficient growth supported by a substantial, low-cost resource base and existing infrastructure. They aim for a 4% compound annual growth rate (CAGR) over the next decade, with a reinvestment rate of about 40%, assuming a WTI crude oil price of $60 per barrel.
+&gt; Running step 271b97c5-318f-4709-9689-2efaa1692bfc. Step input: What are the key features and capabilities of the XC9500 In-System Programmable CPLD family?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_XC9500_CPLD_Family
+Action Input: {'input': 'key features and capabilities of XC9500 CPLD family'}
+&gt; Running step 38da0c2b-6f77-4b3e-998d-22dec2f0435f. Step input: key features and capabilities of XC9500 CPLD family
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_XC9500_CPLD_Family
+Action Input: {'input': 'key features and capabilities of XC9500 CPLD family'}
+Observation: The XC9500 CPLD family offers in-system programmability and testing for general purpose logic integration. Devices are in-system programmable for a minimum of 10,000 program/erase cycles and include IEEE 1149.1 (JTAG) boundary-scan support.
+
+Key features include:
+
+*   High-performance with 5 ns pin-to-pin logic delays and fCNT to 125 MHz.
+*   A density range of 36 to 288 macrocells, equating to 800 to 6,400 usable gates.
+*   5V in-system programmability with 10,000 program/erase cycle endurance.
+*   Enhanced pin-locking architecture.
+*   Flexible 36V18 Function Block with 90 product terms driving up to 18 macrocells.
+*   Global and product term clocks, output enables, set and reset signals.
+*   Extensive IEEE Std 1149.1 boundary-scan (JTAG) support.
+*   Programmable power reduction mode in each macrocell.
+*   Slew rate control on individual outputs.
+*   User programmable ground pin capability.
+*   Extended pattern security features for design protection.
+*   High-drive 24 mA outputs.
+*   3.3V or 5V I/O capability.
+*   Advanced CMOS 5V FastFLASH™ technology.
+*   Support for parallel programming of multiple devices.
+
+The architecture includes features such as enhanced pin-locking, an expanded JTAG instruction set, and in-system programming across the full device operating range. Additional system features include output slew rate control, user-programmable ground pins, and configurable I/Os for 3.3V or 5V operation. All outputs provide 24 mA drive. The devices also offer a low-power mode for individual or all macrocells.
+
+&gt; Running step ad6a2bf8-8a03-4f32-a6f9-fae02d7d9e56. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: The XC9500 CPLD family provides in-system programmability and testing. Key features include high performance (5 ns pin-to-pin delays, 125 MHz fCNT), densities from 36 to 288 macrocells (800 to 6,400 gates), 5V in-system programmability (10,000 cycles), enhanced pin-locking, flexible function blocks, global/product term clocks, JTAG support, programmable power reduction, slew rate control, user-programmable ground pins, extended pattern security, high-drive 24 mA outputs, 3.3V/5V I/O capability, and advanced CMOS FastFLASH technology. It also supports parallel programming, expanded JTAG, and configurable I/Os.
+Observation: The XC9500 CPLD family provides in-system programmability and testing. Key features include high performance (5 ns pin-to-pin delays, 125 MHz fCNT), densities from 36 to 288 macrocells (800 to 6,400 gates), 5V in-system programmability (10,000 cycles), enhanced pin-locking, flexible function blocks, global/product term clocks, JTAG support, programmable power reduction, slew rate control, user-programmable ground pins, extended pattern security, high-drive 24 mA outputs, 3.3V/5V I/O capability, and advanced CMOS FastFLASH technology. It also supports parallel programming, expanded JTAG, and configurable I/Os.
+&gt; Running step 125f1de5-aa3e-48fa-b445-a0a836de904e. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: The key features and capabilities of the XC9500 In-System Programmable CPLD family include: high performance with 5 ns pin-to-pin delays and 125 MHz fCNT, densities ranging from 36 to 288 macrocells (800 to 6,400 gates), 5V in-system programmability with 10,000 program/erase cycles, enhanced pin-locking architecture, flexible Function Blocks, global and product term clocks, extensive JTAG support, programmable power reduction, slew rate control, user-programmable ground pins, extended pattern security, high-drive 24 mA outputs, 3.3V/5V I/O capability, advanced CMOS FastFLASH technology, support for parallel programming, expanded JTAG, and configurable I/Os.
+&gt; Running step 7813cb38-11bb-41dd-b88b-5c5b044ba777. Step input: How does the Fast CONNECT switch matrix enable flexible signal routing and logic implementation within the XC9500 devices?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_XC9500_CPLD_Family
+Action Input: {'input': 'Fast CONNECT switch matrix'}
+&gt; Running step 5de85ea0-fe67-49a5-a791-1ee39c77be35. Step input: Fast CONNECT switch matrix
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_XC9500_CPLD_Family
+Action Input: {'input': 'Fast CONNECT switch matrix'}
+Observation: The Fast CONNECT switch matrix connects signals to the Function Block (FB) inputs. All I/O Block (IOB) outputs (corresponding to user pin inputs) and all FB outputs drive the Fast CONNECT matrix. Any of these signals (up to a FB fan-in limit of 36) may be selected, through user programming, to drive each FB with a uniform delay. The Fast CONNECT switch matrix can combine multiple internal connections into a single wired-AND output before driving the destination FB. This provides additional logic capability and increases the effective logic fan-in of the destination FB without any additional timing delay. This capability is available for internal connections originating from FB outputs only and is automatically invoked by the development software where applicable.
+
+&gt; Running step 7e74704f-8e13-4efd-bf1d-d2d80fc9a54e. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: The Fast CONNECT switch matrix connects signals to the Function Block (FB) inputs. All I/O Block (IOB) outputs (corresponding to user pin inputs) and all FB outputs drive the Fast CONNECT matrix. Any of these signals (up to a FB fan-in limit of 36) may be selected, through user programming, to drive each FB with a uniform delay. The Fast CONNECT switch matrix can combine multiple internal connections into a single wired-AND output before driving the destination FB. This provides additional logic capability and increases the effective logic fan-in of the destination FB without any additional timing delay. This capability is available for internal connections originating from FB outputs only and is automatically invoked by the development software where applicable.
+Observation: The Fast CONNECT switch matrix connects signals to the Function Block (FB) inputs. All I/O Block (IOB) outputs (corresponding to user pin inputs) and all FB outputs drive the Fast CONNECT matrix. Any of these signals (up to a FB fan-in limit of 36) may be selected, through user programming, to drive each FB with a uniform delay. The Fast CONNECT switch matrix can combine multiple internal connections into a single wired-AND output before driving the destination FB. This provides additional logic capability and increases the effective logic fan-in of the destination FB without any additional timing delay. This capability is available for internal connections originating from FB outputs only and is automatically invoked by the development software where applicable.
+&gt; Running step 6bfc34d0-b396-4ee0-aafe-6d14f487229b. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: The Fast CONNECT switch matrix enables flexible signal routing by allowing any I/O Block (IOB) output (corresponding to user pin inputs) and all Function Block (FB) outputs to drive the matrix. User programming can select up to 36 of these signals to drive each FB with a uniform delay. It also increases logic implementation flexibility by combining multiple internal connections into a single wired-AND output before driving the destination FB, increasing the effective logic fan-in of the destination FB without additional timing delay.
+&gt; Running step 1d68eac4-1bf1-439d-a3d5-ede073dd7907. Step input: What design security options are available in the XC9500 family, and how do they protect programming data?
+Thought: The current language of the user is: English. I need to find information about design security options in the XC9500 family.
+Action: tool_XC9500_CPLD_Family
+Action Input: {'input': 'design security'}
+&gt; Running step dca71de5-ce54-4035-81af-13b0d874fda6. Step input: design security
+Thought: The current language of the user is: english. I need to use a tool to help me answer the question.
+Action: vector_tool_XC9500_CPLD_Family
+Action Input: {'input': 'design security'}
+Observation: XC9500 devices have advanced data security features that protect programming data against unauthorized reading or accidental erasure/reprogramming. There are four security settings available. The read security bits can be set to prevent the internal programming pattern from being read or copied, which also inhibits further program operations but allows device erasure. The write security bits provide added protection against accidental device erasure or reprogramming when the JTAG pins are subject to noise. Once set, the write-protection may be deactivated when the device needs to be reprogrammed with a valid pattern.
+
+&gt; Running step 8d883c8c-aaa2-4dc0-874e-625773179440. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: XC9500 devices offer advanced data security features to safeguard programming data from unauthorized access or accidental erasure/reprogramming. These devices provide four security settings, including read security bits to prevent internal programming pattern reading or copying (while still allowing device erasure) and write security bits for added protection against accidental device erasure or reprogramming, which can be deactivated for reprogramming with a valid pattern.
+Observation: XC9500 devices offer advanced data security features to safeguard programming data from unauthorized access or accidental erasure/reprogramming. These devices provide four security settings, including read security bits to prevent internal programming pattern reading or copying (while still allowing device erasure) and write security bits for added protection against accidental device erasure or reprogramming, which can be deactivated for reprogramming with a valid pattern.
+&gt; Running step d27647c5-3477-4090-82b9-09ce5c02f89f. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: The XC9500 family offers advanced data security features to protect programming data. It provides four security settings, including read security bits to prevent internal programming pattern reading or copying (while still allowing device erasure) and write security bits for added protection against accidental device erasure or reprogramming, which can be deactivated for reprogramming with a valid pattern.
+&gt; Running step 10dc49fa-9fbd-40d4-a72e-1d84eda84d54. Step input: What strategies are companies implementing to address tax transformation in a data-driven world?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_dttl-tax-technology-report-2023
+Action Input: {'input': 'strategies for tax transformation in a data-driven world'}
+&gt; Running step 9819b07e-37da-4fd9-9dac-a93d8b6e7e18. Step input: strategies for tax transformation in a data-driven world
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_dttl-tax-technology-report-2023
+Action Input: {'input': 'strategies for tax transformation in a data-driven world'}
+Observation: To meet complex tax obligations, real-time reporting requirements, and increasing expectations of tax transparency, firms need immediate access to reliable, accurate, and fit-for-purpose tax data. Businesses should consider customizing existing ERP systems and identifying appropriate issues, involving the right stakeholders internally, obtaining budget when there are competing demands, and devising a robust schedule of maintenance. Tax departments are encouraged to develop a road map to use available technology, identify future needs, and then make build-or-buy decisions. Embedding tax into everyday processes and operations will lead to tax considerations in transformation efforts becoming "business as usual," making building the business case for technology investment less onerous.
+
+&gt; Running step a498dc3f-6f71-44cc-9add-db894c222e83. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: To transform tax in a data-driven world, businesses should focus on:
+
+*   Ensuring immediate access to reliable, accurate, and fit-for-purpose tax data to meet complex obligations, real-time reporting, and transparency expectations.
+*   Customizing existing ERP systems and addressing relevant issues.
+*   Involving the right internal stakeholders.
+*   Securing budget despite competing demands.
+*   Creating a robust maintenance schedule.
+*   Developing a technology roadmap to address current and future needs, guiding build-or-buy decisions.
+*   Embedding tax into everyday processes to make tax considerations routine in transformation efforts, simplifying the justification for technology investments.
+Observation: To transform tax in a data-driven world, businesses should focus on:
+
+*   Ensuring immediate access to reliable, accurate, and fit-for-purpose tax data to meet complex obligations, real-time reporting, and transparency expectations.
+*   Customizing existing ERP systems and addressing relevant issues.
+*   Involving the right internal stakeholders.
+*   Securing budget despite competing demands.
+*   Creating a robust maintenance schedule.
+*   Developing a technology roadmap to address current and future needs, guiding build-or-buy decisions.
+*   Embedding tax into everyday processes to make tax considerations routine in transformation efforts, simplifying the justification for technology investments.
+&gt; Running step f859adbd-5e63-4539-89f0-c13f01b9f2d2. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Companies are implementing strategies such as ensuring immediate access to reliable and accurate tax data, customizing ERP systems, involving internal stakeholders, securing budgets, creating maintenance schedules, developing technology roadmaps, and embedding tax into everyday processes to address tax transformation in a data-driven world.
+&gt; Running step 913a33a5-23de-43aa-a220-b71d419a6011. Step input: How can tax departments effectively invest in technology to meet compliance and strategic goals?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_dttl-tax-technology-report-2023
+Action Input: {'input': 'How can tax departments effectively invest in technology to meet compliance and strategic goals?'}
+&gt; Running step 11574750-b6fa-48a0-b5c2-90b73fc01b01. Step input: How can tax departments effectively invest in technology to meet compliance and strategic goals?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_dttl-tax-technology-report-2023
+Action Input: {'input': 'effective technology investment for tax compliance and strategic goals'}
+Observation: To effectively invest in technology, tax departments should first secure a budget and create a roadmap that leverages existing technology, identifies future needs, and guides build-or-buy decisions. Taking a top-down approach and explaining the impact of tax authority digitalization to the C-suite, as well as collaborating with the IT department, can help build a strong value case for budget. It's important to consider the long-term potential requirements, as finding a short-term solution without considering future needs may prevent the tax department from becoming a strategic advisor.
+
+When choosing technology, tax departments can implement using internal resources, appoint an implementation partner, or outsource the entire function requiring the technology. If using in-house resources, developing professional teams with data management and technology expertise is essential, especially in data analytics, strategic insights, and data management.
+
+&gt; Running step cf222cb7-a4c1-4012-9c72-6e32be1215b5. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: To effectively invest in technology for tax compliance and strategic goals, tax departments should:
+
+1.  **Secure a budget and create a roadmap:** This roadmap should leverage existing technology, identify future needs, and guide build-or-buy decisions. A top-down approach, explaining the impact of tax authority digitalization to the C-suite, and collaboration with the IT department can help build a strong value case for budget.
+2.  **Consider long-term potential requirements:** Avoid short-term solutions that may hinder the tax department's ability to become a strategic advisor.
+3.  **Choose an implementation approach:** Options include using internal resources, appointing an implementation partner, or outsourcing the entire function.
+4.  **Develop professional teams:** If using in-house resources, create teams with data management and technology expertise, especially in data analytics, strategic insights, and data management.
+Observation: To effectively invest in technology for tax compliance and strategic goals, tax departments should:
+
+1.  **Secure a budget and create a roadmap:** This roadmap should leverage existing technology, identify future needs, and guide build-or-buy decisions. A top-down approach, explaining the impact of tax authority digitalization to the C-suite, and collaboration with the IT department can help build a strong value case for budget.
+2.  **Consider long-term potential requirements:** Avoid short-term solutions that may hinder the tax department's ability to become a strategic advisor.
+3.  **Choose an implementation approach:** Options include using internal resources, appointing an implementation partner, or outsourcing the entire function.
+4.  **Develop professional teams:** If using in-house resources, create teams with data management and technology expertise, especially in data analytics, strategic insights, and data management.
+&gt; Running step 62f00f19-9819-4183-a8d5-52fac1c5a514. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: To effectively invest in technology for tax compliance and strategic goals, tax departments should secure a budget and create a roadmap that leverages existing technology and identifies future needs. They should also consider long-term potential requirements, choose an appropriate implementation approach (internal resources, partner, or outsourcing), and develop professional teams with data management and technology expertise.
+&gt; Running step cf14f83c-b67b-49a2-9429-4e9180ce5411. Step input: How can tax departments collaborate internally to secure budget and ensure technology alignment?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_dttl-tax-technology-report-2023
+Action Input: {'input': 'internal collaboration in tax departments to secure budget and ensure technology alignment'}
+&gt; Running step 7f6e4001-7126-4e9b-87fd-e2713553240b. Step input: internal collaboration in tax departments to secure budget and ensure technology alignment
+Thought: The current language of the user is: English. I need to use a tool to find information about internal collaboration in tax departments to secure budget and ensure technology alignment.
+Action: vector_tool_dttl-tax-technology-report-2023
+Action Input: {'input': 'internal collaboration in tax departments to secure budget and ensure technology alignment'}
+Observation: To make a case for budget, tax departments need to show the value they bring to the company, explain how tax authority digitalization impacts the C-suite, and work with the IT department. Companies that have taken a top-down approach have been more successful in building this value case.
+
+When seeking technology, best practice includes securing a budget and creating a road map to utilize available technology, identify future needs, and then decide whether to build or buy. A holistic view of the tax department's operating model is useful at this point to increase speed and accuracy, and free up tax professionals for more strategic business activity.
+
+When asked about the greatest need for skills over the next three to five years, respondents most often named data analytics, data-driven strategic insights, and data management.
+
+&gt; Running step 55db2b52-becf-4e0f-a00e-299c4a5048bb. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: To secure budget for tax technology, tax departments need to demonstrate their value to the company, explain the impact of tax authority digitalization on the C-suite, and collaborate with the IT department. Companies adopting a top-down approach have seen more success in building this value case. Best practices include creating a roadmap to utilize available technology, identifying future needs, and deciding whether to build or buy, all while maintaining a holistic view of the tax department's operating model.
+Observation: To secure budget for tax technology, tax departments need to demonstrate their value to the company, explain the impact of tax authority digitalization on the C-suite, and collaborate with the IT department. Companies adopting a top-down approach have seen more success in building this value case. Best practices include creating a roadmap to utilize available technology, identifying future needs, and deciding whether to build or buy, all while maintaining a holistic view of the tax department's operating model.
+&gt; Running step e35d23b0-83b9-4d79-b225-c08ea46ecec1. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Tax departments can collaborate internally to secure budget and ensure technology alignment by demonstrating their value to the company, explaining the impact of tax authority digitalization to the C-suite, and collaborating with the IT department. Creating a roadmap to utilize available technology, identifying future needs, and deciding whether to build or buy, all while maintaining a holistic view of the tax department's operating model are best practices. Companies adopting a top-down approach have seen more success in building this value case.
+------------------------------
+Query: What are the vulnerabilities introduced by relying on application programming interfaces (APIs) in Banking as a Service (BaaS)?
+Response: Relying on application programming interfaces (APIs) in Banking as a Service (BaaS) introduces vulnerabilities that can put customer data and funds at risk from phishing and social engineering. Flawed APIs can also provide a backdoor for hackers. Furthermore, noncompliance with data privacy rules by BaaS providers can expose partner banks to reputational risks.
+------------------------------
+Query: What mitigation opportunities are there to ensure strong security for BaaS platforms and API connectivity?
+Response: To ensure strong security for BaaS platforms and API connectivity, the industry can use input validation protocols and apply network segmentation and access control measures. Improving due diligence on BaaS providers and facilitating institutional knowledge transfer from banks to BaaS partners for better risk management and compliance are also beneficial mitigation strategies.
+------------------------------
+Query: How can the industry best improve due diligence on BaaS providers in this landscape?
+Response: The industry can improve due diligence on BaaS providers by implementing strong security measures for BaaS platforms and thoroughly vetting BaaS partners.
+------------------------------
+Query: What are the common objectives of the Open Data ecosystem?
+Response: The common objectives of the Open Data ecosystem are to promote innovation, create secure data sharing methods, improve consumer data privacy and portability, and foster cross-sectoral collaboration and interoperability.
+------------------------------
+Query: What are key strategic decisions to be made by ecosystem participants?
+Response: Key strategic decisions for ecosystem participants involve establishing symbiotic relationships, facilitating data sharing with client consent, ensuring interoperability, broadening data usage, and prioritizing cyber-security and operational resilience to foster trust.
+------------------------------
+Query: How can the public and private sectors collaborate to promote innovation, secure data sharing, and data privacy within the Open Data ecosystem?
+Response: The public and private sectors can collaborate within the Open Data ecosystem by fostering cross-sectoral partnerships to create common data spaces. This collaboration promotes innovation, secure data sharing methods, and improvements in consumer data privacy.
+------------------------------
+Query: What are the key characteristics that define the Leaders, Major Contenders, and Aspirants within the Life Sciences Smart Manufacturing Services PEAK Matrix?
+Response: The key characteristics are:
+
+*   **Leaders:** Act as digital transformation partners with end-to-end capabilities, balanced offerings, flexible engagement models, specialized talent, strong partnerships, and a clear roadmap for enhancing capabilities.
+*   **Major Contenders:** Have a less balanced portfolio, often specializing in specific areas, with limited solutions for high-growth areas. They leverage cross-industry resources and focus on the mid-tier client segment.
+*   **Aspirants:** Have a restricted focus, limited digital service capabilities and partnership ecosystem, and concentrate on capturing market share in the small and midsize buyer segment.
+------------------------------
+Query: What are some of the solutions that can assist biopharma and MedTech manufacturers with insights that help optimize manufacturing processes and improve product quality?
+Response: CognitiveSpark for manufacturing is a cloud-based, AI-powered solution designed to assist biopharma and MedTech manufacturers with insights that help optimize manufacturing processes and improve product quality.
+------------------------------
+Query: How are different areas of a manufacturing line benefiting from AI?
+Response: AI is benefiting different areas of manufacturing lines through applications like digital twins and predictive maintenance. It also provides better visibility into supply chains and offers platforms for a comprehensive view of manufacturing operations with connected data, dynamic data visualizations, predictive analytics, and quality analytics.
+------------------------------
+Query: What are ConocoPhillips' key financial priorities for the next 10 years?
+Response: ConocoPhillips' key financial priorities for the next 10 years include: peer-leading ROCE improvement, top quartile ordinary dividend growth, distribution of over 90% of market cap, a ~$35/BBL WTI FCF breakeven, ~6% CFO CAGR, ~11% FCF CAGR, and remaining unhedged for price upside.
+------------------------------
+Query: How does ConocoPhillips plan to meet it's Net-Zero and Emissions targets?
+Response: ConocoPhillips plans to meet its Net-Zero ambition by 2050. They are accelerating their 2030 GHG emissions intensity reduction target to 50-60% and have a near-zero methane intensity target of &lt;1.5 kg CO2e/BOE. They also aim for zero routine flaring by 2025.
+------------------------------
+Query: What is ConocoPhillips strategy to grow production?
+Response: ConocoPhillips' strategy to grow production involves capital-efficient growth supported by a substantial, low-cost resource base and existing infrastructure. They aim for a 4% compound annual growth rate (CAGR) over the next decade, with a reinvestment rate of about 40%, assuming a WTI crude oil price of $60 per barrel.
+------------------------------
+Query: What are the key features and capabilities of the XC9500 In-System Programmable CPLD family?
+Response: The key features and capabilities of the XC9500 In-System Programmable CPLD family include: high performance with 5 ns pin-to-pin delays and 125 MHz fCNT, densities ranging from 36 to 288 macrocells (800 to 6,400 gates), 5V in-system programmability with 10,000 program/erase cycles, enhanced pin-locking architecture, flexible Function Blocks, global and product term clocks, extensive JTAG support, programmable power reduction, slew rate control, user-programmable ground pins, extended pattern security, high-drive 24 mA outputs, 3.3V/5V I/O capability, advanced CMOS FastFLASH technology, support for parallel programming, expanded JTAG, and configurable I/Os.
+------------------------------
+Query: How does the Fast CONNECT switch matrix enable flexible signal routing and logic implementation within the XC9500 devices?
+Response: The Fast CONNECT switch matrix enables flexible signal routing by allowing any I/O Block (IOB) output (corresponding to user pin inputs) and all Function Block (FB) outputs to drive the matrix. User programming can select up to 36 of these signals to drive each FB with a uniform delay. It also increases logic implementation flexibility by combining multiple internal connections into a single wired-AND output before driving the destination FB, increasing the effective logic fan-in of the destination FB without additional timing delay.
+------------------------------
+Query: What design security options are available in the XC9500 family, and how do they protect programming data?
+Response: The XC9500 family offers advanced data security features to protect programming data. It provides four security settings, including read security bits to prevent internal programming pattern reading or copying (while still allowing device erasure) and write security bits for added protection against accidental device erasure or reprogramming, which can be deactivated for reprogramming with a valid pattern.
+------------------------------
+Query: What strategies are companies implementing to address tax transformation in a data-driven world?
+Response: Companies are implementing strategies such as ensuring immediate access to reliable and accurate tax data, customizing ERP systems, involving internal stakeholders, securing budgets, creating maintenance schedules, developing technology roadmaps, and embedding tax into everyday processes to address tax transformation in a data-driven world.
+------------------------------
+Query: How can tax departments effectively invest in technology to meet compliance and strategic goals?
+Response: To effectively invest in technology for tax compliance and strategic goals, tax departments should secure a budget and create a roadmap that leverages existing technology and identifies future needs. They should also consider long-term potential requirements, choose an appropriate implementation approach (internal resources, partner, or outsourcing), and develop professional teams with data management and technology expertise.
+------------------------------
+Query: How can tax departments collaborate internally to secure budget and ensure technology alignment?
+Response: Tax departments can collaborate internally to secure budget and ensure technology alignment by demonstrating their value to the company, explaining the impact of tax authority digitalization to the C-suite, and collaborating with the IT department. Creating a roadmap to utilize available technology, identifying future needs, and deciding whether to build or buy, all while maintaining a holistic view of the tax department's operating model are best practices. Companies adopting a top-down approach have seen more success in building this value case.</code></pre>
+</div>
+</div>
+<a class="quarto-notebook-link" id="nblink-1" href="notebooks/_query_multi_pdfs_example-preview.html#379e304426a9197c">Source: ReActAgent: Querying Multiple PDFs Example</a></div>
+<p>Let’s analyze the output of the ReAct Agent for a specific query: What are the vulnerabilities introduced by relying on application programming interfaces (APIs) in Banking as a Service (BaaS)?</p>
+<pre><code>&gt; Running step 0dc45634-70c7-4656-9b12-fc2b086848ce. Step input: What are the vulnerabilities introduced by relying on application programming interfaces (APIs) in Banking as a Service (BaaS)?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_deloitte-tech-risk-sector-banking
+Action Input: {'input': 'vulnerabilities of APIs in Banking as a Service (BaaS)'}
+&gt; Running step b574597e-591e-42f5-b2fe-075603369f1c. Step input: vulnerabilities of APIs in Banking as a Service (BaaS)
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_deloitte-tech-risk-sector-banking
+Action Input: {'input': 'API vulnerabilities in Banking as a Service (BaaS)'}
+Observation: BaaS increasingly relies on application programming interfaces, introducing vulnerabilities that can pose risks for banks, such as customers' sensitive data and funds being at risk from phishing and social engineering attacks, flawed APIs providing a back door for hackers to penetrate banks' systems and noncompliance with data privacy rules by BaaS providers exposing partner banks to reputational risks.
+
+&gt; Running step ab6397c0-d075-499f-8d74-ce5ef25de495. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Banking as a Service (BaaS) relies heavily on APIs, which introduces vulnerabilities. These vulnerabilities can lead to risks for banks, including customer data and funds being at risk from phishing and social engineering, flawed APIs providing a backdoor for hackers, and noncompliance with data privacy rules by BaaS providers exposing partner banks to reputational risks.
+Observation: Banking as a Service (BaaS) relies heavily on APIs, which introduces vulnerabilities. These vulnerabilities can lead to risks for banks, including customer data and funds being at risk from phishing and social engineering, flawed APIs providing a backdoor for hackers, and noncompliance with data privacy rules by BaaS providers exposing partner banks to reputational risks.
+&gt; Running step 8b2c762a-4a21-47ad-81f9-5dba4bb5e0f3. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Relying on application programming interfaces (APIs) in Banking as a Service (BaaS) introduces vulnerabilities that can put customer data and funds at risk from phishing and social engineering. Flawed APIs can also provide a backdoor for hackers. Furthermore, noncompliance with data privacy rules by BaaS providers can expose partner banks to reputational risks.</code></pre>
+<p>Here’s a step-by-step explanation:</p>
+<p><strong>What are the vulnerabilities introduced by relying on application programming interfaces (APIs) in Banking as a Service (BaaS)?</strong></p>
+<ol type="1">
+<li><p><strong>Initial Thought:</strong> The agent recognizes the need for a tool to answer the question.</p></li>
+<li><p><strong>Action (tool selection):</strong> The agent selects the <code>tool_deloitte-tech-risk-sector-banking</code>. This indicates that the agent has identified the appropriate source document for answering the question. It has arrived at this decision by retrieving tools based on the tools metadata.</p></li>
+<li><p><strong>Action Input:</strong> The agent provides <code>{'input': 'vulnerabilities of APIs in Banking as a Service (BaaS)'}</code> as input to the chosen tool. This represents the refined query or search terms to be used within the selected document.</p></li>
+<li><p><strong>Secondary Thought:</strong> The agent reiterates the need for a tool: either querying the Vector Index or the Summary Index.</p></li>
+<li><p><strong>Secondary Action:</strong> The agent selects <code>vector_tool_deloitte-tech-risk-sector-banking</code>. This is the vector query engine associated with the deloitte document, meaning it’s going to use semantic search on the document’s content.</p></li>
+<li><p><strong>Observation:</strong> The agent receives the following observation from the <code>vector_tool_deloitte-tech-risk-sector-banking</code>:</p>
+<pre><code>BaaS increasingly relies on application programming interfaces, introducing vulnerabilities that can pose risks for banks, such as customers' sensitive data and funds being at risk from phishing and social engineering attacks, flawed APIs providing a back door for hackers to penetrate banks' systems and noncompliance with data privacy rules by BaaS providers exposing partner banks to reputational risks.</code></pre></li>
+<li><p><strong>Thought:</strong> The agent decides it has enough information to answer the question without further tool usage.</p></li>
+<li><p><strong>Answer:</strong> The agent provides a concise answer in English, summarizing the vulnerabilities: customer data/funds at risk, backdoor for hackers, and noncompliance with data privacy rules.</p></li>
+<li><p><strong>Observation &amp; Answer Redux:</strong> The agent repeats its reasoning and repeats the final answer</p></li>
+</ol>
+<p><strong>Key Observations:</strong></p>
+<ul>
+<li><strong>ReAct Loop:</strong> The agent follows the ReAct loop (Reason, Act, Observe). It reasons about the question, selects a tool (Action), observes the tool’s output (Observation), and then decides on the next step.</li>
+<li><strong>Tool Selection:</strong> The agent correctly identifies and uses the appropriate tool (document) for each question. This demonstrates the agent’s ability to choose the right knowledge source.</li>
+<li><strong>Semantic Search:</strong> The use of <code>vector_tool_deloitte-tech-risk-sector-banking</code> indicates the agent is leveraging semantic search to retrieve relevant information from the document’s vector index.</li>
+<li><strong>Concise Answers:</strong> The agent provides concise and relevant answers based on the retrieved information.</li>
+<li><strong>Redundancy:</strong> There’s a bit of redundancy in the steps, particularly the repeated “Thought” and “Observation” before the “Answer.” This is due to the specific implementation of the ReAct loop in LlamaIndex.</li>
+<li><strong>Single Document Usage:</strong> The agent doesn’t seem to be using the “compare_tool” or querying multiple documents simultaneously in these examples. All the information is coming from the Deloitte Tech Risk Sector Banking document.</li>
+</ul>
+<p>Feel free to use this notebook as a starting point for building your own multi-document query system using ReAct agents. You can adapt the code to work with your own PDF documents and queries, and explore the capabilities of the ReAct framework for document analysis and retrieval.</p>
+</section>
+</section>
+<section id="sec-conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>In this blog post, we have explored the process of extracting metadata and structure from PDF documents using Gemini and LlamaIndex. We have described the extractors used to process PDF documents, the parsers used to create hierarchical structures, and the ingestion pipeline to process multiple documents. We have also introduced a simple multi-document PDF RAG system using LlamaIndex. This system allows for querying information across multiple PDF documents and answering complex questions that require information from multiple sources. The system is designed to facilitate document comparison tasks, cross-document information retrieval, summarization across multiple documents, and fact-checking across document sets. By combining the capabilities of Gemini and LlamaIndex, we can create powerful tools for processing and analyzing PDF documents. The system provides a foundation for building more advanced document processing and retrieval systems that can handle a wide range of use cases. We hope this blog post has provided valuable insights into the process of working with PDF documents and extracting meaningful information from them.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/nbrosse\.github\.io\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
