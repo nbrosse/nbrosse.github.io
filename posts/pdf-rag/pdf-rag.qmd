@@ -1,10 +1,14 @@
 ---
-title: "PDF RAG"
+title: "PDF RAG: Enhanced PDF Processing"
 author: "Nicolas Brosse"
-date: "2025-03-10"
+date: "2025-03-20"
 categories: [deep learning, LLM, RAG]
-bibliography: pdf-rag-references.bib
 description: "PDF RAG: Exploring techniques for processing PDF documents with Language Models, including raw conversion, reformatting, structure parsing and RAG."
+notebook-links: true
+notebook-view:
+  - notebook: notebooks/_query_multi_pdfs_example.ipynb
+    title: "ReActAgent: Querying Multiple PDFs Example"
+    url: https://github.com/nbrosse/pdf-rag/blob/main/notebooks/query_multi_pdfs_example.ipynb
 ---
 
 In this blog post, we focus on RAG (Retrieval-Augmented Generation) specifically for PDF documents. We will study how PDFs can be processed for use with Language Models (LLMs). The code relies on [llama-index](https://docs.llamaindex.ai/en/stable/) package which is versatile but evolving rapidly and unstable.
@@ -18,17 +22,15 @@ However, machines, especially with page-by-page parsing, often lose the document
 This highlights the core challenge of the method: the need to process data differently as a human than as a machine, particularly to gain a holistic view of the problem.
 
 In @sec-metadata-structure, we delve into PDF metadata and structure extraction. We explore the challenges and limitations of raw conversion and the necessity of reformatting to improve document structure. We also discuss the parsing of document structure to create a hierarchical index for efficient document retrieval.
-In @sec-pdf-rag, we implement a multi-document PDF RAG system.
+In @sec-pdf-rag, we implement a multi-document PDF RAG system based on LlamaIndex, focusing on query-based document retrieval and generation.
 
-::: callout-note
-**[llama-index](https://docs.llamaindex.ai/en/stable/):** A powerful framework for building LLM applications.
-The package is however evolving rapidly and functionalities are subject to change.
+Some important resources for this blog post include:
 
-**pdf-rag GitHub Repo & HF Space PDF Metadata Demo:** Check out the code and a demo. 
+-   [pdf-rag GitHub Repo](https://github.com/nbrosse/pdf-rag): Contains the complete code for the PDF metadata extraction and RAG system described in this post
+-   [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo): Interactive demo showcasing the metadata and structure extraction capabilities
+-   [llama-index](https://docs.llamaindex.ai/en/stable/): Framework used for building the LLM application (note: actively evolving package with frequent updates)
 
-- [pdf-rag GitHub Repo](https://github.com/nbrosse/pdf-rag) 
-- [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo)
-:::
+All code paths referenced in this post are relative to the [pdf-rag GitHub Repo](https://github.com/nbrosse/pdf-rag).
 
 # PDF Metadata and Structure Extraction {#sec-metadata-structure}
 
@@ -103,14 +105,6 @@ Why do we use Gemini and Mistral models ?
 **The "RECITATION" Error in Gemini API**
 
 The RECITATION error in the Gemini API occurs when the model detects that it is generating content that closely resembles its training data, particularly copyrighted material. This error is designed to prevent the model from reproducing protected content verbatim. The issue arises unpredictably and can halt content generation mid-stream, leading to incomplete responses.
-
-Key Points:
-
--   Error Message: "Content generation stopped. Reason: RECITATION."
--   Cause: The model identifies that the generated content is too similar to its training data, especially copyrighted material.
--   Impact: Stops content generation abruptly, leading to incomplete outputs.
--   Unpredictability: The error occurs randomly and is difficult to anticipate.
--   Workarounds: Some users have found temporary solutions, such as adjusting the API's temperature and topP parameters, or including specific instructions in the prompt to avoid recitation. However, these methods are not foolproof and may affect the quality of the generated content.
 
 In this case of failure, we fall back to the Mistral model to parse the problematic pdf page.
 
@@ -762,8 +756,8 @@ The function `parse_landscape_structure` (in `src/pdf_rag/structure_parsers.py`)
 
 Both functions return a `TreeNode` object that can be traversed using breadth-first search (bfs) and supports standard tree operations like adding/removing children and setting parents.
 
-Here are the parsed structures for the portrait and landscape documents examples shown above, @lst-landscape-structure-parsed for @lst-landscape-structure-ex and @lst-portrait-structure-parsed for @lst-portrait-structure-ex.
-You can also find them on the huggingface space demo for metadata and structure [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo).
+Here are the parsed structures for both document formats, shown in @lst-landscape-structure-parsed and @lst-portrait-structure-parsed, which correspond to the raw structures in @lst-landscape-structure-ex and @lst-portrait-structure-ex respectively.
+These visualizations are also available in the [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo).
 
 Indentation shows parent/child relationships For landscape-oriented content, Numbers in \[\] represent: 
 
@@ -817,6 +811,7 @@ deloitte-tech-risk-sector-banking [-1]
 
 Given these parsed structures, we now have access to a structured representation of the document content, divided by line numbers (portrait) or page numbers (landscape). The next step is to create a hierarchical index of the processed documents to support efficient traversal and querying.
 We need several components to build this index. First, we need two types of node parsing
+
 - `MarkdownLineNodeParser`: For portrait-oriented content,
 - `MarkdownPageNodeParser`: For landscape-oriented content
 
@@ -840,11 +835,7 @@ Here's a description of the two Markdown node parser classes.
 
 The key difference is that `MarkdownLineNodeParser` focuses on header-based structure while `MarkdownPageNodeParser` focuses on page-based structure, matching the different needs of reports versus presentations.
 
-Using these parsers, we get document nodes that we can incorporate into a hierarchical index. The `TreeIndex` class (in `src/pdf_rag/tree_index.py`) extends `BaseIndex` to provide a hierarchical tree-based indexing structure for document nodes. It's specifically designed to handle both portrait (reports) and landscape (presentations) formatted documents.
-
-::: {.callout-note}
-Note that the `TreeIndex` class is part of the LlamaIndex framework, which provides a flexible and extensible indexing system for document nodes. It supports various indexing structures, including tree-based, graph-based, and vector-based indexes, to suit different document types and use cases. It is worked in progress we provide a first draft of the tree Index but do not use it. The class is not yet fully implemented.
-:::
+Using these parsers, we obtain document nodes that can be integrated into a hierarchical index. The `TreeIndex` class, located in `src/pdf_rag/tree_index.py`, extends `BaseIndex` to offer a hierarchical tree-based indexing structure for document nodes. It is specifically designed to manage both portrait (reports) and landscape (presentations) formatted documents. The `TreeIndex` class leverages the LlamaIndex framework, which provides a flexible and extensible indexing system for document nodes. Please note that this class is a work in progress; we have provided an initial draft of `TreeIndex`, but it is not yet fully implemented and should not be used in its current state.
 
 The key features of the `TreeIndex` class (in `src/pdf_rag/tree_index.py`) include:
 
@@ -898,6 +889,7 @@ The script `src/scripts/metadata_structure.py` executes all the extractors in se
 
 To execute the script, you need to provide a configuration file in YAML format. An example configuration file is provided in `configs/metadata_structure_example.yaml`.
 The configuration file includes settings for the pipeline, API keys, and file paths. The script supports three main modes:
+
 -   `ingest`: Runs only the ingestion pipeline
 -   `tree`: Creates the tree index
 -   `all`: Runs both ingestion and indexing
@@ -921,7 +913,7 @@ Then, the script creates a hierarchical index of the processed documents using t
 python scripts/metadata_structure.py --config path/to/config.yaml
 ```
 
-This script is particularly useful for organizations needing to process large collections of PDF documents and create searchable, structured knowledge bases from them.
+This script is particularly useful to process large collections of PDF documents and create searchable, structured knowledge bases from them.
 A Shiny app is provided to visualize and explore the metadata and structure of processed documents. The app allows you to:
 
 - Browse processed documents and their metadata
@@ -938,8 +930,234 @@ python src/app/app-metadata.py
 
 A live demo showcasing these capabilities is available on the [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo). The visualization interface, shown in @fig-hf-demo-metadata, provides an interactive way to explore document metadata and structure.
 
-# PDF RAG {#sec-pdf-rag}
+# PDF RAG: Multi-Document Query System {#sec-pdf-rag}
 
-The PDF RAG (PDF Retrieval and Generation) module is designed to facilitate document retrieval and generation tasks using Vision Language Models (VLMs) and advanced indexing techniques. It leverages the metadata and structure extracted from PDF documents to enable efficient search, summarization, and content generation.
+In this section, we describe a simple multi-document PDF RAG (Retrieval Augmented Generation) system using LlamaIndex. The system processes multiple PDF documents, creates specialized agents per document, and combines them into a top-level agent for cross-document queries. The system is designed to facilitate:
 
-[Multi-Document Agents llama-index notebook](https://docs.llamaindex.ai/en/stable/examples/agent/multi_document_agents-v1/)
+- Document comparison tasks
+- Cross-document information retrieval 
+- Summarization across multiple documents
+- Fact-checking across document sets
+
+Note that the system operates independently of the metadata and structure extracted from PDF documents in @sec-metadata-structure, as the `TreeIndex` described in @sec-tree-index is not yet fully implemented.
+The code in `src/pdf_rag/react_agent_multi_pdfs.py` is adapted from the [Multi-Document Agents LlamaIndex Notebook](https://docs.llamaindex.ai/en/stable/examples/agent/multi_document_agents-v1/).
+
+## Description {#sec-pdf-rag-description}
+
+The code `src/pdf_rag/react_agent_multi_pdfs.py` implements a `ReActAgentMultiPdfs` class designed for querying information from multiple PDF documents using a ReAct agent approach. The core idea is to build an agent for each PDF document, and then a "top-level" agent orchestrates the use of these individual agents to answer complex queries. It leverages LlamaIndex for indexing, querying, and agent creation, and uses Gemini for LLM and embeddings. It includes both synchronous and asynchronous methods for building agents and processing queries to utilize concurrency.
+
+**Class Definition:**
+
+```python
+class ReActAgentMultiPdfs:
+    def __init__(
+        self,
+        api_key_gemini: str,
+        api_key_mistral: str,
+        root_dir: Path,
+        pdfs_dir: Path,
+        cache_dir: Path,
+        storage_dir: Path,
+        num_workers: int = 16,
+        chunks_top_k: int = 5,
+        nodes_top_k: int = 10,
+        max_iterations: int = 20,
+        verbose: bool = True,
+    ) -> None:
+        # ... initialization logic ...
+
+```
+
+The `ReActAgentMultiPdfs` class is initialized with several parameters:
+
+*   `api_key_gemini`: API key for the Google Gemini model.
+*   `api_key_mistral`: API key for the Mistral AI model.
+*   `root_dir`: The root directory of the project.
+*   `pdfs_dir`: The directory containing the PDF files to process.
+*   `cache_dir`: The directory to store cached data.
+*   `storage_dir`: The directory to store the persisted indexes.
+*   `num_workers`: Number of workers to use for parallel processing.
+*   `chunks_top_k`: Number of top chunks to retrieve from the vector index for each document.
+*   `nodes_top_k`: Number of top nodes to retrieve from the object index.
+*   `max_iterations`: Maximum number of iterations for the ReAct agent.
+*   `verbose`: Whether to print verbose output.
+
+The constructor initializes various components including:
+
+*   `PDFDirectoryReader`: Used to load data from PDF files.
+*   `MarkdownPageNodeParser`: Used to parse documents into nodes.
+
+**Key Methods:**
+
+1.  **`_get_vector_summary_paths(self, pdf_file: Path) -> tuple[str, Path, Path, Path]`**:
+
+    *   This helper function takes a `pdf_file` path and returns paths for storing the vector index, summary index, and summary text file, respectively.
+    *   It ensures that the paths are unique based on the PDF filename and are stored within the specified `storage_dir`.
+    *   Critically it cleans the filenames, replacing spaces and parentheses with underscores, which is essential to avoid issues with LLM tool parsing.
+
+2.  **`build_agent_per_doc(self, pdf_file: Path) -> tuple[ReActAgent, str]`**:
+
+    *   This method is the heart of the per-document agent creation process.
+    *   It takes a `pdf_file` path as input.
+    *   It first checks if the vector and summary indexes already exist at the paths defined by `_get_vector_summary_paths`. If they do, it loads them from disk; otherwise, it creates them.
+    *   **Index Creation:**  Loads the PDF data using `self._pdf_reader`, parses it into nodes using `self._markdown_parser`, and then builds both a `VectorStoreIndex` (for semantic search) and a `SummaryIndex` (for generating summaries).  These are persisted to disk using `storage_context.persist`.
+    *   **Query Engine Creation:** Creates two query engines: `vector_query_engine` using the vector index and `summary_query_engine` using the summary index. The `vector_query_engine` uses `FullPagePostprocessor` to retrieve the full page for context.
+    *   **Summary Extraction:** Extracts a summary of the document using the `summary_query_engine` and stores it in a text file.
+    *   **Tool Definition:** Defines two `QueryEngineTool`s: one for the vector query engine and one for the summary query engine. These tools are used by the ReAct agent to answer questions. Each tool has a descriptive name and description that informs the agent when to use it.
+    *   **Agent Creation:** Creates a `ReActAgent` from the defined tools and a system prompt that instructs the agent on how to use the tools. The system prompt emphasizes the need to use the tools and avoid relying on prior knowledge.
+    *   Returns the created `ReActAgent` and the document summary.
+
+3.  **`abuild_agent_per_doc(self, pdf_file: Path) -> tuple[ReActAgent, str]`**:
+
+    *   This is the asynchronous version of `build_agent_per_doc`.
+    *   It uses `async` and `await` keywords to perform asynchronous operations, particularly when loading data using `self._pdf_reader.aload_data` and querying the summary engine.
+    *   The rest of the logic is very similar to the synchronous version.
+
+4.  **`build_agents(self) -> tuple[dict[str, ReActAgent], dict[str, dict]]`**:
+
+    *   This method iterates through all PDF files in the `self._pdfs_dir` directory.
+    *   For each PDF file, it calls `self.build_agent_per_doc` to create an agent and extract a summary.
+    *   It stores the agents in a dictionary `agents_dict` and the summaries in a dictionary `extra_info_dict`.
+    *   Returns the dictionaries of agents and extra information.
+
+5.  **`abuild_agents(self) -> tuple[dict[str, ReActAgent], dict[str, dict]]`**:
+
+    *   This is the asynchronous version of `build_agents`.
+    *   It uses `asyncio.gather` (via `run_jobs` from LlamaIndex) to build the agents concurrently, improving performance.
+    *   The logic is otherwise similar to the synchronous version.
+
+6.  **`top_agent(self) -> ReActAgent`**:
+
+    *   This method creates the "top-level" ReAct agent that orchestrates the use of the per-document agents.
+    *   It first calls `self.build_agents` to create the per-document agents.
+    *   It then iterates through the agents and creates a `QueryEngineTool` for each agent, using the document summary as the tool description.
+    *   **Object Index:** Creates an `ObjectIndex` from the `QueryEngineTool`s, and then a `VectorStoreIndex` on these objects (tools).
+    *   **Custom Object Retriever:** Creates a `CustomObjectRetriever` that wraps the vector store retriever from the object index. This `CustomObjectRetriever` is critical: it *adds a query planning tool* to the retrieval process. This query planning tool is a `SubQuestionQueryEngine` which is specifically designed for comparing multiple documents.
+    *   **Top Agent Creation:** Creates the `ReActAgent` using the `CustomObjectRetriever` as the `tool_retriever`.  The system prompt instructs the agent to always use the tools provided.
+    *   It is decorated with `@cached_property` so it's only built once.
+
+7.  **`abuild_top_agent(self) -> ReActAgent`**:
+
+    *   This is the asynchronous version of `top_agent`.
+    *   It uses `await self.abuild_agents()` to build the agents asynchronously.
+    *   The rest of the logic is similar to the synchronous version.
+
+8.  **`process_queries(self, queries: list[str]) -> list[Any]`**:
+
+    *   Processes a list of queries using the synchronous `top_agent`.
+
+9.  **`aprocess_queries(self, queries: list[str]) -> list[Any]`**:
+
+    *   Processes a list of queries using the asynchronous `top_agent`.
+
+**Custom Object Retriever (`CustomObjectRetriever`)**
+
+The `CustomObjectRetriever` class inherits from `ObjectRetriever` and overrides the `retrieve` method. The important modification here is the addition of a `SubQuestionQueryEngine` as a tool. This tool is specifically designed for comparison queries across multiple documents.
+
+Here's a breakdown of the critical part of `CustomObjectRetriever.retrieve`:
+
+```python
+        sub_question_engine = SubQuestionQueryEngine.from_defaults(
+            query_engine_tools=tools,
+            llm=self._llm,
+            question_gen=LLMQuestionGenerator.from_defaults(llm=self._llm),
+        )
+        sub_question_description = f"""
+        Useful for any queries that involve comparing multiple documents. ALWAYS use this tool for comparison queries - make sure to call this
+        tool with the original query. Do NOT use the other tools for any queries involving multiple documents.
+        """
+        sub_question_tool = QueryEngineTool(
+            query_engine=sub_question_engine,
+            metadata=ToolMetadata(name="compare_tool", description=sub_question_description),
+        )
+        retrieved_tools = tools + [sub_question_tool]
+        return retrieved_tools
+```
+
+*   A `SubQuestionQueryEngine` is created, using all the per-document `tools`.  The `LLMQuestionGenerator` helps break down complex questions into sub-questions that can be answered by the individual tools.
+*   A `QueryEngineTool` is created for the `SubQuestionQueryEngine`, with a description emphasizing its use for comparison queries.
+*   This `sub_question_tool` is added to the list of retrieved tools.
+
+**Key Concepts:**
+
+*   **ReAct Agent:** A type of agent that interleaves reasoning and acting. It uses a language model to generate thoughts, actions, and observations.
+*   **Vector Store Index:** An index that stores vector embeddings of text data. This allows for efficient semantic search.
+*   **Summary Index:** An index that stores summaries of text data. This allows for efficient summarization of documents.
+*   **Query Engine:** A component that allows you to query an index.
+*   **QueryEngineTool:** A tool that allows an agent to query a query engine.
+*   **ObjectIndex:** An index that stores objects (in this case, QueryEngineTools).
+*   **ObjectRetriever:** A component that allows you to retrieve objects from an object index.
+*   **SubQuestionQueryEngine**:  A query engine that breaks down complex questions into sub-questions and answers them using a set of tools. It excels at comparison queries.
+*   **Gemini:** The LLM and embedding model used for this agent.
+
+**Overall Functionality:**
+
+The `ReActAgentMultiPdfs` class provides a system for answering complex questions based on multiple PDF documents. It works by creating an agent for each document and then creating a top-level agent that can orchestrate the use of these individual agents. The `CustomObjectRetriever` plays a crucial role in enabling the top-level agent to handle comparison queries by including a sub-question query engine as a tool. The asynchronous methods offer a way to speed up processing when dealing with many documents. This architecture allows the system to answer questions that require information from multiple documents, such as "What are the key differences between document A and document B?"
+
+## Example Usage {#sec-pdf-rag-example}
+
+We provide an example usage in the notebook `notebooks/query_multi_pdfs_example.ipynb`. The notebook demonstrates how to use the `ReActAgentMultiPdfs` class to process multiple PDF documents and answer queries across them. It includes:
+
+- Setting up the ReActAgent with multiple PDF documents
+- Processing queries about documents
+- Analyzing the agent's reasoning process and tool selection
+
+The complete example code and sample outputs are shown below, and the full notebook is available at [ReActAgent: Querying Multiple PDFs Example](https://github.com/nbrosse/pdf-rag/blob/main/notebooks/query_multi_pdfs_example.ipynb).
+
+{{< embed notebooks/_query_multi_pdfs_example.ipynb echo=true >}}
+
+Let's analyze the output of the ReAct Agent for a specific query: What are the vulnerabilities introduced by relying on application programming interfaces (APIs) in Banking as a Service (BaaS)?
+
+```
+> Running step 0dc45634-70c7-4656-9b12-fc2b086848ce. Step input: What are the vulnerabilities introduced by relying on application programming interfaces (APIs) in Banking as a Service (BaaS)?
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: tool_deloitte-tech-risk-sector-banking
+Action Input: {'input': 'vulnerabilities of APIs in Banking as a Service (BaaS)'}
+> Running step b574597e-591e-42f5-b2fe-075603369f1c. Step input: vulnerabilities of APIs in Banking as a Service (BaaS)
+Thought: The current language of the user is: English. I need to use a tool to help me answer the question.
+Action: vector_tool_deloitte-tech-risk-sector-banking
+Action Input: {'input': 'API vulnerabilities in Banking as a Service (BaaS)'}
+Observation: BaaS increasingly relies on application programming interfaces, introducing vulnerabilities that can pose risks for banks, such as customers' sensitive data and funds being at risk from phishing and social engineering attacks, flawed APIs providing a back door for hackers to penetrate banks' systems and noncompliance with data privacy rules by BaaS providers exposing partner banks to reputational risks.
+
+> Running step ab6397c0-d075-499f-8d74-ce5ef25de495. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Banking as a Service (BaaS) relies heavily on APIs, which introduces vulnerabilities. These vulnerabilities can lead to risks for banks, including customer data and funds being at risk from phishing and social engineering, flawed APIs providing a backdoor for hackers, and noncompliance with data privacy rules by BaaS providers exposing partner banks to reputational risks.
+Observation: Banking as a Service (BaaS) relies heavily on APIs, which introduces vulnerabilities. These vulnerabilities can lead to risks for banks, including customer data and funds being at risk from phishing and social engineering, flawed APIs providing a backdoor for hackers, and noncompliance with data privacy rules by BaaS providers exposing partner banks to reputational risks.
+> Running step 8b2c762a-4a21-47ad-81f9-5dba4bb5e0f3. Step input: None
+Thought: I can answer without using any more tools. I'll use the user's language to answer
+Answer: Relying on application programming interfaces (APIs) in Banking as a Service (BaaS) introduces vulnerabilities that can put customer data and funds at risk from phishing and social engineering. Flawed APIs can also provide a backdoor for hackers. Furthermore, noncompliance with data privacy rules by BaaS providers can expose partner banks to reputational risks.
+```
+
+Here's a step-by-step explanation:
+
+**What are the vulnerabilities introduced by relying on application programming interfaces (APIs) in Banking as a Service (BaaS)?**
+
+1.  **Initial Thought:** The agent recognizes the need for a tool to answer the question.
+2.  **Action (tool selection):** The agent selects the `tool_deloitte-tech-risk-sector-banking`. This indicates that the agent has identified the appropriate source document for answering the question. It has arrived at this decision by retrieving tools based on the tools metadata.
+3.  **Action Input:** The agent provides `{'input': 'vulnerabilities of APIs in Banking as a Service (BaaS)'}` as input to the chosen tool. This represents the refined query or search terms to be used within the selected document.
+4.  **Secondary Thought:**  The agent reiterates the need for a tool: either querying the Vector Index or the Summary Index.
+5.  **Secondary Action:** The agent selects `vector_tool_deloitte-tech-risk-sector-banking`. This is the vector query engine associated with the deloitte document, meaning it's going to use semantic search on the document's content.
+6.  **Observation:** The agent receives the following observation from the `vector_tool_deloitte-tech-risk-sector-banking`:
+
+    ```
+    BaaS increasingly relies on application programming interfaces, introducing vulnerabilities that can pose risks for banks, such as customers' sensitive data and funds being at risk from phishing and social engineering attacks, flawed APIs providing a back door for hackers to penetrate banks' systems and noncompliance with data privacy rules by BaaS providers exposing partner banks to reputational risks.
+    ```
+
+7.  **Thought:** The agent decides it has enough information to answer the question without further tool usage.
+8.  **Answer:** The agent provides a concise answer in English, summarizing the vulnerabilities: customer data/funds at risk, backdoor for hackers, and noncompliance with data privacy rules.
+9.  **Observation & Answer Redux:** The agent repeats its reasoning and repeats the final answer
+
+**Key Observations:**
+
+*   **ReAct Loop:** The agent follows the ReAct loop (Reason, Act, Observe).  It reasons about the question, selects a tool (Action), observes the tool's output (Observation), and then decides on the next step.
+*   **Tool Selection:** The agent correctly identifies and uses the appropriate tool (document) for each question. This demonstrates the agent's ability to choose the right knowledge source.
+*   **Semantic Search:** The use of `vector_tool_deloitte-tech-risk-sector-banking` indicates the agent is leveraging semantic search to retrieve relevant information from the document's vector index.
+*   **Concise Answers:** The agent provides concise and relevant answers based on the retrieved information.
+*   **Redundancy:** There's a bit of redundancy in the steps, particularly the repeated "Thought" and "Observation" before the "Answer." This is due to the specific implementation of the ReAct loop in LlamaIndex.
+*   **Single Document Usage:** The agent doesn't seem to be using the "compare_tool" or querying multiple documents simultaneously in these examples. All the information is coming from the Deloitte Tech Risk Sector Banking document.
+
+Feel free to use this notebook as a starting point for building your own multi-document query system using ReAct agents. You can adapt the code to work with your own PDF documents and queries, and explore the capabilities of the ReAct framework for document analysis and retrieval.
+
+# Conclusion {#sec-conclusion}
+
+In this blog post, we have explored the process of extracting metadata and structure from PDF documents using Gemini and LlamaIndex. We have described the extractors used to process PDF documents, the parsers used to create hierarchical structures, and the ingestion pipeline to process multiple documents. We have also introduced a simple multi-document PDF RAG system using LlamaIndex. This system allows for querying information across multiple PDF documents and answering complex questions that require information from multiple sources. The system is designed to facilitate document comparison tasks, cross-document information retrieval, summarization across multiple documents, and fact-checking across document sets. By combining the capabilities of Gemini and LlamaIndex, we can create powerful tools for processing and analyzing PDF documents. The system provides a foundation for building more advanced document processing and retrieval systems that can handle a wide range of use cases. We hope this blog post has provided valuable insights into the process of working with PDF documents and extracting meaningful information from them.
