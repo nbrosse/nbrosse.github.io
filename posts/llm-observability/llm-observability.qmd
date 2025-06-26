@@ -1,0 +1,156 @@
+---
+title: "LLM Observability with Langfuse and a FastHTML Chatbot"
+author: "Nicolas Brosse"
+date: "2025-06-..."
+categories: [python]
+description: ""
+---
+
+I wanted to show case here some demo of observability for LLMs
+
+Okay, here's an improved and expanded version of the content, suitable for incorporation into a document. I've filled in some logical gaps and aimed for a more formal, descriptive tone.
+
+---
+
+## Proof of Concept: LLM Observability with Langfuse and a FastHTML Chatbot
+
+**1. Introduction: The Imperative of LLM Observability**
+
+The integration of Large Language Models (LLMs) into applications brings transformative capabilities, but also introduces complexities in understanding and managing their behavior. LLM observability – the ability to monitor, trace, and debug the internal workings and interactions of these models – is not merely beneficial but a critical subject for robust and reliable AI systems. Effective observability is paramount for identifying performance bottlenecks, diagnosing errors, understanding model decision-making, ensuring responsible AI practices, and ultimately, building trust in LLM-powered applications.
+
+**2. Objective of the Proof of Concept (PoC)**
+
+To practically explore and demonstrate key aspects of LLM observability, this Proof of Concept (PoC) was developed. The primary objective was to showcase how an LLM-driven application, in this case, a simple chatbot, can be instrumented to provide comprehensive insights into its operations. Specifically, this PoC aims to illustrate:
+
+*   The generation and visualization of interaction traces.
+*   The logging of inputs, outputs, and intermediate steps.
+*   The capabilities of an open-source observability platform in this context.
+
+**3. Methodology and Technology Stack**
+
+**3.1. Core Observability Platform: Langfuse**
+
+For the foundational observability layer, we selected **Langfuse**. Langfuse is an open-source platform specifically designed for LLM applications, offering tools to trace, debug, and analyze LLM interactions. Its capabilities allow for detailed tracking of requests, responses, latencies, token usage, and other relevant metrics. We chose Langfuse due to its open-source nature, dedicated focus on LLMs, and its promise of comprehensive tracing features.
+
+**3.2. Demonstrator Application: A Chatbot Interface**
+
+To provide a tangible and interactive way to generate data for observability, a chatbot was deemed a suitable demonstrator application. The development of this chatbot involved an evaluation of frontend technologies:
+
+*   **Initial Consideration: Streamlit**
+    Our initial thought was to utilize Streamlit, a popular Python library known for its ease of use in creating web applications rapidly. Streamlit is indeed very accessible for quick prototyping. However, upon closer inspection of its typical rendering behavior for interactive elements, a significant drawback emerged for our use case. Streamlit often relies on a full-page reload or significant re-rendering of components upon user interaction. For a dynamic, conversational interface like a chatbot, this behavior was deemed "très peu naturel" (highly unnatural) and could lead to a clunky user experience. The potential for frequent page refreshes was considered somewhat "absurd" or impractical for demonstrating seamless, real-time observability.
+
+*   **Chosen Solution: FastHTML**
+    Consequently, we shifted our focus to **FastHTML**. FastHTML is a newer approach/API (mentioned as being developed by "Answer.AI" in the source material) designed for building dynamic web interfaces with potentially more granular control over updates, avoiding full-page reloads. We found a pre-existing, fully-functional chatbot example built with FastHTML. This example provided an excellent foundation.
+
+**3.3. Implementation: Integrating Observability into the Chatbot**
+
+The core development effort involved modifying the chosen FastHTML chatbot example to integrate deeply with the Langfuse platform. This involved:
+
+1.  **Instrumenting Chatbot Interactions:** Code was added to the chatbot's backend logic to capture key events and data points during a user's conversation.
+2.  **Trace Generation:** Each user query and the LLM's corresponding response, along with any intermediate processing steps, were structured to generate comprehensive traces.
+3.  **Data Logging:** Inputs (user messages) and outputs (LLM-generated replies) were systematically logged.
+4.  **Langfuse SDK/API Usage:** The chatbot was configured to send this observability data (traces, logs) to our Langfuse instance.
+
+**4. Demonstrated Capabilities**
+
+This PoC successfully demonstrates the following key observability features:
+
+*   **End-to-End Tracing:** The ability to follow a single user interaction from the initial query through any LLM calls, and back to the final response presented to the user.
+*   **Input/Output Monitoring:** Clear logging of what data enters the LLM and what data it produces, which is crucial for debugging unexpected model behavior.
+*   **Contextual Understanding:** By capturing traces, developers can gain insights into the context provided to the LLM for each turn of the conversation.
+*   **Platform Integration:** A practical example of how an open-source observability tool like Langfuse can be integrated into an LLM application to provide actionable insights.
+
+**5. Conclusion**
+
+This Proof of Concept effectively illustrates the importance and feasibility of implementing robust observability for LLM-based applications. By leveraging Langfuse as the observability backend and FastHTML for a responsive chatbot interface, we have created a functional demonstrator. This setup allows for the clear visualization of interaction traces and the logging of critical data, paving the way for more reliable, debuggable, and understandable LLM systems. The decision to move away from Streamlit towards FastHTML for the chatbot frontend proved beneficial in achieving the desired interactive experience without the drawbacks of frequent page reloads.
+
+---
+
+
+Okay, here's the content revised for a simpler and more concise tone, suitable for a document.
+
+---
+
+## Proof of Concept: LLM Observability with Langfuse and a FastHTML Chatbot
+
+**1. Why LLM Observability Matters**
+
+Large Language Models (LLMs) are powerful, but it's important to understand how they're working. This is called "LLM observability." It means being able to monitor, trace, and debug LLMs. Good observability helps us:
+
+*   Find and fix problems.
+*   Understand why an LLM gives a certain answer.
+*   Build more reliable and trustworthy AI systems.
+
+**2. Goal of This Proof of Concept (PoC)**
+
+We created this Proof of Concept (PoC) to show key parts of LLM observability in action. We used a simple chatbot to demonstrate how to:
+
+*   Track and see the flow of conversations (traces).
+*   Log what users type (inputs) and what the LLM says (outputs).
+*   Showcase how an open-source observability tool can help.
+
+**3. How We Built It (Method & Tools)**
+
+**3.1. Observability Tool: Langfuse**
+
+We used **Langfuse** for observability. Langfuse is an open-source tool made specifically for LLMs. It helps track and analyze LLM interactions, like requests and responses. We chose it because it's open-source and focuses on LLMs.
+
+**3.2. Demo App: A Chatbot**
+
+To show observability, we needed an application. A chatbot was a good fit.
+
+*   **First Idea (Streamlit):** We initially thought of using Streamlit because it's quick for building web apps. However, Streamlit often reloads the entire page during interactions. This isn't ideal for a smooth, conversational chatbot experience and felt "très peu naturel" (not very natural) or even "absurd" for this specific need.
+
+*   **Chosen Solution (FastHTML):** So, we decided to try **FastHTML**. It's a newer way to build web interfaces (the speaker mentioned it's from "Answer.AI"). We found a ready-made chatbot example built with FastHTML and modified it.
+
+**3.3. Putting It Together: Chatbot + Langfuse**
+
+We updated the FastHTML chatbot example so it could send information to Langfuse. This involved:
+
+1.  Tracking user messages and LLM replies.
+2.  Creating "traces" in Langfuse for each part of the conversation.
+3.  Logging all inputs (user messages) and outputs (LLM replies).
+
+**4. What This PoC Shows**
+
+This PoC successfully demonstrates that we can:
+
+*   **Trace Conversations:** Follow a user's message from start to finish, seeing how the LLM processed it.
+*   **Monitor Inputs/Outputs:** Clearly log what the user sent and what the LLM responded.
+*   **Understand Context:** See what information the LLM had when it generated a reply.
+*   **Integrate Tools:** Show how an observability tool like Langfuse can be connected to an LLM application.
+
+**5. Conclusion**
+
+This PoC clearly shows that LLM observability is practical and important. By using Langfuse with a chatbot built using FastHTML, we created a working demo. This setup allows us to easily see chat traces and log key data, which is essential for building better and more understandable LLM systems. FastHTML was a better choice than Streamlit for the interactive feel of the chatbot in this project.
+
+---
+
+
+
+
+**How Streamlit's Execution Model Relates to the "Full Page Reload" Concern:**
+
+1.  **Script Reruns:** The core concept in Streamlit is that the **entire Python script is re-executed from top to bottom whenever:**
+    *   The app is first loaded.
+    *   The user interacts with a widget (e.g., types into `st.chat_input` and presses Enter, clicks a button, moves a slider).
+    *   The source code file is modified and saved (during development).
+
+2.  **State Management (`st.session_state`):** Because the script reruns, any regular Python variables would be reset. `st.session_state` is Streamlit's mechanism to store data that needs to persist across these reruns (like our `messages` list).
+
+3.  **UI Generation:** Each time the script reruns, Streamlit intelligently updates the web page. It compares the new set of commands (like `st.title`, `st.chat_message`, `st.markdown`) with the previous run and tries to efficiently update the Document Object Model (DOM) in the browser.
+
+4.  **The "Full Page Reload" Perception:**
+    *   While Streamlit doesn't *literally* do a browser "hard refresh" (F5) that clears all state and re-downloads all assets for every minor interaction, the fact that the *entire Python script runs again* can *feel* like a less granular update compared to modern JavaScript frameworks (React, Vue, Angular) or tools like FastHTML.
+    *   In those frameworks, developers often have fine-grained control to update only specific parts of the page (e.g., just append a new message to a list in the DOM) without re-evaluating the logic for the entire page.
+    *   For a simple app like this Echo Bot, Streamlit's approach is incredibly fast to develop and performs well.
+    *   However, for more complex applications, or if there's a need for highly optimized, partial DOM updates without re-running broader application logic, the "rerun everything" model can lead to:
+        *   **Perceived Slowness:** If parts of the script do heavy computation unrelated to the immediate UI update, that computation will run again.
+        *   **Less Optimized for Real-time:** While Streamlit is fast, for applications demanding extremely low-latency, real-time updates of specific elements without any overhead of re-evaluating other parts of the page, other tools might be preferred.
+        *   **"Less Natural" for Fine-Grained Control:** If the goal was to precisely instrument and observe the rendering of very specific UI components or manage complex client-side state without a full script rerun, Streamlit's model might feel less direct or "natural" than tools offering more explicit DOM control.
+
+**Why it was relevant for the PoC's choice:**
+
+For the PoC focusing on observability with Langfuse, the chatbot was a means to an end – generating interactions to be traced. If the priority was an extremely fluid, high-performance UI with minimal re-rendering overhead, or if the developers wanted to avoid the full script re-execution model for any reason, exploring alternatives like FastHTML (which might offer more direct control over HTML updates and client-side interactions) makes sense.
+
+The Streamlit code above is a perfect example of Streamlit's strengths: rapidly building interactive UIs with minimal code. The `st.chat_message` and `st.chat_input` components make building a chatbot interface trivial. However, understanding its execution model is key to deciding if it's the best fit for all scenarios, especially when very specific performance characteristics or update behaviors are desired.
