@@ -6,127 +6,67 @@ categories: [python]
 description: ""
 ---
 
-I wanted to show case here some demo of observability for LLMs
 
-Okay, here's an improved and expanded version of the content, suitable for incorporation into a document. I've filled in some logical gaps and aimed for a more formal, descriptive tone.
-
----
-
-## Proof of Concept: LLM Observability with Langfuse and a FastHTML Chatbot
-
-**1. Introduction: The Imperative of LLM Observability**
+As Large Language Models (LLMs) become increasingly integrated into real-world applications, understanding and monitoring their behavior is essential. LLM observability—the practice of tracing, logging, and analyzing model interactions—enables developers to diagnose issues, optimize performance, and ensure responsible AI usage. This document presents a proof of concept that demonstrates how to implement LLM observability using Langfuse, an open-source observability platform, in combination with a responsive chatbot built with FastHTML. The goal is to showcase practical techniques for capturing and visualizing LLM interactions, providing valuable insights for building more reliable and transparent AI systems.
 
 The integration of Large Language Models (LLMs) into applications brings transformative capabilities, but also introduces complexities in understanding and managing their behavior. LLM observability – the ability to monitor, trace, and debug the internal workings and interactions of these models – is not merely beneficial but a critical subject for robust and reliable AI systems. Effective observability is paramount for identifying performance bottlenecks, diagnosing errors, understanding model decision-making, ensuring responsible AI practices, and ultimately, building trust in LLM-powered applications.
 
-**2. Objective of the Proof of Concept (PoC)**
 
-To practically explore and demonstrate key aspects of LLM observability, this Proof of Concept (PoC) was developed. The primary objective was to showcase how an LLM-driven application, in this case, a simple chatbot, can be instrumented to provide comprehensive insights into its operations. Specifically, this PoC aims to illustrate:
-
-*   The generation and visualization of interaction traces.
-*   The logging of inputs, outputs, and intermediate steps.
-*   The capabilities of an open-source observability platform in this context.
-
-**3. Methodology and Technology Stack**
-
-**3.1. Core Observability Platform: Langfuse**
+# Presentation of Langfuse {#sec-langfuse}
 
 For the foundational observability layer, we selected **Langfuse**. Langfuse is an open-source platform specifically designed for LLM applications, offering tools to trace, debug, and analyze LLM interactions. Its capabilities allow for detailed tracking of requests, responses, latencies, token usage, and other relevant metrics. We chose Langfuse due to its open-source nature, dedicated focus on LLMs, and its promise of comprehensive tracing features.
 
-**3.2. Demonstrator Application: A Chatbot Interface**
+Langfuse is an open-source LLM engineering platform that helps teams collaboratively debug, analyze, and iterate on their LLM applications. It provides features for tracing, prompt management, and evaluations, all natively integrated to accelerate the development workflow. Langfuse is open, self-hostable, and extensible.
 
-To provide a tangible and interactive way to generate data for observability, a chatbot was deemed a suitable demonstrator application. The development of this chatbot involved an evaluation of frontend technologies:
+Key features include:
 
-*   **Initial Consideration: Streamlit**
-    Our initial thought was to utilize Streamlit, a popular Python library known for its ease of use in creating web applications rapidly. Streamlit is indeed very accessible for quick prototyping. However, upon closer inspection of its typical rendering behavior for interactive elements, a significant drawback emerged for our use case. Streamlit often relies on a full-page reload or significant re-rendering of components upon user interaction. For a dynamic, conversational interface like a chatbot, this behavior was deemed "très peu naturel" (highly unnatural) and could lead to a clunky user experience. The potential for frequent page refreshes was considered somewhat "absurd" or impractical for demonstrating seamless, real-time observability.
+    Tracing: Log traces with lowest level transparency to understand cost and latency. Traces include all LLM and non-LLM calls, including retrieval, embedding, API calls, and more. It supports tracking multi-turn conversations as sessions and user tracking, and agents can be represented as graphs. Traces can be captured via native SDKs for Python/JS, 50+ library/framework integrations, OpenTelemetry, or via an LLM Gateway such as LiteLLM1.
+    Prompt Management: Manage, version, and optimize prompts throughout the development lifecycle. Test prompts interactively in the LLM Playground, and run prompt experiments against datasets to test new prompt versions directly within Langfuse1.
+    Evaluations: Measure output quality and monitor production health. Langfuse provides flexible evaluation tools, including LLM-as-a-judge, user feedback, manual labeling, or custom methods. Evaluations can be run on production traces and offline datasets for systematic testing1.
+    Platform: API-first architecture, data exports to blob storage, and enterprise security and administration are supported1.
 
-*   **Chosen Solution: FastHTML**
-    Consequently, we shifted our focus to **FastHTML**. FastHTML is a newer approach/API (mentioned as being developed by "Answer.AI" in the source material) designed for building dynamic web interfaces with potentially more granular control over updates, avoiding full-page reloads. We found a pre-existing, fully-functional chatbot example built with FastHTML. This example provided an excellent foundation.
+Langfuse can be integrated with platforms like Databricks to enable tracing and benchmarking of applications, as well as with libraries such as Instructor for structured LLM outputs and observability23. It also supports integrations with voice AI platforms like Vapi for enhanced telemetry monitoring4.
 
-**3.3. Implementation: Integrating Observability into the Chatbot**
+For community engagement and support, Langfuse offers resources such as a public roadmap, GitHub Discussions, private support channels, and Discord
 
-The core development effort involved modifying the chosen FastHTML chatbot example to integrate deeply with the Langfuse platform. This involved:
+# Demo using a simple chat bot with FastHTML
 
-1.  **Instrumenting Chatbot Interactions:** Code was added to the chatbot's backend logic to capture key events and data points during a user's conversation.
-2.  **Trace Generation:** Each user query and the LLM's corresponding response, along with any intermediate processing steps, were structured to generate comprehensive traces.
-3.  **Data Logging:** Inputs (user messages) and outputs (LLM-generated replies) were systematically logged.
-4.  **Langfuse SDK/API Usage:** The chatbot was configured to send this observability data (traces, logs) to our Langfuse instance.
+## Why not use Streamlit?
 
-**4. Demonstrated Capabilities**
+Streamlit is a popular framework for building data applications, but it has some limitations that can make it less suitable for certain use cases, especially when it comes to real-time interactivity and user experience. Here are some reasons why Streamlit might not be the best choice for a chatbot application:
 
-This PoC successfully demonstrates the following key observability features:
+Our initial thought was to utilize Streamlit, a popular Python library known for its ease of use in creating web applications rapidly. Streamlit is indeed very accessible for quick prototyping. However, upon closer inspection of its typical rendering behavior for interactive elements, a significant drawback emerged for our use case. Streamlit often relies on a full-page reload or significant re-rendering of components upon user interaction. For a dynamic, conversational interface like a chatbot, this behavior was deemed "très peu naturel" (highly unnatural) and could lead to a clunky user experience. The potential for frequent page refreshes was considered somewhat "absurd" or impractical for demonstrating seamless, real-time observability.
 
-*   **End-to-End Tracing:** The ability to follow a single user interaction from the initial query through any LLM calls, and back to the final response presented to the user.
-*   **Input/Output Monitoring:** Clear logging of what data enters the LLM and what data it produces, which is crucial for debugging unexpected model behavior.
-*   **Contextual Understanding:** By capturing traces, developers can gain insights into the context provided to the LLM for each turn of the conversation.
-*   **Platform Integration:** A practical example of how an open-source observability tool like Langfuse can be integrated into an LLM application to provide actionable insights.
+https://docs.streamlit.io/develop/tutorials/chat-and-llm-apps/build-conversational-apps
 
-**5. Conclusion**
+```python
+import streamlit as st
 
-This Proof of Concept effectively illustrates the importance and feasibility of implementing robust observability for LLM-based applications. By leveraging Langfuse as the observability backend and FastHTML for a responsive chatbot interface, we have created a functional demonstrator. This setup allows for the clear visualization of interaction traces and the logging of critical data, paving the way for more reliable, debuggable, and understandable LLM systems. The decision to move away from Streamlit towards FastHTML for the chatbot frontend proved beneficial in achieving the desired interactive experience without the drawbacks of frequent page reloads.
+st.title("Echo Bot")
 
----
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
+# Display chat messages from history on app rerun
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-Okay, here's the content revised for a simpler and more concise tone, suitable for a document.
+# React to user input
+if prompt := st.chat_input("What is up?"):
+    # Display user message in chat message container
+    st.chat_message("user").markdown(prompt)
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
----
-
-## Proof of Concept: LLM Observability with Langfuse and a FastHTML Chatbot
-
-**1. Why LLM Observability Matters**
-
-Large Language Models (LLMs) are powerful, but it's important to understand how they're working. This is called "LLM observability." It means being able to monitor, trace, and debug LLMs. Good observability helps us:
-
-*   Find and fix problems.
-*   Understand why an LLM gives a certain answer.
-*   Build more reliable and trustworthy AI systems.
-
-**2. Goal of This Proof of Concept (PoC)**
-
-We created this Proof of Concept (PoC) to show key parts of LLM observability in action. We used a simple chatbot to demonstrate how to:
-
-*   Track and see the flow of conversations (traces).
-*   Log what users type (inputs) and what the LLM says (outputs).
-*   Showcase how an open-source observability tool can help.
-
-**3. How We Built It (Method & Tools)**
-
-**3.1. Observability Tool: Langfuse**
-
-We used **Langfuse** for observability. Langfuse is an open-source tool made specifically for LLMs. It helps track and analyze LLM interactions, like requests and responses. We chose it because it's open-source and focuses on LLMs.
-
-**3.2. Demo App: A Chatbot**
-
-To show observability, we needed an application. A chatbot was a good fit.
-
-*   **First Idea (Streamlit):** We initially thought of using Streamlit because it's quick for building web apps. However, Streamlit often reloads the entire page during interactions. This isn't ideal for a smooth, conversational chatbot experience and felt "très peu naturel" (not very natural) or even "absurd" for this specific need.
-
-*   **Chosen Solution (FastHTML):** So, we decided to try **FastHTML**. It's a newer way to build web interfaces (the speaker mentioned it's from "Answer.AI"). We found a ready-made chatbot example built with FastHTML and modified it.
-
-**3.3. Putting It Together: Chatbot + Langfuse**
-
-We updated the FastHTML chatbot example so it could send information to Langfuse. This involved:
-
-1.  Tracking user messages and LLM replies.
-2.  Creating "traces" in Langfuse for each part of the conversation.
-3.  Logging all inputs (user messages) and outputs (LLM replies).
-
-**4. What This PoC Shows**
-
-This PoC successfully demonstrates that we can:
-
-*   **Trace Conversations:** Follow a user's message from start to finish, seeing how the LLM processed it.
-*   **Monitor Inputs/Outputs:** Clearly log what the user sent and what the LLM responded.
-*   **Understand Context:** See what information the LLM had when it generated a reply.
-*   **Integrate Tools:** Show how an observability tool like Langfuse can be connected to an LLM application.
-
-**5. Conclusion**
-
-This PoC clearly shows that LLM observability is practical and important. By using Langfuse with a chatbot built using FastHTML, we created a working demo. This setup allows us to easily see chat traces and log key data, which is essential for building better and more understandable LLM systems. FastHTML was a better choice than Streamlit for the interactive feel of the chatbot in this project.
-
----
-
-
+    response = f"Echo: {prompt}"
+    # Display assistant response in chat message container
+    with st.chat_message("assistant"):
+        st.markdown(response)
+    # Add assistant response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": response})
+```
 
 
 **How Streamlit's Execution Model Relates to the "Full Page Reload" Concern:**
@@ -154,3 +94,405 @@ This PoC clearly shows that LLM observability is practical and important. By usi
 For the PoC focusing on observability with Langfuse, the chatbot was a means to an end – generating interactions to be traced. If the priority was an extremely fluid, high-performance UI with minimal re-rendering overhead, or if the developers wanted to avoid the full script re-execution model for any reason, exploring alternatives like FastHTML (which might offer more direct control over HTML updates and client-side interactions) makes sense.
 
 The Streamlit code above is a perfect example of Streamlit's strengths: rapidly building interactive UIs with minimal code. The `st.chat_message` and `st.chat_input` components make building a chatbot interface trivial. However, understanding its execution model is key to deciding if it's the best fit for all scenarios, especially when very specific performance characteristics or update behaviors are desired.
+
+
+## Why FastHTML?
+
+Consequently, we shifted our focus to **FastHTML**. FastHTML is a newer approach/API (mentioned as being developed by "Answer.AI" in the source material) designed for building dynamic web interfaces with potentially more granular control over updates, avoiding full-page reloads. We found a pre-existing, fully-functional chatbot example built with FastHTML. This example provided an excellent foundation.
+
+
+
+
+
+Of course. Here is a detailed, step-by-step analysis and explanation of the provided Python code, structured for a technical blog post.
+
+***
+
+## Code Analysis: Building a Chatbot with FastHTML, Google Gemini, and Langfuse
+
+This document provides a detailed breakdown of a Python web application that implements a real-time chatbot. The application is built using the **FastHTML** web framework and leverages **Google's Gemini Pro** for its conversational AI capabilities. For observability and user feedback, it integrates with **Langfuse**.
+
+### Overview of Functionality
+
+The application provides a web-based chat interface where a user can have a conversation with an AI assistant. Key features include:
+- **Real-time Interaction:** Uses WebSockets for instant message delivery between the client and server.
+- **Session Management:** Each user conversation is tracked in a unique session, both for the AI model's memory and for observability tracing.
+- **AI Integration:** Connects to the Google Gemini API to generate intelligent responses.
+- **LLM Observability:** Integrates Langfuse to trace entire conversations, log individual AI generations (turns), and record performance metrics like token usage.
+- **User Feedback:** Includes "thumbs up/down" buttons on AI responses, allowing users to provide feedback that is logged directly into Langfuse.
+- **Graceful Cleanup:** Properly finalizes traces and releases resources when a user clears the chat or closes the browser tab.
+
+---
+
+### Part 1: Initial Setup and Configuration
+
+This section covers the initial boilerplate: importing necessary libraries, defining constants, and setting up the basic HTML structure and styling.
+
+```python
+import traceback
+from typing import Literal
+import uuid
+from fasthtml.common import *
+from fasthtml.components import Zero_md
+from dotenv import load_dotenv
+from google import genai
+from google.genai.chats import Chat
+from langfuse import get_client
+from langfuse._client.span import LangfuseSpan
+import os
+
+from langfuse.model import ModelUsage
+
+load_dotenv()
+
+# Configuration Constants
+GOOGLE_API_KEY_ENV = "GOOGLE_API_KEY"
+GOOGLE_MODEL_NAME = "gemini-2.0-flash" 
+
+# Langfuse Constants
+LANGFUSE_CONVERSATION_SPAN_NAME = "chat_conversation"
+LANGFUSE_GENERATION_NAME = "llm_turn"
+LANGFUSE_SCORE_NAME = "user_feedback_score"
+
+type Role = Literal["user", "assistant"]
+
+# Set up the app, including daisyui and tailwind for the chat component and zero-md for markdown rendering
+hdrs = (
+    picolink, 
+    Script(src="https://cdn.tailwindcss.com"),
+    Link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/daisyui@4.11.1/dist/full.min.css"),
+    Script(type="module", src="https://cdn.jsdelivr.net/npm/zero-md@3?register"),
+)
+
+def render_local_md(md: str) -> Zero_md:
+    """Renders markdown string using Zero-md with custom CSS to unset default background/color."""
+    css = '.markdown-body {background-color: unset !important; color: unset !important;}'
+    css_template = Template(Style(css), data_append=True)
+    return Zero_md(css_template, Script(md, type="text/markdown"))
+```
+
+#### Explanation:
+- **Imports**: The script imports libraries for web development (`fasthtml`), type hinting (`typing`), unique ID generation (`uuid`), environment variable management (`dotenv`), AI interaction (`google.genai`), and observability (`langfuse`).
+- **`load_dotenv()`**: This function loads environment variables from a `.env` file in the project's root directory. This is standard practice for managing secrets like API keys without hardcoding them.
+- **Configuration Constants**: The script defines several constants for maintainability. This makes it easy to change the Google model name, environment variable names, or the names used for tracing in Langfuse without searching through the code.
+- **`Role` Type**: A `Literal` type is defined for `Role`. This improves code readability and allows static analysis tools to catch errors if an invalid role (e.g., "system" instead of "user") is used.
+- **Headers (`hdrs`)**: This tuple defines the CSS and JavaScript files to be included in the `<head>` of the HTML page. It loads:
+    - `picolink`: A minimal CSS framework included with FastHTML.
+    - `TailwindCSS`: A utility-first CSS framework for custom styling.
+    - `daisyUI`: A component library for TailwindCSS, used here for the chat bubbles and buttons.
+    - `Zero-md`: A web component for rendering Markdown content, which is how the AI's responses will be displayed.
+- **`render_local_md` function**: This helper function takes a Markdown string and wraps it in the `Zero_md` component. Crucially, it injects a small piece of CSS to override `Zero-md`'s default white background, allowing it to blend seamlessly with the `daisyUI` chat bubbles.
+
+---
+
+### Part 2: The `SessionsManager` Class
+
+This class is the cornerstone of the application's state management. It encapsulates all interactions with the external Google and Langfuse services, and it keeps track of individual user sessions. This design prevents global state and allows the application to handle multiple concurrent users cleanly.
+
+```python
+class SessionsManager:
+    def __init__(self):
+        google_api_key = os.getenv(GOOGLE_API_KEY_ENV)
+        if not google_api_key:
+            raise ValueError(f"Environment variable '{GOOGLE_API_KEY_ENV}' is not set.")
+        
+        self.google_client = genai.Client(api_key=google_api_key)
+        
+        required_langfuse_envs = ["LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST"]
+        missing = [env for env in required_langfuse_envs if not os.getenv(env)]
+        if missing:
+            raise ValueError(f"Missing required Langfuse environment variables: {', '.join(missing)}")
+        self.langfuse_client = get_client()
+        if not self.langfuse_client.auth_check():
+            raise RuntimeError("Failed to initialize Langfuse client. Check your environment variables.")
+
+        self._chats: dict[str, Chat] = {}
+        self._conversations_spans: dict[str, LangfuseSpan] = {}
+
+    def get_google_chat_session(self, session_id: str) -> Chat:
+        if session_id not in self._chats:
+            self._chats[session_id] = self.google_client.chats.create(model=GOOGLE_MODEL_NAME)
+        return self._chats[session_id]
+
+    def clear_google_chat_session(self, session_id: str) -> None:
+        if session_id in self._chats:
+            del self._chats[session_id]
+
+    def get_conversation_span(self, session_id: str) -> LangfuseSpan:
+        if session_id not in self._conversations_spans:
+            self._conversations_spans[session_id] = self.langfuse_client.start_span(name=LANGFUSE_CONVERSATION_SPAN_NAME)
+            self._conversations_spans[session_id].update_trace(user_id=session_id)
+        return self._conversations_spans[session_id]
+
+    def end_conversation_span(self, session_id: str) -> None:
+        if session_id in self._conversations_spans:
+            self._conversations_spans[session_id].end()
+            del self._conversations_spans[session_id]
+            self.langfuse_client.flush()
+```
+#### Explanation:
+- **`__init__`**: The constructor initializes the clients.
+    - It first checks for the required environment variables for both Google and Langfuse, raising a clear `ValueError` or `RuntimeError` if any are missing. This is a robust way to fail fast on startup if the configuration is incorrect.
+    - It initializes the `google_client` and `langfuse_client`.
+    - It creates two dictionaries, `_chats` and `_conversations_spans`, to store active sessions, keyed by a unique `session_id`.
+- **`get_google_chat_session`**: This method retrieves the Google GenAI chat object for a given `session_id`. If one doesn't exist (i.e., it's the first message from a user), it creates a new one and stores it. The Google `Chat` object maintains the conversation history, providing context for the AI.
+- **`get_conversation_span`**: Similarly, this method gets or creates the Langfuse "span" for the conversation. In Langfuse, a span can be nested, and here we create a top-level span for the entire chat session. This span will act as a parent for all individual LLM calls (generations) within that conversation. We also tag the associated trace with the `user_id` (which is our `session_id`).
+- **`clear...` and `end...` methods**: These methods handle the cleanup. They remove the session objects from the dictionaries. `end_conversation_span` also calls `span.end()` to mark the trace as complete in Langfuse and `langfuse_client.flush()` to ensure all buffered data is sent.
+
+---
+
+### Part 3: UI Components and Application Initialization
+
+This section defines the FastHTML components that make up the user interface and initializes the `FastHTML` application itself.
+
+```python
+# Initialize the FastHTML app with headers and styles
+app = FastHTML(hdrs=hdrs, cls="p-4 max-w-lg mx-auto", exts="ws")
+
+# Initialize the clients for Google GenAI and Langfuse
+sessions_manager = SessionsManager()
+
+def ChatMessage(msg: str, role: Role, trace_id: str | None = None, observation_id: str | None = None) -> Div:
+    """Renders a chat message bubble with the given message and role."""
+    rendered_msg = render_local_md(msg) 
+    bubble_class = "chat-bubble-primary" if role == "user" else 'chat-bubble-secondary'
+    chat_class = "chat-end" if role == "user" else 'chat-start'
+    feedback_buttons_html = ""
+
+    if role == "assistant" and trace_id and observation_id:
+        feedback_container_id = f"feedback-{observation_id}"
+        vals_up = {"observation_id": observation_id, "trace_id": trace_id, "score": 1}
+        vals_down = {"observation_id": observation_id, "trace_id": trace_id, "score": 0}
+
+        feedback_buttons_html = Div(
+            Button(
+                "👍", hx_post="/score_message", hx_vals=vals_up,
+                hx_target=f"#{feedback_container_id}", hx_swap="outerHTML",
+                cls="btn btn-xs btn-ghost"
+            ),
+            Button(
+                "👎", hx_post="/score_message", hx_vals=vals_down,
+                hx_target=f"#{feedback_container_id}", hx_swap="outerHTML",
+                cls="btn btn-xs btn-ghost"
+            ),
+            id=feedback_container_id,
+            cls="flex space-x-1 mt-1"
+        )
+
+    return Div(cls=f"chat {chat_class}")(
+        Div(role, cls="chat-header"),
+        Div(rendered_msg, cls=f"chat-bubble {bubble_class}"),
+        feedback_buttons_html if feedback_buttons_html else "",
+    )
+
+def ChatInput():
+    """Returns an input field for the user to type messages."""
+    return Input(
+        name='msg', id='msg-input', placeholder="Type a message",
+        cls="input input-bordered w-full", hx_swap_oob='true',
+        autocomplete="off",
+    )
+```
+
+#### Explanation:
+- **`app = FastHTML(...)`**: This line creates the main application instance.
+    - `hdrs=hdrs`: Injects the CSS/JS links defined earlier.
+    - `cls="..."`: Applies TailwindCSS utility classes to the `<body>` tag for basic page layout (padding, max-width, centering).
+    - `exts="ws"`: Enables the HTMX WebSocket extension for the entire application.
+- **`sessions_manager = SessionsManager()`**: A single instance of our manager class is created.
+- **`ChatMessage` function**: This component generates the HTML for a single chat bubble.
+    - It determines the styling (`chat-end` for user, `chat-start` for assistant) and color based on the `role`.
+    - It renders the message content using the `render_local_md` helper.
+    - **Conditional Feedback Buttons**: If the role is `assistant` and `trace_id` and `observation_id` are provided, it generates the "thumbs up/down" buttons.
+        - `hx-post="/score_message"`: Tells HTMX to send a POST request to this endpoint when a button is clicked.
+        - `hx-vals`: A JSON string of data to send with the request. This includes the IDs needed for Langfuse to associate the score with the correct AI generation, and the score value itself (1 for up, 0 for down).
+        - `hx-target`: Specifies which element on the page should be replaced by the response from the POST request. Here, it targets the `div` containing the buttons themselves.
+        - `hx-swap="outerHTML"`: Instructs HTMX to replace the entire target element (the `div`) with the server's response.
+- **`ChatInput` function**: This component generates the text input field.
+    - `id='msg-input'`: A unique ID for targeting.
+    - `hx_swap_oob='true'`: This is a key HTMX attribute for "Out of Band" swaps. It means that whenever this component is returned from *any* server request, HTMX will find the element with `id="msg-input"` on the page and replace it, regardless of the main `hx-target`. This is used to clear the input field after a message is sent.
+
+---
+
+### Part 4: Routes and WebSocket Handlers
+
+This section contains the core application logic, defining the endpoints that the browser interacts with.
+
+#### The Main Page and WebSocket Connection
+```python
+@app.get("/")
+def index():
+    page = Form(
+        ws_send=True, hx_ext="ws", ws_connect="/wscon",
+    )(
+        Div(id="chatlist", cls="chat-box h-[73vh] overflow-y-auto"),
+        Div(cls="flex space-x-2 mt-2")(
+            Group(
+                ChatInput(), 
+                Button("Send", cls="btn btn-primary", hx_vals='{"action": "send"}'),
+                Button("Clear Chat", cls="btn btn-warning", hx_post="/clear_chat", hx_target="#chatlist", hx_swap="innerHTML", hx_include="[name='session_id']"),
+            ),
+        ),
+        Hidden(name="session_id", id="session-id", hx_swap_oob="true", value=str(uuid.uuid4())),
+    )
+    return Titled('Chatbot Demo', page)
+
+
+async def on_connect(ws, send):
+    session_id = str(uuid.uuid4())
+    ws.scope['session_id'] = session_id
+    await send(Hidden(name="session_id", id="session-id", value=session_id, hx_swap_oob="true"))
+    print(f"SERVER: WebSocket connected. Session ID: {session_id}.")
+
+
+async def on_disconnect(ws):
+    session_id = ws.scope.get('session_id', None)
+    if not session_id: return
+    
+    print(f"SERVER: WebSocket disconnected for Session ID: {session_id}. Cleaning up session.")
+    try:
+        # Finalize and update the Langfuse conversation span with full history
+        current_chat_session = sessions_manager.get_google_chat_session(session_id=session_id)
+        conv_span = sessions_manager.get_conversation_span(session_id=session_id)
+        messages = [
+            {"role": message.role, "content": getattr(message.parts[0], "text", "")}
+            for message in current_chat_session.get_history()
+            if hasattr(message, "role") and hasattr(message, "parts") and message.parts
+        ]
+        if messages and conv_span:
+            conv_span.update(input=messages[:-1], output=messages[-1])
+        
+        # Clean up server-side resources
+        sessions_manager.clear_google_chat_session(session_id=session_id)
+        sessions_manager.end_conversation_span(session_id=session_id)
+        print(f"SERVER: Cleanup complete for session: {session_id}.")
+    except Exception as e:
+        print(f"ERROR during WebSocket disconnect cleanup for Session ID: {session_id}: {e}\n{traceback.format_exc()}")
+```
+#### Explanation:
+- **`@app.get("/")`**: This defines the handler for the root URL. It constructs the main page.
+    - The `<form>` is configured for WebSocket communication: `ws_connect="/wscon"` tells HTMX to open a WebSocket connection to that path when the page loads, and `ws_send=True` makes the form submit its data over that WebSocket.
+    - It includes a `div` with `id="chatlist"` which will contain the messages.
+    - The "Clear Chat" button is a standard HTTP POST. `hx_include="[name='session_id']"` ensures the hidden session ID is sent with the request.
+    - A hidden input for `session_id` is created. Its initial value is a placeholder.
+- **`on_connect`**: This async function is executed when a client's WebSocket connection is successfully established.
+    - It generates a new, unique `session_id` using `uuid.uuid4()`.
+    - It stores this ID in the WebSocket's `scope`, a dictionary for connection-specific data.
+    - It then sends a new hidden input component back to the client. Because the component has `hx_swap_oob="true"` and a matching `id`, HTMX replaces the placeholder `session-id` on the client with this new, server-generated one.
+- **`on_disconnect`**: This function is called when the client disconnects (e.g., closes the tab). This is crucial for cleanup.
+    - It retrieves the `session_id` from the connection's scope.
+    - It uses the `sessions_manager` to get the final chat history and updates the top-level Langfuse span with the full conversation `input` and `output`. This provides a complete record of the chat in Langfuse.
+    - It then calls the manager's methods to end the span and clear the session data from memory. The `try/except` block ensures that an error during cleanup doesn't crash the server.
+
+#### The Main WebSocket Chat Handler
+```python
+@app.ws("/wscon", conn=on_connect, disconn=on_disconnect)
+async def ws_chat_handler(msg:str, ws, send):
+    session_id = ws.scope.get('session_id', None)
+    if not session_id:
+        print("ERROR: WebSocket handler called without a session ID.")
+        return
+
+    if not msg.strip(): 
+        await send(ChatInput())
+        return
+
+    # Ensure conversation span and chat session are active
+    conv_span = sessions_manager.get_conversation_span(session_id=session_id)
+    current_chat_session = sessions_manager.get_google_chat_session(session_id=session_id)
+    trace_id = conv_span.trace_id
+
+    # Send user message and clear input field
+    await send(Div(ChatMessage(msg=msg, role="user"), hx_swap_oob='beforeend', id="chatlist"))
+    await send(ChatInput())
+
+    try:
+        # Get and send the model response
+        with conv_span.start_as_current_generation(name=LANGFUSE_GENERATION_NAME, input=msg, model=GOOGLE_MODEL_NAME) as generation:
+            response = current_chat_session.send_message(msg)
+            r = response.text.rstrip()
+            usage = ModelUsage(
+                input=response.usage_metadata.prompt_token_count,
+                output=response.usage_metadata.candidates_token_count,
+                total=response.usage_metadata.total_token_count,
+            )
+            generation.update(output=r, usage_details=usage)
+            observation_id = generation.id
+
+        await send(Div(ChatMessage(msg=r, role="assistant", trace_id=trace_id, observation_id=observation_id), hx_swap_oob='beforeend', id="chatlist"))
+    except Exception as e:
+        print(f"ERROR in WebSocket handler during AI call: {e}\n{traceback.format_exc()}")
+        if conv_span:
+            conv_span.create_event(
+                name="llm_turn_error", level="ERROR", status_message=str(e), 
+                metadata={"traceback": traceback.format_exc()}
+            )
+        error_ui_msg = "Sorry, I encountered an issue..."
+        await send(Div(ChatMessage(msg=error_ui_msg, role="assistant"), hx_swap_oob='beforeend', id="chatlist"))
+```
+#### Explanation:
+- **`@app.ws(...)`**: This decorator registers the function as the handler for messages on the `/wscon` WebSocket. It also links the `on_connect` and `on_disconnect` functions.
+- The function receives the user's message (`msg`), the WebSocket connection object (`ws`), and a function to send data back (`send`).
+- **Initial Steps**: It retrieves the `session_id`, ignores empty messages, and gets the active chat and Langfuse span objects from the `sessions_manager`.
+- **UI Feedback**: It immediately sends two components back to the user:
+    1. The user's own message, rendered as a `ChatMessage`. The `hx_swap_oob='beforeend'` and `id="chatlist"` tells HTMX to append this inside the chat list `div`. This provides instant UI feedback.
+    2. A new `ChatInput()` component. Because of its `hx_swap_oob='true'` attribute, this replaces the existing input, effectively clearing it.
+- **Langfuse Generation**: The core logic is wrapped in a `try/except` block.
+    - `with conv_span.start_as_current_generation(...) as generation:`: This is a Langfuse context manager. It creates a new "generation" event (a child of our conversation span) to track this specific LLM call. It's automatically timed, and we log the `input` message and `model` name.
+    - `current_chat_session.send_message(msg)`: This is the actual API call to Google Gemini.
+    - **Data Extraction**: The code extracts the text response and the token usage metadata from the Google API's response object.
+    - `generation.update(...)`: After the call is complete, we update the Langfuse generation with the `output` (the AI's text) and the `usage` details.
+    - `observation_id = generation.id`: We get the unique ID of this generation from Langfuse. This ID, along with the `trace_id`, is necessary for the feedback buttons.
+- **Sending AI Response**: The AI's response is sent to the client inside a `ChatMessage`, which now includes the `trace_id` and `observation_id` to enable the feedback mechanism.
+- **Error Handling**: If anything goes wrong during the API call, the `except` block catches the exception. It logs the full error to the server console, creates an "error" event in Langfuse for observability, and sends a user-friendly error message to the chat UI.
+
+---
+
+### Part 5: Supporting HTTP Endpoints
+
+These are standard HTTP endpoints that support auxiliary actions like clearing the chat and scoring messages.
+
+```python
+@app.post("/clear_chat")
+def clear_chat(session_id: str):
+    """Handles the clear chat action, resetting the chat session and conversation span."""
+    # ... (code to finalize span and clear session, similar to on_disconnect) ...
+    # ...
+    
+    # Return an empty chatlist and a fresh input field
+    return Div(id="chatlist", cls="chat-box h-[73vh] overflow-y-auto"), ChatInput()
+
+@app.post("/score_message")
+def score_message(trace_id: str, observation_id: str, score: int):
+    """Handles scoring an assistant message and sends it to Langfuse."""
+    try:
+        sessions_manager.langfuse_client.create_score(
+            name=LANGFUSE_SCORE_NAME,
+            trace_id=trace_id,
+            observation_id=observation_id,
+            value=score,
+            data_type="BOOLEAN",
+        )
+        sessions_manager.langfuse_client.flush()
+        return P("Thanks!", cls="text-xs text-success mt-1 ml-2")
+    except Exception as e:
+        # ... (code to log the scoring error to console and Langfuse) ...
+        return P("Error.", cls="text-xs text-error mt-1 ml-2")
+
+if __name__ == "__main__":
+    serve()
+```
+#### Explanation:
+- **`@app.post("/clear_chat")`**: This endpoint is called by the "Clear Chat" button.
+    - It receives the `session_id` from the form data.
+    - It performs the same cleanup logic as `on_disconnect`: finalizing the current Langfuse trace and clearing the server-side state.
+    - It returns two components: an empty `Div` with `id="chatlist"` (which replaces the current chat content because of the button's `hx-target`) and a new `ChatInput()` (which clears the input via OOB swap).
+- **`@app.post("/score_message")`**: This endpoint receives the feedback from the "thumbs up/down" buttons.
+    - FastHTML automatically parses the `hx-vals` JSON data into function arguments: `trace_id`, `observation_id`, and `score`.
+    - It calls `sessions_manager.langfuse_client.create_score()`, passing the necessary identifiers to link the score to the specific AI generation within the correct trace.
+    - Upon success, it returns a simple `<p>Thanks!</p>`. Because the feedback button specified `hx-target` as its own container `div` and `hx-swap="outerHTML"`, this paragraph replaces the buttons, preventing multiple submissions.
+    - It includes robust error handling in case the score submission to Langfuse fails.
+- **`if __name__ == "__main__":`**: This is standard Python practice. The `serve()` function (from FastHTML) starts the web server when the script is run directly.
+
+
+
