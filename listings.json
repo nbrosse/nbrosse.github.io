@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/llm-observability/llm-observability-part-1.html",
       "/posts/pdf-rag/pdf-rag.html",
       "/posts/py-concurrency/py-concurrency.html",
       "/posts/pdf-parsing/pdf-parsing.html",
