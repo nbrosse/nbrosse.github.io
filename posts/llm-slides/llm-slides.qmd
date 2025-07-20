@@ -25,7 +25,7 @@ I evaluated the LLM's output based on:
 - Ease of Generation: How straightforward is the prompt and output process?
 - Editability: How easy is it to modify the generated slides?
 
-Below, we present the results and discuss the strengths and weaknesses of each approach.
+Below, I present the results and discuss the strengths and weaknesses of each approach.
 
 The code is available on [GitHub](https://github.com/nbrosse/llm-slides-deck).
 
@@ -39,6 +39,24 @@ The post is structured as follows:
 - [Building Slide Decks with Google Slides API](#sec-google-slides-api)
 - [Building Slide Decks with Microsoft PowerPoint](#sec-microsoft-powerpoint)
 - [Conclusion](#sec-conclusion)
+
+## A Note on PowerPoint Slides and Code Generation
+
+While this post focuses primarily on Google Slides, Quarto/Reveal.js, and HTML/CSS, it's worth mentioning that Microsoft PowerPoint also supports programmatic slide creation through [Office Scripts](https://learn.microsoft.com/en-us/office/dev/scripts/) (TypeScript for PowerPoint on the web) and [VBA macros](https://learn.microsoft.com/en-us/office/vba/api/overview/powerpoint) (for the desktop app). In theory, you can use code to automate the creation and editing of PowerPoint presentations, much like you can with the Google Slides API.
+
+**How does it work?**  
+- With Office Scripts, you write TypeScript code directly in PowerPoint for the web to automate repetitive tasks, generate slides, or manipulate content.
+- For more advanced automation, you can use the [Microsoft Graph API](https://learn.microsoft.com/en-us/graph/api/resources/powerpoint-api-overview?view=graph-rest-beta) to interact with PowerPoint files programmatically from external applications.
+
+**Caveat:**  
+I did not test LLM-powered PowerPoint code generation for this post. However, based on the available APIs and scripting environments, I expect the experience to be very similar to Google Slides:  
+- The LLM would generate TypeScript (Office Scripts) or Graph API calls.
+- The process would involve multiple steps: writing code, running it in PowerPoint, and troubleshooting any issues.
+- Like Google Slides, the code is often verbose and less readable than Markdown or HTML, and the workflow is less direct than with code-based formats like Quarto/Reveal.js.
+
+**Summary:**  
+If you are in a Microsoft 365 environment, you can use LLMs to help generate PowerPoint automation scripts. But expect a similar level of complexity and friction as with Google Slides API code generation.
+
 
 # How LLMs Can Help You Create Slides {#sec-llm-slides}
 
@@ -80,9 +98,9 @@ The comparison below supports this remark by showing how LLMs perform when gener
 
 # EDF Producer Booklet (FET17CR): Overview {#sec-edf-booklet}
 
-Below is a preview of the EDF Producer Booklet (FET17CR). This document provides essential information for energy producers, including operational guidelines, key contacts, and regulatory details. You can view the original PDF directly in your browser or download it for offline reference.
+Below is a preview of the first pages of the EDF Producer Booklet (FET17CR). This document provides essential information for energy producers, including operational guidelines, key contacts, and regulatory details. You can view the original PDF directly in your browser or download it for offline reference.
 
-We prompt the LLM to produce the slides in several formats, including Quarto/Reveal.js Markdown, pure HTML/CSS, and Google Slides API code. This allows us to compare how well the LLM handles each format in terms of fidelity, ease of generation, and editability.
+I prompt the LLM to produce the slides in several formats, including Quarto/Reveal.js Markdown, pure HTML/CSS, and Google Slides API code. This allows me to compare how well the LLM handles each format in terms of fidelity, ease of generation, and editability.
 
 ```{=html}
 <object data="livret_producteur_fet17cr_v1.1.pdf" type="application/pdf" width="100%" height="600px" style="border: 1px solid #ccc;">
@@ -149,7 +167,13 @@ You must write JavaScript from scratch to handle all logic:
 
 The LLM was able to generate the HTML and CSS for the initial slides of the EDF Producer Booklet on the first attempt, with only minor issues. 
 This highlights the LLM's effectiveness and consistency when producing HTML/CSS-based slide decks. 
-However, navigation between slides and editing content remained cumbersome.
+However, navigation between slides and editing content remain cumbersome.
+
+```{=html}
+<iframe src="https://raw.githubusercontent.com/nbrosse/llm-slide-deck/refs/heads/dev/raw/presentation.html" width="100%" height="600px" style="border: 1px solid #ccc;">
+    <p>Your browser doesn't support HTML viewing. <a href="https://raw.githubusercontent.com/nbrosse/llm-slide-deck/refs/heads/dev/raw/presentation.html" target="_blank">Click here to download the presentation (HTML)</a></p>
+</iframe>
+```
 
 # Building Slide Decks with Quarto & Reveal.js {#sec-quarto-reveal}
 
@@ -168,14 +192,16 @@ Quarto and Reveal.js abstract away the low-level details, letting you focus on c
 - Less granular control over the underlying HTML/CSS (though you can customize if needed).
 - Requires installing Quarto and learning its configuration syntax.
 
-We use two tools in tandem:
+I use two tools in tandem:
+
 *   **Reveal.js:** A powerful, open-source HTML presentation framework. It provides the engine: the pre-built CSS for styling, the JavaScript for navigation, speaker notes, plugins, and all the features.
 *   **Quarto:** A next-generation, open-source scientific and technical publishing system. It acts as an authoring tool. You write your content in a simple format (Quarto Markdown), and Quarto converts it into the complex HTML, CSS, and JS structure that Reveal.js requires.
 
 Note that you can use Reveal.js without Quarto, but you need to write more code to get the same features.
 
 **Authoring (Quarto Markdown - `.qmd`):** You create a single text file. You use simple Markdown for content and a YAML header for configuration.
-```{.markdown, filename="presentation.qmd"}
+
+```markdown
 ---
 title: "My Presentation Title"
 author: "By Me"
@@ -250,7 +276,7 @@ This is the standard, modern way for an external program (e.g., a Python script 
 *   Create/Read Presentations: Create blank presentations or read the entire structure of an existing one.
 *   Manage Slides: Add new slides (with predefined layouts), delete slides, duplicate slides, and reorder them.
 *   Manipulate Shapes & Text: Insert new text boxes, shapes, images, and tables. You can precisely control their size, position, and styling (font, color, fill, etc.).
-*   Data Merging (Powerful!): The most popular use case. You can create a template presentation with placeholder text like `{{customer_name}}` or `{{quarterly_revenue}}`. Your code can then find and replace these placeholders with actual data, generating hundreds of custom decks from a single template.
+*   Data Merging: You can create a template presentation with placeholder text like `{{customer_name}}` or `{{quarterly_revenue}}`. Your code can then find and replace these placeholders with actual data, generating hundreds of custom decks from a single template.
 *   Read Speaker Notes: Programmatically get or set the speaker notes for any slide.
 
 **Pros:**
@@ -382,6 +408,112 @@ function createSummarySlide() {
 ## Example on the EDF Producer Booklet
 
 The LLM was able to generate Google Slides API code to create the first few slides of the EDF Producer Booklet. However, the process involved numerous errors, required significant trial and error, and demanded a lot of manual editing to achieve a working result. Additionally, the resulting code is not very readable, making it difficult to maintain and modify.
+
+
+Of course! This is an excellent question for developers and automation experts. Creating presentations programmatically is a powerful way to automate reporting, generate dynamic content, and integrate data from various sources.
+
+Here is an exhaustive breakdown of the different ways to create Google Slides and PowerPoint slides using only code.
+
+### Summary Table
+
+| Method                                      | Platform         | Primary Use Case                                    | Complexity  | Key Technology                     |
+| ------------------------------------------- | ---------------- | --------------------------------------------------- | ----------- | ---------------------------------- |
+| **Official APIs**                           |                  |                                                     |             |                                    |
+| Google Slides API                           | Google Slides    | Full-control, cloud-native generation & modification | High        | REST, OAuth 2.0, JSON              |
+| Microsoft Graph API                         | PowerPoint       | Cloud-native management & basic slide creation      | High        | REST, OAuth 2.0, JSON              |
+| **File Format SDKs & Libraries**            |                  |                                                     |             |                                    |
+| Office Open XML (OOXML) SDK                 | PowerPoint       | Server-side, deep manipulation of `.pptx` files   | Very High   | .NET (C#), XML                     |
+| 3rd Party Libraries (e.g., `python-pptx`)   | PowerPoint       | Simplified, server-side `.pptx` generation        | Medium      | Python, Java, JS, etc.             |
+| **Integrated Scripting Environments**       |                  |                                                     |             |                                    |
+| Google Apps Script                          | Google Slides    | Simple automation within the Google ecosystem       | Low         | JavaScript                         |
+| VBA / Office Add-ins                        | PowerPoint       | In-app automation, requires Office to run         | Medium      | VBA / JavaScript, HTML, CSS        |
+| **Markup & Conversion Tools**               | Both             | Fast, content-first, version-controllable slides    | Low         | Markdown, Pandoc, Marp CLI         |
+
+
+# Building Slide Decks with Microsoft PowerPoint {#sec-microsoft-powerpoint}
+
+Creating PowerPoint files is more diverse because `.pptx` is an open, well-documented, XML-based file format (Office Open XML or OOXML). It's essentially a ZIP file containing XML and other resource files.
+
+## The Powerful, Offline Way: Third-Party Libraries
+
+This is the most common and practical approach for server-side generation. These libraries provide a high-level API to abstract away the complexity of the underlying OOXML format.
+
+*   **Python: `python-pptx`**
+    *   The de facto standard in the Python world. It lets you create and modify `.pptx` files without needing PowerPoint installed.
+    *   **Example:**
+        ```python
+        from pptx import Presentation
+        from pptx.util import Inches
+
+        prs = Presentation()
+        title_slide_layout = prs.slide_layouts[0] # Title Slide layout
+        slide = prs.slides.add_slide(title_slide_layout)
+        title = slide.shapes.title
+        subtitle = slide.placeholders[1]
+
+        title.text = "Hello, from Python!"
+        subtitle.text = "Created with python-pptx"
+
+        prs.save("report.pptx")
+        ```
+
+*   **JavaScript/Node.js: `pptxgenjs`**
+    *   An excellent, feature-rich library that works in both Node.js and the browser. It has a fluent API and extensive documentation.
+    *   **Example:**
+        ```javascript
+        const pptxgen = require("pptxgenjs");
+
+        let pptx = new pptxgen();
+        let slide = pptx.addSlide();
+
+        slide.addText("Hello from Node.js!", {
+          x: 1, y: 1, w: '80%', h: 1, fontSize: 36, fill: { color: '003366' }
+        });
+
+        pptx.writeFile({ fileName: "report.pptx" });
+        ```
+
+*   **Java: Apache POI**
+    *   A mature, robust library from the Apache Software Foundation for working with Microsoft Office formats. The component for PowerPoint is `XSLF` (for `.pptx`). It's powerful but can be more verbose than its Python/JS counterparts.
+    *   **Example (Conceptual):**
+        ```java
+        XMLSlideShow ppt = new XMLSlideShow();
+        XSLFSlideMaster defaultMaster = ppt.getSlideMasters().get(0);
+        XSLFSlideLayout titleLayout = defaultMaster.getLayout(SlideLayout.TITLE);
+        XSLFSlide slide = ppt.createSlide(titleLayout);
+
+        XSLFTextShape title = slide.getPlaceholder(0);
+        title.setText("Hello from Java!");
+
+        FileOutputStream out = new FileOutputStream("report.pptx");
+        ppt.write(out);
+        out.close();
+        ```
+
+## The Low-Level Way: Office Open XML (OOXML) SDK
+
+This is a .NET library directly from Microsoft. It allows for the most granular control but is also the most complex. You are essentially manipulating the raw XML parts of the `.pptx` package.
+
+*   **How it Works:** You programmatically create and relate XML parts like `slide1.xml`, `presentation.xml`, `theme1.xml`, etc.
+*   **Use Case:** When a third-party library doesn't support a specific, advanced feature you need, or when you are in a strict .NET environment and want maximum performance.
+*   **Language:** .NET (C#, F#, VB.NET).
+
+## The Modern, Cloud-Native Way: Microsoft Graph API
+
+This is Microsoft's unified API for all Microsoft 365 services, including OneDrive, where PowerPoint files are stored. It is the cloud equivalent of the Google Slides API.
+
+*   **How it Works:** You make RESTful API calls to the Graph endpoint. Its capabilities for *creating slide content* are still maturing and are not yet as comprehensive as libraries like `python-pptx`. It's often used to manage files (upload, download, copy) that were generated by other means.
+*   **Key Features:**
+    *   Create a blank presentation in OneDrive or SharePoint.
+    *   *Limited* ability to add slides and basic content.
+    *   Powerful for file management and integration with the M365 ecosystem.
+
+## The Classic Automation Way: VBA and Office Add-ins
+
+This method requires the PowerPoint application to be running. It's for automating the application itself, not for server-side file generation.
+
+*   **VBA (Visual Basic for Applications):** The legacy scripting language built into Office applications. You can write macros to create slides, insert objects, and control every aspect of the UI.
+*   **Office Add-ins (Office.js):** The modern replacement for VBA. You use JavaScript, HTML, and CSS to create a web-based task pane inside PowerPoint that can interact with the presentation document.
 
 # Conclusion
 
@@ -528,3 +660,5 @@ This is a fundamentally different approach. Reveal.js presentations are HTML/CSS
     *   **Format:** Ask the LLM to generate the presentation in **Quarto Markdown for Reveal.js**.
 
 **Why is this the best practical choice right now?** Because it plays directly to the strengths of the LLM. You are asking the LLM to do what it does best: generate clean, structured text. The user's only task is to copy this text into a `.qmd` file and run a single command. This workflow has the lowest chance of generative error and produces a high-quality, modern, and feature-rich presentation. While it requires a small learning step for the user, it is far more reliable than asking the LLM to write complex Python or Apps Script code that the user would then have to debug and execute.
+
+
