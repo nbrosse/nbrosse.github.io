@@ -1,7 +1,11 @@
 ---
 title: "LLM-Powered Slide Decks: A Comparison of Formats"
-date: 2025-07-20
+author: "Nicolas Brosse"
+date: 2025-08-15
 categories: [LLM]
+description: "A comparison of formats for LLM-powered slide decks."
+citation:
+  url: https://nbrosse.github.io/posts/llm-slides/llm-slides.html
 ---
 
 Creating effective slide decks is essential for communicating ideas in business, academia, and public speaking. Large Language Models (LLMs) can assist in this process by saving time, improving clarity, and boosting creativity. They can generate content, suggest visualizations, and write speaker notes.
@@ -42,7 +46,13 @@ The post is structured as follows:
 - [Conclusion](#sec-conclusion)
 
 ::: {.callout-note}
-**TL;DR**: 
+**TL;DR**:
+
+- LLMs are great for brainstorming, drafting concise slide content, suggesting visuals, and writing speaker notes.
+- Code-first formats (Quarto/Reveal.js, HTML/CSS) let LLMs generate slides directly as text, yielding higher fidelity and easier edits than GUI tools.
+- Quarto/Reveal.js is the most practical today: fast to author in Markdown, feature-rich, and simple to render to polished HTML.
+- Google Slides API and PowerPoint via code (e.g., python-pptx) involve complex, verbose APIs and brittle workflows; fidelity and maintainability suffer.
+- Recommendation: Generate Quarto/Reveal.js Markdown via chat today; ideal future is an interactive UI that uses Markdown under the hood and can export to `.pptx`.
 :::
 
 # How LLMs Can Help You Create Slides {#sec-llm-slides}
@@ -87,7 +97,7 @@ The comparison below supports this remark by showing how LLMs perform when gener
 
 Below is a preview of the first pages of the [EDF Producer Booklet (FET17CR)](livret_producteur_fet17cr_v1.1.pdf). This document provides essential information for energy producers, including operational guidelines, key contacts, and regulatory details. You can view the original PDF directly in your browser or download it for offline reference.
 
-I prompt the LLM (Google Gemini Pro 2.5) to produce the slides in several formats, including Quarto/Reveal.js Markdown, pure HTML/CSS, and Google Slides API code. This allows me to compare how well the LLM handles each format in terms of fidelity, ease of generation, and editability.
+I prompt the LLM (Google Gemini Pro 2.5) to produce the slides in several formats, including Quarto/Reveal.js Markdown, pure HTML/CSS, Google Slides API code and PowerPoint `python-pptx` code. This allows me to compare how well the LLM handles each format in terms of fidelity, ease of generation, and editability.
 
 ```{=html}
 <object data="livret_producteur_fet17cr_v1.1.pdf" type="application/pdf" width="100%" height="900px">
@@ -508,149 +518,29 @@ Similar to the Google Slides approach, Google Gemini Pro 2.5 successfully genera
 
 # Conclusion {#sec-conclusion}
 
-## Comparison: Quarto/reveal.js vs. Google Slides vs. PowerPoint
+## Quarto/Reveal.js vs Google Slides vs PowerPoint (LLM-centric)
 
-This table compares the three approaches from a developer's perspective.
-
-| Feature | Quarto / reveal.js | Google Slides API | PowerPoint (Office Scripts) |
+| Aspect | Quarto / Reveal.js | Google Slides (API/Apps Script) | PowerPoint (.pptx via code) |
 | :--- | :--- | :--- | :--- |
-| **Primary Paradigm** | **Code-First**. You write markdown/code, which renders into a presentation. The source is human-readable text. | **GUI-First, API-Enabled**. Users primarily use the web interface. The API automates tasks on top of that interface. | **GUI-First, API-Enabled**. The desktop/web app is primary. Scripts automate actions within it. |
-| **Language** | **Markdown**. Can embed code from Python, R, Julia, etc., to generate content dynamically. | **REST API**. Use any language (Python, Node.js, Java, Go, etc.) with official client libraries. | **TypeScript**. Office Scripts are written exclusively in a subset of TypeScript. |
-| **Setup & Auth** | **Simple**. Install Quarto. No API keys or authentication needed for local development. | **Complex**. Requires a Google Cloud Project, enabling the Slides API, and setting up OAuth 2.0 or a Service Account for authentication. | **Simple**. Requires a Microsoft 365 Business subscription. No setup needed, just open PowerPoint for the web and click "Automate". |
-| **Version Control** | **Excellent**. The `.qmd` source file is plain text, perfect for Git. Tracking changes is easy and meaningful. | **Poor**. The underlying presentation is a binary-like format. You can version your *script*, but not the presentation itself. | **Poor**. Same as Google Slides. The `.pptx` is a complex file format. You can version control your script. |
-| **Collaboration** | **Developer-centric**. Excellent for developers using Git, pull requests, etc. Not great for non-technical users to edit. | **Excellent**. The best for real-time, simultaneous editing by multiple users in the GUI. | **Very Good**. Real-time collaboration is supported in Microsoft 365, but generally considered slightly behind Google's implementation. |
-| **Best For...** | Technical presentations, reproducible reports, data-driven slides, and anyone who prefers a "code-as-documentation" workflow. | Business presentations that need a mix of real-time collaboration and automation (e.g., auto-generating weekly reports from a database). | Corporate environments heavily invested in the Microsoft ecosystem. Good for automating repetitive tasks for business users. |
+| **Generation Path** | Direct text → Markdown/Quarto → render to HTML | LLM writes API calls/scripts that manipulate slides | LLM writes `.pptx`-generation code (e.g., `python-pptx`) |
+| **Reliability & Fidelity (from LLM)** | High. Structured text matches LLM strengths; fewer moving parts | Medium–Low. Verbose JSON/object IDs; brittle to small errors | Medium–Low. APIs are verbose; layout fidelity is hard |
+| **Speed to First Draft** | Fast. One file, one render | Slow–Medium. Auth + batchUpdate cycles | Medium. No auth, but heavy coding |
+| **Editability & Maintenance** | Excellent. Plain-text `.qmd`; easy diffs and refactors | Poor. You edit code that edits slides; presentation is opaque | Poor–Medium. Generated scripts are verbose and hard to read |
+| **Collaboration** | Git-first; great for PRs, reviews, traceability | Great in-GUI collaboration; weak for generated code | Good in M365 GUI; weak for generated code |
 
-### Part 1: The Best Channel for Interaction
+Bottom line: if an LLM is in the loop, code-first Quarto/Reveal.js provides the most reliable, editable path from prompt → slides. GUI-first tools shine for human collaboration but are brittle when fully generated by LLMs.
 
-The "channel" is the user interface and experience through which the user collaborates with the LLM. The ideal channel should make it easy for the user to convey their intent and for the LLM to deliver useful, editable results.
+## The ideal future UI: VS Code–style, Markdown under the hood
 
-Here are the possibilities, from simplest to most advanced:
+Build a dedicated editor that feels like VS Code and uses Quarto/Reveal.js internally:
 
-#### 1. The Simple Conversational Chat (e.g., ChatGPT Interface)
+- **Dual-pane workspace**: Markdown/Quarto source on the left; live Reveal.js preview on the right, hot-reloading on save.
+- **Context-aware copilot**: Chat that is slide- and selection-aware ("tighten this bullet", "restyle this image", "split slide into two"). Actions map to structured edits in the `.qmd`.
+- **Rich authoring UX**: Outline/slide navigator, templates and themes, design tokens, fragments, notes, citations, and asset management.
+- **One-click outputs**: Export to HTML/PDF; Export to PowerPoint (`.pptx`) using a robust Markdown→`.pptx` converter (e.g., via `python-pptx`) with layout heuristics. Import from `.pptx` back to Markdown when needed.
+- **Version control native**: Git integrated diffs and reviews against the plain-text source; share links to rendered previews.
 
-This is the most common way people interact with LLMs today. The user provides a series of text prompts.
-
-*   **How it Works:**
-    *   **User:** "Create a 5-slide presentation for a Q3 business review. The first slide should be the title. The second should cover key wins. The third should cover challenges. The fourth, our Q4 goals. And the fifth, a Q&A slide."
-    *   **LLM:** *Responds with a text-based outline, often using Markdown.*
-    ```markdown
-    **Slide 1: Title**
-    - Title: Q3 2023 Business Review
-    - Subtitle: Driving Growth & Facing Challenges
-
-    **Slide 2: Key Wins**
-    - Exceeded sales target by 15%
-    - Launched new 'Project Phoenix' feature
-    - Customer satisfaction score up 5 points
-    ...and so on.
-    ```
-*   **Pros:**
-    *   **Extremely Accessible:** No learning curve beyond typing.
-    *   **Great for Brainstorming:** Excellent for generating initial outlines, ideas, and raw text content.
-*   **Cons:**
-    *   **High Friction for Creation:** The user must manually copy and paste this text into their presentation tool (PowerPoint, Google Slides, etc.).
-    *   **No Visual Context:** The LLM has no idea what the slides actually *look like*. You can't say "Make that title bigger" or "Put the image on the right."
-    *   **Unstructured:** The conversation can become long and confusing. Keeping track of edits is difficult.
-
-**Verdict:** Good for initial ideation and content generation, but a poor channel for building a complete, polished deck.
-
-#### 2. The Programmatic/Code-Based Channel
-
-This involves writing a script (e.g., in Python) that calls an LLM API to generate content and then uses another library to build the slide deck file.
-
-*   **How it Works:**
-    1.  A developer writes a script.
-    2.  The script defines a template and prompts, e.g., "Generate 3 bullet points about the benefits of solar energy."
-    3.  The script sends this prompt to the LLM API (e.g., OpenAI's API).
-    4.  The LLM returns structured data (like a JSON object).
-    5.  The script parses this data and uses a library like `python-pptx` or `Quarto` to programmatically build the slide deck.
-*   **Pros:**
-    *   **Extremely Powerful & Scalable:** Perfect for automatically generating hundreds of data-driven presentations (e.g., a custom report for every client).
-    *   **Reproducible:** The same script will produce a consistent result every time.
-*   **Cons:**
-    *   **Requires Coding Skills:** Completely inaccessible to the average user.
-    *   **Not Interactive:** It's an automation script, not a creative collaboration.
-
-**Verdict:** The best channel for developers doing large-scale, automated slide generation. Not a channel for interactive, one-off creation.
-
-#### 3. The Dedicated, Interactive UI (The "Holy Grail")
-
-This is the ideal channel and what tools like Microsoft 365 Copilot (for PowerPoint) and various startups are building.
-
-*   **How it Works:** Imagine a presentation application with an integrated LLM assistant.
-    *   **A "Create" Pane:** The user gives a high-level prompt: "Create a 10-slide deck about the history of space exploration." The application generates a full draft with text and placeholder images.
-    *   **Context-Aware Chat:** A chat sidebar is always present. The user can type commands *relative to the current view*.
-        *   While on slide 4: "Summarize this text into three bullet points."
-        *   While an image is selected: "Find me a different picture, something more dramatic."
-        *   "Change the tone of this entire presentation to be more formal."
-    *   **UI + LLM Synergy:** The user can still use the traditional UI (drag-and-drop, format painter) and the LLM assistant interchangeably.
-*   **Pros:**
-    *   **Best of All Worlds:** Combines the intuitive power of conversational AI with the direct manipulation and visual feedback of a GUI.
-    *   **Reduces Friction to Zero:** The gap between intent ("I want a slide about...") and creation is minimized.
-    *   **Context is King:** The LLM's awareness of the current slide, selected objects, and overall theme makes its assistance far more relevant and powerful.
-
-**Verdict:** **This is unequivocally the best channel.** It provides a tight feedback loop between the user's idea, the LLM's generation, and the final visual product.
-
----
-
-### Part 2: The Best Output Format
-
-Now, let's analyze the formats. The "best" format is the one that is **easiest for an LLM to generate reliably and programmatically**, while still being useful to the end-user.
-
-#### 1. PowerPoint (.pptx) & Google Slides (via API)
-
-These are proprietary/complex formats. An LLM cannot "write" a `.pptx` file directly. It must generate *code* that then builds the file.
-
-*   **How Generation Works:** The LLM is prompted to write a script (e.g., Python using `python-pptx` or Google Apps Script). This script contains commands like `slide.add_textbox()`, `shape.text = '...'`, etc.
-*   **Strengths:**
-    *   **User Familiarity:** This is the greatest strength. The final output is in the format that 99% of business users know and expect.
-    *   **Ecosystem:** Fully integrated with corporate workflows, templates, and sharing mechanisms.
-*   **Weaknesses (from an LLM perspective):**
-    *   **Indirect Generation:** This is the critical flaw. The LLM isn't creating the deck; it's creating *code that creates the deck*. This adds a significant layer of complexity and potential for error. The generated code might have bugs.
-    *   **High Barrier for Users:** If the channel is a simple chat, the user is given a Python script. They then need to have Python installed, install the right libraries, and run the script. This is a non-starter for most.
-    *   **Verbose & Complex APIs:** The APIs for controlling these formats can be very detailed and verbose. It's much harder for an LLM to reliably generate a complex Google Slides `batchUpdate` JSON request than simple Markdown.
-
-#### 2. Reveal.js (via Markdown/Quarto)
-
-This is a fundamentally different approach. Reveal.js presentations are HTML/CSS/JS, but they are most often *authored* in a simple text-based format like Markdown.
-
-*   **How Generation Works:** The LLM is prompted to write the content directly in Markdown.
-    ```markdown
-    ---
-    title: "A Presentation by an LLM"
-    format: revealjs
-    theme: sky
-    ---
-
-    ## Slide 2: The Core Idea
-    - LLMs are excellent at generating structured text.
-    - Markdown is structured text.
-    - Therefore, LLMs can easily generate the source for a slide deck.
-
-    ## Slide 3: How it Works
-    A simple command like `quarto render` turns this human-readable file into a beautiful, interactive HTML presentation.
-    ```
-*   **Strengths (from an LLM perspective):**
-    *   **Direct Generation:** **This is the killer feature.** The LLM's natural output format (structured text) is the *source code* for the presentation. There is no intermediate, error-prone code generation step.
-    *   **Simplicity & Readability:** The format is incredibly simple and human-readable. It's trivial for an LLM to generate and for a human to edit.
-    *   **Powerful Features, Simple Syntax:** Advanced features like speaker notes, columns, fragments, and themes are controlled by simple, text-based syntax that an LLM can easily learn and replicate.
-*   **Weaknesses:**
-    *   **User Unfamiliarity:** Most users are not familiar with the Markdown-to-slides workflow.
-    *   **Requires a Rendering Step:** The user needs to run a command (like `quarto render`) or use an editor with a render button (like VS Code or RStudio) to see the final output. This is a small but real hurdle.
-
-### Conclusion and Final Recommendation
-
-1.  **The Ultimate Vision (The Best Combination):**
-    *   **Channel:** A **Dedicated, Interactive UI** similar to what Microsoft is building with Copilot.
-    *   **Backend Format:** The application would use the LLM to generate **Markdown/Quarto code** behind the scenes because it's the most reliable and direct method.
-    *   **Final Output:** The application would then automatically render this Markdown to Reveal.js for a live preview, but critically, it would *also* have an "**Export to PowerPoint**" button. This export function would parse the Markdown and use a library (`python-pptx`) to generate the `.pptx` file, giving the user the format they need for corporate distribution.
-
-2.  **The Best Combination You Can Build *Today*:**
-    *   **Channel:** A **conversational chat** (like the ChatGPT interface or a custom app using its API).
-    *   **Format:** Ask the LLM to generate the presentation in **Quarto Markdown for Reveal.js**.
-
-**Why is this the best practical choice right now?** Because it plays directly to the strengths of the LLM. You are asking the LLM to do what it does best: generate clean, structured text. The user's only task is to copy this text into a `.qmd` file and run a single command. This workflow has the lowest chance of generative error and produces a high-quality, modern, and feature-rich presentation. While it requires a small learning step for the user, it is far more reliable than asking the LLM to write complex Python or Apps Script code that the user would then have to debug and execute.
+This approach plays to the strengths of LLMs far more than working directly with PowerPoint or Google Slides, which present challenging paradigms for language models. LLMs excel at generating HTML, CSS, and Markdown thanks to extensive exposure to these formats in their training data.
 
 
 

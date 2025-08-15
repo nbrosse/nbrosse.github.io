@@ -5,6 +5,8 @@ date: "2025-02-06"
 categories: [deep learning, biology]
 bibliography: mhc-references.bib
 description: "Using machine learning to predict peptide binding affinity to Major Histocompatibility Complex (MHC) molecules."
+citation:
+  url: https://nbrosse.github.io/posts/mhc/mhc.html
 ---
 
 This blog post explores the application of machine learning techniques to predict the binding affinity between peptides and Major Histocompatibility Complex (MHC) molecules. In @sec-mhc, we introduce the biological aspects of MHC. In @sec-pred-mhc, we then present the deep learning approach and the results of MHC antigen presentation.
