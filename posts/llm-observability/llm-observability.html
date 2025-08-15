@@ -10,7 +10,7 @@
 <meta name="dcterms.date" content="2025-06-30">
 <meta name="description" content="Integrating Langfuse for LLM observability in a FastHTML chatbot application.">
 
-<title>LLM Observability with Langfuse and a FastHTML Chatbot - Part 1 – Nicolas’ Notebook</title>
+<title>LLM Observability with Langfuse and a FastHTML Chatbot – Nicolas’ Notebook</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -150,7 +150,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">LLM Observability with Langfuse and a FastHTML Chatbot - Part 1</h1>
+      <h1 class="title">LLM Observability with Langfuse and a FastHTML Chatbot</h1>
                   <div>
         <div class="description">
           Integrating Langfuse for LLM observability in a FastHTML chatbot application.
@@ -180,6 +180,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       </div>
     </div>
     
+      <div>
+      <div class="quarto-title-meta-heading">Modified</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date-modified">August 15, 2025</p>
+      </div>
+    </div>
       
     </div>
     
@@ -193,7 +199,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#sec-langfuse" id="toc-sec-langfuse" class="nav-link active" data-scroll-target="#sec-langfuse">Presentation of Langfuse</a></li>
-  <li><a href="#a-fasthtml-chatbot-with-langfuse-and-google-gemini" id="toc-a-fasthtml-chatbot-with-langfuse-and-google-gemini" class="nav-link" data-scroll-target="#a-fasthtml-chatbot-with-langfuse-and-google-gemini">A FastHTML Chatbot with Langfuse and Google Gemini</a>
+  <li><a href="#sec-fasthtml-gemini" id="toc-sec-fasthtml-gemini" class="nav-link" data-scroll-target="#sec-fasthtml-gemini">A FastHTML Chatbot with Langfuse and Google Gemini</a>
   <ul class="collapse">
   <li><a href="#why-not-use-streamlit" id="toc-why-not-use-streamlit" class="nav-link" data-scroll-target="#why-not-use-streamlit">Why not use Streamlit ?</a></li>
   <li><a href="#why-fasthtml" id="toc-why-fasthtml" class="nav-link" data-scroll-target="#why-fasthtml">Why FastHTML?</a></li>
@@ -208,9 +214,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#supporting-http-endpoints" id="toc-supporting-http-endpoints" class="nav-link" data-scroll-target="#supporting-http-endpoints">Supporting HTTP Endpoints</a></li>
   </ul></li>
   </ul></li>
-  <li><a href="#run-the-chatbot-application" id="toc-run-the-chatbot-application" class="nav-link" data-scroll-target="#run-the-chatbot-application">Run the Chatbot Application</a></li>
-  <li><a href="#run-the-chatbot-application-1" id="toc-run-the-chatbot-application-1" class="nav-link" data-scroll-target="#run-the-chatbot-application-1">Run the Chatbot Application</a></li>
-  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  <li><a href="#sec-run-chatbot" id="toc-sec-run-chatbot" class="nav-link" data-scroll-target="#sec-run-chatbot">Run the Chatbot Application</a></li>
+  <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion">Conclusion</a></li>
   <li><a href="#sec-appendix-rendering-markdown" id="toc-sec-appendix-rendering-markdown" class="nav-link" data-scroll-target="#sec-appendix-rendering-markdown">Appendix: Rendering Markdown in FastHTML</a>
   <ul class="collapse">
   <li><a href="#approach-1-custom-javascript-with-marked.js" id="toc-approach-1-custom-javascript-with-marked.js" class="nav-link" data-scroll-target="#approach-1-custom-javascript-with-marked.js">Approach 1: Custom JavaScript with <code>marked.js</code></a></li>
@@ -233,9 +238,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <p>As Large Language Models (LLMs) become increasingly integrated into real-world applications, understanding and monitoring their behavior is essential. LLM observability—the practice of tracing, logging, and analyzing model interactions—enables developers to diagnose issues, optimize performance, and ensure responsible AI usage.</p>
-<p>This blog post is the first in a series presenting a proof of concept for implementing LLM observability using Langfuse, an open-source observability platform, together with a responsive chatbot built with FastHTML. The goal is to showcase practical techniques for capturing and visualizing LLM interactions, providing valuable insights for building more reliable and transparent AI systems.</p>
-<p>In this blog post, I demonstrate how to integrate Langfuse into a FastHTML chatbot application for enhanced observability.</p>
-<p>The associated code is available on <a href="https://github.com/nbrosse/llm-observability">llm-observability</a>.</p>
+<p>This blog post presents a proof of concept for implementing LLM observability using Langfuse, an open-source observability platform, together with a responsive chatbot built with FastHTML. The goal is to showcase practical techniques for capturing and visualizing LLM interactions, providing valuable insights for building more reliable and transparent AI systems. I demonstrate how to integrate Langfuse into a FastHTML chatbot application for enhanced observability. The associated code is available on <a href="https://github.com/nbrosse/llm-observability">llm-observability</a>.</p>
+<p>The post is structured as follows:</p>
+<ul>
+<li><a href="#sec-langfuse">Presentation of Langfuse</a></li>
+<li><a href="#sec-fasthtml-gemini">A FastHTML Chatbot with Langfuse and Google Gemini</a></li>
+<li><a href="#sec-run-chatbot">Run the Chatbot Application</a></li>
+<li><a href="#sec-conclusion">Conclusion</a></li>
+<li><a href="#sec-appendix-rendering-markdown">Appendix: Rendering Markdown in FastHTML</a></li>
+</ul>
 <section id="sec-langfuse" class="level1">
 <h1>Presentation of Langfuse</h1>
 <p>For the foundational observability layer, I selected <strong>Langfuse</strong>. Langfuse is an open-source platform specifically designed for LLM applications, offering tools to trace, debug, and analyze LLM interactions. Its capabilities allow for detailed tracking of requests, responses, latencies, token usage, and other relevant metrics. We chose Langfuse due to its open-source nature, dedicated focus on LLMs, and its promise of comprehensive tracing features. We refer to the official <a href="https://langfuse.com/docs">Langfuse documentation</a> for more details on its features and setup. It provides features for tracing, prompt management, and evaluations:</p>
@@ -246,7 +257,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 <p>Langfuse is open, self-hostable, and extensible. For testing purposes, it is recommended to run Langfuse locally. It can be easily set up using Docker Compose, which simplifies the deployment process and allows for quick iterations during development. The guide from the <a href="https://langfuse.com/self-hosting/docker-compose">Langfuse documentation</a> enables users to quickly get started with a local instance. The setup involves pulling the Docker image, configuring environment variables, and running the container. This approach provides a convenient way to experiment with Langfuse’s features without needing a cloud deployment, making it ideal for development and testing scenarios.</p>
 </section>
-<section id="a-fasthtml-chatbot-with-langfuse-and-google-gemini" class="level1">
+<section id="sec-fasthtml-gemini" class="level1">
 <h1>A FastHTML Chatbot with Langfuse and Google Gemini</h1>
 <section id="why-not-use-streamlit" class="level2">
 <h2 class="anchored" data-anchor-id="why-not-use-streamlit">Why not use Streamlit ?</h2>
@@ -372,7 +383,7 @@ Listing&nbsp;1: Example of a Streamlit chatbot application
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The Zero_md component containing the style and the markdown content.</span></span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Zero_md(css_template, Script(md, <span class="bu">type</span><span class="op">=</span><span class="st">"text/markdown"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>This function is a utility for rendering Markdown content within the chat interface. It uses the <code>Zero_md</code> component from FastHTML to convert Markdown strings into HTML. The function first defines custom CSS to override the default white background and dark text color of the Markdown, allowing it to inherit the styles of its parent container (like a chat bubble). This ensures that the rendered Markdown blends seamlessly with the chat UI. The function is drawn from <a href="https://isaac-flath.github.io/website/posts/boots/FasthtmlTutorial.html">Isaac Flath article</a>.</p>
-<p>Note that there exist other ways to render Markdown in FastHTML, see <a href="#sec-appendix-rendering-markdown" class="quarto-xref">Section&nbsp;6</a>.</p>
+<p>Note that there exist other ways to render Markdown in FastHTML, see <a href="#sec-appendix-rendering-markdown" class="quarto-xref">Section&nbsp;5</a>.</p>
 </section>
 <section id="the-sessionsmanager-class" class="level3">
 <h3 class="anchored" data-anchor-id="the-sessionsmanager-class">The <code>SessionsManager</code> Class</h3>
@@ -748,56 +759,13 @@ Listing&nbsp;1: Example of a Streamlit chatbot application
 </section>
 </section>
 </section>
-<section id="run-the-chatbot-application" class="level1">
-<h1>Run the Chatbot Application</h1>
-<p>After all this step by step analysis of the code, let’s have fun running the chatbot application!</p>
-<p>To run the chatbot application, please refer to the instructions in the <a href="https://nbrosse.github.io/llm-observability/README.md">README</a>.</p>
-<p>Once the Langfuse docker container is running, you can start the FastHTML application using the following command.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">❯</span> uv run app/chat_fasthtml.py</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Link:</span> http://localhost:5001</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     Will watch for changes in these directories: <span class="pp">[</span><span class="st">'/home/nicolas/PycharmProjects/llm-observability'</span><span class="pp">]</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     Uvicorn running on http://0.0.0.0:5001 <span class="er">(</span><span class="ex">Press</span> CTRL+C to quit<span class="kw">)</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     Started reloader process <span class="pp">[</span><span class="ss">201742</span><span class="pp">]</span> using WatchFiles</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     Started server process <span class="pp">[</span><span class="ss">201830</span><span class="pp">]</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     Waiting for application startup.</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     Application startup complete.</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     127.0.0.1:40808 <span class="at">-</span> <span class="st">"GET / HTTP/1.1"</span> 200 OK</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     127.0.0.1:40816 <span class="at">-</span> <span class="st">"WebSocket /wscon"</span> <span class="pp">[</span><span class="ss">accepted</span><span class="pp">]</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     connection open</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     127.0.0.1:40808 <span class="at">-</span> <span class="st">"GET /favicon.ico HTTP/1.1"</span> 404 Not Found</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="ex">SERVER:</span> WebSocket connected. Session ID: 24a0a9ff-bf1d-467f-a7ab-c3f67ddb7d0d.</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     127.0.0.1:51564 <span class="at">-</span> <span class="st">"POST /score_message HTTP/1.1"</span> 200 OK</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO:</span>     127.0.0.1:51998 <span class="at">-</span> <span class="st">"POST /score_message HTTP/1.1"</span> 200 OK</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>You observe all the logs in the terminal, including the WebSocket connection, incoming messages, and any errors that may occur during processing. The application is accessible at <code>http://localhost:5001</code> and you can interact with it through a web browser.</p>
-<div id="fig-chatbot-demo" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Chatbot Demo Screenshot">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-chatbot-demo-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/chatbot_demo.png" class="img-fluid figure-img" alt="Chatbot Demo Screenshot">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-chatbot-demo-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Screenshot of the FastHTML Chatbot with Langfuse integration
-</figcaption>
-</figure>
-</div>
-<p>We can access the traces on langfuse platform at <code>http://localhost:3000</code> (or the port you configured in the <code>docker-compose.yml</code> file). The traces will show the conversation history, including user messages, AI responses, and any feedback provided by users. This allows for detailed analysis of the chatbot’s performance and user interactions.</p>
-<div id="fig-langfuse-trace" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Langfuse Trace Screenshot">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-langfuse-trace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/langfuse_trace.png" class="img-fluid figure-img" alt="Langfuse Trace Screenshot">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-langfuse-trace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: Screenshot of Langfuse trace for the chatbot application
-</figcaption>
-</figure>
-</div>
-</section>
-<section id="run-the-chatbot-application-1" class="level1">
+<section id="sec-run-chatbot" class="level1">
 <h1>Run the Chatbot Application</h1>
 <p>After analyzing the code, it’s time to run the chatbot application and see it in action.</p>
 <p><strong>Prerequisites</strong></p>
-<p>Before starting the application, ensure you have followed the setup instructions in the <a href="https://nbrosse.github.io/llm-observability/README.md">project’s README</a>. Make sure the Langfuse Docker container is up and running.</p>
+<p>Before starting the application, ensure you have followed the setup instructions in the <a href="https://github.com/nbrosse/llm-observability">project’s README</a>. Make sure the Langfuse Docker container is up and running.</p>
 <p>Once the prerequisites are met, start the FastHTML application from your terminal with the following command:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">❯</span> uv run app/chat_fasthtml.py</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">❯</span> uv run app/chat_fasthtml.py</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>You should see output similar to the following, indicating the server has started successfully on port 5001 and is ready for connections:</p>
 <pre class="log"><code>Link: http://localhost:5001
 INFO:     Will watch for changes in these directories: ['/home/nicolas/PycharmProjects/llm-observability']
@@ -818,7 +786,7 @@ SERVER: WebSocket connected. Session ID: 24a0a9ff-bf1d-467f-a7ab-c3f67ddb7d0d.</
 <img src="figures/chatbot_demo.png" class="img-fluid figure-img" alt="A web browser showing the chatbot interface with a conversation history, a message input box, and thumb up/down feedback buttons for each AI response.">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-chatbot-demo-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: A web browser showing the chatbot interface with a conversation history, a message input box, and thumb up/down feedback buttons for each AI response.
+Figure&nbsp;1: A web browser showing the chatbot interface with a conversation history, a message input box, and thumb up/down feedback buttons for each AI response.
 </figcaption>
 </figure>
 </div>
@@ -830,13 +798,13 @@ Figure&nbsp;3: A web browser showing the chatbot interface with a conversation h
 <img src="figures/langfuse_trace.png" class="img-fluid figure-img" alt="The Langfuse dashboard displaying a trace for a chatbot conversation. The trace shows a timeline with nested spans for generation, user input, and scores.">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-langfuse-trace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: The Langfuse dashboard displaying a trace for a chatbot conversation. The trace shows a timeline with nested spans for generation, user input, and scores.
+Figure&nbsp;2: The Langfuse dashboard displaying a trace for a chatbot conversation. The trace shows a timeline with nested spans for generation, user input, and scores.
 </figcaption>
 </figure>
 </div>
 <p>You can also test by opening multiple browser tabs or windows to simulate different users interacting with the chatbot simultaneously. Each session will generate its own trace in Langfuse, allowing you to see how the application handles concurrent conversations.</p>
 </section>
-<section id="conclusion" class="level1">
+<section id="sec-conclusion" class="level1">
 <h1>Conclusion</h1>
 <p>This FastHTML chatbot application demonstrates how to integrate Google GenAI with Langfuse for observability. It provides a responsive user interface, real-time interactions, and detailed tracing of AI-generated responses. The use of HTMX and WebSockets enhances the user experience by enabling immediate feedback and updates without full page reloads.</p>
 </section>
@@ -851,24 +819,24 @@ Figure&nbsp;4: The Langfuse dashboard displaying a trace for a chatbot conversat
 <section id="approach-1-custom-javascript-with-marked.js" class="level2">
 <h2 class="anchored" data-anchor-id="approach-1-custom-javascript-with-marked.js">Approach 1: Custom JavaScript with <code>marked.js</code></h2>
 <p>This method involves manually including the <code>marked.js</code> library and writing a small script to process elements on the page.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Include the script in the &lt;head&gt; of your application</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>markdown_js <span class="op">=</span> <span class="st">"""</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="st">import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="st">proc_htmx('.markdown', e =&gt; e.innerHTML = marked.parse(e.textContent));</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> FastHTML(hdrs<span class="op">=</span>(..., Script(markdown_js, <span class="bu">type</span><span class="op">=</span><span class="st">'module'</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Include the script in the &lt;head&gt; of your application</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>markdown_js <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="st">import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="st">proc_htmx('.markdown', e =&gt; e.innerHTML = marked.parse(e.textContent));</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>app <span class="op">=</span> FastHTML(hdrs<span class="op">=</span>(..., Script(markdown_js, <span class="bu">type</span><span class="op">=</span><span class="st">'module'</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>Mechanism:</strong> A JavaScript snippet imports <code>marked.js</code> from a CDN. It then uses the FastHTML helper <code>proc_htmx('.markdown', ...)</code> to find elements with the <code>markdown</code> class whenever content is loaded or swapped by HTMX. For each element found, the script takes its plain text content, parses it as Markdown, and replaces the element’s <code>innerHTML</code> with the resulting HTML.</p>
 <p><strong>Usage:</strong> Place your raw Markdown string inside any container element and assign it the <code>markdown</code> class.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: Rendering a Markdown-formatted chat message</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>Div(<span class="st">"**User:** How do I render Markdown in FastHTML?</span><span class="ch">\n\n</span><span class="st">**Assistant:** Use the `Div` component with the `markdown` class to display formatted content."</span>, cls<span class="op">=</span><span class="st">"markdown"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: Rendering a Markdown-formatted chat message</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>Div(<span class="st">"**User:** How do I render Markdown in FastHTML?</span><span class="ch">\n\n</span><span class="st">**Assistant:** Use the `Div` component with the `markdown` class to display formatted content."</span>, cls<span class="op">=</span><span class="st">"markdown"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>Styling</strong> is handled externally. You must provide your own CSS rules that target the HTML elements generated by <code>marked.js</code> (e.g., <code>h1</code>, <code>p</code>, <code>ul</code>) within the <code>.markdown</code> container.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode css code-with-copy"><code class="sourceCode css"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* Example external CSS */</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">.markdown</span> p {</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">margin-bottom</span><span class="ch">:</span> <span class="dv">1</span><span class="dt">rem</span><span class="op">;</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">.markdown</span> h1 {</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">font-size</span><span class="ch">:</span> <span class="dv">2</span><span class="dt">em</span><span class="op">;</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode css code-with-copy"><code class="sourceCode css"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* Example external CSS */</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">.markdown</span> p {</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">margin-bottom</span><span class="ch">:</span> <span class="dv">1</span><span class="dt">rem</span><span class="op">;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">.markdown</span> h1 {</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">font-size</span><span class="ch">:</span> <span class="dv">2</span><span class="dt">em</span><span class="op">;</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>Key Characteristics</strong></p>
 <ul>
 <li>Global Processing: Relies on a global script that processes elements based on a CSS class.</li>
@@ -880,29 +848,29 @@ Figure&nbsp;4: The Langfuse dashboard displaying a trace for a chatbot conversat
 <section id="approach-2-fasthtml-built-in-components" class="level2">
 <h2 class="anchored" data-anchor-id="approach-2-fasthtml-built-in-components">Approach 2: FastHTML Built-in Components</h2>
 <p>FastHTML provides convenient components, <code>MarkdownJS</code> and <code>HighlightJS</code>, that bundle the necessary client-side libraries and initialization scripts.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fasthtml.common <span class="im">import</span> <span class="op">*</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Include the components in the &lt;head&gt;</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>hdrs <span class="op">=</span> (MarkdownJS(), HighlightJS(langs<span class="op">=</span>[<span class="st">'python'</span>, <span class="st">'javascript'</span>, <span class="st">'html'</span>, <span class="st">'css'</span>]), )</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>app, rt <span class="op">=</span> fast_app(hdrs<span class="op">=</span>hdrs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fasthtml.common <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Include the components in the &lt;head&gt;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>hdrs <span class="op">=</span> (MarkdownJS(), HighlightJS(langs<span class="op">=</span>[<span class="st">'python'</span>, <span class="st">'javascript'</span>, <span class="st">'html'</span>, <span class="st">'css'</span>]), )</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>app, rt <span class="op">=</span> fast_app(hdrs<span class="op">=</span>hdrs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>Mechanism</strong></p>
 <ul>
 <li><code>MarkdownJS()</code>: Injects a script that automatically finds elements with a specific class (typically <code>marked</code>) and renders their text content as Markdown. This is a “batteries-included” version of the custom <code>marked.js</code> approach.</li>
 <li><code>HighlightJS()</code>: Injects the Highlight.js library and a script to apply syntax highlighting to code blocks (e.g., <code>&lt;pre&gt;&lt;code&gt;...&lt;/code&gt;&lt;/pre&gt;</code>). It works seamlessly with <code>MarkdownJS</code>, which generates the required HTML structure for fenced code blocks.</li>
 </ul>
 <p><strong>Usage:</strong> Place your raw Markdown string in a container element and assign it the <code>marked</code> class.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="at">@rt</span>(<span class="st">'/'</span>)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get(req):</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    content <span class="op">=</span> <span class="st">"""</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="st">    ## Example</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="st">    Here is some _markdown_ with a **code block**:</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="st">    ```python</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="st">    def hello():</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="st">        print("Hello, world!")</span></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="st">    ```</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="st">    """</span></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Titled(<span class="st">"Markdown Example"</span>, Div(content, cls<span class="op">=</span><span class="st">"marked"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="at">@rt</span>(<span class="st">'/'</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get(req):</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    content <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="st">    ## Example</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="st">    Here is some _markdown_ with a **code block**:</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="st">    ```python</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="st">    def hello():</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="st">        print("Hello, world!")</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="st">    ```</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="st">    """</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Titled(<span class="st">"Markdown Example"</span>, Div(content, cls<span class="op">=</span><span class="st">"marked"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>Styling</strong></p>
 <ul>
 <li>Markdown: General elements (paragraphs, lists, headings) are styled by your main CSS, such as PicoCSS or custom stylesheets.</li>
@@ -919,33 +887,33 @@ Figure&nbsp;4: The Langfuse dashboard displaying a trace for a chatbot conversat
 <section id="approach-3-using-the-zero-md-web-component" class="level2">
 <h2 class="anchored" data-anchor-id="approach-3-using-the-zero-md-web-component">Approach 3: Using the <code>zero-md</code> Web Component</h2>
 <p>This modern approach uses the <code>&lt;zero-md&gt;</code> web component, which encapsulates both rendering and styling.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Register the web component in the &lt;head&gt;</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>hdrs <span class="op">=</span> (</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    Script(<span class="bu">type</span><span class="op">=</span><span class="st">"module"</span>, src<span class="op">=</span><span class="st">"https://cdn.jsdelivr.net/npm/zero-md@3?register"</span>),</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Register the web component in the &lt;head&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>hdrs <span class="op">=</span> (</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    Script(<span class="bu">type</span><span class="op">=</span><span class="st">"module"</span>, src<span class="op">=</span><span class="st">"https://cdn.jsdelivr.net/npm/zero-md@3?register"</span>),</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>Mechanism:</strong> <code>zero-md</code> is a self-contained custom HTML element (<code>&lt;zero-md&gt;</code>). It manages its own rendering lifecycle and styling, often using a Shadow DOM to prevent style conflicts. The Markdown source is passed to it inside a <code>&lt;script type="text/markdown"&gt;</code> tag.</p>
 <p><strong>Usage:</strong> A helper function can abstract the component’s structure, making it easy to use.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper function to generate the &lt;zero-md&gt; component</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> render_local_md(md_content_string):</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># This CSS overrides zero-md defaults to inherit color from the parent</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    css <span class="op">=</span> <span class="st">'.markdown-body { background-color: unset !important; color: unset !important; }'</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># zero-md is styled via an internal &lt;template&gt;</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    css_template <span class="op">=</span> Template(Style(css), data_append<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Zero_md(</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>        css_template,</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>        Script(md_content_string, <span class="bu">type</span><span class="op">=</span><span class="st">"text/markdown"</span>)</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: Rendering a Markdown-formatted chat message using zero-md</span></span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>sample_message <span class="op">=</span> <span class="st">"""</span></span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="st">**User:** How do I render Markdown in Fa    stHTML?</span></span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="st">**Assistant:** Use the `render_local_md` helper function to display formatted Markdown content in your chat UI.</span></span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>render_local_md(sample_message)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper function to generate the &lt;zero-md&gt; component</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> render_local_md(md_content_string):</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># This CSS overrides zero-md defaults to inherit color from the parent</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    css <span class="op">=</span> <span class="st">'.markdown-body { background-color: unset !important; color: unset !important; }'</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># zero-md is styled via an internal &lt;template&gt;</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    css_template <span class="op">=</span> Template(Style(css), data_append<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Zero_md(</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>        css_template,</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>        Script(md_content_string, <span class="bu">type</span><span class="op">=</span><span class="st">"text/markdown"</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: Rendering a Markdown-formatted chat message using zero-md</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>sample_message <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="st">**User:** How do I render Markdown in Fa    stHTML?</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="st">**Assistant:** Use the `render_local_md` helper function to display formatted Markdown content in your chat UI.</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>render_local_md(sample_message)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>Styling:</strong> <code>zero-md</code> comes with its own default styles. You can customize them by passing a <code>&lt;template&gt;</code> containing <code>&lt;style&gt;</code> tags, as shown in the helper function. These styles are scoped to the component, preventing them from affecting the rest of your page.</p>
 <p><strong>Key Characteristics</strong></p>
 <ul>
@@ -1046,7 +1014,18 @@ Figure&nbsp;4: The Langfuse dashboard displaying a trace for a chatbot conversat
 </section>
 </section>
 
-</main> <!-- /main -->
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2025,
+  author = {Brosse, Nicolas},
+  title = {LLM {Observability} with {Langfuse} and a {FastHTML}
+    {Chatbot}},
+  date = {2025-06-30},
+  url = {https://nbrosse.github.io/posts/llm-observability/llm-observability.html},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2025" class="csl-entry quarto-appendix-citeas" role="listitem">
+Brosse, Nicolas. 2025. <span>“LLM Observability with Langfuse and a
+FastHTML Chatbot.”</span> June 30, 2025. <a href="https://nbrosse.github.io/posts/llm-observability/llm-observability.html">https://nbrosse.github.io/posts/llm-observability/llm-observability.html</a>.
+</div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
