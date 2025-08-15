@@ -5,6 +5,8 @@ date: "2024-04-24"
 categories: [deep learning, biology]
 bibliography: unimol-gbf-references.bib
 description: "A comparative analysis of Gaussian kernel with pair type (GBFPT) and Discretization categorical embedding with Pair Type (DCEPT) for encoding distances in 3D molecular representations, using the Uni-Mol framework."
+citation:
+  url: https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html
 ---
 
 This blog post compares two different methods for encoding distances in 3D molecules and protein pockets: Gaussian kernel with pair type (GBFPT) and Discretization categorical embedding with Pair Type (DCEPT).  We analyze their performance within the Uni-Mol framework, a universal 3D molecular representation learning model. We observed unstable gradients with GBFPT and hypothesized that DCEPT, inspired by AlphaFold's distance representation, might offer a more stable alternative.  We found that while DCEPT exhibits more stable training behavior, GBFPT ultimately yields superior pocket embeddings for retrieval tasks.

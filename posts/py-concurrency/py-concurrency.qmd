@@ -4,6 +4,8 @@ author: "Nicolas Brosse"
 date: "2025-02-26"
 categories: [python]
 description: "An introduction to Python concurrency, covering core concepts, practical examples, and considerations for its use."
+citation:
+  url: https://nbrosse.github.io/posts/py-concurrency/py-concurrency.html
 ---
 
 This blog post is organized as follows:

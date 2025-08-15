@@ -9,6 +9,8 @@ notebook-view:
   - notebook: notebooks/_query_multi_pdfs_example.ipynb
     title: "ReActAgent: Querying Multiple PDFs Example"
     url: https://github.com/nbrosse/pdf-rag/blob/main/notebooks/query_multi_pdfs_example.ipynb
+citation:
+  url: https://nbrosse.github.io/posts/pdf-rag/pdf-rag.html
 ---
 
 In this blog post, we focus on RAG (Retrieval-Augmented Generation) specifically for PDF documents. We will study how PDFs can be processed for use with Language Models (LLMs). The code relies on [llama-index](https://docs.llamaindex.ai/en/stable/) package which is versatile but evolving rapidly and unstable.

@@ -1,0 +1,547 @@
+---
+title: "LLM-Powered Slide Decks: A Comparison of Formats"
+author: "Nicolas Brosse"
+date: 2025-08-15
+categories: [LLM]
+description: "A comparison of formats for LLM-powered slide decks."
+citation:
+  url: https://nbrosse.github.io/posts/llm-slides/llm-slides.html
+---
+
+Creating effective slide decks is essential for communicating ideas in business, academia, and public speaking. Large Language Models (LLMs) can assist in this process by saving time, improving clarity, and boosting creativity. They can generate content, suggest visualizations, and write speaker notes.
+
+However, using LLMs to create slides — especially in Google Slides and PowerPoint — **is challenging**. Why is this the case ? **Can we create a better experience ?**
+
+In this post, I will:
+
+- Highlight why formats like HTML/CSS and Quarto/Reveal.js are better suited for LLM-powered slide decks.
+- Share a comparison of the experience generating slides in different formats.
+
+To provide a fair and practical comparison, I selected the first pages of a real-world presentation: the [EDF Producer Booklet (FET17CR)](livret_producteur_fet17cr_v1.1.pdf). I then prompted an LLM, using Google Gemini Pro 2.5, to replicate the first few pages of this presentation in several different formats:
+
+- HTML/CSS
+- Quarto/Reveal.js
+- Google Slides
+- PowerPoint
+
+I evaluated the LLM's output based on:
+
+- Fidelity: How closely does the result match the original slides?
+- Ease of Generation: How straightforward is the prompt and output process?
+- Editability: How easy is it to modify the generated slides?
+
+Below, I present the results and discuss the strengths and weaknesses of each approach.
+
+The code is available on [GitHub](https://github.com/nbrosse/llm-slide-deck), with a companion website [here](https://nbrosse.github.io/llm-slide-deck/) where you can view the rendered slides.
+
+The post is structured as follows:
+
+- [How LLMs Can Help You Create Slides](#sec-llm-slides)
+- [Why Code-Based Formats Work Better with LLMs](#sec-why-code-based)
+- [EDF Producer Booklet (FET17CR): Overview](#sec-edf-booklet)
+- [Building Slide Decks with Pure HTML & CSS](#sec-html-css)
+- [Building Slide Decks with Quarto & Reveal.js](#sec-quarto-reveal)
+- [Building Slide Decks with Google Slides API](#sec-google-slides-api)
+- [Building Slide Decks with Microsoft PowerPoint](#sec-microsoft-powerpoint)
+- [Conclusion](#sec-conclusion)
+
+::: {.callout-note}
+**TL;DR**:
+
+- LLMs are great for brainstorming, drafting concise slide content, suggesting visuals, and writing speaker notes.
+- Code-first formats (Quarto/Reveal.js, HTML/CSS) let LLMs generate slides directly as text, yielding higher fidelity and easier edits than GUI tools.
+- Quarto/Reveal.js is the most practical today: fast to author in Markdown, feature-rich, and simple to render to polished HTML.
+- Google Slides API and PowerPoint via code (e.g., python-pptx) involve complex, verbose APIs and brittle workflows; fidelity and maintainability suffer.
+- Recommendation: Generate Quarto/Reveal.js Markdown via chat today; ideal future is an interactive UI that uses Markdown under the hood and can export to `.pptx`.
+:::
+
+# How LLMs Can Help You Create Slides {#sec-llm-slides}
+
+**1. Brainstorming and Outlining**
+
+When you're starting a presentation, LLMs can be incredibly helpful for getting your ideas flowing. They can generate fresh ideas for your presentation topic, suggest logical structures and outlines that make sense, and help you identify the key points that will resonate most with your audience. For example, you might ask them to "Suggest an outline for a presentation on renewable energy trends in 2025" and get a well-structured framework to build upon.
+
+**2. Drafting Slide Content**
+
+Once you have your outline, LLMs excel at helping you fill in the content. They can write concise bullet points that capture the essence of complex topics, summarize lengthy information into digestible chunks, and rephrase technical jargon into language that your audience will understand. A simple prompt like "Summarize the main benefits of using LLMs in education in 3 bullet points" can give you exactly what you need for a slide.
+
+**3. Visual Suggestions**
+
+While LLMs can't create images directly, they're great at suggesting what types of visuals would work best for your content. They can recommend specific types of charts, diagrams, or images that would illustrate your points effectively, and offer guidance on slide layouts and design principles. You might ask "What kind of chart would best illustrate the growth of AI adoption from 2020 to 2025?" and get specific recommendations for the most appropriate visualization.
+
+**4. Improving Clarity and Engagement**
+
+LLMs can act as a second pair of eyes on your presentation, reviewing your slides for clarity and suggesting improvements. They can propose engaging questions or anecdotes that will help you connect with your audience, and help you tailor your language to match your audience's level of expertise. A prompt like "Rewrite this slide to be more engaging for a non-technical audience" can transform dry content into something that captures attention.
+
+**5. Generating Speaker Notes**
+
+One of the most valuable features LLMs offer is their ability to generate speaker notes that accompany each slide. They can draft detailed notes that help you elaborate on your bullet points during your talk, ensuring you don't miss important details while keeping your presentation flowing naturally. You could ask them to "Write speaker notes for a slide about the challenges of AI in healthcare" and get comprehensive talking points.
+
+**6. Language and Translation Support**
+
+LLMs can also help with language-related tasks, from translating your slide content into multiple languages to checking grammar and spelling. This is particularly useful if you're presenting to international audiences or want to ensure your presentation is polished and professional. A simple request like "Translate this slide into French" can instantly make your content accessible to a broader audience.
+
+# Why Code-Based Formats Work Better with LLMs {#sec-why-code-based}
+
+The fundamental reason why LLMs struggle with Google Slides and PowerPoint is that these tools are designed for human interaction through graphical interfaces, not for programmatic creation. LLMs work best when they can generate and manipulate text-based code, which is exactly what formats like Reveal.js, Quarto, and HTML/CSS provide.
+
+When you ask an LLM to create a presentation in Google Slides or PowerPoint, it has to generate complex API calls or scripts that then manipulate the presentation through external interfaces. This creates multiple layers of abstraction and potential points of failure. The LLM isn't directly creating the presentation; it's creating code that creates the presentation.
+
+In contrast, with Reveal.js and Quarto, the LLM can work directly with the source material. A Quarto presentation is essentially a Markdown file with some YAML configuration. When you ask an LLM to create a slide deck, it can generate the actual presentation content in a format that's both human-readable and machine-executable. The LLM's natural output—structured text—becomes the presentation itself, not just instructions for building one.
+
+This direct approach eliminates the complexity of API authentication, object IDs, and the verbose syntax required by presentation software APIs. Instead, the LLM can focus on what it does best: generating clear, well-structured content that can be immediately rendered into a beautiful presentation.
+
+The comparison below supports this remark by showing how LLMs perform when generating presentations in different formats. When tasked with creating a slide deck, LLMs consistently produce more accurate, editable, and reliable results in code-based formats like Quarto/Reveal.js or HTML/CSS, compared to GUI-based tools like Google Slides or PowerPoint.
+
+# EDF Producer Booklet (FET17CR): Overview {#sec-edf-booklet}
+
+Below is a preview of the first pages of the [EDF Producer Booklet (FET17CR)](livret_producteur_fet17cr_v1.1.pdf). This document provides essential information for energy producers, including operational guidelines, key contacts, and regulatory details. You can view the original PDF directly in your browser or download it for offline reference.
+
+I prompt the LLM (Google Gemini Pro 2.5) to produce the slides in several formats, including Quarto/Reveal.js Markdown, pure HTML/CSS, Google Slides API code and PowerPoint `python-pptx` code. This allows me to compare how well the LLM handles each format in terms of fidelity, ease of generation, and editability.
+
+```{=html}
+<object data="livret_producteur_fet17cr_v1.1.pdf" type="application/pdf" width="100%" height="900px">
+  <p>Your browser can't display PDFs. Download it <a href="livret_producteur_fet17cr_v1.1.pdf">here</a>.</p>
+  <p>If the built-in PDF viewer fails, use the download link above.</p>
+</object>
+```
+
+# Building Slide Decks with Pure HTML & CSS {#sec-html-css}
+
+Building Slide Decks with Pure HTML & CSS involves creating a single HTML file and styling it with CSS to behave like a presentation. When you create a slide deck using only HTML and CSS, you are responsible for every aspect of the presentation's structure, style, and interactivity. This approach offers maximum flexibility but requires significant manual effort.
+
+**Pros:**
+
+- Full control over every detail (layout, transitions, features).
+- No dependencies—just HTML, CSS, and optionally JavaScript.
+- Can be highly optimized for specific needs or branding.
+
+**Cons:**
+
+- Time-consuming: you must implement navigation, slide transitions, and features like speaker notes from scratch.
+- No built-in support for advanced features (fragments, code highlighting, export to PDF, etc.).
+- Harder to maintain and collaborate on, especially for large presentations.
+
+**Structure (HTML):** 
+You define each slide as an HTML element, typically a `<section>` or a `<div>`. The entire presentation is a container holding these slide elements.
+```html
+<body>
+    <main id="presentation">
+    <section class="slide active">
+        <h1>My Presentation Title</h1>
+        <p>By Me</p>
+    </section>
+
+    <section class="slide">
+        <h2>Second Slide Topic</h2>
+        <ul>
+        <li>Point 1</li>
+        <li>Point 2</li>
+        </ul>
+    </section>
+    <!-- more slides... -->
+    </main>
+</body>
+```
+
+**Styling (CSS):** 
+You write CSS to make it look like a presentation. This is the most complex part.
+
+- Hide all slides by default (`.slide { display: none; }`).
+- Show only the current slide (`.slide.active { display: block; }`).
+- Style the slides to take up the full screen, center content, set fonts, colors, backgrounds, etc.
+- Create transitions between slides using CSS Transitions or Animations.
+
+**Functionality (JavaScript):** 
+You must write JavaScript from scratch to handle all logic:
+
+- Listening for keyboard events (arrow keys) to navigate.
+- Changing the `.active` class from the current slide to the next/previous one.
+- Implementing a progress bar.
+- Handling speaker notes in a separate window.
+- Implementing any "fragment" animations (e.g., making bullet points appear one by one).
+
+**Example on the EDF Producer Booklet**
+
+The LLM was able to generate the HTML and CSS for the initial slides of the EDF Producer Booklet on the first attempt, with only minor issues. 
+This highlights the LLM's effectiveness and consistency when producing HTML/CSS-based slide decks. 
+However, navigation between slides and editing content remain cumbersome.
+
+```{=html}
+<iframe src="https://nbrosse.github.io/llm-slide-deck/raw/presentation.html" width="100%" height="900px"">
+    <p>Your browser doesn't support HTML viewing. <a href="https://nbrosse.github.io/llm-slide-deck/raw/presentation.html" target="_blank">Click here to download the presentation (HTML)</a></p>
+</iframe>
+```
+
+# Building Slide Decks with Quarto & Reveal.js {#sec-quarto-reveal}
+
+Quarto and Reveal.js abstract away the low-level details, letting you focus on content rather than implementation.
+
+**Pros:**
+
+- Write slides in Markdown—simple, readable, and easy to maintain.
+- Built-in support for themes, transitions, code highlighting, speaker notes, and more.
+- Easy to add advanced features (math, interactive widgets, citations).
+- Integrates with version control and reproducible research workflows.
+- Output is a polished HTML presentation powered by Reveal.js.
+
+**Cons:**
+
+- Less granular control over the underlying HTML/CSS (though you can customize if needed).
+- Requires installing Quarto and learning its configuration syntax.
+
+I use two tools in tandem:
+
+*   **Reveal.js:** A powerful, open-source HTML presentation framework. It provides the engine: the pre-built CSS for styling, the JavaScript for navigation, speaker notes, plugins, and all the features.
+*   **Quarto:** A next-generation, open-source scientific and technical publishing system. It acts as an authoring tool. You write your content in a simple format (Quarto Markdown), and Quarto converts it into the complex HTML, CSS, and JS structure that Reveal.js requires.
+
+Note that you can use Reveal.js without Quarto, but you need to write more code to get the same features.
+
+**Authoring (Quarto Markdown - `.qmd`):** You create a single text file. You use simple Markdown for content and a YAML header for configuration.
+
+```markdown
+---
+title: "My Presentation Title"
+author: "By Me"
+format: revealjs
+theme: sky
+---
+
+## Second Slide Topic
+
+- Point 1
+- Point 2
+```
+
+**Rendering (Quarto CLI):** You run a single command in your terminal: `quarto render my_presentation.qmd`.
+
+**Output:** Quarto takes your `.qmd` file, intelligently processes it, and generates a fully-functional `my_presentation.html` file. This file contains all your content correctly formatted, along with all the necessary Reveal.js CSS and JavaScript to make it a working, interactive slideshow.
+
+**Example on the EDF Producer Booklet**
+
+Quarto works seamlessly: you can open the generated HTML file in any browser and your presentation is immediately ready, with no dependencies or build steps required. LLMs are familiar with Quarto syntax and were able to generate the initial slides of the EDF Producer Booklet on the first attempt with minimal errors.
+Additionally, editing content in the `.qmd` file is straightforward, and Quarto automatically updates the HTML output when you re-render.
+
+```{=html}
+<iframe src="https://nbrosse.github.io/llm-slide-deck/quarto/presentation.html" width="100%" height="900px"">
+    <p>Your browser doesn't support HTML viewing. <a href="https://nbrosse.github.io/llm-slide-deck/quarto/presentation.html" target="_blank">Click here to download the presentation (HTML)</a></p>
+</iframe>
+```
+
+# Summary Table: HTML & CSS vs. Quarto & Reveal.js {#sec-comparison-html-quarto}
+
+| Feature / Aspect | HTML & CSS (from scratch) | Quarto & Reveal.js | Notes |
+| :--- | :--- | :--- | :--- |
+| Ease of Use & Learning Curve | Higher learning curve; requires knowledge of HTML, advanced CSS (Flexbox/Grid, animations), and JavaScript for interactivity. | Lower learning curve; content is authored in Markdown with minimal need for HTML/CSS/JS. | Quarto is simpler to start with; HTML/CSS provides direct control when needed. |
+| Speed of Authoring | Typically slower; structure and styling are created manually. | Typically faster; content-first workflow with layout helpers. | Quarto often leads to quicker drafts; speed in HTML/CSS depends on templates and tooling. |
+| Styling & Customization | Full design flexibility via CSS and JavaScript. | Theme-based customization with options to extend via CSS/SASS. | HTML/CSS maximizes flexibility; Quarto balances customization and simplicity. |
+| Code & Syntax Highlighting | Requires integrating a highlighting library and adding appropriate markup. | Built-in syntax highlighting; optional executable code in supported languages. | Quarto reduces setup effort. |
+| Math & Equations (LaTeX) | Requires integrating and configuring MathJax/KaTeX. | Built-in math rendering with LaTeX-style syntax. | Quarto simplifies configuration. |
+| Speaker Notes | Custom implementation required for presenter view and syncing. | Built-in speaker view using notes blocks. | Presenter tools are included in Quarto by default. |
+| Advanced Features | Implemented case-by-case (backgrounds, transitions, fragments, TOC, annotations). | Many features available via options or YAML configuration. | Quarto surfaces common features with minimal code. |
+| Maintainability | Content and presentation can be intertwined; global changes handled in CSS. | Content and presentation are separated; themes control global style. | Separation can ease long-term maintenance; HTML/CSS offers precise control. |
+| Output Formats | Generally targets HTML output. | Can render slides, PDF, Word, or web pages from the same source file. | Multi-format output supports varied publishing needs. |
+| Collaboration | Larger templates can be harder to review; merge conflicts may occur in markup/CSS. | Markdown source is usually easier to review and version. | Plain-text workflows can simplify collaboration. |
+
+The comparison between pure HTML/CSS and Quarto/Reveal.js is a classic case of **Control vs. Convenience**.
+
+*   **HTML/CSS** gives you ultimate, low-level control at the cost of immense complexity, time, and required expertise. You are building the engine *and* the car.
+*   **Quarto/Reveal.js** gives you a powerful, feature-rich engine out of the box and an incredibly simple, intuitive interface to put your content into it. You are focusing on the journey, not on mechanical engineering.
+
+While the "from scratch" method is a valid (and sometimes necessary) approach for highly specialized design work, the **Quarto and Reveal.js workflow is overwhelmingly superior for almost every practical use case.** It is faster, easier, more maintainable, and comes packed with features that are critical for modern technical and academic presentations.
+
+# Building Slide Decks with Google Slides API {#sec-google-slides-api}
+
+There are two primary ways to interact with Google Slides programmatically: the Google Slides API and Google Apps Script. Both methods allow you to create, read, and update presentations, but they differ significantly in their approach and capabilities.
+
+1.  **The Google Slides API:** The official, robust, and recommended method for external applications.
+2.  **Google Apps Script:** The integrated, "inside-the-box" method for automation within the Google Workspace ecosystem.
+
+## Method 1: The Google Slides API
+
+This is the standard, modern way for an external program (e.g., a Python script on your server, a Node.js web app) to talk to Google Slides. It's a RESTful API, meaning your code makes HTTP requests to Google's servers to perform actions.
+
+**How it Works:**
+
+1.  Setup: You must first set up a project in the Google Cloud Console.
+2.  Authentication: You enable the "Google Slides API" for your project and create credentials. This is the most complex part. You'll typically use either:
+    *   OAuth 2.0: For applications where a user logs in and grants your app permission to manage their slides.
+    *   Service Account: For backend applications that act on their own behalf (e.g., a nightly script that generates a report). This is common for automation.
+3.  Code: You use a Google-provided client library (available for Python, Java, Node.js, PHP, etc.) or make raw HTTP requests to send commands. All operations are typically sent in a `batchUpdate` request, which bundles multiple changes into a single API call for efficiency.
+
+**Key Capabilities:**
+
+*   Create/Read Presentations: Create blank presentations or read the entire structure of an existing one.
+*   Manage Slides: Add new slides (with predefined layouts), delete slides, duplicate slides, and reorder them.
+*   Manipulate Shapes & Text: Insert new text boxes, shapes, images, and tables. You can precisely control their size, position, and styling (font, color, fill, etc.).
+*   Data Merging: You can create a template presentation with placeholder text like `{{customer_name}}` or `{{quarterly_revenue}}`. Your code can then find and replace these placeholders with actual data, generating hundreds of custom decks from a single template.
+*   Read Speaker Notes: Programmatically get or set the speaker notes for any slide.
+
+**Pros:**
+
+*   Robust & Scalable: Built for heavy, programmatic use.
+*   Language Agnostic: Works with any language that can make HTTP requests. Official libraries make it easy.
+*   Powerful Data Integration: The best method for data-driven slide generation (e.g., from a database or a CSV file).
+*   Secure: Uses industry-standard authentication (OAuth 2.0).
+
+**Cons:**
+
+*   Complex Initial Setup: The Google Cloud Console and authentication flow can be intimidating for beginners.
+*   Verbose: Requests can be complex JSON objects. A simple action like "insert text" requires specifying object IDs, locations, etc.
+*   Cannot Automate Everything: It cannot interact with the UI, click buttons, or use third-party add-ons. It only works with what the API exposes.
+
+**Example Use Case (Python):** Example of how to create a new presentation and add a title slide.
+
+```python
+# Assumes you have set up credentials and have 'credentials.json'
+# pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+
+# --- Authentication ---
+SCOPES = ['https://www.googleapis.com/auth/presentations']
+creds = Credentials.from_authorized_user_file('token.json', SCOPES) # Handle auth flow
+service = build('slides', 'v1', credentials=creds)
+
+# --- Create a new Presentation ---
+body = {'title': 'Automated Weekly Report'}
+presentation = service.presentations().create(body=body).execute()
+presentation_id = presentation.get('presentationId')
+print(f"Created presentation with ID: {presentation_id}")
+
+# --- Add a Title Slide (assuming the first slide exists and is a title slide) ---
+requests = [
+    {
+        'insertText': {
+            'objectId': 'your_title_object_id', # You'd need to find this ID first
+            'text': 'Weekly Sales Performance',
+            'insertionIndex': 0
+        }
+    },
+    {
+        'insertText': {
+            'objectId': 'your_subtitle_object_id', # Or get it from the slide layout
+            'text': 'Data from week ending 2023-10-27',
+            'insertionIndex': 0
+        }
+    }
+]
+
+# --- Execute the batch update ---
+body = {'requests': requests}
+service.presentations().batchUpdate(presentationId=presentation_id, body=body).execute()
+```
+
+## Method 2: Google Apps Script
+
+This is a server-side JavaScript platform that lives *inside* your Google account. You write code in a browser-based IDE, and it can be attached to a specific Google Doc/Sheet/Slide or run as a standalone project.
+
+**How it Works:**
+You open a Google Slides presentation, go to `Extensions > Apps Script`, and start writing JavaScript code. The code uses services like `SlidesApp`, `SpreadsheetApp`, and `GmailApp` to interact with Google products. It feels more like writing macros than interacting with a remote API.
+
+**Key Capabilities:**
+
+*   Everything the Slides API can do, but with a simpler, more object-oriented syntax.
+*   Create Custom Menus: Add your own menus to the Google Slides UI to trigger your scripts.
+*   Triggers: Run scripts automatically on a timer (e.g., every morning), when a form is submitted, or when the presentation is opened (`onOpen`).
+*   Seamless Integration: Effortlessly pull data from Google Sheets, create slides, and then email a PDF of the presentation using Gmail, all in one script.
+
+**Pros:**
+
+*   Zero Setup: No cloud console, no complex authentication. You just start writing code.
+*   Extremely Easy to Learn: The syntax is much more direct and intuitive than the API.
+*   Perfect for Internal Automation: Ideal for tasks within the Google Workspace ecosystem (e.g., "Generate slides from this Google Sheet").
+*   Can create simple UI elements (menus, sidebars, dialogs).
+
+**Cons:**
+
+*   JavaScript Only: You are locked into the Google-flavored JavaScript environment.
+*   Not for External Apps: It's difficult to call an Apps Script from an external, non-Google application (though possible via the Apps Script API or as a Web App).
+*   Execution Limits: Scripts have maximum runtimes (e.g., 6 minutes for a consumer account) and daily quotas.
+
+**Example Use Case:** Add a custom menu item "Create Summary Slide" that reads data from a specific Google Sheet and generates a new slide.
+
+```javascript
+// This code is written in the Apps Script editor attached to a presentation.
+
+function onOpen() {
+  // Add a custom menu to the UI when the presentation is opened.
+  SlidesApp.getUi()
+      .createMenu('Automation')
+      .addItem('Generate Summary Slide', 'createSummarySlide')
+      .addToUi();
+}
+
+function createSummarySlide() {
+  const presentation = SlidesApp.getActivePresentation();
+  const spreadsheet = SpreadsheetApp.openById('your_spreadsheet_id_here');
+  const sheet = spreadsheet.getSheetByName('SalesData');
+  
+  // Get data from a cell in Google Sheets
+  const totalRevenue = sheet.getRange('B2').getValue();
+  const topProduct = sheet.getRange('B5').getValue();
+
+  // Add a new slide to the presentation
+  const slide = presentation.appendSlide(SlidesApp.PredefinedLayout.TITLE_AND_BODY);
+  
+  // Populate the new slide
+  slide.getShapes().find(s => s.isPlaceholder() && s.getPlaceholderType() == SlidesApp.PlaceholderType.TITLE).getText().setText('Sales Summary');
+  slide.getShapes().find(s => s.isPlaceholder() && s.getPlaceholderType() == SlidesApp.PlaceholderType.BODY).getText().setText(`Total Revenue: $${totalRevenue}\nTop Product: ${topProduct}`);
+}
+```
+
+## Summary Comparison Table
+
+| Feature | Google Slides API | Google Apps Script |
+| :--- | :--- | :--- |
+| **Primary Use Case** | Backend services, data-driven generation | Internal automation within Google Workspace |
+| **Robustness** | **High.** Official, stable interface. | **High.** Stable internal interface. |
+| **Ease of Setup** | **Hard.** Requires Google Cloud project & OAuth. | **Very Easy.** No setup required. |
+| **Language Support** | Any (Python, Node.js, Java, etc.) | JavaScript only |
+| **Performance** | Fast and efficient. | Fast, but with execution time limits. |
+| **Integration** | Excellent for external systems (databases, etc.) | Excellent for internal G Suite apps (Sheets, Gmail) |
+| **Recommendation** | **The standard choice for most programmatic work.** | **The best choice for quick, internal G Suite tasks.** |
+
+## Example on the EDF Producer Booklet
+
+This section focuses on the Google Slides API, which offers the most flexible approach to programmatic slide creation.
+The complete implementation code is available on [GitHub](https://github.com/nbrosse/llm-slide-deck/blob/main/google/create_slides.py).
+
+Using Google Gemini Pro 2.5, I generated code to create the initial slides of the EDF Producer Booklet. The development process encountered multiple errors and required extensive trial-and-error iterations, along with substantial manual adjustments to produce functional code. The final implementation, while working, lacks readability and would be challenging to maintain or modify.
+
+Here is the rendered slides:
+
+```{=html}
+<iframe src="https://nbrosse.github.io/llm-slide-deck/google/EDF_Presentation_google_slides.pdf" width="100%" height="900px"">
+    <p>Your browser doesn't support PDF viewing. <a href="https://nbrosse.github.io/llm-slide-deck/google/EDF_Presentation_google_slides.pdf" target="_blank">Click here to download the presentation (PDF)</a></p>
+</iframe>
+```
+
+# Building Slide Decks with Microsoft PowerPoint {#sec-microsoft-powerpoint}
+
+Unlike Google Slides, PowerPoint file creation offers more diverse approaches due to the `.pptx` format being an open, well-documented, XML-based standard (Office Open XML or OOXML). The format essentially consists of a ZIP archive containing XML files and associated resources.
+
+## The Powerful, Offline Way: Third-Party Libraries
+
+This is the most common and practical approach for server-side generation. These libraries provide a high-level API to abstract away the complexity of the underlying OOXML format.
+
+*   **Python: `python-pptx`**
+    *   The de facto standard in the Python world. It lets you create and modify `.pptx` files without needing PowerPoint installed.
+    *   **Example:**
+        ```python
+        from pptx import Presentation
+        from pptx.util import Inches
+
+        prs = Presentation()
+        title_slide_layout = prs.slide_layouts[0] # Title Slide layout
+        slide = prs.slides.add_slide(title_slide_layout)
+        title = slide.shapes.title
+        subtitle = slide.placeholders[1]
+
+        title.text = "Hello, from Python!"
+        subtitle.text = "Created with python-pptx"
+
+        prs.save("report.pptx")
+        ```
+
+*   **JavaScript/Node.js: `pptxgenjs`**
+    *   An excellent, feature-rich library that works in both Node.js and the browser. It has a fluent API and extensive documentation.
+    *   **Example:**
+        ```javascript
+        const pptxgen = require("pptxgenjs");
+
+        let pptx = new pptxgen();
+        let slide = pptx.addSlide();
+
+        slide.addText("Hello from Node.js!", {
+          x: 1, y: 1, w: '80%', h: 1, fontSize: 36, fill: { color: '003366' }
+        });
+
+        pptx.writeFile({ fileName: "report.pptx" });
+        ```
+
+*   **Java: Apache POI**
+    *   A mature, robust library from the Apache Software Foundation for working with Microsoft Office formats. The component for PowerPoint is `XSLF` (for `.pptx`). It's powerful but can be more verbose than its Python/JS counterparts.
+    *   **Example (Conceptual):**
+        ```java
+        XMLSlideShow ppt = new XMLSlideShow();
+        XSLFSlideMaster defaultMaster = ppt.getSlideMasters().get(0);
+        XSLFSlideLayout titleLayout = defaultMaster.getLayout(SlideLayout.TITLE);
+        XSLFSlide slide = ppt.createSlide(titleLayout);
+
+        XSLFTextShape title = slide.getPlaceholder(0);
+        title.setText("Hello from Java!");
+
+        FileOutputStream out = new FileOutputStream("report.pptx");
+        ppt.write(out);
+        out.close();
+        ```
+
+## The Low-Level Way: Office Open XML (OOXML) SDK
+
+This is a .NET library directly from Microsoft. It allows for the most granular control but is also the most complex. You are essentially manipulating the raw XML parts of the `.pptx` package.
+
+*   **How it Works:** You programmatically create and relate XML parts like `slide1.xml`, `presentation.xml`, `theme1.xml`, etc.
+*   **Use Case:** When a third-party library doesn't support a specific, advanced feature you need, or when you are in a strict .NET environment and want maximum performance.
+*   **Language:** .NET (C#, F#, VB.NET).
+
+## The Modern, Cloud-Native Way: Microsoft Graph API
+
+This is Microsoft's unified API for all Microsoft 365 services, including OneDrive, where PowerPoint files are stored. It is the cloud equivalent of the Google Slides API.
+
+*   **How it Works:** You make RESTful API calls to the Graph endpoint. Its capabilities for *creating slide content* are still maturing and are not yet as comprehensive as libraries like `python-pptx`. It's often used to manage files (upload, download, copy) that were generated by other means.
+*   **Key Features:**
+    *   Create a blank presentation in OneDrive or SharePoint.
+    *   *Limited* ability to add slides and basic content.
+    *   Powerful for file management and integration with the M365 ecosystem.
+
+## The Classic Automation Way: VBA and Office Add-ins
+
+This method requires the PowerPoint application to be running. It's for automating the application itself, not for server-side file generation.
+
+*   **VBA (Visual Basic for Applications):** The legacy scripting language built into Office applications. You can write macros to create slides, insert objects, and control every aspect of the UI.
+*   **Office Add-ins (Office.js):** The modern replacement for VBA. You use JavaScript, HTML, and CSS to create a web-based task pane inside PowerPoint that can interact with the presentation document.
+
+## Example on the EDF Producer Booklet
+
+The complete code example is available on [GitHub](https://github.com/nbrosse/llm-slide-deck/blob/main/powerpoint/create_powerpoint_slides.py).
+This section examines the `python-pptx` library, a widely-adopted and well-documented solution for programmatic PowerPoint generation.
+
+Similar to the Google Slides approach, Google Gemini Pro 2.5 successfully generated code to create the initial slides of the EDF Producer Booklet using the `python-pptx` library. However, the output quality and visual fidelity proved disappointing. The generated code also suffered from poor readability and would be difficult to maintain. The rendered slides are displayed below:
+
+```{=html}
+<iframe src="https://nbrosse.github.io/llm-slide-deck/powerpoint/EDF_Presentation_powerpoint_slides.pdf" width="100%" height="900px"">
+    <p>Your browser doesn't support PDF viewing. <a href="https://nbrosse.github.io/llm-slide-deck/powerpoint/EDF_Presentation_powerpoint_slides.pdf" target="_blank">Click here to download the presentation (PDF)</a></p>
+</iframe>
+```
+
+# Conclusion {#sec-conclusion}
+
+## Quarto/Reveal.js vs Google Slides vs PowerPoint (LLM-centric)
+
+| Aspect | Quarto / Reveal.js | Google Slides (API/Apps Script) | PowerPoint (.pptx via code) |
+| :--- | :--- | :--- | :--- |
+| **Generation Path** | Direct text → Markdown/Quarto → render to HTML | LLM writes API calls/scripts that manipulate slides | LLM writes `.pptx`-generation code (e.g., `python-pptx`) |
+| **Reliability & Fidelity (from LLM)** | High. Structured text matches LLM strengths; fewer moving parts | Medium–Low. Verbose JSON/object IDs; brittle to small errors | Medium–Low. APIs are verbose; layout fidelity is hard |
+| **Speed to First Draft** | Fast. One file, one render | Slow–Medium. Auth + batchUpdate cycles | Medium. No auth, but heavy coding |
+| **Editability & Maintenance** | Excellent. Plain-text `.qmd`; easy diffs and refactors | Poor. You edit code that edits slides; presentation is opaque | Poor–Medium. Generated scripts are verbose and hard to read |
+| **Collaboration** | Git-first; great for PRs, reviews, traceability | Great in-GUI collaboration; weak for generated code | Good in M365 GUI; weak for generated code |
+
+Bottom line: if an LLM is in the loop, code-first Quarto/Reveal.js provides the most reliable, editable path from prompt → slides. GUI-first tools shine for human collaboration but are brittle when fully generated by LLMs.
+
+## The ideal future UI: VS Code–style, Markdown under the hood
+
+Build a dedicated editor that feels like VS Code and uses Quarto/Reveal.js internally:
+
+- **Dual-pane workspace**: Markdown/Quarto source on the left; live Reveal.js preview on the right, hot-reloading on save.
+- **Context-aware copilot**: Chat that is slide- and selection-aware ("tighten this bullet", "restyle this image", "split slide into two"). Actions map to structured edits in the `.qmd`.
+- **Rich authoring UX**: Outline/slide navigator, templates and themes, design tokens, fragments, notes, citations, and asset management.
+- **One-click outputs**: Export to HTML/PDF; Export to PowerPoint (`.pptx`) using a robust Markdown→`.pptx` converter (e.g., via `python-pptx`) with layout heuristics. Import from `.pptx` back to Markdown when needed.
+- **Version control native**: Git integrated diffs and reviews against the plain-text source; share links to rendered previews.
+
+This approach plays to the strengths of LLMs far more than working directly with PowerPoint or Google Slides, which present challenging paradigms for language models. LLMs excel at generating HTML, CSS, and Markdown thanks to extensive exposure to these formats in their training data.
+
+
+
+

@@ -1,18 +1,25 @@
 ---
-title: "LLM Observability with Langfuse and a FastHTML Chatbot - Part 1"
+title: "LLM Observability with Langfuse and a FastHTML Chatbot"
 author: "Nicolas Brosse"
 date: "2025-06-30"
+date-modified: "2025-08-15"
 categories: [LLM, python]
 description: "Integrating Langfuse for LLM observability in a FastHTML chatbot application."
+citation:
+  url: https://nbrosse.github.io/posts/llm-observability/llm-observability.html
 ---
 
 As Large Language Models (LLMs) become increasingly integrated into real-world applications, understanding and monitoring their behavior is essential. LLM observability—the practice of tracing, logging, and analyzing model interactions—enables developers to diagnose issues, optimize performance, and ensure responsible AI usage. 
 
-This blog post is the first in a series presenting a proof of concept for implementing LLM observability using Langfuse, an open-source observability platform, together with a responsive chatbot built with FastHTML. The goal is to showcase practical techniques for capturing and visualizing LLM interactions, providing valuable insights for building more reliable and transparent AI systems.
+This blog post presents a proof of concept for implementing LLM observability using Langfuse, an open-source observability platform, together with a responsive chatbot built with FastHTML. The goal is to showcase practical techniques for capturing and visualizing LLM interactions, providing valuable insights for building more reliable and transparent AI systems. I demonstrate how to integrate Langfuse into a FastHTML chatbot application for enhanced observability. The associated code is available on [llm-observability](https://github.com/nbrosse/llm-observability).
 
-In this blog post, I demonstrate how to integrate Langfuse into a FastHTML chatbot application for enhanced observability.
+The post is structured as follows:
 
-The associated code is available on [llm-observability](https://github.com/nbrosse/llm-observability).
+- [Presentation of Langfuse](#sec-langfuse)
+- [A FastHTML Chatbot with Langfuse and Google Gemini](#sec-fasthtml-gemini)
+- [Run the Chatbot Application](#sec-run-chatbot)
+- [Conclusion](#sec-conclusion)
+- [Appendix: Rendering Markdown in FastHTML](#sec-appendix-rendering-markdown)
 
 # Presentation of Langfuse {#sec-langfuse}
 
@@ -24,7 +31,7 @@ For the foundational observability layer, I selected **Langfuse**. Langfuse is a
 
 Langfuse is open, self-hostable, and extensible. For testing purposes, it is recommended to run Langfuse locally. It can be easily set up using Docker Compose, which simplifies the deployment process and allows for quick iterations during development. The guide from the [Langfuse documentation](https://langfuse.com/self-hosting/docker-compose) enables users to quickly get started with a local instance. The setup involves pulling the Docker image, configuring environment variables, and running the container. This approach provides a convenient way to experiment with Langfuse's features without needing a cloud deployment, making it ideal for development and testing scenarios.
 
-# A FastHTML Chatbot with Langfuse and Google Gemini
+# A FastHTML Chatbot with Langfuse and Google Gemini {#sec-fasthtml-gemini}
 
 ## Why not use Streamlit ?
 
@@ -555,47 +562,13 @@ The `/score_message` endpoint handles user feedback submitted via the "thumbs up
 
 Together, these endpoints ensure that chat state can be reset cleanly and that user feedback is reliably captured and linked to the correct AI responses for later analysis in Langfuse.
 
-# Run the Chatbot Application
-
-After all this step by step analysis of the code, let's have fun running the chatbot application!
-
-To run the chatbot application, please refer to the instructions in the [README](https://nbrosse.github.io/llm-observability/README.md).
-
-Once the Langfuse docker container is running, you can start the FastHTML application using the following command.
-
-```bash
-❯ uv run app/chat_fasthtml.py
-Link: http://localhost:5001
-INFO:     Will watch for changes in these directories: ['/home/nicolas/PycharmProjects/llm-observability']
-INFO:     Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit)
-INFO:     Started reloader process [201742] using WatchFiles
-INFO:     Started server process [201830]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     127.0.0.1:40808 - "GET / HTTP/1.1" 200 OK
-INFO:     127.0.0.1:40816 - "WebSocket /wscon" [accepted]
-INFO:     connection open
-INFO:     127.0.0.1:40808 - "GET /favicon.ico HTTP/1.1" 404 Not Found
-SERVER: WebSocket connected. Session ID: 24a0a9ff-bf1d-467f-a7ab-c3f67ddb7d0d.
-INFO:     127.0.0.1:51564 - "POST /score_message HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51998 - "POST /score_message HTTP/1.1" 200 OK
-```
-
-You observe all the logs in the terminal, including the WebSocket connection, incoming messages, and any errors that may occur during processing. The application is accessible at `http://localhost:5001` and you can interact with it through a web browser.
-
-![Screenshot of the FastHTML Chatbot with Langfuse integration](figures/chatbot_demo.png){#fig-chatbot-demo fig-alt="Chatbot Demo Screenshot"}
-
-We can access the traces on langfuse platform at `http://localhost:3000` (or the port you configured in the `docker-compose.yml` file). The traces will show the conversation history, including user messages, AI responses, and any feedback provided by users. This allows for detailed analysis of the chatbot's performance and user interactions.
-
-![Screenshot of Langfuse trace for the chatbot application](figures/langfuse_trace.png){#fig-langfuse-trace fig-alt="Langfuse Trace Screenshot"}
-
-# Run the Chatbot Application
+# Run the Chatbot Application {#sec-run-chatbot}
 
 After analyzing the code, it's time to run the chatbot application and see it in action.
 
 **Prerequisites**
 
-Before starting the application, ensure you have followed the setup instructions in the [project's README](https://nbrosse.github.io/llm-observability/README.md). Make sure the Langfuse Docker container is up and running.
+Before starting the application, ensure you have followed the setup instructions in the [project's README](https://github.com/nbrosse/llm-observability). Make sure the Langfuse Docker container is up and running.
 
 Once the prerequisites are met, start the FastHTML application from your terminal with the following command:
 
@@ -633,7 +606,7 @@ In the Langfuse dashboard, you can explore the traces generated by the applicati
 
 You can also test by opening multiple browser tabs or windows to simulate different users interacting with the chatbot simultaneously. Each session will generate its own trace in Langfuse, allowing you to see how the application handles concurrent conversations.
 
-# Conclusion
+# Conclusion {#sec-conclusion}
 
 This FastHTML chatbot application demonstrates how to integrate Google GenAI with Langfuse for observability. It provides a responsive user interface, real-time interactions, and detailed tracing of AI-generated responses. The use of HTMX and WebSockets enhances the user experience by enabling immediate feedback and updates without full page reloads.
 
