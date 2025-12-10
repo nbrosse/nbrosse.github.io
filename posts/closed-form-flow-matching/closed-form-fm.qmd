@@ -1,0 +1,471 @@
+---
+title: "Closed-Form Flow Matching: High-Dimensional Statistics and the Softmax Collapse"
+author: "Nicolas Brosse"
+date: "2025-12-10"
+bibliography: closed-form-fm-references.bib
+categories: [deep learning, generative models, flow matching]
+description: "An analysis of the closed-form optimal velocity field in flow matching, explaining why softmax collapse occurs early in high dimensions and how to predict the collapse time."
+toc: true
+toc-depth: 3
+citation:
+  url: https://nbrosse.github.io/posts/closed-form-flow-matching/closed-form-fm.html
+---
+
+Flow matching has emerged as a powerful framework for training continuous normalizing flows. In this blog post, building on @bertrand_closed-form_2025, we analyze the **closed-form optimal velocity field**: its connection to the conditional vector field and the challenges neural networks face in approximating it. We explore how, in high dimensions, the softmax weights collapse to near one-hot vectors surprisingly early in the interpolation path, and provide a formula to predict when this collapse occurs.
+
+# Setup and Notation
+
+We follow the notation and setup of @lipman_flow_2024 to present Flow Matching (FM). Given a training dataset with samples from an unknown target distribution $q$ over $\mathbb{R}^d$, the goal is to learn a model that can generate new samples from $q$. Flow Matching (FM) does this by defining a **continuous probability path** $(p_t)_{0\le t\le 1}$ that morphs a **known source distribution** $p_0=p$ (typically noise) into the **data distribution** $p_1=q$. FM learns a **time-dependent velocity field** $u_t$ (a vector field) that describes how samples move along this path. After training, sampling from $q$ works by:
+
+1.  Draw $X_0 \sim p$ (easy noise).
+2.  Solve an **ODE** driven by the learned velocity field to transport $X_0$ to $X_1$, which should follow $q$.
+
+FM uses a time-dependent vector field: $u : [0,1]\times \mathbb{R}^d \to \mathbb{R}^d$ and defines the associated **flow map** $\psi_t$ by the ODE: 
+$$
+\frac{d}{dt}\psi_t(x) = u_t(\psi_t(x)), \quad \psi_0(x)=x. 
+$$
+If $u_t$ generates the probability path $p_t$, then pushing forward the source sample $X_0\sim p_0$ through the flow gives: $X_t := \psi_t(X_0) \sim p_t$. In particular, integrating to $t=1$ yields: $X_1=\psi_1(X_0) \approx q$. So the core objective is: **learn a neural velocity field** $u^\theta_t$ whose flow maps $p_0$ to $p_1$. Ideally, FM would minimize the mean-squared error between the learned and true velocity fields: 
+$$
+\mathcal{L}_{\text{FM}}(\theta)=\mathbb{E}_{t,X_t}\Big[\ \|u^\theta_t(X_t)-u_t(X_t)\|^2\ \Big],
+\quad t\sim \mathcal{U}[0,1],\ X_t\sim p_t.
+$$ 
+But the marginal velocity field $u_t$ is usually hard to compute. Let the source be standard Gaussian: $p := p_0 = \mathcal{N}(0,I)$. A convenient path can be built by mixing **conditional paths** $p_{t|1}(x|x_1)$, each conditioned on a data example $X_1=x_1$. The resulting marginal path is: 
+$$
+p_t(x)=\int p_{t|1}(x|x_1) q(x_1) dx_1,
+\quad\text{where}\quad
+p_{t|1}(x|x_1)=\mathcal{N}\big(x\mid t x_1,\ (1-t)^2 I\big).
+$$
+A simple way to sample from this $p_t$ is: $X_t = tX_1 + (1-t)X_0 \sim p_t$, where $X_0\sim p$ and $X_1\sim q$. Condition on a randomly chosen training sample $X_1=x_1$. Define: $X_{t|1}=t x_1+(1-t)X_0 \sim p_{t|1}(\cdot|x_1)$. For this conditional Gaussian path, the ODE gives a **simple closed-form conditional velocity field**: 
+$$
+u_t(x|x_1)=\frac{x_1-x}{1-t}.
+$$
+This yields a tractable loss: 
+$$
+\mathcal{L}_{\text{CFM}}(\theta)=
+\mathbb{E}_{t,X_t,X_1}\Big[\ \|u^\theta_t(X_t)-u_t(X_t|X_1)\|^2\ \Big],
+\quad t\sim\mathcal{U}[0,1],\ X_0\sim p,\ X_1\sim q,
+$$ 
+with $X_t=(1-t)X_0+tX_1$. Crucially, this conditional objective provides the **same gradients** as the original FM loss: 
+$$
+\nabla_\theta \mathcal{L}_{\text{FM}}(\theta)=\nabla_\theta \mathcal{L}_{\text{CFM}}(\theta).
+$$
+Plugging the conditional velocity into the loss gives a common practical form: 
+$$
+\mathcal{L}^{\text{OT,Gauss}}_{\text{CFM}}(\theta)
+= \mathbb{E}_{t,X_0,X_1}\Big[\ \|u^\theta_t(X_t)-(X_1-X_0)\|^2\ \Big],
+\quad t\sim\mathcal{U}[0,1],\ X_0\sim\mathcal{N}(0,I),\ X_1\sim q,
+$$ 
+where $X_t=(1-t)X_0+tX_1$.
+
+# Observations on the marginal vector field, conditional vector field and training difficulties
+
+In this section, we present some observations made in @bertrand_closed-form_2025. We focus on the case where the source distribution $p_0$ is the standard normal distribution and the data distribution $p_{\text{data}}$ is the CIFAR-10 dataset. We observe $n$ datapoints from CIFAR-10: 
+$$
+x^{(1)},\dots,x^{(n)} \sim p_{\text{data}}, \qquad x^{(i)}\in\mathbb{R}^d.
+$$
+In that scenario, we do not have access to the data distribution $p_{\text{data}}$, but only to the empirical distribution: 
+$$
+\hat p_{\text{data}}:=\frac1n\sum_{i=1}^n \delta_{x^{(i)}}.
+$$ {#eq-empirical-distribution}
+The marginal velocity field becomes available in closed form:
+$$
+u_t(x) = \sum_{i=1}^n \lambda_i(x,t) \frac{x^{(i)} - x}{1-t},
+\quad
+\lambda_i(x,t)=\mathrm{softmax}\left(-\frac{\|x-t x^{(i)}\|^2}{2(1-t)^2}\right).
+$$
+where the softmax is taken over $i\in\{1, \dots, n\}$, i.e.
+$$
+\lambda_i(x,t)=\frac{\exp\left(-\frac{\|x-t x^{(i)}\|^2}{2(1-t)^2}\right)}{\sum_{j=1}^n \exp\left(-\frac{\|x-t x^{(j)}\|^2}{2(1-t)^2}\right)}.
+$$
+
+@bertrand_closed-form_2025 focuses on the memorization paradox, the fact that in that context with the empirical distribution @eq-empirical-distribution, if the learning procedure outputs the marginal vector field, we recovers exactly the $n$ datapoints and not random samples from $p_{\text{data}}$.
+
+In their study, they study the relation between the marginal velocity field available in closed form, the conditional velocity field and the empirical velocity field learned by a neural network. We focus on this aspect of their work.
+
+They have 2 main observations:
+1. As the dimension grows, the marginal velocity field is rapidly correlated (even when t is very small) to the conditional velocity field.
+2. The neural network has difficulties to learn the marginal velocity field for $t$ close to 0.1 and close to 1.
+
+We will expand on these observations in the next sections. The objective of this blog post is to provide some orders of magnitude of the softmax weights of the marginal velocity field, in particular in high dimension for CIFAR-10.
+
+![The histograms of the cosine similarities between $u_t((1 − t)x_0 + tx_1)$ and $u_t((1 − t)x_0 + tx_1  \mid x_1) = x_1 − x_0$ are displayed for various time values $t$ and two datasets: 2-moons and CIFAR-10. [@bertrand_closed-form_2025, figure 1]](figures/article-fig-1.png){#fig-article-fig-1 fig-alt="Histograms of the cosine similarities between $u_t((1 − t)x_0 + tx_1)$ and $u_t((1 − t)x_0 + tx_1 \mid x_1) = x_1 − x_0$ for various time values $t$ and two datasets: 2-moons and CIFAR-10."}
+
+![Proportion of samples $x_t$ for which the cosine similarity between $u_t(x_t)$ and $u_t(x_t \mid x_1)$ exceeds 0.9, as a function of time $t$. This analysis is performed across multiple spatial resolutions of the Imagenette dataset, obtaining $d \times d$ images by spatial subsampling. [@bertrand_closed-form_2025, figure 2]](figures/article-fig-2.png){#fig-article-fig-2 fig-alt="Proportion of samples $x_t$ for which the cosine similarity between $u_t(x_t)$ and $u_t(x_t \mid x_1)$ exceeds 0.9, as a function of time $t$. This analysis is performed across multiple spatial resolutions of the Imagenette dataset, obtaining $d \times d$ images by spatial subsampling."}
+
+![Failure to learn the marginal velocity field on CIFAR-10: the leftmost figure represents the average error between the marginal empirical velocity field $u_t$ and the learned velocity $u^\theta_t$ for multiple values of time $t$. All the quantities are computed/learned on a varying number of training samples ($10$ to $10^4$) of the CIFAR-10 dataset. We are not interested in the other figures in this blog post. [@bertrand_closed-form_2025, figure 3]](figures/article-fig-3.png){#fig-article-fig-3 fig-alt="Failure to learn the marginal velocity field on CIFAR-10: the leftmost figure represents the average error between the marginal empirical velocity field $u_t$ and the learned velocity $u^\theta_t$ for multiple values of time $t$. All the quantities are computed/learned on a varying number of training samples ($10$ to $10^4$) of the CIFAR-10 dataset. We are not interested in the other figures in this blog post."}
+
+# CIFAR-10 Preprocessing and Statistics
+
+We use standard CIFAR-10 preprocessing following the [conditional-flow-matching](https://github.com/atong01/conditional-flow-matching) repository:
+
+``` python
+dataset = datasets.CIFAR10(
+    root="./data",
+    train=True,
+    download=True,
+    transform=transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+    ]),
+)
+```
+
+With `ToTensor()` (pixels in $[0,1]$) followed by normalization:
+
+$$
+x = \frac{\text{pixel} - 0.5}{0.5} = 2 \cdot \text{pixel} - 1 \in [-1, 1]
+$$
+
+Each coordinate is bounded and roughly centered near 0. In high dimension, the vector behaves like a collection of weakly dependent coordinates.
+
+**Key Parameters**
+
+| Parameter  | Value                          | Description                |
+|------------|--------------------------------|----------------------------|
+| $d$        | $3 \times 32 \times 32 = 3072$ | Dimension                  |
+| $\sigma^2$ | $\approx 0.24$                 | Per-coordinate variance    |
+| $n$        | $50{,}000$                     | Number of training samples |
+
+::: callout-note
+## Note on variance
+
+A [commonly cited computation](https://github.com/kuangliu/pytorch-cifar/issues/19) over the CIFAR-10 training set gives:
+
+-   mean $\approx (0.4914, 0.4822, 0.4465)$
+-   std $\approx (0.247, 0.243, 0.261)$
+
+(Those are for pixel values in $[0,1]$, i.e., after `ToTensor()`.)
+
+With normalization by Torchvision, the variance transforms as $y = \frac{x - \mu}{\sigma}$ with $\mu=0.5$ and $\sigma=0.5$, so:
+
+$$
+\mathrm{Var}(y) = \frac{\mathrm{Var}(x)}{\sigma^2} = \frac{\mathrm{Var}(x)}{0.25} = 4 \mathrm{Var}(x).
+$$
+
+Using the CIFAR-10 channel stds above:
+
+-   $\mathrm{Var}(x_R) \approx 0.247^2 \approx 0.0610 \Rightarrow \mathrm{Var}(y_R)\approx 4\cdot 0.0610 \approx 0.244$
+-   $\mathrm{Var}(x_G) \approx 0.243^2 \approx 0.0590 \Rightarrow \mathrm{Var}(y_G)\approx 0.236$
+-   $\mathrm{Var}(x_B) \approx 0.261^2 \approx 0.0681 \Rightarrow \mathrm{Var}(y_B)\approx 0.273$
+
+So  we use the variance $\approx 0.24$ for the CIFAR-10 dataset.
+:::
+
+In the following, we assume that the $n$ datapoints from the CFAR-10 dataset are i.i.d. Gaussian vectors with variance $\sigma^2 \approx 0.24$.
+Modeling images as random vectors with i.i.d.-ish coordinates of variance $\sigma^2$:
+
+# Marginal and conditional velocity fields in high dimension
+
+We are looking for estimates of the softmax weights of the marginal velocity field in high dimension for CIFAR-10 and relying on the concentration of measure phenomenon. Our calculus are handwavy in order to understand the orders of magnitude of the softmax weights.
+We assume that the datapoints are i.i.d. Gaussian vectors with variance $\sigma^2 \approx 0.24$.
+$$
+x^{(i)} \stackrel{iid}{\sim} \mathcal{N}(0,\sigma^2 I_d),\qquad x_0\sim \mathcal{N}(0,I_d),
+$$
+all independent.
+
+::: callout-note
+## Chi-squared distribution
+
+A chi-squared distribution with $d$ degrees of freedom is a distribution of the sum of the squares of $d$ independent standard normal random variables. For a chi-squared distribution with $d$ degrees of freedom:
+
+-   **Mean:** $\mathbb{E}[\|x\|^2] = d$
+-   **Variance:** $\text{Var}(\|x\|^2) = 2d$
+-   **Standard deviation:** $\text{Std}(\|x\|^2) = \sqrt{2d}$
+
+The relative standard deviation (coefficient of variation) is:
+$$
+\frac{\text{Std}(\|x\|^2)}{\mathbb{E}[\|x\|^2]} = \frac{\sqrt{2d}}{d} = \sqrt{\frac{2}{d}}
+$$
+:::
+
+We now seek to understand why the softmax weights in the marginal velocity field collapse so rapidly.
+Let us go back to the weights of the marginal velocity field:
+
+$$
+\lambda_i(x,t)=\mathrm{softmax}\left(-\frac{\|x-t x^{(i)}\|^2}{2(1-t)^2}\right).
+$$
+
+Consider a trajectory $x_t = (1-t)x_0 + t x_1$ where $x_0 \sim \mathcal{N}(0, I)$ and $x_1$ is some fixed training image. The key insight is that **one index is special**: the index corresponding to $x_1$ itself.
+
+**Case 1: The special index** ($x^{(i)} = x_1$)
+$$
+x_t - t x_1 = (1-t)x_0 + t x_1 - t x_1 = (1-t)x_0
+$$
+Therefore:
+$$
+\|x_t - t x_1\|^2 = (1-t)^2 \|x_0\|^2 \sim (1-t)^2 \chi^2_d
+$$
+where $\chi^2_d$ is the chi-squared distribution with $d$ degrees of freedom.
+
+By concentration of measure in high $d$:
+$$
+\|x_t - t x_1\|^2 \approx (1-t)^2 d \quad \text{with relative fluctuations } \approx \sqrt{\frac{2}{d}} \approx 2.6\%
+$$
+
+**Case 2: Any other index** ($x^{(j)} \neq x_1$)
+$$
+x_t - t x^{(j)} = (1-t)x_0 + t x_1 - t x^{(j)} = (1-t)x_0 + t(x_1 - x^{(j)})
+$$
+According to the properties of the Gaussian distribution and assumptions, we have:
+$$
+(1-t)x_0 + t(x_1 - x^{(j)}) \sim \mathcal{N}\Big(0,\ \big((1-t)^2 + 2\sigma^2 t^2\big) I_d\Big).
+$$
+So the squared norm is a scaled chi-square random variable:
+$$
+\|x_t - t x^{(j)}\|^2 \sim s^2 \chi^2_d,
+\qquad s^2 := (1-t)^2 + 2\sigma^2 t^2.  
+$$
+That immediately gives:
+$$
+\|x_t - t x^{(j)}\|^2 \approx s^2 d \quad \text{with relative fluctuations } \approx \sqrt{\frac{2}{d}} \approx 2.6\%
+$$
+The **log weight ratio** between an "other" point $j$ and the special point $i=1$:
+$$
+\log\frac{\lambda_j}{\lambda_{1}} \approx -\frac{2 \sigma^2 t^2 d}{2(1-t)^2}
+$$
+
+
+
+**Example:** At $t = 0.2$ with $\|x_1 - x^{(j)}\|^2 \approx 1500$:
+
+$$
+\text{exponent} \approx -\frac{0.04 \times 1500}{2 \times 0.64} \approx -47
+$$
+
+A single other point is downweighted by $\exp(-47)$. Even summing over $n = 50{,}000$ points doesn't recover it — this is the **"non-stochastic regime dominates very early in high dimension"** effect.
+
+## Geometric Interpretation: Mixture of Gaussian Shells
+
+For each fixed $t \in [0,1]$, the random point $x_t = (1-t)x_0 + t x_1$ has a concrete geometric interpretation.
+
+### Mixture of Gaussian Blobs
+
+Conditioning on $x_1 = x^{(i)}$:
+
+$$
+x_t \mid (x_1 = x^{(i)}) \sim \mathcal{N}\big(t x^{(i)}, (1-t)^2 I_d\big)
+$$
+
+The marginal $p(\cdot \mid t)$ is a **mixture of** $n$ isotropic Gaussians:
+
+-   **Centers:** $t x^{(i)}$
+-   **Common covariance:** $(1-t)^2 I_d$
+
+### Thin Shells in High Dimensions
+
+For a Gaussian $\mathcal{N}(\mu, \sigma^2 I_d)$ in high $d$, the radius from center **concentrates**:
+
+$$
+\|x_t - t x^{(i)}\| \approx (1-t)\sqrt{d}
+$$
+
+with relative fluctuations $\sim 1/\sqrt{d}$.
+
+**For CIFAR-10:** $(1-t)\sqrt{d} \approx 55.4(1-t)$
+
+::: callout-tip
+Each component isn't a "ball" — almost all mass lies on a **thin spherical shell** of radius $(1-t)\sqrt{d}$ around $t x^{(i)}$.
+:::
+
+### Evolution from $t = 0$ to $t = 1$
+
+| Time | Description |
+|------------------------|------------------------------------------------|
+| $t = 0$ | $x_t = x_0$: isotropic Gaussian, thin shell of radius $\sqrt{d}$ around origin |
+| Small $t > 0$ | Mostly Gaussian noise, slightly pulled toward a random image |
+| Intermediate $t$ | Mixture of shells around scaled images $t x^{(i)}$, thickness $(1-t)\sqrt{d}$ |
+| $t \to 1$ | Shells collapse into tiny neighborhoods of training images |
+
+**Mental image:** A **union of thin shells** centered along the **scaled dataset** $\{t x^{(i)}\}$, whose radius shrinks linearly in $(1-t)$.
+
+### Two Competing Radii
+
+Let $r_{\text{data}} \approx \|x^{(i)}\|$. Points in the $i$-th component have norm:
+
+$$
+\|x_t\| \approx \sqrt{t^2 r_{\text{data}}^2 + (1-t)^2 d}
+$$
+
+As $t$ increases: transition from shell near radius $\sqrt{d}$ to shell near radius $r_{\text{data}}$.
+
+### The Overlap → Separation Transition
+
+-   **Early times:** Shells around different centers overlap significantly (radius $(1-t)\sqrt{d}$ is huge)
+-   **Later times:** Once $(1-t)\sqrt{d}$ becomes small compared to typical separation between $t x^{(i)}$, each $x_t$ is "explained" by essentially **one** center
+
+This **overlap → separation** transition is the geometric story behind the stochastic-to-nonstochastic regime shift.
+
+## Error Analysis: Why Errors Spike
+
+Two distinct error spikes occur, each with different causes.
+
+### Errors Near $t \approx 1$: The "Blow-Up + Nearest-Neighbor" Regime
+
+#### The target field magnitude explodes
+
+The conditional target:
+
+$$
+u_{\text{cond}}(x_t, x_1, t) = \frac{x_1 - x_t}{1-t} = x_1 - x_0
+$$
+
+is bounded (independent of $t$). But the optimal empirical field has an explicit $1/(1-t)$ factor — any small mismatch gets amplified as $t \to 1$.
+
+#### Sharp decision boundaries
+
+As $t \to 1$, $(1-t)^2 \to 0$ in the softmax temperature, making:
+
+$$
+\lambda \approx \text{one-hot at nearest } x^{(i)}
+$$
+
+The field $\hat{u}^\star(\cdot, t)$ approaches a **piecewise field** that switches abruptly across Voronoi cell boundaries — hard to approximate with smooth neural networks.
+
+#### Training data scarcity
+
+With $t \sim U[0,1]$, only a tiny fraction of minibatch points land in $[0.99, 1]$. The network is data-starved exactly where the function is most complex.
+
+### Errors Near $t \approx 0.1$: The "Collapse Transition" Regime
+
+This is the **more interesting** spike, tied to high-dimensional statistics.
+
+#### Low information content at early times
+
+$$
+x_t \mid (x_1 = x^{(i)}) \sim \mathcal{N}(t x^{(i)}, (1-t)^2 I)
+$$
+
+For small $t$, means $t x^{(i)}$ are tiny compared to noise radius $(1-t)\sqrt{d}$. Different components overlap heavily → the posterior over index $i$ is **broad**.
+
+#### Rapid posterior collapse around $t \approx 0.1$
+
+In high $d$, squared distances concentrate tightly. The softmax logit gaps scale like $d \cdot t^2/(1-t)^2$, creating a **sharp phase change** where $\lambda$ goes from "spread over many" to "almost one-hot".
+
+At this transition:
+
+-   Vector field changes character (averaged → nearest-neighbor-like)
+-   The mapping $x \mapsto \arg\max_i \lambda_i(x,t)$ becomes very sensitive
+-   Small changes in $x$ cause different winners
+
+#### Function complexity peak
+
+| Regime | Complexity |
+|-----------------------------|-------------------------------------------|
+| Very small $t$ | Smooth, low-frequency (heavy overlap) |
+| Very large $t$ | Nearest-neighbor (simple but non-smooth) |
+| **Intermediate** $t$ | **Worst of both worlds**: several components matter but weights are selective |
+
+This complexity peak typically occurs at a dataset/dimension-dependent collapse time — for CIFAR, around $t \sim 0.1$.
+
+### Practical Diagnostics
+
+1.  **Plot entropy of** $\lambda(x_t, t)$ vs $t$ (or effective components $1/\sum_i \lambda_i^2$)
+    -   Expect steep drop near $t \approx 0.1$
+2.  **Plot relative error** $\|u_\theta - \hat{u}^\star\| / \|\hat{u}^\star\|$ vs $t$
+    -   The "near 1" spike often shrinks dramatically in relative terms
+
+## Collapse Time Estimation
+
+### Derivation
+
+**Question:** When does the posterior over indices become essentially one-hot?
+
+Collapse occurs when the best index beats the rest by enough that even summing over $n$ competitors can't compete.
+
+#### Step 1: Evaluate distances at $x_t = (1-t)x_0 + t x_1$
+
+-   **Correct index** ($x^{(i^\star)} = x_1$): $\|x_t - t x_1\|^2 = \|(1-t)x_0\|^2$
+-   **Other index** ($j \neq i^\star$): $\|x_t - t x^{(j)}\|^2 = \|(1-t)x_0 + t(x_1 - x^{(j)})\|^2$
+
+The **typical gap**:
+
+$$
+\Delta_j(t) := \|x_t - tx^{(j)}\|^2 - \|x_t - tx_1\|^2 \approx t^2 \|x_1 - x^{(j)}\|^2
+$$
+
+#### Step 2: "One wins against $n$" criterion
+
+Criterion for $\lambda_{i^\star} \approx 1$:
+
+$$
+\sum_{j \neq i^\star} \frac{\lambda_j}{\lambda_{i^\star}} \ll 1
+$$
+
+Using exponential form with typical distance $D$:
+
+$$
+(n-1) \exp\left(-\frac{t^2 D}{2(1-t)^2}\right) \approx 1
+$$
+
+Solving:
+
+$$
+\frac{t^2 D}{2(1-t)^2} \approx \log n \quad \Longrightarrow \quad \frac{t}{1-t} \approx \sqrt{\frac{2\log n}{D}}
+$$
+
+### The Collapse Time Formula
+
+::: callout-important
+## Collapse time formula
+
+$$
+t_c \approx \frac{a}{1+a}, \quad \text{where } a := \sqrt{\frac{2\log n}{D}}
+$$
+:::
+
+### Application to CIFAR-10
+
+| Parameter                        | Value                 |
+|----------------------------------|-----------------------|
+| $d$                              | 3072                  |
+| $D = \mathbb{E}[\|x_1 - x'\|^2]$ | $\approx 1400$–$1600$ |
+| $n$                              | $50{,}000$            |
+| $\log n$                         | $\approx 10.82$       |
+
+**Calculation** (with $D = 1500$):
+
+$$
+a = \sqrt{\frac{2 \times 10.82}{1500}} = \sqrt{\frac{21.64}{1500}} \approx \sqrt{0.01443} \approx 0.120
+$$
+
+$$
+t_c \approx \frac{0.120}{1.120} \approx 0.107
+$$
+
+::: callout-note
+This lands almost exactly at the $t \approx 0.1$ bump observed empirically!
+:::
+
+### Refinement: Nearest Competitor Distance
+
+Strictly, collapse is controlled by the **closest competing** point:
+
+$$
+D_{\min}(x_1) := \min_{j \neq i^\star} \|x_1 - x^{(j)}\|^2
+$$
+
+This is smaller than typical $D$, which would make collapse occur *later*. However, the $\log n$ factor from "many competitors" partially offsets this effect — the simple $D \approx \mathbb{E}[\|x_1 - x'\|^2]$ estimate often captures the right order of magnitude.
+
+## Key Takeaways
+
+### Summary
+
+| Observation | Explanation |
+|------------------------------------|------------------------------------|
+| Softmax collapse occurs very early | High-$d$ concentration: gap $\sim dt^2$ dominates quickly |
+| Error spike near $t \approx 1$ | Field blow-up ($1/(1-t)$), Voronoi boundaries, data scarcity |
+| Error spike near $t \approx 0.1$ | Responsibility-collapse transition, maximum function complexity |
+| Collapse time $t_c \approx 0.1$ | Predicted by $t_c = a/(1+a)$ with $a = \sqrt{2\log n / D}$ |
+
+### Geometric Picture
+
+::: callout-tip
+## Intuition
+
+For each training image, you start at Gaussian noise and move along a straight line toward that image, while the noise radius shrinks like $(1-t)\sqrt{d}$. The full distribution at time $t$ is the union over all images of these shrinking noisy tubes/shells.
+:::
+
+### The Core Insight
+
+In high dimensions ($d \gg 1$), the "correct" sample $x_1$ has a systematic squared-distance advantage of order $\sim d t^2$ over almost all other samples. The softmax converts this into **near-deterministic winner-takes-all behavior** even at surprisingly small $t$.
