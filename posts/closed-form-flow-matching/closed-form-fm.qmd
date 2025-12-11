@@ -11,6 +11,8 @@ citation:
   url: https://nbrosse.github.io/posts/closed-form-flow-matching/closed-form-fm.html
 ---
 
+https://chatgpt.com/c/69368872-6bfc-8333-9c26-87866f4690a3
+
 Flow matching has emerged as a powerful framework for training continuous normalizing flows. In this blog post, building on @bertrand_closed-form_2025, we analyze the **closed-form optimal velocity field**: its connection to the conditional vector field and the challenges neural networks face in approximating it. We explore how, in high dimensions, the softmax weights collapse to near one-hot vectors surprisingly early in the interpolation path, and provide a formula to predict when this collapse occurs.
 
 # Setup and Notation
@@ -234,67 +236,6 @@ $$
 $$
 
 A single other point is downweighted by $\exp(-47)$. Even summing over $n = 50{,}000$ points doesn't recover it — this is the **"non-stochastic regime dominates very early in high dimension"** effect.
-
-## Geometric Interpretation: Mixture of Gaussian Shells
-
-For each fixed $t \in [0,1]$, the random point $x_t = (1-t)x_0 + t x_1$ has a concrete geometric interpretation.
-
-### Mixture of Gaussian Blobs
-
-Conditioning on $x_1 = x^{(i)}$:
-
-$$
-x_t \mid (x_1 = x^{(i)}) \sim \mathcal{N}\big(t x^{(i)}, (1-t)^2 I_d\big)
-$$
-
-The marginal $p(\cdot \mid t)$ is a **mixture of** $n$ isotropic Gaussians:
-
--   **Centers:** $t x^{(i)}$
--   **Common covariance:** $(1-t)^2 I_d$
-
-### Thin Shells in High Dimensions
-
-For a Gaussian $\mathcal{N}(\mu, \sigma^2 I_d)$ in high $d$, the radius from center **concentrates**:
-
-$$
-\|x_t - t x^{(i)}\| \approx (1-t)\sqrt{d}
-$$
-
-with relative fluctuations $\sim 1/\sqrt{d}$.
-
-**For CIFAR-10:** $(1-t)\sqrt{d} \approx 55.4(1-t)$
-
-::: callout-tip
-Each component isn't a "ball" — almost all mass lies on a **thin spherical shell** of radius $(1-t)\sqrt{d}$ around $t x^{(i)}$.
-:::
-
-### Evolution from $t = 0$ to $t = 1$
-
-| Time | Description |
-|------------------------|------------------------------------------------|
-| $t = 0$ | $x_t = x_0$: isotropic Gaussian, thin shell of radius $\sqrt{d}$ around origin |
-| Small $t > 0$ | Mostly Gaussian noise, slightly pulled toward a random image |
-| Intermediate $t$ | Mixture of shells around scaled images $t x^{(i)}$, thickness $(1-t)\sqrt{d}$ |
-| $t \to 1$ | Shells collapse into tiny neighborhoods of training images |
-
-**Mental image:** A **union of thin shells** centered along the **scaled dataset** $\{t x^{(i)}\}$, whose radius shrinks linearly in $(1-t)$.
-
-### Two Competing Radii
-
-Let $r_{\text{data}} \approx \|x^{(i)}\|$. Points in the $i$-th component have norm:
-
-$$
-\|x_t\| \approx \sqrt{t^2 r_{\text{data}}^2 + (1-t)^2 d}
-$$
-
-As $t$ increases: transition from shell near radius $\sqrt{d}$ to shell near radius $r_{\text{data}}$.
-
-### The Overlap → Separation Transition
-
--   **Early times:** Shells around different centers overlap significantly (radius $(1-t)\sqrt{d}$ is huge)
--   **Later times:** Once $(1-t)\sqrt{d}$ becomes small compared to typical separation between $t x^{(i)}$, each $x_t$ is "explained" by essentially **one** center
-
-This **overlap → separation** transition is the geometric story behind the stochastic-to-nonstochastic regime shift.
 
 ## Error Analysis: Why Errors Spike
 
