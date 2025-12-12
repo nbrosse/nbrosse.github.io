@@ -11,7 +11,10 @@ citation:
   url: https://nbrosse.github.io/posts/closed-form-flow-matching/closed-form-fm.html
 ---
 
-https://chatgpt.com/c/69368872-6bfc-8333-9c26-87866f4690a3
+ChatGPT conversations:
+
+- https://chatgpt.com/c/69368872-6bfc-8333-9c26-87866f4690a3
+- https://chatgpt.com/c/693be639-1c90-832a-ac95-ed587f17ca5d
 
 Flow matching has emerged as a powerful framework for training continuous normalizing flows. In this blog post, building on @bertrand_closed-form_2025, we analyze the **closed-form optimal velocity field**: its connection to the conditional vector field and the challenges neural networks face in approximating it. We explore how, in high dimensions, the softmax weights collapse to near one-hot vectors surprisingly early in the interpolation path, and provide a formula to predict when this collapse occurs.
 
@@ -85,6 +88,7 @@ $$
 In their study, they study the relation between the marginal velocity field available in closed form, the conditional velocity field and the empirical velocity field learned by a neural network. We focus on this aspect of their work.
 
 They have 2 main observations:
+
 1. As the dimension grows, the marginal velocity field is rapidly correlated (even when t is very small) to the conditional velocity field.
 2. The neural network has difficulties to learn the marginal velocity field for $t$ close to 0.1 and close to 1.
 
@@ -154,8 +158,224 @@ Using the CIFAR-10 channel stds above:
 So  we use the variance $\approx 0.24$ for the CIFAR-10 dataset.
 :::
 
+Do a remark on channel => pixel statistics. 
+
+Yes — they should be the same **order of magnitude**, and in fact they’re tightly linked by a simple identity.
+
+Let $X_{u,v}$ be the (say) red-channel pixel at location $(u,v)$ when you sample a random CIFAR image. Let $(U,V)$ be a uniform random pixel location independent of the image, and define the “global random pixel”
+$$
+Y := X_{U,V}.
+$$
+
+Then you have the law of total variance:
+$$
+\mathrm{Var}(Y) = \mathbb E_{U,V}\big[\mathrm{Var}(X_{u,v})\big] + \mathrm{Var}_{U,V}\big(\mathbb E[X_{u,v}]\big).
+$$
+
+So:
+
+* **Average per-pixel variance** is $\mathbb E_{u,v}[\mathrm{Var}(X_{u,v})]$.
+* **Global variance over all pixels pooled** is $\mathrm{Var}(Y)$.
+
+They differ by the extra nonnegative term $\mathrm{Var}_{U,V}\big(\mathbb E[X_{u,v}]\big)$, i.e. how much the *mean image* varies across location. On CIFAR-10, that term exists (background/center bias etc.) but it's not typically enormous relative to the pixel variance itself.
+
+They’re not only same order:
+$$
+\mathbb E_{u,v}[\mathrm{Var}(X_{u,v})] \le \mathrm{Var}(Y)
+$$
+and the gap is exactly “variance of the per-pixel means”.
+After your normalization by 0.5, everything’s scaled by 4 in variance, so the same relationship holds.
+
+So: **yes, same magnitude; global is typically a bit larger** than the average per-pixel variance because of spatial variation in the mean image.
+
 In the following, we assume that the $n$ datapoints from the CFAR-10 dataset are i.i.d. Gaussian vectors with variance $\sigma^2 \approx 0.24$.
-Modeling images as random vectors with i.i.d.-ish coordinates of variance $\sigma^2$:
+Modeling images as random vectors with i.i.d.-ish coordinates of variance $\sigma^2$.
+
+Of course it is wrong. Show a plot of the covariance matrix of the CIFAR-10 dataset.
+
+# Analysis of the softmax collapse using Statistical Physics
+
+## The marginal FM weights are a Gibbs measure
+
+The marginal field is
+$$
+u_t(x)=\sum_{i=1}^n \lambda_i(x,t) \frac{x^{(i)}-x}{1-t},\qquad
+\lambda_i(x,t)=\frac{\exp\left(-\frac{\|x-tx^{(i)}\|^2}{2(1-t)^2}\right)}{\sum_{j=1}^n \exp\left(-\frac{\|x-tx^{(j)}\|^2}{2(1-t)^2}\right)}.
+$$
+This is a Boltzmann distribution at inverse temperature $\beta=1$ over "states" $i\in\{1, \dots, n\}$ with energy
+$$
+E_i(x,t)=\frac{\|x-tx^{(i)}\|^2}{2(1-t)^2}.
+$$
+The denominator is the **partition function**
+$$
+Z(x,t)=\sum_{j=1}^n e^{-E_j(x,t)}.
+$$
+So the question “do the weights collapse?” becomes the stat-phys question:
+
+> Is $Z(x,t)$ dominated by **one special term** (a "condensed/glassy" phase), or by the **entropy** of exponentially many comparable terms (a "liquid" phase)?
+
+## Follow a “teacher” trajectory: one state is special
+
+You consider
+$$
+x_t=(1-t)x_0+t x_1
+$$
+with $x_0\sim\mathcal{N}(0,I)$ and $x_1$ a *particular training image* (one of the $x^{(i)}$'s).
+Define the **special index** $i=1$ such that $x^{(1)}=x_1$. Then:
+$$
+x_t-tx^{(1)}=(1-t)x_0
+\quad\Rightarrow\quad
+E_1(x_t,t)=\frac{\|(1-t)x_0\|^2}{2(1-t)^2}=\frac{\|x_0\|^2}{2}\approx \frac d2.
+$$
+So the "teacher" contribution is
+$$
+Z_1 = e^{-E_1}\approx e^{-d/2}.
+$$
+
+## The other $n-1$ terms form a Random Energy Model
+
+For $j\neq 1$,
+$$
+x_t-tx^{(j)}=(1-t)x_0+t(x_1-x^{(j)}).
+$$
+Under the Gaussian proxy $x^{(j)}\stackrel{iid}{\sim}\mathcal{N}(0,\sigma^2 I_d)$ with $x_1\sim\mathcal{N}(0,\sigma^2 I_d)$, the difference $(x_1-x^{(j)})\sim\mathcal{N}(0,2\sigma^2 I_d)$, independent of $x_0$. Hence
+$$
+x_t-tx^{(j)}\sim\mathcal{N}\left(0,\big((1-t)^2+2\sigma^2 t^2\big)I_d\right).
+$$
+Let
+$$
+s^2(t)=(1-t)^2+2\sigma^2 t^2.
+$$
+Then the “non-special” energies are approximately
+$$
+E_j(x_t,t)=\frac{\|x_t-tx^{(j)}\|^2}{2(1-t)^2}\ \approx\ \frac{s^2(t)}{2(1-t)^2},\chi_d^2.
+$$
+So $E_j$ is a sum of $d$ weakly dependent contributions → **energy is extensive** (order $d$), and across $j$ you have $n-1$ *almost independent extensive energies*: this is the classic setup where **REM tools apply**.
+
+Thus the remaining partition function
+$$
+Z_{2\ldots n}=\sum_{j=2}^n e^{-E_j}
+$$
+is a REM-like partition sum: it is *not* governed by CLT; it is governed by **extreme values / large deviations**, and can enter a **glass phase** where a tiny number of lowest energies dominate.
+
+## "Memorization" = condensation onto the special term
+
+The stat-phys criterion is:
+
+* **Collapsed / memorization phase (glass / condensation):** $Z \approx Z_1$, i.e. $\lambda_1 \approx 1$.
+* **Uncollapsed / generalization phase (liquid):** $Z \approx Z_{2\ldots n}$, i.e. mass spread over many $j$'s.
+
+In the collapsed phase,
+$$
+u_t(x_t)\approx \frac{x^{(1)}-x_t}{1-t}=\frac{x_1-x_t}{1-t} \approx x_1-x_0,
+$$
+so the **marginal field aligns with the conditional field**—which is your observed “cosine similarity rapidly goes to 1 in high dimension”.
+
+## Your “log weight ratio” is a *free-energy gap* estimate
+
+Your hand-wavy ratio
+$$
+\log\frac{\lambda_j}{\lambda_1}\approx -\frac{2\sigma^2 t^2 d}{2(1-t)^2}
+$$
+is a stat-phys statement of the form
+$$
+\log \lambda_1 \approx -E_1 - \log Z
+$$
+and, comparing a typical other term to the special term,
+$$
+\log\frac{e^{-E_j}}{e^{-E_1}} = -(E_j-E_1).
+$$
+
+Under concentration,
+
+* $E_1 \approx d/2$,
+* typical $E_j \approx \frac{s^2(t)}{2(1-t)^2},d$.
+
+So the **typical energy gap** is
+$$
+E_j-E_1 \approx \frac d2\left(\frac{s^2(t)}{(1-t)^2}-1\right)
+= \frac d2\left(\frac{(1-t)^2+2\sigma^2 t^2}{(1-t)^2}-1\right)
+= \frac{d,\sigma^2 t^2}{(1-t)^2}.
+$$
+Thus
+$$
+\frac{e^{-E_j}}{e^{-E_1}}\approx \exp!\Big(-\frac{d,\sigma^2 t^2}{(1-t)^2}\Big),
+$$
+which is the same exponential-in-$d$ suppression you computed (up to small constant-factor conventions).
+
+From a stat-phys lens, that's the statement:
+
+> the **energy advantage** of the special state grows like $d$, so at fixed $n$ it will eventually win exponentially hard.
+
+## Why “even summing over $n$” often cannot beat it: entropy vs energy
+
+Now compare **one** special contribution vs **many** others:
+$$
+Z = Z_1 + Z_{2\ldots n}.
+$$
+
+A crude “annealed” entropy estimate would say
+$$
+Z_{2\ldots n}\approx (n-1), \mathbb E[e^{-E_j}].
+$$
+but the article stresses that this is often wrong in the relevant scaling because $e^{-E_j}$ is exponentially broad—so the sum is dominated by **rare low-energy states**, i.e. REM physics.
+
+Still, the *key control parameter* is the same as in the article:
+$$
+\alpha=\frac{1}{d}\log n.
+$$
+You can read your conclusion
+
+> “even $n=50,000$ doesn’t recover it — non-stochastic regime dominates very early”
+
+as the stat-phys statement:
+
+> with $\alpha \ll 1$ (since $d=3072$ and $\log n \approx 10.8$, so $\alpha \approx 0.0035$), the entropy budget $\log n$ is tiny compared to the extensive energy gaps $\Theta(d)$.
+> Therefore the system is deep in the **condensed / glassy** regime unless $t$ is extremely small.
+
+## “Collapse time” $t_C$: the transition where $Z_1$ stops dominating
+
+The article defines a collapse time $t_C$ where dominance swaps:
+
+* for $t<t_C$, $Z\approx Z_1$ (collapse/memorization),
+* for $t>t_C$, $Z\approx Z_{2\ldots n}$ (uncollapsed/generalization).
+
+In your FM setting, $t_C$ is the time when the **best achievable** contribution among the $n-1$ random competitors becomes comparable to the special energy $E_1\approx d/2$.
+
+REM logic: the minimum energy among $n$ extensive random energies satisfies an extreme-value principle
+$$
+E_{\min}(t)\approx d,e_*(t,\alpha),
+$$
+and the phase boundary is roughly
+$$
+E_{\min}(t_C)\approx E_1 \approx d/2.
+$$
+
+Your simpler (but very intuitive) calculation essentially assumes “typical competitor” rather than “best competitor”, yielding a sufficient condition for collapse:
+$$
+\log(n)\ \ll\ \frac{d,\sigma^2 t^2}{(1-t)^2}.
+$$
+Rearranged, collapse holds whenever
+$$
+\frac{t}{1-t}\ \gg\ \sqrt{\frac{\log n}{d,\sigma^2}}.
+$$
+For CIFAR-like numbers, $\log n/d$ is so small that the RHS is tiny, so collapse can happen already at small $t$. This is the same qualitative message as the article’s explicit $t_C$ formula: **$t_C$ is $O(1)$ only if $\log n$ is $O(d)$**.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Marginal and conditional velocity fields in high dimension
 
@@ -179,6 +399,9 @@ The relative standard deviation (coefficient of variation) is:
 $$
 \frac{\text{Std}(\|x\|^2)}{\mathbb{E}[\|x\|^2]} = \frac{\sqrt{2d}}{d} = \sqrt{\frac{2}{d}}
 $$
+
+he chi-squared distribution exhibits strong concentration around its mean. The standard Laurent-Massart[14] bounds are: Pr ( X − k ≥ 2 k x + 2 x ) ≤ e − x {\displaystyle \Pr(X-k\geq 2{\sqrt {kx}}+2x)\leq e^{-x}} Pr ( k − X ≥ 2 k x ) ≤ e − x {\displaystyle \Pr(k-X\geq 2{\sqrt {kx}})\leq e^{-x}} One consequence is that, if Z ∼ N ( 0 , 1 ) k {\displaystyle Z\sim N(0,1)^{k}} is a Gaussian random vector in R k {\displaystyle \mathbb {R} ^{k}}, then as the dimension k {\displaystyle k} grows, the squared length of the vector is concentrated tightly around k {\displaystyle k} with a width k 1 / 2 + α {\displaystyle k^{1/2+\alpha }}: Pr ( ‖ Z ‖ 2 ∈ [ k − 2 k 1 / 2 + α , k + 2 k 1 / 2 + α + 2 k α ] ) ≥ 1 − e − k α {\displaystyle \Pr \left(\left\|Z\right\|^{2}\in \left[k-2k^{1/2+\alpha },\;k+2k^{1/2+\alpha }+2k^{\alpha }\right]\right)\geq 1-e^{-k^{\alpha }}}where the exponent α {\displaystyle \alpha } can be chosen as any value in R {\displaystyle \mathbb {R} }. 
+
 :::
 
 We now seek to understand why the softmax weights in the marginal velocity field collapse so rapidly.
@@ -227,8 +450,6 @@ $$
 \log\frac{\lambda_j}{\lambda_{1}} \approx -\frac{2 \sigma^2 t^2 d}{2(1-t)^2}
 $$
 
-
-
 **Example:** At $t = 0.2$ with $\|x_1 - x^{(j)}\|^2 \approx 1500$:
 
 $$
@@ -237,7 +458,7 @@ $$
 
 A single other point is downweighted by $\exp(-47)$. Even summing over $n = 50{,}000$ points doesn't recover it — this is the **"non-stochastic regime dominates very early in high dimension"** effect.
 
-## Error Analysis: Why Errors Spike
+# Error Analysis: Why Errors Spike
 
 Two distinct error spikes occur, each with different causes.
 
@@ -410,3 +631,6 @@ For each training image, you start at Gaussian noise and move along a straight l
 ### The Core Insight
 
 In high dimensions ($d \gg 1$), the "correct" sample $x_1$ has a systematic squared-distance advantage of order $\sim d t^2$ over almost all other samples. The softmax converts this into **near-deterministic winner-takes-all behavior** even at surprisingly small $t$.
+
+
+
