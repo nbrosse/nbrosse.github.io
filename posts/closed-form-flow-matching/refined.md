@@ -2,8 +2,6 @@
 
 This document provides a rigorous analysis of the collapse phenomenon in Flow Matching using tools from statistical physics, specifically the Random Energy Model (REM) and Large Deviation Principles (LDP).
 
----
-
 ## 1. Gibbs Measure and Energy Formulation
 
 ### 1.1 The Marginal FM Weights as a Gibbs Measure
