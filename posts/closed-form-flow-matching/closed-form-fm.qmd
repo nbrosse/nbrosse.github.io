@@ -15,9 +15,16 @@ Flow matching has emerged as a powerful framework for training continuous normal
 
 We use @biroli_dynamical_2024 to understand the softmax collapse in flow matching, contrary to what is claimed in @bertrand_closed-form_2025, the framework of @biroli_dynamical_2024 is able to predict the collapse time in flow matching. We adapt their arguments to the context of flow matching and provide a formula to predict the collapse time, in particular for CIFAR-10.
 
+In this blog post, we will present a rigorous analysis of the softmax collapse in flow matching, using tools from statistical physics, specifically the Random Energy Model (REM) and Large Deviation Principles (LDP).
+
+Contributions:
+
+- We do a connection between the observations on the training of the marginal velocity field (based on the conditional velocity field loss) and the collapse of the softmax weights and the probability distribution.
+- We provide a self-contained proof of the LDP and REM perhaps better than the one in @bertrand_closed-form_2025 and useful for other readers.
+
 # Setup and Notation
 
-We follow the notation and setup of @lipman_flow_2024 to present Flow Matching (FM). Given a training dataset with samples from an unknown target distribution $q$ over $\mathbb{R}^d$, the goal is to learn a model that can generate new samples from $q$. Flow Matching (FM) does this by defining a **continuous probability path** $(p_t)_{0\le t\le 1}$ that morphs a **known source distribution** $p_0=p$ (typically noise) into the **data distribution** $p_1=q$. FM learns a **time-dependent velocity field** $u_t$ (a vector field) that describes how samples move along this path. After training, sampling from $q$ works by:
+We follow the notation and setup of[ @lipman_flow_2024, Section 2] to present Flow Matching (FM). Given a training dataset with samples from an unknown target distribution $q$ over $\mathbb{R}^d$, the goal is to learn a model that can generate new samples from $q$. Flow Matching (FM) does this by defining a **continuous probability path** $(p_t)_{0\le t\le 1}$ that morphs a **known source distribution** $p_0=p$ (typically noise) into the **data distribution** $p_1=q$. FM learns a **time-dependent velocity field** $u_t$ (a vector field) that describes how samples move along this path. After training, sampling from $q$ works by:
 
 1.  Draw $X_0 \sim p$ (easy noise).
 2.  Solve an **ODE** driven by the learned velocity field to transport $X_0$ to $X_1$, which should follow $q$.
@@ -198,18 +205,19 @@ Of course, it is wrong. It is not i.i.d. Gaussian vectors, see @fig-eigenvalues-
 
 ![The eigenvalues of the covariance matrix of the CIFAR-10 dataset.](figures/eigenvalues-cifar10.png){#fig-eigenvalues-cifar10 fig-alt="The eigenvalues of the covariance matrix of the CIFAR-10 dataset."}
 
-# Flow Matching Collapse: A Statistical Physics Perspective
+# Marginal Velocity Field Collapse: A Statistical Physics Perspective
 
-This section provides a rigorous analysis of the collapse phenomenon in Flow Matching using tools from statistical physics, specifically the Random Energy Model (REM) and Large Deviation Principles (LDP).
+This section provides a rigorous analysis of the collapse phenomenon in the marginal velocity field using tools from statistical physics, specifically the Random Energy Model (REM) and Large Deviation Principles (LDP).
 
-## 1. Gibbs Measure and Energy Formulation
+## Gibbs Measure and Energy Formulation
 
-### 1.1 The Marginal FM Weights as a Gibbs Measure
+### The Marginal Velocity Field as a Gibbs Measure
 
 The marginal velocity field in Flow Matching is given by:
 $$
 u_t(x) = \sum_{i=1}^n \lambda_i(x,t) \frac{x^{(i)} - x}{1-t}
 $$
+
 where the weights $\lambda_i(x,t)$ take the form:
 $$
 \lambda_i(x,t) = \frac{\exp\left(-\frac{\|x - tx^{(i)}\|^2}{2(1-t)^2}\right)}{\sum_{j=1}^n \exp\left(-\frac{\|x - tx^{(j)}\|^2}{2(1-t)^2}\right)}.
@@ -225,7 +233,7 @@ $$
 Z(x,t) = \sum_{j=1}^n e^{-E_j(x,t)}.
 $$
 
-### 1.2 Assumptions on the Data
+### Assumptions on the Data
 
 We consider a **Gaussian proxy** for the training data:
 $$
@@ -234,7 +242,7 @@ $$
 
 This approximation captures the essential high-dimensional geometry while enabling analytical tractability. For CIFAR-10 after standard normalization, $\sigma^2 \approx 0.24$ provides a reasonable proxy.
 
-### 1.3 The "Planted" (Teacher) Trajectory
+### The "Planted" Trajectory
 
 Consider a trajectory starting from noise and targeting a specific training image:
 $$
@@ -245,6 +253,7 @@ We call $i = 1$ the **special (planted) index**. For this index:
 $$
 x_t - tx^{(1)} = (1-t)x_0
 $$
+
 which gives the **planted energy**:
 $$
 E_1(x_t, t) = \frac{\|(1-t)x_0\|^2}{2(1-t)^2} = \frac{\|x_0\|^2}{2}.
@@ -260,7 +269,7 @@ $$
 Z_1 = e^{-E_1} \approx e^{-d/2}.
 $$
 
-### 1.4 The "Bulk" (REM-like) Energies
+### The "Bulk" (REM-like) Energies
 
 For $j \neq 1$, we have:
 $$
@@ -284,11 +293,9 @@ $$
 
 **Key observation:** The bulk energies are approximately i.i.d. across $j \geq 2$, each extensive (order $d$). This is the classic setup where **Random Energy Model (REM)** tools apply.
 
----
+## Collapsed vs Uncollapsed States (Glass vs Liquid)
 
-## 2. Collapsed vs Uncollapsed States (Glass vs Liquid)
-
-### 2.1 Definition of Collapse
+### Definition of Collapse
 
 The central question is whether the partition function $Z(x_t, t)$ is dominated by:
 - **One special term** (the planted state), or
@@ -312,13 +319,13 @@ $$
 
 This is precisely the **conditional velocity field**. The marginal flow aligns perfectly with the teacher trajectory, leading to memorization of training data.
 
-### 2.3 Liquid Phase (Uncollapsed / Generalization)
+### Liquid Phase (Uncollapsed / Generalization)
 
 In the liquid phase, $Z \approx Z_{\text{bulk}} = \sum_{j=2}^n e^{-E_j}$, with mass distributed across many states.
 
 The velocity field is a genuine mixture of directions toward different training points, enabling interpolation and generalization.
 
-### 2.4 The Phase Transition
+### The Phase Transition
 
 The transition between phases depends on:
 - **Energy advantage** of the planted state (order $d$)
@@ -336,11 +343,9 @@ $$
 
 This tiny $\alpha$ means the entropy budget is negligible compared to extensive energy gaps, placing the system deep in the collapsed regime for most values of $t$.
 
----
+## Simple Heuristic Analysis
 
-## 3. Simple Heuristic Analysis
-
-### 3.1 Typical Energy Gap
+### Typical Energy Gap
 
 Compare a typical bulk energy to the planted energy. The **typical energy gap** is:
 $$
@@ -354,7 +359,7 @@ $$
 
 This shows **exponential-in-$d$ suppression** of bulk weights relative to the planted weight.
 
-### 3.2 Crude Annealed Entropy Estimate
+### Crude Annealed Entropy Estimate
 
 A naive estimate of the bulk partition function uses the **annealed approximation**:
 $$
@@ -363,7 +368,7 @@ $$
 
 However, this is often wrong because $e^{-E_j}$ has exponentially broad fluctuations. The sum is dominated by **rare low-energy states**, not typical ones. This is precisely where REM physics becomes essential.
 
-### 3.3 Energy vs Entropy Competition
+### Energy vs Entropy Competition
 
 The competition can be summarized as:
 - **Planted contribution:** $Z_1 \sim e^{-d/2}$
@@ -381,7 +386,7 @@ $$
 
 For CIFAR-like numbers, the right-hand side is tiny ($\approx 0.12$), so collapse can occur at small $t$.
 
-### 3.4 Simple Collapse Time Estimate
+### Simple Collapse Time Estimate
 
 Setting the two sides equal gives a heuristic collapse time:
 $$
@@ -395,11 +400,9 @@ $$
 
 **Caveat:** This estimate compares typical bulk energy to planted energy. A rigorous analysis must consider the **best** competitor among $n-1$ states, not a typical one. This requires REM/LDP tools.
 
----
+## Rigorous REM/LDP Derivation
 
-## 4. Rigorous REM/LDP Derivation
-
-### 4.1 Large Deviation Principles: Foundations
+### Large Deviation Principles: Foundations
 
 #### Why LDP?
 
@@ -427,7 +430,7 @@ $$
 I(x) = \sup_{\lambda \in \mathbb{R}} \left( \lambda x - \log \mathbb{E}[e^{\lambda X_1}] \right).
 $$
 
-### 4.2 LDP for Chi-Squared (Energy Density)
+### LDP for Chi-Squared (Energy Density)
 
 #### Deriving the Rate Function
 
@@ -464,7 +467,7 @@ $$
 
 This is the **rigorous backbone** for all REM arguments.
 
-### 4.3 Bulk Free Energy via Laplace Principle
+### Bulk Free Energy via Laplace Principle
 
 #### Complexity (Entropy of States)
 
@@ -491,7 +494,7 @@ $$
 \boxed{\Phi(1) := \lim_{d \to \infty} \frac{1}{d}\log Z_{\text{bulk}} = \sup_{\varepsilon > 0}\left[\alpha - I(\varepsilon) - \varepsilon\right]}
 $$
 
-### 4.4 Glass vs Liquid Phase Transition
+### Glass vs Liquid Phase Transition
 
 #### The Variational Problem
 
@@ -532,7 +535,7 @@ $$
 - **Liquid phase:** $\alpha \geq \alpha_c(c)$, maximizer at $\varepsilon_*$, free energy $\Phi(1) = \alpha - I(\varepsilon_*) - \varepsilon_*$
 - **Glass phase:** $\alpha < \alpha_c(c)$, maximizer at $\varepsilon_g$ with $I(\varepsilon_g) = \alpha$, free energy $\Phi(1) = -\varepsilon_g$
 
-### 4.5 Collapse Criterion from Free Energy
+### Collapse Criterion from Free Energy
 
 #### Full Partition Function
 
@@ -577,7 +580,7 @@ $$
 
 This gives an explicit inequality in $c$ and $\alpha$.
 
-### 4.6 Explicit Collapse Time
+### Explicit Collapse Time
 
 #### Collapse Time Equation
 
@@ -618,7 +621,7 @@ For CIFAR-like $\alpha \ll 1$, we have $\alpha \ll \alpha_c(c(t))$ for all $t \i
 2. The free-energy criterion reduces to the minimum-energy criterion
 3. The "going one level deeper" analysis confirms the simpler extreme-value argument
 
-### 4.7 Summary of Key Equations
+### Summary of Key Equations
 
 #### Bulk Energy LDP
 $$
@@ -650,9 +653,7 @@ $$
 \alpha = \frac{1}{2}\left(\log(2c(t_C)) + \frac{1}{2c(t_C)} - 1\right)
 $$
 
----
-
-## Appendix: Extension to Non-Isotropic Covariance
+## Extension to Non-Isotropic Covariance
 
 ### Motivation
 
@@ -870,74 +871,116 @@ The effective spectrum becomes:
 
 As $d \to \infty$, the spike contributes negligibly to $\Lambda_t(\theta)$, and we recover the isotropic formula with $\sigma^2 = v$. However, the spike can significantly affect the **planted energy** if the planted trajectory aligns with the principal direction — this connects to the statistical physics of "principal component recovery".
 
-# Error Analysis: Why Errors Spike
+# Error Analysis: Why the Neural Network Struggles to Learn the Marginal Velocity Field
 
-Two distinct error spikes occur, each with different causes.
+As observed in @fig-article-fig-3, the learned velocity field $u^\theta_t$ exhibits two distinct error spikes when approximating the marginal velocity field $u_t$: one near $t \approx 0.1$ and another near $t \approx 1$. These spikes have fundamentally different origins, which we now explain using the framework developed above.
 
-### Errors Near $t \approx 1$: The "Blow-Up + Nearest-Neighbor" Regime
+## Apparent Paradox: Blow-Up vs. Bounded Targets
 
-#### The target field magnitude explodes
-
-The conditional target:
-
+Before analyzing the error spikes, we address an apparent paradox. The CFM loss trains the neural network with targets $X_1 - X_0$, which are **constant across time** and bounded. Yet the marginal velocity field formula:
 $$
-u_{\text{cond}}(x_t, x_1, t) = \frac{x_1 - x_t}{1-t} = x_1 - x_0
+u_t(x) = \sum_{i=1}^n \lambda_i(x,t) \frac{x^{(i)} - x}{1-t}
 $$
+contains a $\frac{1}{1-t}$ factor that blows up as $t \to 1$. How can a neural network match this?
 
-is bounded (independent of $t$). But the optimal empirical field has an explicit $1/(1-t)$ factor — any small mismatch gets amplified as $t \to 1$.
+### Resolution: Cancellation at the Interpolant
 
-#### Sharp decision boundaries
+The key insight is that we evaluate these fields at the **interpolant** $X_t = (1-t)X_0 + tX_1$, not at arbitrary points. At the interpolant, the blow-up is cancelled.
 
-As $t \to 1$, $(1-t)^2 \to 0$ in the softmax temperature, making:
-
+For the planted index $i = 1$ (where $x^{(1)} = X_1$):
 $$
-\lambda \approx \text{one-hot at nearest } x^{(i)}
+x^{(1)} - X_t = X_1 - (1-t)X_0 - tX_1 = (1-t)(X_1 - X_0).
 $$
 
-The field $\hat{u}^\star(\cdot, t)$ approaches a **piecewise field** that switches abruptly across Voronoi cell boundaries — hard to approximate with smooth neural networks.
-
-#### Training data scarcity
-
-With $t \sim U[0,1]$, only a tiny fraction of minibatch points land in $[0.99, 1]$. The network is data-starved exactly where the function is most complex.
-
-### Errors Near $t \approx 0.1$: The "Collapse Transition" Regime
-
-This is the **more interesting** spike, tied to high-dimensional statistics.
-
-#### Low information content at early times
-
+Therefore:
 $$
-x_t \mid (x_1 = x^{(i)}) \sim \mathcal{N}(t x^{(i)}, (1-t)^2 I)
+\frac{x^{(1)} - X_t}{1-t} = X_1 - X_0.
 $$
 
-For small $t$, means $t x^{(i)}$ are tiny compared to noise radius $(1-t)\sqrt{d}$. Different components overlap heavily → the posterior over index $i$ is **broad**.
+The $(1-t)$ factor **cancels**! In the collapsed regime ($\lambda_1 \approx 1$):
+$$
+u_t(X_t) \approx \lambda_1 \cdot (X_1 - X_0) \approx X_1 - X_0,
+$$
+which is bounded.
 
-#### Rapid posterior collapse around $t \approx 0.1$
+### What About the Non-Collapsed Regime?
 
-In high $d$, squared distances concentrate tightly. The softmax logit gaps scale like $d \cdot t^2/(1-t)^2$, creating a **sharp phase change** where $\lambda$ goes from "spread over many" to "almost one-hot".
+Before collapse (small $t$), for indices $i \neq 1$:
+$$
+x^{(i)} - X_t = x^{(i)} - X_1 + (1-t)(X_1 - X_0),
+$$
+so:
+$$
+\frac{x^{(i)} - X_t}{1-t} = \frac{x^{(i)} - X_1}{1-t} + (X_1 - X_0).
+$$
 
-At this transition:
+The first term **does** blow up as $t \to 1$. However, this is controlled because $\lambda_i \to 0$ exponentially fast for $i \neq 1$ due to the softmax collapse. The product $\lambda_i \cdot \frac{x^{(i)} - X_1}{1-t}$ remains bounded.
 
--   Vector field changes character (averaged → nearest-neighbor-like)
--   The mapping $x \mapsto \arg\max_i \lambda_i(x,t)$ becomes very sensitive
--   Small changes in $x$ cause different winners
+### The Real Difficulty: Discontinuity, Not Unboundedness
 
-#### Function complexity peak
+The paradox resolves: the neural network targets are bounded, and so is the optimal prediction $u_t(X_t)$ at typical interpolant points. The difficulty for neural networks is **not** unbounded values, but rather **sharp spatial discontinuities**:
 
-| Regime | Complexity |
-|-----------------------------|-------------------------------------------|
-| Very small $t$ | Smooth, low-frequency (heavy overlap) |
-| Very large $t$ | Nearest-neighbor (simple but non-smooth) |
-| **Intermediate** $t$ | **Worst of both worlds**: several components matter but weights are selective |
+| Quantity | Behavior | Neural network challenge |
+|----------|----------|-------------------------|
+| Targets $X_1 - X_0$ | Bounded, constant in $t$ | Easy |
+| $u_t(X_t)$ at interpolant | Bounded (cancellation) | OK |
+| $u_t(x)$ at Voronoi boundaries | Sharp discontinuities | **Hard** |
+| $u_t(x)$ at $t \approx t_C$ | Rapid variation | **Hard** |
 
-This complexity peak typically occurs at a dataset/dimension-dependent collapse time — for CIFAR, around $t \sim 0.1$.
+We now examine these two sources of difficulty in detail.
 
-### Practical Diagnostics
+## Errors Near $t \approx 1$: The Nearest-Neighbor Regime
 
-1.  **Plot entropy of** $\lambda(x_t, t)$ vs $t$ (or effective components $1/\sum_i \lambda_i^2$)
-    -   Expect steep drop near $t \approx 0.1$
-2.  **Plot relative error** $\|u_\theta - \hat{u}^\star\| / \|\hat{u}^\star\|$ vs $t$
-    -   The "near 1" spike often shrinks dramatically in relative terms
+Recall the marginal velocity field:
+$$
+u_t(x) = \sum_{i=1}^n \lambda_i(x,t) \frac{x^{(i)} - x}{1-t}
+$$
+
+As $t \to 1$, the softmax temperature $(1-t)^2 \to 0$. This drives the weights $\lambda_i(x,t)$ toward a **one-hot distribution** concentrated on the nearest training point:
+$$
+\lambda_i(x,t) \xrightarrow{t \to 1} \mathbf{1}\left[i = \arg\min_j \|x - x^{(j)}\|\right].
+$$
+
+In this regime, the marginal velocity field approaches:
+$$
+u_t(x) \approx \frac{x^{(i^*)} - x}{1-t}, \quad \text{where } i^* = \arg\min_j \|x - x^{(j)}\|.
+$$
+
+This is a **piecewise-constant vector field** that switches abruptly across **Voronoi cell boundaries** in $\mathbb{R}^d$. Such discontinuous fields are notoriously difficult to approximate with smooth neural networks, explaining the error spike near $t \approx 1$.
+
+## Errors Near $t \approx 0.1$: The Collapse Transition Regime
+
+The error spike near $t \approx 0.1$ is more subtle and directly connected to the REM analysis above.
+
+### Low Information Content at Early Times
+
+Consider the conditional distribution of the interpolant:
+$$
+x_t \mid (x_1 = x^{(i)}) \sim \mathcal{N}(t x^{(i)}, (1-t)^2 I_d).
+$$
+
+For small $t$, the means $tx^{(i)}$ are small compared to the noise standard deviation $(1-t)\sqrt{d}$. The conditional distributions for different training points overlap heavily, making it difficult to infer which $x^{(i)}$ generated a given $x_t$. Consequently, the posterior weights $\lambda_i(x_t, t)$ are **spread across many indices**.
+
+### Sharp Phase Transition at the Collapse Time
+
+The REM analysis reveals that the energy gaps scale as:
+$$
+E_j - E_1 \approx \frac{d \sigma^2 t^2}{(1-t)^2}.
+$$
+
+This creates a **sharp phase transition** around $t_C \approx 0.34$ (for CIFAR-10): for $t < t_C$, the softmax mass is distributed across multiple training points; for $t > t_C$, the planted index dominates with $\lambda_1 \approx 1$.
+
+### Why the Transition Creates Approximation Difficulty
+
+At the collapse transition:
+
+1. **Rapid change in field character:** The velocity field $u_t(x)$ transitions from an averaged field (mixture of many directions) to a nearly-conditional field (pointing toward a single $x^{(i)}$).
+
+2. **High sensitivity:** The winner-takes-all map $x \mapsto \arg\max_i \lambda_i(x,t)$ becomes extremely sensitive to small perturbations in $x$. Near the transition, small changes in $x$ can cause different training points to dominate.
+
+3. **Non-smooth behavior:** The rapid variation of $\lambda_i(x,t)$ as a function of both $x$ and $t$ near $t_C$ creates a vector field that varies sharply over small spatial and temporal scales.
+
+These features make the velocity field near the collapse transition particularly challenging for neural networks to learn, explaining the observed error spike around $t \approx 0.1$ in @fig-article-fig-3.
 
 
 
