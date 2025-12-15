@@ -1,0 +1,623 @@
+---
+title: "Origins of Diffusion Models: From SMLD and DDPM to SDE Unification"
+author: "Nicolas Brosse"
+date: "2024-12-15"
+categories: [deep learning, generative models, diffusion]
+bibliography: bibliography.bib
+description: "A detailed exposition of the foundations of diffusion models, covering Score Matching with Langevin Dynamics (SMLD), Denoising Diffusion Probabilistic Models (DDPM), and their unification through Stochastic Differential Equations using the EDM framework."
+citation:
+  url: https://nbrosse.github.io/posts/origin-diffusion-flow-matching/origin-diffusion-flow-matching.html
+---
+
+# Introduction {#sec-introduction}
+
+Diffusion models have emerged as one of the most powerful approaches for generative modeling, achieving state-of-the-art results in image synthesis, audio generation, and many other domains. The core idea is elegantly simple: gradually destroy data by adding noise, then learn to reverse this corruption process to generate new samples from noise.
+
+This article traces the origins of modern diffusion models through two foundational approaches:
+
+1. **Score Matching with Langevin Dynamics (SMLD)** [@song_score-based_2021]: Learns the score function (gradient of log-density) at multiple noise scales and samples via annealed Langevin dynamics.
+
+2. **Denoising Diffusion Probabilistic Models (DDPM)**: Defines a Markov chain that progressively adds Gaussian noise and learns to reverse it through variational inference.
+
+We then show how both approaches are unified through the lens of **Stochastic Differential Equations (SDEs)**, using the notation and framework from the EDM paper [@karras_elucidating_2022]. This unification reveals that SMLD and DDPM are discretizations of continuous diffusion processes, opening the door to more flexible and principled designs.
+
+**Roadmap:**
+
+- @sec-score-matching: Score matching and denoising foundations, including Tweedie's formula
+- @sec-smld: Score Matching with Langevin Dynamics (SMLD)
+- @sec-ddpm: Denoising Diffusion Probabilistic Models (DDPM)
+- @sec-sde-unification: SDE unification using the EDM framework
+- @sec-summary: Summary and comparison of all formulations
+
+
+# Score Matching and Denoising Foundations {#sec-score-matching}
+
+## The Score Function
+
+Let $p_{\mathrm{data}}(\mathbf{x})$ be an unknown data distribution on $\mathbb{R}^d$. The **score function** is defined as the gradient of the log-density:
+$$
+\nabla_\mathbf{x} \log p_{\mathrm{data}}(\mathbf{x}).
+$$
+
+The score function is fundamental because it enables sampling algorithms such as Langevin dynamics, diffusion models, and MCMC procedures. Unlike the density itself, the score does not require computing the intractable normalization constant.
+
+Since we do not know $p_{\mathrm{data}}$ analytically and only have samples $\mathbf{x} \sim p_{\mathrm{data}}$, we must approximate the score with a neural network $s_\theta(\mathbf{x}) \approx \nabla_\mathbf{x} \log p_{\mathrm{data}}(\mathbf{x})$.
+
+## Smoothing with Gaussian Noise
+
+Directly regressing the score of the data distribution is problematic because:
+
+1. The score is undefined in regions with zero density
+2. Estimation is unstable in low-density regions
+3. The data manifold may have complex geometry
+
+The solution is to **smooth** the data distribution by injecting Gaussian noise. Given $\mathbf{x} \sim p_{\mathrm{data}}$, define:
+$$
+\mathbf{y} = \mathbf{x} + \sigma \mathbf{w}, \qquad \mathbf{w} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}_d).
+$$
+
+The density of $\mathbf{y}$ is the Gaussian convolution:
+$$
+p_\sigma(\mathbf{y}) = (p_{\mathrm{data}} * \mathcal{N}(\mathbf{0}, \sigma^2 \mathbf{I}_d))(\mathbf{y}) = \int p_{\mathrm{data}}(\mathbf{x}) \, \mathcal{N}(\mathbf{y}; \mathbf{x}, \sigma^2 \mathbf{I}_d) \, d\mathbf{x},
+$$
+a smoothed version of the true data distribution that has support everywhere and is easier to estimate.
+
+## Denoising and the Optimal Denoiser
+
+We introduce a **denoising network** $D_\sigma(\mathbf{y}; \theta) : \mathbb{R}^d \to \mathbb{R}^d$ trained to reconstruct $\mathbf{x}$ from the noisy observation $\mathbf{y}$. Using the mean squared error loss:
+$$
+\mathcal{L}_{\mathrm{denoise}}(\theta) = \frac{1}{2} \mathbb{E}_{\mathbf{x}, \mathbf{w}} \left[ \|\mathbf{x} - D_\sigma(\mathbf{x} + \sigma \mathbf{w}; \theta)\|^2 \right].
+$$
+
+It is well known that the minimizer of the $L^2$ denoising loss over all measurable functions is the **conditional expectation**:
+$$
+D_\sigma^*(\mathbf{y}) = \mathbb{E}[\mathbf{x} \mid \mathbf{y}].
+$$
+
+## Tweedie's Formula
+
+The key insight connecting denoising to score estimation is **Tweedie's formula**. For additive Gaussian noise, it states:
+
+::: {.callout-important}
+## Tweedie's Formula
+$$
+\mathbb{E}[\mathbf{x} \mid \mathbf{y}] = \mathbf{y} + \sigma^2 \nabla_\mathbf{y} \log p_\sigma(\mathbf{y})
+$$
+where $p_\sigma$ is the density of the noisy variable $\mathbf{y} = \mathbf{x} + \sigma \mathbf{w}$.
+:::
+
+**General form:** For the linear Gaussian channel $\mathbf{y} = a\mathbf{x} + \sigma \mathbf{w}$ where $a > 0$:
+$$
+\mathbb{E}[\mathbf{x} \mid \mathbf{y}] = \frac{1}{a} \left( \mathbf{y} + \sigma^2 \nabla_\mathbf{y} \log p_{a,\sigma}(\mathbf{y}) \right).
+$$
+
+::: {.callout-note collapse="true"}
+## Proof of Tweedie's Formula
+
+Let $\phi_\sigma(\mathbf{z}) = (2\pi\sigma^2)^{-d/2} \exp(-\|\mathbf{z}\|^2 / 2\sigma^2)$ denote the Gaussian density with variance $\sigma^2$. Since $\mathbf{y} \mid \mathbf{x} \sim \mathcal{N}(a\mathbf{x}, \sigma^2 \mathbf{I})$, the marginal density of $\mathbf{y}$ is:
+$$
+p_{a,\sigma}(\mathbf{y}) = \int p_{\mathrm{data}}(\mathbf{x}) \, \phi_\sigma(\mathbf{y} - a\mathbf{x}) \, d\mathbf{x}.
+$$
+
+Using $\nabla_\mathbf{y} \phi_\sigma(\mathbf{y} - a\mathbf{x}) = -\frac{\mathbf{y} - a\mathbf{x}}{\sigma^2} \phi_\sigma(\mathbf{y} - a\mathbf{x})$, we differentiate under the integral:
+$$
+\nabla_\mathbf{y} p_{a,\sigma}(\mathbf{y}) = \frac{1}{\sigma^2} \int (a\mathbf{x} - \mathbf{y}) \, p_{\mathrm{data}}(\mathbf{x}) \, \phi_\sigma(\mathbf{y} - a\mathbf{x}) \, d\mathbf{x}.
+$$
+
+Dividing by $p_{a,\sigma}(\mathbf{y})$ and recognizing the conditional density $p(\mathbf{x} \mid \mathbf{y}) = p_{\mathrm{data}}(\mathbf{x}) \phi_\sigma(\mathbf{y} - a\mathbf{x}) / p_{a,\sigma}(\mathbf{y})$:
+$$
+\nabla_\mathbf{y} \log p_{a,\sigma}(\mathbf{y}) = \frac{1}{\sigma^2} \left( a \, \mathbb{E}[\mathbf{x} \mid \mathbf{y}] - \mathbf{y} \right).
+$$
+
+Rearranging yields Tweedie's formula.
+:::
+
+## Connection: Denoiser to Score
+
+Rearranging Tweedie's formula:
+$$
+\nabla_\mathbf{y} \log p_\sigma(\mathbf{y}) = \frac{1}{\sigma^2} \left( D_\sigma^*(\mathbf{y}) - \mathbf{y} \right) = \frac{D_\sigma^*(\mathbf{y}) - \mathbf{y}}{\sigma^2}.
+$$
+
+Thus, the **optimal denoiser implicitly contains the score** of the smoothed distribution $p_\sigma$. We can define a score network via:
+$$
+s_\theta(\mathbf{y}, \sigma) := \frac{D_\theta(\mathbf{y}, \sigma) - \mathbf{y}}{\sigma^2}.
+$$
+
+If $D_\theta \approx D_\sigma^*$, then $s_\theta$ approximates the true score $\nabla_\mathbf{y} \log p_\sigma(\mathbf{y})$.
+
+## Denoising Score Matching
+
+**Denoising Score Matching (DSM)** directly trains the score network. The DSM loss is equivalent to the denoising loss (up to constants):
+$$
+\mathcal{L}_{\mathrm{DSM}}(\theta) = \frac{1}{2} \mathbb{E}_{\mathbf{x}, \mathbf{w}} \left[ \left\| s_\theta(\mathbf{x} + \sigma \mathbf{w}, \sigma) + \frac{\mathbf{w}}{\sigma} \right\|^2 \right].
+$$
+
+The target $-\mathbf{w}/\sigma$ comes from the fact that for the perturbation kernel $p(\mathbf{y} \mid \mathbf{x}) = \mathcal{N}(\mathbf{y}; \mathbf{x}, \sigma^2 \mathbf{I})$:
+$$
+\nabla_\mathbf{y} \log p(\mathbf{y} \mid \mathbf{x}) = -\frac{\mathbf{y} - \mathbf{x}}{\sigma^2} = -\frac{\sigma \mathbf{w}}{\sigma^2} = -\frac{\mathbf{w}}{\sigma}.
+$$
+
+
+# Score Matching with Langevin Dynamics (SMLD) {#sec-smld}
+
+The key insight of SMLD is that perturbing data with **multiple noise scales** is essential for successful score-based generative modeling.
+
+## Multi-Scale Noise Perturbation
+
+Let $p_\sigma(\tilde{\mathbf{x}} \mid \mathbf{x}) := \mathcal{N}(\tilde{\mathbf{x}}; \mathbf{x}, \sigma^2 \mathbf{I})$ be a perturbation kernel, and define the smoothed distribution:
+$$
+p_\sigma(\tilde{\mathbf{x}}) := \int p_{\mathrm{data}}(\mathbf{x}) \, p_\sigma(\tilde{\mathbf{x}} \mid \mathbf{x}) \, d\mathbf{x}.
+$$
+
+Consider a sequence of positive noise scales:
+$$
+\sigma_{\min} = \sigma_1 < \sigma_2 < \cdots < \sigma_N = \sigma_{\max}.
+$$
+
+The noise scales are chosen such that:
+
+- $\sigma_{\min}$ is small enough that $p_{\sigma_{\min}}(\mathbf{x}) \approx p_{\mathrm{data}}(\mathbf{x})$
+- $\sigma_{\max}$ is large enough that $p_{\sigma_{\max}}(\mathbf{x}) \approx \mathcal{N}(\mathbf{x}; \mathbf{0}, \sigma_{\max}^2 \mathbf{I})$
+
+## Why Multiple Noise Scales?
+
+Using a single noise level has fundamental limitations:
+
+1. **Small noise**: The score is accurate near data but undefined/inaccurate in most of the space, making it hard to guide samples from far away.
+
+2. **Large noise**: The smoothed distribution covers more space but loses information about the data structure.
+
+The solution is to use multiple scales: start with large noise (easy to sample, covers the space) and progressively reduce it (refining toward the data distribution).
+
+## Training Objective: Noise Conditional Score Network (NCSN)
+
+SMLD trains a **Noise Conditional Score Network** $s_\theta(\mathbf{x}, \sigma)$ with a weighted sum of denoising score matching objectives:
+
+::: {.callout-important}
+## SMLD Training Objective
+$$
+\theta^* = \arg\min_\theta \sum_{i=1}^N \sigma_i^2 \, \mathbb{E}_{p_{\mathrm{data}}(\mathbf{x})} \mathbb{E}_{p_{\sigma_i}(\tilde{\mathbf{x}} \mid \mathbf{x})} \left\| s_\theta(\tilde{\mathbf{x}}, \sigma_i) - \nabla_{\tilde{\mathbf{x}}} \log p_{\sigma_i}(\tilde{\mathbf{x}} \mid \mathbf{x}) \right\|_2^2
+$$
+:::
+
+Since $\nabla_{\tilde{\mathbf{x}}} \log p_{\sigma_i}(\tilde{\mathbf{x}} \mid \mathbf{x}) = -(\tilde{\mathbf{x}} - \mathbf{x})/\sigma_i^2$, the objective simplifies to:
+$$
+\theta^* = \arg\min_\theta \sum_{i=1}^N \sigma_i^2 \, \mathbb{E}_{\mathbf{x}, \boldsymbol{\epsilon}} \left\| s_\theta(\mathbf{x} + \sigma_i \boldsymbol{\epsilon}, \sigma_i) + \frac{\boldsymbol{\epsilon}}{\sigma_i} \right\|_2^2
+$$
+where $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$.
+
+**Weight interpretation:** The weights $\sigma_i^2$ are proportional to the inverse Fisher information of the perturbation kernel:
+$$
+\sigma_i^2 \propto \frac{1}{\mathbb{E}\| \nabla_{\tilde{\mathbf{x}}} \log p_{\sigma_i}(\tilde{\mathbf{x}} \mid \mathbf{x}) \|^2}.
+$$
+This ensures all noise levels contribute comparably to the loss.
+
+## Sampling: Annealed Langevin Dynamics
+
+Given a trained score model $s_{\theta^*}$, sampling proceeds by running Langevin MCMC at each noise scale sequentially, from largest to smallest.
+
+For each noise scale $\sigma_i$ (from $i = N$ down to $i = 1$), run $M$ steps of Langevin dynamics:
+$$
+\mathbf{x}_i^{(m)} = \mathbf{x}_i^{(m-1)} + \epsilon_i \, s_{\theta^*}(\mathbf{x}_i^{(m-1)}, \sigma_i) + \sqrt{2\epsilon_i} \, \mathbf{z}_i^{(m)}, \qquad m = 1, 2, \ldots, M,
+$$
+where:
+
+- $\epsilon_i > 0$ is the step size
+- $\mathbf{z}_i^{(m)} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
+- $\mathbf{x}_N^{(0)} \sim \mathcal{N}(\mathbf{0}, \sigma_{\max}^2 \mathbf{I})$ (initialization)
+- $\mathbf{x}_i^{(0)} = \mathbf{x}_{i+1}^{(M)}$ for $i < N$ (chain across scales)
+
+As $M \to \infty$ and $\epsilon_i \to 0$ for all $i$, the final sample $\mathbf{x}_1^{(M)}$ becomes an exact sample from $p_{\sigma_{\min}}(\mathbf{x}) \approx p_{\mathrm{data}}(\mathbf{x})$ under regularity conditions.
+
+
+# Denoising Diffusion Probabilistic Models (DDPM) {#sec-ddpm}
+
+DDPM takes a different perspective: define a forward Markov chain that progressively corrupts data, then learn the reverse chain through variational inference.
+
+## Forward Diffusion Process
+
+Given data $\mathbf{x}_0 \sim q(\mathbf{x}) = p_{\mathrm{data}}(\mathbf{x})$, define a forward noising process as a Markov chain:
+$$
+q(\mathbf{x}_t \mid \mathbf{x}_{t-1}) = \mathcal{N}\left( \mathbf{x}_t; \sqrt{1 - \beta_t} \, \mathbf{x}_{t-1}, \beta_t \mathbf{I} \right),
+$$
+with variance schedule $\{\beta_t\}_{t=1}^T$, typically with $0 < \beta_1 < \beta_2 < \cdots < \beta_T < 1$.
+
+### Reparameterization
+
+Define $\alpha_t = 1 - \beta_t$ and $\bar{\alpha}_t = \prod_{i=1}^t \alpha_i$. By reparameterization:
+$$
+\mathbf{x}_t = \sqrt{\alpha_t} \, \mathbf{x}_{t-1} + \sqrt{1 - \alpha_t} \, \boldsymbol{\epsilon}_{t-1}, \qquad \boldsymbol{\epsilon}_{t-1} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}).
+$$
+
+### Closed-Form Marginal
+
+A key property is that we can sample $\mathbf{x}_t$ directly from $\mathbf{x}_0$ without iterating through intermediate steps:
+
+::: {.callout-important}
+## DDPM Marginal Distribution
+$$
+q(\mathbf{x}_t \mid \mathbf{x}_0) = \mathcal{N}\left( \mathbf{x}_t; \sqrt{\bar{\alpha}_t} \, \mathbf{x}_0, (1 - \bar{\alpha}_t) \mathbf{I} \right)
+$$
+
+Equivalently: $\mathbf{x}_t = \sqrt{\bar{\alpha}_t} \, \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \, \boldsymbol{\epsilon}$, where $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$.
+:::
+
+The schedule is chosen so that $\bar{\alpha}_T \approx 0$, meaning $\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ approximately.
+
+## Reverse Diffusion Process
+
+To generate samples, we need to reverse the forward process. We model:
+$$
+p_\theta(\mathbf{x}_{t-1} \mid \mathbf{x}_t) = \mathcal{N}\left( \mathbf{x}_{t-1}; \boldsymbol{\mu}_\theta(\mathbf{x}_t, t), \boldsymbol{\Sigma}_\theta(\mathbf{x}_t, t) \right).
+$$
+
+### True Posterior (Conditioned on $\mathbf{x}_0$)
+
+When conditioned on $\mathbf{x}_0$, the reverse transition has a closed form:
+$$
+q(\mathbf{x}_{t-1} \mid \mathbf{x}_t, \mathbf{x}_0) = \mathcal{N}\left( \mathbf{x}_{t-1}; \tilde{\boldsymbol{\mu}}_t(\mathbf{x}_t, \mathbf{x}_0), \tilde{\beta}_t \mathbf{I} \right),
+$$
+where:
+$$
+\tilde{\beta}_t = \frac{1 - \bar{\alpha}_{t-1}}{1 - \bar{\alpha}_t} \beta_t,
+$$
+$$
+\tilde{\boldsymbol{\mu}}_t(\mathbf{x}_t, \mathbf{x}_0) = \frac{\sqrt{\alpha_t}(1 - \bar{\alpha}_{t-1})}{1 - \bar{\alpha}_t} \mathbf{x}_t + \frac{\sqrt{\bar{\alpha}_{t-1}} \beta_t}{1 - \bar{\alpha}_t} \mathbf{x}_0.
+$$
+
+### Deriving the Reverse Mean via Tweedie
+
+Applying Tweedie's formula to the DDPM forward transition $p(\mathbf{x}_t \mid \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_t; \sqrt{1-\beta_t} \, \mathbf{x}_{t-1}, \beta_t \mathbf{I})$, we identify $a = \sqrt{1-\beta_t}$ and $\sigma^2 = \beta_t$. This gives:
+$$
+\mathbb{E}[\mathbf{x}_{t-1} \mid \mathbf{x}_t] = \frac{1}{\sqrt{1-\beta_t}} \left( \mathbf{x}_t + \beta_t \nabla_{\mathbf{x}_t} \log p_t(\mathbf{x}_t) \right).
+$$
+
+This motivates the parameterization:
+$$
+\boldsymbol{\mu}_\theta(\mathbf{x}_t, t) = \frac{1}{\sqrt{1-\beta_t}} \left( \mathbf{x}_t + \beta_t \, s_\theta(\mathbf{x}_t, t) \right),
+$$
+where $s_\theta(\mathbf{x}_t, t) \approx \nabla_{\mathbf{x}_t} \log p_t(\mathbf{x}_t)$ is a learned score network.
+
+### Expressing the Mean in Terms of $\boldsymbol{\epsilon}$
+
+Using $\mathbf{x}_0 = \frac{1}{\sqrt{\bar{\alpha}_t}} \left( \mathbf{x}_t - \sqrt{1 - \bar{\alpha}_t} \, \boldsymbol{\epsilon} \right)$, the posterior mean becomes:
+$$
+\tilde{\boldsymbol{\mu}}_t = \frac{1}{\sqrt{\alpha_t}} \left( \mathbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon} \right).
+$$
+
+## Variational Lower Bound (ELBO)
+
+The training objective is derived from maximizing the log-likelihood via variational inference.
+
+### Jensen's Inequality Derivation
+
+Starting from the cross-entropy objective:
+\begin{align}
+\mathcal{L}_{\mathrm{CE}} &= -\mathbb{E}_{q(\mathbf{x}_0)} \left[ \log p_\theta(\mathbf{x}_0) \right] \\
+&= -\mathbb{E}_{q(\mathbf{x}_0)} \left[ \log \int p_\theta(\mathbf{x}_{0:T}) \, d\mathbf{x}_{1:T} \right] \\
+&= -\mathbb{E}_{q(\mathbf{x}_0)} \left[ \log \mathbb{E}_{q(\mathbf{x}_{1:T} \mid \mathbf{x}_0)} \left[ \frac{p_\theta(\mathbf{x}_{0:T})}{q(\mathbf{x}_{1:T} \mid \mathbf{x}_0)} \right] \right] \\
+&\leq -\mathbb{E}_{q(\mathbf{x}_{0:T})} \left[ \log \frac{p_\theta(\mathbf{x}_{0:T})}{q(\mathbf{x}_{1:T} \mid \mathbf{x}_0)} \right] \\
+&= \mathbb{E}_{q(\mathbf{x}_{0:T})} \left[ \log \frac{q(\mathbf{x}_{1:T} \mid \mathbf{x}_0)}{p_\theta(\mathbf{x}_{0:T})} \right] \equiv \mathcal{L}_{\mathrm{VLB}}.
+\end{align}
+
+### Decomposition into KL Divergences
+
+Using the identity $q(\mathbf{x}_t \mid \mathbf{x}_{t-1}) = q(\mathbf{x}_{t-1} \mid \mathbf{x}_t, \mathbf{x}_0) \frac{q(\mathbf{x}_t \mid \mathbf{x}_0)}{q(\mathbf{x}_{t-1} \mid \mathbf{x}_0)}$, the VLB decomposes as:
+
+::: {.callout-important}
+## ELBO Decomposition
+\begin{align}
+\mathcal{L}_{\mathrm{VLB}} &= L_T + L_{T-1} + \cdots + L_0, \\[6pt]
+\text{where} \quad L_T &= D_{\mathrm{KL}}\left( q(\mathbf{x}_T \mid \mathbf{x}_0) \,\|\, p_\theta(\mathbf{x}_T) \right), \\
+L_t &= D_{\mathrm{KL}}\left( q(\mathbf{x}_{t-1} \mid \mathbf{x}_t, \mathbf{x}_0) \,\|\, p_\theta(\mathbf{x}_{t-1} \mid \mathbf{x}_t) \right) \quad \text{for } 1 \leq t \leq T-1, \\
+L_0 &= -\log p_\theta(\mathbf{x}_0 \mid \mathbf{x}_1).
+\end{align}
+:::
+
+**Interpretation:**
+
+- $L_T$: Constant (no learnable parameters), can be ignored during training
+- $L_t$: KL between two Gaussians, computable in closed form
+- $L_0$: Reconstruction term
+
+## Parameterization and Training Loss
+
+### Noise Prediction Parameterization
+
+Instead of predicting $\mathbf{x}_0$ or $\tilde{\boldsymbol{\mu}}_t$ directly, we let the network predict the noise $\boldsymbol{\epsilon}$ via $\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)$:
+$$
+\boldsymbol{\mu}_\theta(\mathbf{x}_t, t) = \frac{1}{\sqrt{\alpha_t}} \left( \mathbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t) \right).
+$$
+
+The $L_t$ term becomes:
+$$
+L_t = \mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}} \left[ \frac{(1-\alpha_t)^2}{2\alpha_t(1-\bar{\alpha}_t)\|\boldsymbol{\Sigma}_\theta\|_2^2} \left\| \boldsymbol{\epsilon} - \boldsymbol{\epsilon}_\theta\left( \sqrt{\bar{\alpha}_t} \mathbf{x}_0 + \sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}, t \right) \right\|^2 \right].
+$$
+
+### Simplified Loss
+
+Ho et al. found that training works better with a simplified objective that ignores the weighting:
+
+::: {.callout-important}
+## DDPM Simplified Loss
+$$
+L_{\text{simple}} = \mathbb{E}_{t \sim [1,T], \mathbf{x}_0, \boldsymbol{\epsilon}} \left[ \left\| \boldsymbol{\epsilon} - \boldsymbol{\epsilon}_\theta\left( \sqrt{\bar{\alpha}_t} \mathbf{x}_0 + \sqrt{1-\bar{\alpha}_t} \boldsymbol{\epsilon}, t \right) \right\|^2 \right]
+$$
+:::
+
+## Connection to Score Matching
+
+The noise prediction network is directly related to the score:
+$$
+s_\theta(\mathbf{x}_t, t) \approx \nabla_{\mathbf{x}_t} \log q(\mathbf{x}_t) = -\frac{\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)}{\sqrt{1 - \bar{\alpha}_t}}.
+$$
+
+This shows that DDPM is implicitly learning the score of the perturbed data distribution, just like SMLD!
+
+**Weight connection:** Like SMLD, the weight $(1 - \alpha_t)$ in the full ELBO is proportional to the inverse Fisher information:
+$$
+1 - \alpha_t \propto \frac{1}{\mathbb{E}\| \nabla_{\tilde{\mathbf{x}}} \log p_{\alpha_t}(\tilde{\mathbf{x}} \mid \mathbf{x}) \|^2}.
+$$
+
+## Sampling: Ancestral Sampling
+
+After training, samples are generated by starting from $\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ and iterating:
+$$
+\mathbf{x}_{t-1} = \frac{1}{\sqrt{1-\beta_t}} \left( \mathbf{x}_t + \beta_t \, s_{\theta^*}(\mathbf{x}_t, t) \right) + \sqrt{\beta_t} \, \mathbf{z}_t, \qquad t = T, T-1, \ldots, 1,
+$$
+where $\mathbf{z}_t \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$.
+
+Or equivalently using the noise prediction:
+$$
+\mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}} \left( \mathbf{x}_t - \frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}} \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t) \right) + \sqrt{\beta_t} \, \mathbf{z}_t.
+$$
+
+
+# SDE Unification with EDM Framework {#sec-sde-unification}
+
+Both SMLD and DDPM perturb data with multiple noise scales. A key insight from Song et al. is that we can generalize this to an **infinite number of noise scales**, where perturbed data distributions evolve according to a **Stochastic Differential Equation (SDE)**. We present this unification using the notation and framework from EDM [@karras_elucidating_2022].
+
+## General SDE Framework
+
+### Forward SDE
+
+Our goal is to construct a diffusion process $\{\mathbf{x}(t)\}_{t=0}^T$ such that:
+
+- $\mathbf{x}(0) \sim p_0 = p_{\mathrm{data}}$ (data distribution)
+- $\mathbf{x}(T) \sim p_T$ (tractable prior, e.g., Gaussian)
+
+This diffusion process is modeled as the solution to an Itô SDE:
+
+::: {.callout-important}
+## Forward SDE
+$$
+d\mathbf{x} = f(\mathbf{x}, t) \, dt + g(t) \, d\mathbf{w},
+$$
+where:
+
+- $\mathbf{w}$ is the standard Wiener process (Brownian motion)
+- $f(\cdot, t): \mathbb{R}^d \to \mathbb{R}^d$ is the drift coefficient
+- $g(\cdot): \mathbb{R} \to \mathbb{R}$ is the diffusion coefficient
+:::
+
+We denote by $p_t(\mathbf{x})$ the probability density of $\mathbf{x}(t)$, and by $p_{0t}(\mathbf{x}(t) \mid \mathbf{x}(0))$ the transition kernel from time $0$ to time $t$.
+
+### Reverse SDE
+
+A remarkable result from Anderson (1982) states that the reverse of a diffusion process is itself a diffusion process, governed by the **reverse-time SDE**:
+
+::: {.callout-important}
+## Reverse SDE
+$$
+d\mathbf{x} = \left[ f(\mathbf{x}, t) - g(t)^2 \nabla_\mathbf{x} \log p_t(\mathbf{x}) \right] dt + g(t) \, d\bar{\mathbf{w}},
+$$
+where $\bar{\mathbf{w}}$ is a standard Wiener process when time flows backward from $T$ to $0$, and $dt$ is an infinitesimal negative timestep.
+:::
+
+Once the score $\nabla_\mathbf{x} \log p_t(\mathbf{x})$ is known for all $t$, we can simulate this reverse SDE to sample from $p_0 = p_{\mathrm{data}}$.
+
+## EDM Parameterization
+
+The EDM framework [@karras_elucidating_2022] provides a clean parameterization using a **denoiser** $D_\theta(\mathbf{x}, \sigma)$ that predicts the clean data from a noisy observation.
+
+### Denoiser and Score Relationship
+
+By Tweedie's formula, the optimal denoiser and the score are related by:
+$$
+D_\theta(\mathbf{x}, \sigma) = \mathbf{x} + \sigma^2 s_\theta(\mathbf{x}, \sigma),
+$$
+or equivalently:
+$$
+s_\theta(\mathbf{x}, \sigma) = \frac{D_\theta(\mathbf{x}, \sigma) - \mathbf{x}}{\sigma^2}.
+$$
+
+### Unified Training Objective
+
+The EDM-style training objective is:
+$$
+\mathcal{L}(\theta) = \mathbb{E}_{\sigma \sim p(\sigma)} \mathbb{E}_{\mathbf{x}_0 \sim p_{\mathrm{data}}} \mathbb{E}_{\mathbf{n} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})} \left[ \lambda(\sigma) \| D_\theta(\mathbf{x}_0 + \sigma \mathbf{n}, \sigma) - \mathbf{x}_0 \|^2 \right],
+$$
+where $\lambda(\sigma)$ is a weighting function and $p(\sigma)$ is a distribution over noise levels.
+
+This is equivalent to the score matching objective:
+$$
+\mathcal{L}(\theta) = \mathbb{E}_{\sigma, \mathbf{x}_0, \mathbf{n}} \left[ \lambda(\sigma) \sigma^2 \left\| s_\theta(\mathbf{x}_0 + \sigma \mathbf{n}, \sigma) + \frac{\mathbf{n}}{\sigma} \right\|^2 \right].
+$$
+
+## From SMLD to Variance Exploding (VE) SDE
+
+### Discrete Chain
+
+The SMLD perturbation kernels correspond to the Markov chain:
+$$
+\mathbf{x}_i = \mathbf{x}_{i-1} + \sqrt{\sigma_i^2 - \sigma_{i-1}^2} \, \mathbf{z}_{i-1}, \qquad \mathbf{z}_{i-1} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}),
+$$
+with $\sigma_0 = 0$ and $\mathbf{x}_0 \sim p_{\mathrm{data}}$.
+
+### Continuous Limit
+
+Define $\Delta t = 1/N$ and let $t \in \{0, \Delta t, 2\Delta t, \ldots\}$. Rewriting:
+$$
+\mathbf{x}(t + \Delta t) = \mathbf{x}(t) + \sqrt{\sigma^2(t + \Delta t) - \sigma^2(t)} \, \mathbf{z}(t) \approx \mathbf{x}(t) + \sqrt{\frac{d\sigma^2(t)}{dt} \Delta t} \, \mathbf{z}(t).
+$$
+
+As $\Delta t \to 0$, this converges to the **Variance Exploding (VE) SDE**:
+
+::: {.callout-important}
+## VE SDE (from SMLD)
+$$
+d\mathbf{x} = \sqrt{\frac{d\sigma^2(t)}{dt}} \, d\mathbf{w}
+$$
+
+**Drift:** $f(\mathbf{x}, t) = 0$
+
+**Diffusion:** $g(t) = \sqrt{\frac{d\sigma^2(t)}{dt}}$
+
+**Perturbation kernel:**
+$$
+p_{0t}(\mathbf{x}(t) \mid \mathbf{x}(0)) = \mathcal{N}\left( \mathbf{x}(t); \mathbf{x}(0), \sigma^2(t) \mathbf{I} \right)
+$$
+:::
+
+The VE SDE has **exploding variance** as $t \to \infty$ since the variance grows unboundedly with $\sigma^2(t)$.
+
+## From DDPM to Variance Preserving (VP) SDE
+
+### Discrete Chain
+
+The DDPM forward process is:
+$$
+\mathbf{x}_i = \sqrt{1 - \beta_i} \, \mathbf{x}_{i-1} + \sqrt{\beta_i} \, \mathbf{z}_{i-1}, \qquad \mathbf{z}_{i-1} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}).
+$$
+
+### Continuous Limit
+
+Define $\bar{\beta}_i = N \beta_i$ and rewrite:
+$$
+\mathbf{x}_i = \left(1 - \frac{\bar{\beta}_i}{N}\right) \mathbf{x}_{i-1} + \sqrt{\frac{\bar{\beta}_i}{N}} \, \mathbf{z}_{i-1}.
+$$
+
+With $\Delta t = 1/N$ and $\beta(t) = \bar{\beta}_i$:
+\begin{align}
+\mathbf{x}(t + \Delta t) &= (1 - \beta(t)\Delta t) \mathbf{x}(t) + \sqrt{\beta(t)\Delta t} \, \mathbf{z}(t) \\
+&\approx \mathbf{x}(t) - \beta(t)\Delta t \, \mathbf{x}(t) + \sqrt{\beta(t)\Delta t} \, \mathbf{z}(t).
+\end{align}
+
+As $\Delta t \to 0$, this converges to the **Variance Preserving (VP) SDE**:
+
+::: {.callout-important}
+## VP SDE (from DDPM)
+$$
+d\mathbf{x} = -\frac{1}{2}\beta(t) \mathbf{x} \, dt + \sqrt{\beta(t)} \, d\mathbf{w}
+$$
+
+**Drift:** $f(\mathbf{x}, t) = -\frac{1}{2}\beta(t) \mathbf{x}$
+
+**Diffusion:** $g(t) = \sqrt{\beta(t)}$
+
+**Perturbation kernel:**
+$$
+p_{0t}(\mathbf{x}(t) \mid \mathbf{x}(0)) = \mathcal{N}\left( \mathbf{x}(t); \sqrt{\bar{\alpha}(t)} \, \mathbf{x}(0), (1 - \bar{\alpha}(t)) \mathbf{I} \right)
+$$
+where $\bar{\alpha}(t) = \exp\left(-\int_0^t \beta(s) \, ds\right)$.
+:::
+
+The VP SDE has **bounded variance**. If the initial distribution has unit variance, then the variance remains at unity for all $t$.
+
+## Variance Dynamics
+
+### VP SDE Covariance
+
+For the VP SDE, the covariance $\boldsymbol{\Sigma}_{\mathrm{VP}}(t) = \mathrm{Cov}[\mathbf{x}(t)]$ evolves according to:
+$$
+\frac{d}{dt} \boldsymbol{\Sigma}_{\mathrm{VP}}(t) = \beta(t) \left( \mathbf{I} - \boldsymbol{\Sigma}_{\mathrm{VP}}(t) \right).
+$$
+
+Solving this ODE:
+$$
+\boldsymbol{\Sigma}_{\mathrm{VP}}(t) = \mathbf{I} + e^{-\int_0^t \beta(s) \, ds} \left( \boldsymbol{\Sigma}_{\mathrm{VP}}(0) - \mathbf{I} \right).
+$$
+
+This shows that:
+
+- The covariance is always bounded
+- $\boldsymbol{\Sigma}_{\mathrm{VP}}(t) \equiv \mathbf{I}$ if $\boldsymbol{\Sigma}_{\mathrm{VP}}(0) = \mathbf{I}$
+- As $t \to \infty$, $\boldsymbol{\Sigma}_{\mathrm{VP}}(t) \to \mathbf{I}$ (if $\int_0^\infty \beta(s) \, ds = \infty$)
+
+### Sub-VP SDE
+
+Inspired by the VP SDE, one can define the **sub-VP SDE**:
+$$
+d\mathbf{x} = -\frac{1}{2}\beta(t)\mathbf{x} \, dt + \sqrt{\beta(t)\left(1 - e^{-2\int_0^t \beta(s) \, ds}\right)} \, d\mathbf{w}.
+$$
+
+This SDE has variance always bounded above by the VP SDE (hence "sub-VP"), and converges to the same limiting distribution.
+
+## Perturbation Kernels Summary
+
+Since VE, VP, and sub-VP SDEs all have affine drift coefficients, their perturbation kernels are Gaussian with closed forms:
+
+| SDE | Perturbation Kernel $p_{0t}(\mathbf{x}(t) \mid \mathbf{x}(0))$ |
+|-----|--------------------------------------------------------------|
+| **VE** | $\mathcal{N}\left(\mathbf{x}(0), \sigma^2(t) \mathbf{I}\right)$ |
+| **VP** | $\mathcal{N}\left(\sqrt{\bar{\alpha}(t)} \mathbf{x}(0), (1 - \bar{\alpha}(t)) \mathbf{I}\right)$ |
+| **sub-VP** | $\mathcal{N}\left(\sqrt{\bar{\alpha}(t)} \mathbf{x}(0), (1 - \bar{\alpha}(t))^2 \mathbf{I}\right)$ |
+
+: Perturbation kernels for different SDEs {#tbl-kernels}
+
+## Reverse SDEs
+
+Using the general reverse SDE formula, we can derive the reverse processes:
+
+### VE Reverse SDE
+$$
+d\mathbf{x} = -\frac{d\sigma^2(t)}{dt} \nabla_\mathbf{x} \log p_t(\mathbf{x}) \, dt + \sqrt{\frac{d\sigma^2(t)}{dt}} \, d\bar{\mathbf{w}}
+$$
+
+### VP Reverse SDE
+$$
+d\mathbf{x} = \left[ -\frac{1}{2}\beta(t)\mathbf{x} - \beta(t) \nabla_\mathbf{x} \log p_t(\mathbf{x}) \right] dt + \sqrt{\beta(t)} \, d\bar{\mathbf{w}}
+$$
+
+## Unified View: Score Estimation for Any SDE
+
+The training objective for any SDE is the same denoising score matching objective:
+$$
+\theta^* = \arg\min_\theta \mathbb{E}_{t \sim \mathcal{U}[0,T]} \lambda(t) \, \mathbb{E}_{\mathbf{x}(0) \sim p_{\mathrm{data}}} \mathbb{E}_{\mathbf{x}(t) \sim p_{0t}(\cdot \mid \mathbf{x}(0))} \left\| s_\theta(\mathbf{x}(t), t) - \nabla_{\mathbf{x}(t)} \log p_{0t}(\mathbf{x}(t) \mid \mathbf{x}(0)) \right\|_2^2.
+$$
+
+Since the perturbation kernels are Gaussian, the score of the kernel has closed form:
+
+- **VE:** $\nabla_{\mathbf{x}(t)} \log p_{0t}(\mathbf{x}(t) \mid \mathbf{x}(0)) = -\frac{\mathbf{x}(t) - \mathbf{x}(0)}{\sigma^2(t)}$
+- **VP:** $\nabla_{\mathbf{x}(t)} \log p_{0t}(\mathbf{x}(t) \mid \mathbf{x}(0)) = -\frac{\mathbf{x}(t) - \sqrt{\bar{\alpha}(t)} \mathbf{x}(0)}{1 - \bar{\alpha}(t)}$
+
+
+# Summary and Comparison {#sec-summary}
+
+## Comparison Table
+
+| Aspect | SMLD | DDPM | VE SDE | VP SDE |
+|--------|------|------|--------|--------|
+| **Forward Process** | Add noise at scales $\sigma_i$ | Markov chain with $\beta_t$ | $d\mathbf{x} = \sqrt{\frac{d\sigma^2}{dt}} d\mathbf{w}$ | $d\mathbf{x} = -\frac{1}{2}\beta \mathbf{x} dt + \sqrt{\beta} d\mathbf{w}$ |
+| **Perturbation Kernel** | $\mathcal{N}(\mathbf{x}, \sigma_i^2 \mathbf{I})$ | $\mathcal{N}(\sqrt{\bar{\alpha}_t} \mathbf{x}, (1-\bar{\alpha}_t)\mathbf{I})$ | $\mathcal{N}(\mathbf{x}, \sigma^2(t) \mathbf{I})$ | $\mathcal{N}(\sqrt{\bar{\alpha}(t)} \mathbf{x}, (1-\bar{\alpha}(t))\mathbf{I})$ |
+| **Variance Behavior** | Exploding | Preserving | Exploding | Preserving |
+| **Training Target** | Score $s_\theta$ | Noise $\boldsymbol{\epsilon}_\theta$ | Score $s_\theta$ or Denoiser $D_\theta$ | Score $s_\theta$ or Denoiser $D_\theta$ |
+| **Sampling** | Annealed Langevin | Ancestral sampling | Reverse SDE | Reverse SDE |
+| **Time** | Discrete ($N$ scales) | Discrete ($T$ steps) | Continuous | Continuous |
+
+: Comparison of diffusion model formulations {#tbl-comparison}
+
+## Key Takeaways
+
+1. **Score is central:** All methods learn the score function $\nabla_\mathbf{x} \log p_t(\mathbf{x})$, whether explicitly (SMLD) or implicitly through noise prediction (DDPM) or denoising (EDM).
+
+2. **Tweedie connects denoising and score:** The optimal denoiser and the score are related by Tweedie's formula: $D^*(\mathbf{y}) = \mathbf{y} + \sigma^2 \nabla \log p_\sigma(\mathbf{y})$.
+
+3. **Continuous unification:** SMLD and DDPM are discretizations of the VE and VP SDEs respectively. The SDE framework provides a principled way to design new diffusion processes.
+
+4. **Flexible parameterization:** EDM shows that we can parameterize the model as a denoiser $D_\theta$, noise predictor $\boldsymbol{\epsilon}_\theta$, or score $s_\theta$—they are all equivalent up to simple transformations.
+
+5. **Weight normalization:** The optimal training weights are proportional to the inverse Fisher information, ensuring balanced contribution across noise levels.
+
+## References
