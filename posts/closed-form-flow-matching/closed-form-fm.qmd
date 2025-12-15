@@ -73,6 +73,59 @@ $$
 
 where $X_t=(1-t)X_0+tX_1$.
 
+### Loss Decomposition: CFM = FM + Irreducible Variance
+
+The CFM and FM losses are related by a bias-variance decomposition. The CFM loss can be written as:
+$$
+\mathcal{L}_{\text{CFM}}(\theta) = \mathcal{L}_{\text{FM}}(\theta) + \mathbb{E}_{t, X_t}\left[\mathrm{Var}(X_1 - X_0 \mid X_t)\right].
+$$
+
+::: {.callout-note collapse="true"}
+## Proof of the loss decomposition
+
+**Key observation:** At the interpolant $X_t = (1-t)X_0 + tX_1$, the conditional velocity field evaluates to:
+$$
+u_t(X_t \mid X_1) = \frac{X_1 - X_t}{1-t} = \frac{X_1 - (1-t)X_0 - tX_1}{1-t} = X_1 - X_0.
+$$
+
+The marginal velocity field at $X_t$ is the conditional expectation of this:
+$$
+u_t(X_t) = \mathbb{E}[X_1 - X_0 \mid X_t].
+$$
+
+**Decomposition:** Let $Y = X_1 - X_0$ denote the target and $\bar{Y} = \mathbb{E}[Y \mid X_t] = u_t(X_t)$ the optimal predictor. We decompose:
+$$
+\|u^\theta_t(X_t) - Y\|^2 = \|(u^\theta_t(X_t) - \bar{Y}) + (\bar{Y} - Y)\|^2.
+$$
+
+Expanding:
+$$
+= \|u^\theta_t(X_t) - \bar{Y}\|^2 + \|\bar{Y} - Y\|^2 + 2(u^\theta_t(X_t) - \bar{Y})^\top(\bar{Y} - Y).
+$$
+
+**The cross-term vanishes:** Taking the conditional expectation given $X_t$:
+$$
+\mathbb{E}\left[(u^\theta_t(X_t) - \bar{Y})^\top(\bar{Y} - Y) \mid X_t\right] = (u^\theta_t(X_t) - \bar{Y})^\top \mathbb{E}[\bar{Y} - Y \mid X_t] = 0,
+$$
+since $\mathbb{E}[Y \mid X_t] = \bar{Y}$ by definition.
+
+**Taking expectations:** We obtain:
+\begin{align}
+\mathcal{L}_{\text{CFM}}(\theta) &= \mathbb{E}_{t,X_t}\left[\|u^\theta_t(X_t) - u_t(X_t)\|^2\right] + \mathbb{E}_{t,X_t}\left[\mathbb{E}\left[\|Y - \bar{Y}\|^2 \mid X_t\right]\right] \\
+&= \mathcal{L}_{\text{FM}}(\theta) + \mathbb{E}_{t,X_t}\left[\mathrm{Var}(X_1 - X_0 \mid X_t)\right].
+\end{align}
+
+Here, $\mathrm{Var}(X_1 - X_0 \mid X_t) := \mathbb{E}[\|X_1 - X_0 - \mathbb{E}[X_1 - X_0 \mid X_t]\|^2 \mid X_t]$ is the trace of the conditional covariance matrix.
+:::
+
+**Alternative expression:** Since $X_1 - X_0 = \frac{X_1 - X_t}{1-t}$ (the conditional velocity at the interpolant), the irreducible variance can be written as:
+$$
+\mathrm{Var}(X_1 - X_0 \mid X_t) = \frac{1}{(1-t)^2}\mathrm{Var}(X_1 \mid X_t).
+$$
+This form makes the connection to the conditional velocity field $u_t(x \mid x_1) = \frac{x_1 - x}{1-t}$ explicit: the irreducible variance is the posterior variance of $X_1$ given $X_t$, scaled by the squared velocity coefficient $\frac{1}{(1-t)^2}$.
+
+The second term is the **irreducible variance** — it does not depend on $\theta$ and represents the inherent uncertainty in predicting the conditional velocity $X_1 - X_0$ from $X_t$ alone. This variance captures how much the target $X_1 - X_0$ fluctuates across different $(X_0, X_1)$ pairs that pass through the same interpolant $X_t$.
+
 # Observations on the marginal vector field, conditional vector field and training difficulties
 
 In this section, we present some observations made in @bertrand_closed-form_2025. We focus on the case where the source distribution $p_0$ is the standard normal distribution and the data distribution $p_{\text{data}}$ is the CIFAR-10 dataset. We observe $n$ datapoints from CIFAR-10: 
@@ -288,7 +341,7 @@ $$
 
 Define the **time-dependent energy scale**:
 $$
-c(t) := \frac{s^2(t)}{2(1-t)^2} = \frac{1}{2}\left(1 + \frac{2\sigma^2 t^2}{(1-t)^2}\right).
+c(t) = \frac{s^2(t)}{2(1-t)^2} = \frac{1}{2}\left(1 + \frac{2\sigma^2 t^2}{(1-t)^2}\right).
 $$
 
 **Key observation:** The bulk energies are approximately i.i.d. across $j \geq 2$, each extensive (order $d$). This is the classic setup where **Random Energy Model (REM)** tools apply.
@@ -298,6 +351,7 @@ $$
 ### Definition of Collapse
 
 The central question is whether the partition function $Z(x_t, t)$ is dominated by:
+
 - **One special term** (the planted state), or
 - **Exponentially many comparable terms** (the bulk).
 
@@ -308,7 +362,7 @@ This leads to two phases:
 | **Collapsed** | Glass / Condensed | Memorization | $\lambda_1 \approx 1$ |
 | **Uncollapsed** | Liquid | Generalization | Mass spread over many $j$'s |
 
-### 2.2 Glass Phase (Collapsed / Memorization)
+### Glass Phase (Collapsed / Memorization)
 
 In the collapsed phase, $Z \approx Z_1 = e^{-E_1}$, meaning $\lambda_1 \approx 1$.
 
@@ -328,12 +382,13 @@ The velocity field is a genuine mixture of directions toward different training 
 ### The Phase Transition
 
 The transition between phases depends on:
+
 - **Energy advantage** of the planted state (order $d$)
 - **Entropy** from having $n$ competitors (order $\log n$)
 
 The competition is controlled by the **dimensionless ratio**:
 $$
-\alpha := \frac{\log n}{d}.
+\alpha = \frac{\log n}{d}.
 $$
 
 For typical datasets (e.g., CIFAR-10 with $d = 3072$, $n = 50{,}000$):
@@ -371,6 +426,7 @@ However, this is often wrong because $e^{-E_j}$ has exponentially broad fluctuat
 ### Energy vs Entropy Competition
 
 The competition can be summarized as:
+
 - **Planted contribution:** $Z_1 \sim e^{-d/2}$
 - **Bulk contribution (naive):** $Z_{\text{bulk}} \sim n \cdot e^{-d \cdot c(t)} = e^{\alpha d - d \cdot c(t)}$
 
@@ -414,7 +470,9 @@ A sequence of random variables $X_d$ satisfies a **Large Deviation Principle (LD
 $$
 \mathbb{P}(X_d \approx x) \asymp e^{-d \, I(x)}
 $$
+
 where:
+
 - $d$ is the large parameter (dimension)
 - $I(x) \geq 0$ with $I(x) = 0$ at the typical value
 - Larger $I(x)$ means exponentially rarer events
@@ -425,6 +483,7 @@ For i.i.d. random variables $X_1, \dots, X_d$ with finite moment generating func
 $$
 \mathbb{P}(S_d \approx x) \asymp e^{-d \, I(x)}
 $$
+
 where the **rate function** is the Legendre transform of the log-MGF:
 $$
 I(x) = \sup_{\lambda \in \mathbb{R}} \left( \lambda x - \log \mathbb{E}[e^{\lambda X_1}] \right).
@@ -436,7 +495,7 @@ $$
 
 Let $Z_k \sim \mathcal{N}(0,1)$ i.i.d., so $\chi_d^2 = \sum_{k=1}^d Z_k^2$. Define:
 $$
-Y_d := \frac{\chi_d^2}{d} = \frac{1}{d}\sum_{k=1}^d Z_k^2.
+Y_d = \frac{\chi_d^2}{d} = \frac{1}{d}\sum_{k=1}^d Z_k^2.
 $$
 
 For $X = Z^2$, the log-MGF is:
@@ -450,6 +509,7 @@ I_\chi(y) = \sup_{\lambda < 1/2}\left(\lambda y + \frac{1}{2}\log(1 - 2\lambda)\
 $$
 
 **Key properties:**
+
 - Minimum at $y = 1$ with $I_\chi(1) = 0$ (typical value)
 - Convex and non-negative
 - Deviations are exponentially unlikely in $d$
@@ -460,6 +520,7 @@ For bulk energies with $E = c(t) \cdot \chi_d^2$, the energy density $e = E/d = 
 $$
 \mathbb{P}(e \approx \varepsilon) \asymp e^{-d \, I(\varepsilon)}
 $$
+
 where:
 $$
 \boxed{I(\varepsilon) = \frac{1}{2}\left(\frac{\varepsilon}{c} - 1 - \log\frac{\varepsilon}{c}\right)}
@@ -478,8 +539,9 @@ $$
 
 The quantity:
 $$
-\Sigma(\varepsilon) := \alpha - I(\varepsilon)
+\Sigma(\varepsilon) = \alpha - I(\varepsilon)
 $$
+
 is the **complexity** (entropy density of states at energy $\varepsilon$).
 
 #### Laplace Principle
@@ -491,7 +553,7 @@ $$
 
 By the Laplace principle (large-$d$ saddle point):
 $$
-\boxed{\Phi(1) := \lim_{d \to \infty} \frac{1}{d}\log Z_{\text{bulk}} = \sup_{\varepsilon > 0}\left[\alpha - I(\varepsilon) - \varepsilon\right]}
+\boxed{\Phi(1) = \lim_{d \to \infty} \frac{1}{d}\log Z_{\text{bulk}} = \sup_{\varepsilon > 0}\left[\alpha - I(\varepsilon) - \varepsilon\right]}
 $$
 
 ### Glass vs Liquid Phase Transition
@@ -508,6 +570,7 @@ Computing:
 $$
 I'(\varepsilon) = \frac{1}{2}\left(\frac{1}{c} - \frac{1}{\varepsilon}\right) = -1
 $$
+
 yields the **liquid saddle point**:
 $$
 \boxed{\varepsilon_* = \frac{c}{1 + 2c}}
@@ -528,10 +591,11 @@ The partition sum is then dominated by the **lowest-energy extremes**: this is t
 
 The critical entropy level separating phases is:
 $$
-\boxed{\alpha_c(c) := I(\varepsilon_*) = \frac{1}{2}\left(\log(1 + 2c) - \frac{2c}{1 + 2c}\right)}
+\boxed{\alpha_c(c) = I(\varepsilon_*) = \frac{1}{2}\left(\log(1 + 2c) - \frac{2c}{1 + 2c}\right)}
 $$
 
 **Phase diagram:**
+
 - **Liquid phase:** $\alpha \geq \alpha_c(c)$, maximizer at $\varepsilon_*$, free energy $\Phi(1) = \alpha - I(\varepsilon_*) - \varepsilon_*$
 - **Glass phase:** $\alpha < \alpha_c(c)$, maximizer at $\varepsilon_g$ with $I(\varepsilon_g) = \alpha$, free energy $\Phi(1) = -\varepsilon_g$
 
@@ -616,10 +680,7 @@ with corresponding $c(t_C) \approx 0.5644$.
 
 #### Why CIFAR is Always in the Glass Phase
 
-For CIFAR-like $\alpha \ll 1$, we have $\alpha \ll \alpha_c(c(t))$ for all $t \in [0,1)$. The system is **always in the glass phase**, meaning:
-1. The bulk partition function is dominated by a few extreme low-energy states
-2. The free-energy criterion reduces to the minimum-energy criterion
-3. The "going one level deeper" analysis confirms the simpler extreme-value argument
+For CIFAR-like $\alpha \ll 1$, we have $\alpha \ll \alpha_c(c(t))$ for all $t \in [0,1)$. The system is **always in the glass phase**, meaning that the bulk partition function is dominated by a few extreme low-energy states.
 
 ### Summary of Key Equations
 
@@ -657,9 +718,7 @@ $$
 
 ### Motivation
 
-The isotropic Gaussian proxy $x^{(i)} \sim \mathcal{N}(0, \sigma^2 I_d)$ is convenient but unrealistic. Real image datasets have structured covariance with varying eigenvalues (some directions have high variance, others low).
-
-**Key insight:** The REM/LDP framework extends naturally to non-isotropic covariance. The structure of the theory remains identical — only the **rate function** $I(\varepsilon)$ changes.
+The isotropic Gaussian proxy $x^{(i)} \sim \mathcal{N}(0, \sigma^2 I_d)$ is convenient but unrealistic. Real image datasets have structured covariance with varying eigenvalues (some directions have high variance, others low). The REM/LDP framework extends naturally to non-isotropic covariance. The structure of the theory remains identical — only the **rate function** $I(\varepsilon)$ changes.
 
 ### Setup: General Covariance Model
 
@@ -667,6 +726,7 @@ Assume training images follow:
 $$
 x^{(i)} \sim \mathcal{N}(0, C), \quad i = 1, \dots, n
 $$
+
 where $C$ is a $d \times d$ positive definite covariance matrix with eigendecomposition:
 $$
 C = U \text{diag}(\mu_1, \dots, \mu_d) U^\top.
@@ -685,6 +745,7 @@ x_t - tx^{(j)} = (1-t)x_0 + t(x_1 - x^{(j)}).
 $$
 
 **Step 2: Identify the distributions**
+
 - $x_0 \sim \mathcal{N}(0, I_d)$ (noise)
 - $x_1 - x^{(j)} \sim \mathcal{N}(0, 2C)$ (difference of two i.i.d. samples from $\mathcal{N}(0, C)$)
 
@@ -707,7 +768,7 @@ E_j = \frac{g^\top \Sigma_t g}{2(1-t)^2} = \frac{1}{2} g^\top C_t g
 $$
 where the **effective covariance** is:
 $$
-C_t := \frac{\Sigma_t}{(1-t)^2} = I_d + \frac{2t^2}{(1-t)^2} C.
+C_t = \frac{\Sigma_t}{(1-t)^2} = I_d + \frac{2t^2}{(1-t)^2} C.
 $$
 
 ### Eigenvalues of the Effective Covariance
@@ -753,7 +814,7 @@ $$
 
 The scaled log-MGF for the energy density $e = E_j/d$ is:
 $$
-\Lambda_t(\theta) := \lim_{d \to \infty} \frac{1}{d} \log \mathbb{E}\left[e^{d\theta \cdot \frac{1}{2d}\sum_k \lambda_k^{(t)} Z_k^2}\right] = \lim_{d \to \infty} \frac{1}{d} \sum_{k=1}^d \left(-\frac{1}{2}\log\left(1 - \theta\lambda_k^{(t)}\right)\right).
+\Lambda_t(\theta) = \lim_{d \to \infty} \frac{1}{d} \log \mathbb{E}\left[e^{d\theta \cdot \frac{1}{2d}\sum_k \lambda_k^{(t)} Z_k^2}\right] = \lim_{d \to \infty} \frac{1}{d} \sum_{k=1}^d \left(-\frac{1}{2}\log\left(1 - \theta\lambda_k^{(t)}\right)\right).
 $$
 
 This limit exists if the **empirical spectral distribution** of $C_t$ converges:
@@ -850,42 +911,138 @@ $$
 
 6. **Find $t_C$:** Solve $\Phi(1,t_C) = -1/2$.
 
-### Spiked Covariance Model (Analytical Tractability)
+# Error Analysis: Training Difficulties Across Time
 
-For interpretability, consider a **spiked covariance** model:
+As observed in @fig-article-fig-3, the learned velocity field $u^\theta_t$ exhibits a characteristic error profile when approximating the marginal velocity field $u_t$: low error near $t = 0$, a peak around $t \approx 0.1$, a decrease for intermediate $t$, and a final spike near $t = 1$. This section explains these four regimes using the irreducible variance framework and the REM collapse analysis developed above.
+
+## The Irreducible Variance and Its Decay
+
+Recall from the Setup that the CFM loss decomposes as:
 $$
-C = v I_d + (\Lambda - v) uu^\top
+\mathcal{L}_{\text{CFM}}(\theta) = \mathcal{L}_{\text{FM}}(\theta) + \mathbb{E}_{t, X_t}\left[\mathrm{Var}(X_1 - X_0 \mid X_t)\right].
 $$
-where:
-- $v > 0$ is the bulk variance
-- $\Lambda > v$ is the spike strength (top eigenvalue)
-- $u \in \mathbb{R}^d$ is the principal direction ($\|u\| = 1$)
 
-This model has:
-- One eigenvalue $\Lambda$ (the spike)
-- $(d-1)$ eigenvalues equal to $v$ (the bulk)
+The irreducible variance $\mathrm{Var}(X_1 - X_0 \mid X_t)$ captures the inherent stochasticity in the training targets: given a fixed interpolant $X_t$, different $(X_0, X_1)$ pairs can produce the same $X_t$, leading to different targets $X_1 - X_0$.
 
-The effective spectrum becomes:
-- One eigenvalue: $\lambda_{\text{spike}}^{(t)} = 1 + \frac{2t^2}{(1-t)^2}\Lambda$
-- $(d-1)$ eigenvalues: $\lambda_{\text{bulk}}^{(t)} = 1 + \frac{2t^2}{(1-t)^2}v$
+**Key property:** This variance **decreases monotonically as $t$ increases**:
 
-As $d \to \infty$, the spike contributes negligibly to $\Lambda_t(\theta)$, and we recover the isotropic formula with $\sigma^2 = v$. However, the spike can significantly affect the **planted energy** if the planted trajectory aligns with the principal direction — this connects to the statistical physics of "principal component recovery".
+- For $t \approx 0$: $X_t \approx X_0$ (mostly noise), so $X_t$ reveals almost nothing about $X_1$. The target $X_1 - X_0 \approx X_1$ has high variance across samples.
+- For $t \approx 1$: $X_t \approx X_1$ (mostly signal), so the target $X_1 - X_0$ is nearly determined by $X_t$. The variance vanishes.
 
-# Error Analysis: Why the Neural Network Struggles to Learn the Marginal Velocity Field
+This decay of irreducible variance suggests that learning should become easier as $t$ increases — yet the observed error profile is more complex, with a peak at intermediate times. The explanation lies in the interplay between variance and the complexity of the optimal predictor.
 
-As observed in @fig-article-fig-3, the learned velocity field $u^\theta_t$ exhibits two distinct error spikes when approximating the marginal velocity field $u_t$: one near $t \approx 0.1$ and another near $t \approx 1$. These spikes have fundamentally different origins, which we now explain using the framework developed above.
+## Training Error Trajectory: Four Regimes
 
-## Apparent Paradox: Blow-Up vs. Bounded Targets
+### Regime 1: $t \approx 0$ — Easy Despite High Variance
 
-Before analyzing the error spikes, we address an apparent paradox. The CFM loss trains the neural network with targets $X_1 - X_0$, which are **constant across time** and bounded. Yet the marginal velocity field formula:
+Despite the high irreducible variance at small $t$, the training error is **low** near $t = 0$. This apparent paradox resolves when we examine what the neural network must predict.
+
+For small $t$, the interpolant is dominated by noise: $X_t = (1-t)X_0 + tX_1 \approx X_0$. The marginal velocity field at $X_t$ is:
 $$
-u_t(x) = \sum_{i=1}^n \lambda_i(x,t) \frac{x^{(i)} - x}{1-t}
+u_t(X_t) = \frac{\mathbb{E}[X_1 \mid X_t] - X_t}{1-t}.
 $$
-contains a $\frac{1}{1-t}$ factor that blows up as $t \to 1$. How can a neural network match this?
+
+When $t \approx 0$, the interpolant $X_t \approx X_0$ carries almost no information about $X_1$. Under the empirical distribution, the posterior mean satisfies:
+$$
+\mathbb{E}[X_1 \mid X_t] \approx \bar{x} \approx 0
+$$
+where $\bar{x}$ is the mean of the training data (approximately zero after normalization).
+
+Therefore, the optimal velocity field simplifies to:
+$$
+u_t(X_t) \approx \frac{0 - X_t}{1-t} \approx \frac{-X_0}{1} = -X_0.
+$$
+
+This is essentially a **negation map**: the neural network only needs to learn $u^\theta_t(x) \approx -x$, which is trivial. The high variance in targets $X_1 - X_0$ averages out to a simple function of $X_t$ alone.
+
+### Regime 2: $t \approx t_C$ — Peak Difficulty (Collapse Transition)
+
+The error peaks around $t \approx 0.1$--$0.2$, which corresponds to the approach toward the **collapse transition** at $t_C \approx 0.34$ (for CIFAR-10).
+
+In this regime, the posterior $p(X_1 \mid X_t)$ is **neither uniform nor concentrated**:
+
+- The interpolant $X_t$ now contains some information about $X_1$, so the posterior is no longer uniform over training points.
+- But collapse has not yet occurred, so multiple training points still have significant posterior weight.
+
+This creates several sources of difficulty:
+
+1. **Complex posterior structure:** The neural network must learn to predict $\mathbb{E}[X_1 \mid X_t]$, which is a weighted average over multiple training points. The weights $\lambda_i(X_t, t)$ vary rapidly with $X_t$.
+
+2. **Signal-to-noise transition:** The interpolant $X_t = (1-t)X_0 + tX_1$ is transitioning from noise-dominated to signal-dominated. The network must extract $X_1$ from $X_t$, but $X_t$ is still far from $X_1$.
+
+3. **Sharp phase transition:** The REM analysis shows that the energy gaps scale as:
+$$
+E_j - E_1 \approx \frac{d \sigma^2 t^2}{(1-t)^2}.
+$$
+Near $t_C$, the system transitions from having exponentially many competing states to a single dominant state. This transition is sharp in high dimensions, creating rapid variation in the velocity field as a function of both $x$ and $t$.
+
+4. **High sensitivity:** Near the transition, the map $x \mapsto \arg\max_i \lambda_i(x,t)$ is extremely sensitive to perturbations. Small changes in $X_t$ can cause different training points to dominate the posterior.
+
+### Regime 3: $t > t_C$ — Decreasing Error (Concentration)
+
+After the collapse transition ($t > t_C \approx 0.34$), the error **decreases**. The posterior concentrates on the planted index with $\lambda_1(X_t, t) \approx 1$.
+
+In this regime:
+$$
+u_t(X_t) \approx \frac{x^{(1)} - X_t}{1-t} = \frac{X_1 - X_t}{1-t} = X_1 - X_0.
+$$
+
+The marginal velocity field becomes essentially equal to the **conditional velocity field**. The neural network's task simplifies: given $X_t$, it must predict $X_1 - X_0$, but now $X_t$ strongly determines which $X_1$ generated it.
+
+The learning problem has two favorable properties:
+
+1. **Low posterior uncertainty:** With $\lambda_1 \approx 1$, there is little ambiguity about which training point generated $X_t$.
+
+2. **Increasing signal:** As $t$ grows, $X_t$ becomes closer to $X_1$, making it easier to infer the target direction $X_1 - X_0$.
+
+### Regime 4: $t \to 1$ — Final Blow-Up
+
+Near $t = 1$, the error spikes again due to two compounding effects: **numerical instabilities** and **Voronoi discontinuities**.
+
+#### Numerical Instabilities
+
+The marginal velocity field involves the ratio:
+$$
+u_t(x) = \sum_{i=1}^n \lambda_i(x,t) \frac{x^{(i)} - x}{1-t}.
+$$
+
+As $t \to 1$:
+
+- The denominator $(1-t)$ approaches zero.
+- The softmax weights $\lambda_i$ involve energies $E_i = \frac{\|x - tx^{(i)}\|^2}{2(1-t)^2}$ that blow up.
+
+While these singularities cancel at the interpolant (see the Technical Note below), computing the marginal velocity field numerically becomes unstable. Small floating-point errors are amplified by the division by $(1-t)$.
+
+#### Voronoi Discontinuities (Nearest-Neighbor Regime)
+
+As $t \to 1$, the softmax temperature $(1-t)^2 \to 0$ drives the weights toward a **one-hot distribution**:
+$$
+\lambda_i(x,t) \xrightarrow{t \to 1} \mathbf{1}\left[i = \arg\min_j \|x - x^{(j)}\|\right].
+$$
+
+The marginal velocity field approaches:
+$$
+u_t(x) \approx \frac{x^{(i^*)} - x}{1-t}, \quad \text{where } i^* = \arg\min_j \|x - x^{(j)}\|.
+$$
+
+This is a **piecewise-constant direction field** that switches abruptly across **Voronoi cell boundaries** in $\mathbb{R}^d$. Such discontinuous fields are notoriously difficult to approximate with smooth neural networks, explaining the error spike near $t \approx 1$.
+
+## Summary: Error Profile Across Time
+
+| Regime | Time | Error | Explanation |
+|--------|------|-------|-------------|
+| 1 | $t \approx 0$ | Low | Posterior mean $\approx 0$; target is $\approx -X_0$ (trivial) |
+| 2 | $t \approx t_C$ | **Peak** | Complex posterior; phase transition; high sensitivity |
+| 3 | $t > t_C$ | Decreasing | Posterior concentrates; clear signal |
+| 4 | $t \to 1$ | **Spike** | Numerical instabilities; Voronoi discontinuities |
+
+## Technical Note: Why Targets Remain Bounded
+
+An apparent paradox: the CFM loss trains with targets $X_1 - X_0$, which are bounded and constant across time. Yet the marginal velocity field contains $\frac{1}{1-t}$ factors that blow up. How is this consistent?
 
 ### Resolution: Cancellation at the Interpolant
 
-The key insight is that we evaluate these fields at the **interpolant** $X_t = (1-t)X_0 + tX_1$, not at arbitrary points. At the interpolant, the blow-up is cancelled.
+The key is that we evaluate the velocity field at the **interpolant** $X_t = (1-t)X_0 + tX_1$, where singularities cancel.
 
 For the planted index $i = 1$ (where $x^{(1)} = X_1$):
 $$
@@ -897,90 +1054,15 @@ $$
 \frac{x^{(1)} - X_t}{1-t} = X_1 - X_0.
 $$
 
-The $(1-t)$ factor **cancels**! In the collapsed regime ($\lambda_1 \approx 1$):
+The $(1-t)$ factor **cancels**. In the collapsed regime ($\lambda_1 \approx 1$):
 $$
-u_t(X_t) \approx \lambda_1 \cdot (X_1 - X_0) \approx X_1 - X_0,
+u_t(X_t) \approx X_1 - X_0,
 $$
 which is bounded.
 
-### What About the Non-Collapsed Regime?
+For non-planted indices $i \neq 1$, the individual terms $\frac{x^{(i)} - X_t}{1-t}$ do blow up as $t \to 1$. However, the corresponding weights $\lambda_i \to 0$ exponentially fast due to softmax collapse, keeping the weighted sum bounded.
 
-Before collapse (small $t$), for indices $i \neq 1$:
-$$
-x^{(i)} - X_t = x^{(i)} - X_1 + (1-t)(X_1 - X_0),
-$$
-so:
-$$
-\frac{x^{(i)} - X_t}{1-t} = \frac{x^{(i)} - X_1}{1-t} + (X_1 - X_0).
-$$
-
-The first term **does** blow up as $t \to 1$. However, this is controlled because $\lambda_i \to 0$ exponentially fast for $i \neq 1$ due to the softmax collapse. The product $\lambda_i \cdot \frac{x^{(i)} - X_1}{1-t}$ remains bounded.
-
-### The Real Difficulty: Discontinuity, Not Unboundedness
-
-The paradox resolves: the neural network targets are bounded, and so is the optimal prediction $u_t(X_t)$ at typical interpolant points. The difficulty for neural networks is **not** unbounded values, but rather **sharp spatial discontinuities**:
-
-| Quantity | Behavior | Neural network challenge |
-|----------|----------|-------------------------|
-| Targets $X_1 - X_0$ | Bounded, constant in $t$ | Easy |
-| $u_t(X_t)$ at interpolant | Bounded (cancellation) | OK |
-| $u_t(x)$ at Voronoi boundaries | Sharp discontinuities | **Hard** |
-| $u_t(x)$ at $t \approx t_C$ | Rapid variation | **Hard** |
-
-We now examine these two sources of difficulty in detail.
-
-## Errors Near $t \approx 1$: The Nearest-Neighbor Regime
-
-Recall the marginal velocity field:
-$$
-u_t(x) = \sum_{i=1}^n \lambda_i(x,t) \frac{x^{(i)} - x}{1-t}
-$$
-
-As $t \to 1$, the softmax temperature $(1-t)^2 \to 0$. This drives the weights $\lambda_i(x,t)$ toward a **one-hot distribution** concentrated on the nearest training point:
-$$
-\lambda_i(x,t) \xrightarrow{t \to 1} \mathbf{1}\left[i = \arg\min_j \|x - x^{(j)}\|\right].
-$$
-
-In this regime, the marginal velocity field approaches:
-$$
-u_t(x) \approx \frac{x^{(i^*)} - x}{1-t}, \quad \text{where } i^* = \arg\min_j \|x - x^{(j)}\|.
-$$
-
-This is a **piecewise-constant vector field** that switches abruptly across **Voronoi cell boundaries** in $\mathbb{R}^d$. Such discontinuous fields are notoriously difficult to approximate with smooth neural networks, explaining the error spike near $t \approx 1$.
-
-## Errors Near $t \approx 0.1$: The Collapse Transition Regime
-
-The error spike near $t \approx 0.1$ is more subtle and directly connected to the REM analysis above.
-
-### Low Information Content at Early Times
-
-Consider the conditional distribution of the interpolant:
-$$
-x_t \mid (x_1 = x^{(i)}) \sim \mathcal{N}(t x^{(i)}, (1-t)^2 I_d).
-$$
-
-For small $t$, the means $tx^{(i)}$ are small compared to the noise standard deviation $(1-t)\sqrt{d}$. The conditional distributions for different training points overlap heavily, making it difficult to infer which $x^{(i)}$ generated a given $x_t$. Consequently, the posterior weights $\lambda_i(x_t, t)$ are **spread across many indices**.
-
-### Sharp Phase Transition at the Collapse Time
-
-The REM analysis reveals that the energy gaps scale as:
-$$
-E_j - E_1 \approx \frac{d \sigma^2 t^2}{(1-t)^2}.
-$$
-
-This creates a **sharp phase transition** around $t_C \approx 0.34$ (for CIFAR-10): for $t < t_C$, the softmax mass is distributed across multiple training points; for $t > t_C$, the planted index dominates with $\lambda_1 \approx 1$.
-
-### Why the Transition Creates Approximation Difficulty
-
-At the collapse transition:
-
-1. **Rapid change in field character:** The velocity field $u_t(x)$ transitions from an averaged field (mixture of many directions) to a nearly-conditional field (pointing toward a single $x^{(i)}$).
-
-2. **High sensitivity:** The winner-takes-all map $x \mapsto \arg\max_i \lambda_i(x,t)$ becomes extremely sensitive to small perturbations in $x$. Near the transition, small changes in $x$ can cause different training points to dominate.
-
-3. **Non-smooth behavior:** The rapid variation of $\lambda_i(x,t)$ as a function of both $x$ and $t$ near $t_C$ creates a vector field that varies sharply over small spatial and temporal scales.
-
-These features make the velocity field near the collapse transition particularly challenging for neural networks to learn, explaining the observed error spike around $t \approx 0.1$ in @fig-article-fig-3.
+The neural network's difficulty is **not** unbounded targets, but rather **sharp spatial discontinuities** near Voronoi boundaries and **rapid temporal variation** near the collapse transition.
 
 
 
