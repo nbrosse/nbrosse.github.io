@@ -10,6 +10,12 @@ about:
     - icon: github
       text: Github
       href: https://github.com/nbrosse
+    - icon: google
+      text: Google Scholar
+      href: https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&hl
+    - icon: r-circle
+      text: ResearchGate
+      href: https://www.researchgate.net/profile/Nicolas-Brosse-3
 ---
 
 **Why I Write**
@@ -20,4 +26,8 @@ If you find my work interesting, please consider citing it in your research.
 
 **Short Bio**
 
-I am an AI Research Scientist with expertise in applied mathematics and artificial intelligence. My professional experience spans diverse domains, including signal processing and anomaly detection at Thales, as well as drug discovery at Iktos. Throughout my career, I have been deeply involved in research and development, driven by a passion for innovation and the challenge of addressing complex problems.
+I am an AI Research Scientist working at the intersection of academic research and industry. I am currently a postdoctoral researcher at CREST, supervised by Arnak Dalalyan, where my research focuses on generative modeling, with particular interest in diffusion models and flow matching. This work builds on a PhD in statistics and over six years of experience in data science and artificial intelligence.
+
+My career spans both applied research and real-world deployment. I began at Thales, working on time series analysis, signal processing, object detection, and anomaly detection. I later joined Iktos, where I designed deep learning models for drug discovery, before contributing to foundational biological models at MBZUAI and GenBio AI.
+
+In parallel with research, I maintain strong ties to industry and entrepreneurship. In 2025, I explored venture creation by developing proofs of concept for AI-driven decision-making tools, while freelancing on projects ranging from LLM observability platforms (Rollstack) to improving Retrieval-Augmented Generation systems (Clarifeye). I am driven by the challenge of translating cutting-edge theory into impactful, scalable AI systems.
