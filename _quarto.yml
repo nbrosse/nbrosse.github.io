@@ -12,6 +12,10 @@ website:
         href: https://github.com/nbrosse
       - icon: linkedin
         href: https://www.linkedin.com/in/nicolas-brosse-984685a0/
+      - icon: google
+        href: https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&hl
+      - icon: r-circle
+        href: https://www.researchgate.net/profile/Nicolas-Brosse-3
 format:
   html:
     theme: flatly
