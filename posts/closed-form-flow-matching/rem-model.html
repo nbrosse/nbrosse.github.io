@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>rem-model – Nicolas' Notebook</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-75c24fa0c77a874b0ab0aff8b6422dd8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Nicolas’ Notebook</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block"></header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#global-presentation" id="toc-global-presentation" class="nav-link active" data-scroll-target="#global-presentation">Global presentation</a>
+  <ul class="collapse">
+  <li><a href="#the-marginal-fm-weights-are-a-gibbs-measure" id="toc-the-marginal-fm-weights-are-a-gibbs-measure" class="nav-link" data-scroll-target="#the-marginal-fm-weights-are-a-gibbs-measure">The marginal FM weights are a Gibbs measure</a></li>
+  <li><a href="#follow-a-teacher-trajectory-one-state-is-special" id="toc-follow-a-teacher-trajectory-one-state-is-special" class="nav-link" data-scroll-target="#follow-a-teacher-trajectory-one-state-is-special">Follow a “teacher” trajectory: one state is special</a></li>
+  <li><a href="#the-other-n-1-terms-form-a-random-energy-model" id="toc-the-other-n-1-terms-form-a-random-energy-model" class="nav-link" data-scroll-target="#the-other-n-1-terms-form-a-random-energy-model">The other <span class="math inline">\(n-1\)</span> terms form a Random Energy Model</a></li>
+  <li><a href="#memorization-condensation-onto-the-special-term" id="toc-memorization-condensation-onto-the-special-term" class="nav-link" data-scroll-target="#memorization-condensation-onto-the-special-term">“Memorization” = condensation onto the special term</a></li>
+  <li><a href="#your-log-weight-ratio-is-a-free-energy-gap-estimate" id="toc-your-log-weight-ratio-is-a-free-energy-gap-estimate" class="nav-link" data-scroll-target="#your-log-weight-ratio-is-a-free-energy-gap-estimate">Your “log weight ratio” is a <em>free-energy gap</em> estimate</a></li>
+  <li><a href="#why-even-summing-over-n-often-cannot-beat-it-entropy-vs-energy" id="toc-why-even-summing-over-n-often-cannot-beat-it-entropy-vs-energy" class="nav-link" data-scroll-target="#why-even-summing-over-n-often-cannot-beat-it-entropy-vs-energy">Why “even summing over <span class="math inline">\(n\)</span>” often cannot beat it: entropy vs energy</a></li>
+  <li><a href="#collapse-time-t_c-the-transition-where-z_1-stops-dominating" id="toc-collapse-time-t_c-the-transition-where-z_1-stops-dominating" class="nav-link" data-scroll-target="#collapse-time-t_c-the-transition-where-z_1-stops-dominating">“Collapse time” <span class="math inline">\(t_C\)</span>: the transition where <span class="math inline">\(Z_1\)</span> stops dominating</a></li>
+  </ul></li>
+  <li><a href="#rigorous-derivation-using-random-energy-model-and-statistical-physics-rapid-version" id="toc-rigorous-derivation-using-random-energy-model-and-statistical-physics-rapid-version" class="nav-link" data-scroll-target="#rigorous-derivation-using-random-energy-model-and-statistical-physics-rapid-version">Rigorous derivation using Random Energy Model and Statistical Physics (rapid version)</a>
+  <ul class="collapse">
+  <li><a href="#setup-as-a-disordered-system" id="toc-setup-as-a-disordered-system" class="nav-link" data-scroll-target="#setup-as-a-disordered-system">Setup as a disordered system</a>
+  <ul class="collapse">
+  <li><a href="#planted-special-energy" id="toc-planted-special-energy" class="nav-link" data-scroll-target="#planted-special-energy">“Planted” (special) energy</a></li>
+  <li><a href="#bulk-rem-like-energies-for-i" id="toc-bulk-rem-like-energies-for-i" class="nav-link" data-scroll-target="#bulk-rem-like-energies-for-i">“Bulk” (REM-like) energies for (i)</a></li>
+  </ul></li>
+  <li><a href="#large-deviations-for-energy-density" id="toc-large-deviations-for-energy-density" class="nav-link" data-scroll-target="#large-deviations-for-energy-density">2) Large deviations for energy density</a></li>
+  <li><a href="#quenched-free-energy-of-rem-at" id="toc-quenched-free-energy-of-rem-at" class="nav-link" data-scroll-target="#quenched-free-energy-of-rem-at">3) Quenched free energy of REM at ()</a>
+  <ul class="collapse">
+  <li><a href="#interior-liquid-solution" id="toc-interior-liquid-solution" class="nav-link" data-scroll-target="#interior-liquid-solution">Interior (“liquid”) solution</a></li>
+  <li><a href="#boundary-glass-solution-and-the-freezing-transition" id="toc-boundary-glass-solution-and-the-freezing-transition" class="nav-link" data-scroll-target="#boundary-glass-solution-and-the-freezing-transition">Boundary (“glass”) solution and the freezing transition</a></li>
+  </ul></li>
+  <li><a href="#now-incorporate-the-planted-state-collapse-vs-non-collapse-of-_1" id="toc-now-incorporate-the-planted-state-collapse-vs-non-collapse-of-_1" class="nav-link" data-scroll-target="#now-incorporate-the-planted-state-collapse-vs-non-collapse-of-_1">4) Now incorporate the planted state: collapse vs non-collapse of (_1)</a>
+  <ul class="collapse">
+  <li><a href="#evaluate-1-in-both-phases" id="toc-evaluate-1-in-both-phases" class="nav-link" data-scroll-target="#evaluate-1-in-both-phases">Evaluate ((1)) in both phases</a></li>
+  <li><a href="#collapse-criterion-in-the-glass-phase-clean" id="toc-collapse-criterion-in-the-glass-phase-clean" class="nav-link" data-scroll-target="#collapse-criterion-in-the-glass-phase-clean">Collapse criterion in the glass phase (clean!)</a></li>
+  <li><a href="#collapse-criterion-in-the-liquid-phase" id="toc-collapse-criterion-in-the-liquid-phase" class="nav-link" data-scroll-target="#collapse-criterion-in-the-liquid-phase">Collapse criterion in the liquid phase</a></li>
+  </ul></li>
+  <li><a href="#interpreting-collapse-time-t_c-properly" id="toc-interpreting-collapse-time-t_c-properly" class="nav-link" data-scroll-target="#interpreting-collapse-time-t_c-properly">5) Interpreting “collapse time” (t_C) properly</a></li>
+  <li><a href="#what-rem-predicts-qualitatively-for-cifar-like" id="toc-what-rem-predicts-qualitatively-for-cifar-like" class="nav-link" data-scroll-target="#what-rem-predicts-qualitatively-for-cifar-like">6) What REM predicts qualitatively for CIFAR-like ()</a></li>
+  <li><a href="#what-is-still-approximate-and-how-to-further-robustify" id="toc-what-is-still-approximate-and-how-to-further-robustify" class="nav-link" data-scroll-target="#what-is-still-approximate-and-how-to-further-robustify">7) What is still “approximate” (and how to further robustify)</a>
+  <ul class="collapse">
+  <li><a href="#a-independence-of-energy-levels-e_i" id="toc-a-independence-of-energy-levels-e_i" class="nav-link" data-scroll-target="#a-independence-of-energy-levels-e_i">(A) Independence of energy levels (E_i)</a></li>
+  <li><a href="#b-gaussian-proxy-for-cifar" id="toc-b-gaussian-proxy-for-cifar" class="nav-link" data-scroll-target="#b-gaussian-proxy-for-cifar">(B) Gaussian proxy for CIFAR</a></li>
+  </ul></li>
+  <li><a href="#minimal-deliverable-summary-the-rem-correct-equations-you-can-use" id="toc-minimal-deliverable-summary-the-rem-correct-equations-you-can-use" class="nav-link" data-scroll-target="#minimal-deliverable-summary-the-rem-correct-equations-you-can-use">8) Minimal “deliverable” summary: the REM-correct equations you can use</a></li>
+  </ul></li>
+  <li><a href="#detailed-ldp-derivation" id="toc-detailed-ldp-derivation" class="nav-link" data-scroll-target="#detailed-ldp-derivation">Detailed LDP derivation</a>
+  <ul class="collapse">
+  <li><a href="#what-problem-are-we-trying-to-solve" id="toc-what-problem-are-we-trying-to-solve" class="nav-link" data-scroll-target="#what-problem-are-we-trying-to-solve">1. What problem are we trying to solve?</a></li>
+  <li><a href="#law-of-large-numbers-vs-large-deviations" id="toc-law-of-large-numbers-vs-large-deviations" class="nav-link" data-scroll-target="#law-of-large-numbers-vs-large-deviations">2. Law of Large Numbers vs Large Deviations</a>
+  <ul class="collapse">
+  <li><a href="#law-of-large-numbers-lln" id="toc-law-of-large-numbers-lln" class="nav-link" data-scroll-target="#law-of-large-numbers-lln">Law of Large Numbers (LLN)</a></li>
+  </ul></li>
+  <li><a href="#what-is-a-large-deviation-principle-ldp" id="toc-what-is-a-large-deviation-principle-ldp" class="nav-link" data-scroll-target="#what-is-a-large-deviation-principle-ldp">3. What is a Large Deviation Principle (LDP)?</a>
+  <ul class="collapse">
+  <li><a href="#informal-definition" id="toc-informal-definition" class="nav-link" data-scroll-target="#informal-definition">Informal definition</a></li>
+  </ul></li>
+  <li><a href="#cramérs-theorem-core-result" id="toc-cramérs-theorem-core-result" class="nav-link" data-scroll-target="#cramérs-theorem-core-result">4. Cramér’s Theorem (core result)</a>
+  <ul class="collapse">
+  <li><a href="#theorem-informal" id="toc-theorem-informal" class="nav-link" data-scroll-target="#theorem-informal">Theorem (informal)</a></li>
+  </ul></li>
+  <li><a href="#apply-cramérs-theorem-to-2" id="toc-apply-cramérs-theorem-to-2" class="nav-link" data-scroll-target="#apply-cramérs-theorem-to-2">5. Apply Cramér’s theorem to (^2)</a>
+  <ul class="collapse">
+  <li><a href="#step-1-express-the-quantity-as-an-average" id="toc-step-1-express-the-quantity-as-an-average" class="nav-link" data-scroll-target="#step-1-express-the-quantity-as-an-average">Step 1: Express the quantity as an average</a></li>
+  <li><a href="#step-2-compute-the-rate-function" id="toc-step-2-compute-the-rate-function" class="nav-link" data-scroll-target="#step-2-compute-the-rate-function">Step 2: Compute the rate function</a></li>
+  <li><a href="#step-3-what-does-this-mean" id="toc-step-3-what-does-this-mean" class="nav-link" data-scroll-target="#step-3-what-does-this-mean">Step 3: What does this mean?</a></li>
+  </ul></li>
+  <li><a href="#why-ldp-beats-concentration-of-measure" id="toc-why-ldp-beats-concentration-of-measure" class="nav-link" data-scroll-target="#why-ldp-beats-concentration-of-measure">6. Why LDP beats “concentration of measure”</a></li>
+  <li><a href="#applying-the-ldp-to-your-energy" id="toc-applying-the-ldp-to-your-energy" class="nav-link" data-scroll-target="#applying-the-ldp-to-your-energy">7. Applying the LDP to your energy</a></li>
+  <li><a href="#why-this-matters-for-rem-and-softmax-collapse" id="toc-why-this-matters-for-rem-and-softmax-collapse" class="nav-link" data-scroll-target="#why-this-matters-for-rem-and-softmax-collapse">8. Why this matters for REM and softmax collapse</a></li>
+  <li><a href="#one-sentence-intuition" id="toc-one-sentence-intuition" class="nav-link" data-scroll-target="#one-sentence-intuition">9. One-sentence intuition</a></li>
+  <li><a href="#if-you-want-the-next-step" id="toc-if-you-want-the-next-step" class="nav-link" data-scroll-target="#if-you-want-the-next-step">10. If you want the next step</a></li>
+  </ul></li>
+  <li><a href="#derivation-ldp-minimum-energy" id="toc-derivation-ldp-minimum-energy" class="nav-link" data-scroll-target="#derivation-ldp-minimum-energy">Derivation LDP minimum energy</a>
+  <ul class="collapse">
+  <li><a href="#objects-and-scaling" id="toc-objects-and-scaling" class="nav-link" data-scroll-target="#objects-and-scaling">1) Objects and scaling</a></li>
+  <li><a href="#what-does-collapse-mean" id="toc-what-does-collapse-mean" class="nav-link" data-scroll-target="#what-does-collapse-mean">2) What does “collapse” mean?</a></li>
+  <li><a href="#in-the-collapsedextreme-dominated-regime-z_-is-controlled-by-the-minimum" id="toc-in-the-collapsedextreme-dominated-regime-z_-is-controlled-by-the-minimum" class="nav-link" data-scroll-target="#in-the-collapsedextreme-dominated-regime-z_-is-controlled-by-the-minimum">3) In the <em>collapsed/extreme-dominated</em> regime, (Z_{}) is controlled by the minimum</a></li>
+  <li><a href="#collapse-criterion-from-the-minimum-energy" id="toc-collapse-criterion-from-the-minimum-energy" class="nav-link" data-scroll-target="#collapse-criterion-from-the-minimum-energy">4) Collapse criterion from the minimum energy</a>
+  <ul class="collapse">
+  <li><a href="#sufficient-condition-and-often-essentially-sharp-when-extremes-dominate" id="toc-sufficient-condition-and-often-essentially-sharp-when-extremes-dominate" class="nav-link" data-scroll-target="#sufficient-condition-and-often-essentially-sharp-when-extremes-dominate">Sufficient condition (and often essentially sharp when extremes dominate)</a></li>
+  </ul></li>
+  <li><a href="#turn-that-into-an-explicit-equation-in-t-the-collapse-time" id="toc-turn-that-into-an-explicit-equation-in-t-the-collapse-time" class="nav-link" data-scroll-target="#turn-that-into-an-explicit-equation-in-t-the-collapse-time">5) Turn that into an explicit equation in (t) (the “collapse time”)</a></li>
+  <li><a href="#intuition-energy-vs-entropy-in-one-line" id="toc-intuition-energy-vs-entropy-in-one-line" class="nav-link" data-scroll-target="#intuition-energy-vs-entropy-in-one-line">6) Intuition: energy vs entropy in one line</a></li>
+  <li><a href="#what-this-predicts-for-cifar-like-numbers-qualitatively" id="toc-what-this-predicts-for-cifar-like-numbers-qualitatively" class="nav-link" data-scroll-target="#what-this-predicts-for-cifar-like-numbers-qualitatively">7) What this predicts for CIFAR-like numbers (qualitatively)</a></li>
+  </ul></li>
+  <li><a href="#cifar-10-proxy-numbers" id="toc-cifar-10-proxy-numbers" class="nav-link" data-scroll-target="#cifar-10-proxy-numbers">CIFAR-10 proxy numbers</a>
+  <ul class="collapse">
+  <li><a href="#cifar-10-proxy-numbers-1" id="toc-cifar-10-proxy-numbers-1" class="nav-link" data-scroll-target="#cifar-10-proxy-numbers-1">CIFAR-10 proxy numbers</a></li>
+  </ul></li>
+  <li><a href="#bulk-free-energy" id="toc-bulk-free-energy" class="nav-link" data-scroll-target="#bulk-free-energy">Bulk free energy</a>
+  <ul class="collapse">
+  <li><a href="#bulk-energy-ldp-input" id="toc-bulk-energy-ldp-input" class="nav-link" data-scroll-target="#bulk-energy-ldp-input">1) Bulk energy LDP (input)</a></li>
+  <li><a href="#from-ldp-to-the-bulk-free-energy-via-laplace-principle" id="toc-from-ldp-to-the-bulk-free-energy-via-laplace-principle" class="nav-link" data-scroll-target="#from-ldp-to-the-bulk-free-energy-via-laplace-principle">2) From LDP to the bulk free energy via Laplace principle</a></li>
+  <li><a href="#solve-the-variational-problem-liquid-vs-glass" id="toc-solve-the-variational-problem-liquid-vs-glass" class="nav-link" data-scroll-target="#solve-the-variational-problem-liquid-vs-glass">3) Solve the variational problem: liquid vs glass</a>
+  <ul class="collapse">
+  <li><a href="#liquid-phase-_cc" id="toc-liquid-phase-_cc" class="nav-link" data-scroll-target="#liquid-phase-_cc">Liquid phase ((_c(c)))</a></li>
+  <li><a href="#glass-phase-_cc" id="toc-glass-phase-_cc" class="nav-link" data-scroll-target="#glass-phase-_cc">Glass phase ((&lt;_c(c)))</a></li>
+  </ul></li>
+  <li><a href="#collapse-criterion-using-the-free-energy-no-min-dominates-assumption" id="toc-collapse-criterion-using-the-free-energy-no-min-dominates-assumption" class="nav-link" data-scroll-target="#collapse-criterion-using-the-free-energy-no-min-dominates-assumption">4) Collapse criterion using the free energy (no “min dominates” assumption)</a></li>
+  <li><a href="#now-plug-cifar-numbers-and-compute-1t" id="toc-now-plug-cifar-numbers-and-compute-1t" class="nav-link" data-scroll-target="#now-plug-cifar-numbers-and-compute-1t">5) Now plug CIFAR numbers and compute ((1,t))</a></li>
+  <li><a href="#collapse-time-t_c-from-the-free-energy" id="toc-collapse-time-t_c-from-the-free-energy" class="nav-link" data-scroll-target="#collapse-time-t_c-from-the-free-energy">6) Collapse time (t_c) from the free energy</a></li>
+  </ul></li>
+  <li><a href="#extension-to-non-isotropic-covariance-matrices" id="toc-extension-to-non-isotropic-covariance-matrices" class="nav-link" data-scroll-target="#extension-to-non-isotropic-covariance-matrices">Extension to non isotropic covariance matrices</a>
+  <ul class="collapse">
+  <li><a href="#what-changes-in-the-theory" id="toc-what-changes-in-the-theory" class="nav-link" data-scroll-target="#what-changes-in-the-theory">1) What changes in the theory?</a></li>
+  <li><a href="#the-covariance-shaped-model" id="toc-the-covariance-shaped-model" class="nav-link" data-scroll-target="#the-covariance-shaped-model">2) The covariance-shaped model</a>
+  <ul class="collapse">
+  <li><a href="#ldp-via-gärtnerellis" id="toc-ldp-via-gärtnerellis" class="nav-link" data-scroll-target="#ldp-via-gärtnerellis">LDP via Gärtner–Ellis</a></li>
+  </ul></li>
+  <li><a href="#what-i-can-do-next-concretely" id="toc-what-i-can-do-next-concretely" class="nav-link" data-scroll-target="#what-i-can-do-next-concretely">3) What I can do next (concretely)</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<section id="global-presentation" class="level1">
+<h1>Global presentation</h1>
+<section id="the-marginal-fm-weights-are-a-gibbs-measure" class="level2">
+<h2 class="anchored" data-anchor-id="the-marginal-fm-weights-are-a-gibbs-measure">The marginal FM weights are a Gibbs measure</h2>
+<p>The marginal field is <span class="math display">\[
+u_t(x)=\sum_{i=1}^n \lambda_i(x,t) \frac{x^{(i)}-x}{1-t},\qquad
+\lambda_i(x,t)=\frac{\exp\left(-\frac{\|x-tx^{(i)}\|^2}{2(1-t)^2}\right)}{\sum_{j=1}^n \exp\left(-\frac{\|x-tx^{(j)}\|^2}{2(1-t)^2}\right)}.
+\]</span> This is a Boltzmann distribution at inverse temperature <span class="math inline">\(\beta=1\)</span> over “states” <span class="math inline">\(i\in\{1, \dots, n\}\)</span> with energy <span class="math display">\[
+E_i(x,t)=\frac{\|x-tx^{(i)}\|^2}{2(1-t)^2}.
+\]</span> The denominator is the <strong>partition function</strong> <span class="math display">\[
+Z(x,t)=\sum_{j=1}^n e^{-E_j(x,t)}.
+\]</span> So the question “do the weights collapse?” becomes the stat-phys question:</p>
+<blockquote class="blockquote">
+<p>Is <span class="math inline">\(Z(x,t)\)</span> dominated by <strong>one special term</strong> (a “condensed/glassy” phase), or by the <strong>entropy</strong> of exponentially many comparable terms (a “liquid” phase)?</p>
+</blockquote>
+</section>
+<section id="follow-a-teacher-trajectory-one-state-is-special" class="level2">
+<h2 class="anchored" data-anchor-id="follow-a-teacher-trajectory-one-state-is-special">Follow a “teacher” trajectory: one state is special</h2>
+<p>You consider <span class="math display">\[
+x_t=(1-t)x_0+t x_1
+\]</span> with <span class="math inline">\(x_0\sim\mathcal{N}(0,I)\)</span> and <span class="math inline">\(x_1\)</span> a <em>particular training image</em> (one of the <span class="math inline">\(x^{(i)}\)</span>’s). Define the <strong>special index</strong> <span class="math inline">\(i=1\)</span> such that <span class="math inline">\(x^{(1)}=x_1\)</span>. Then: <span class="math display">\[
+x_t-tx^{(1)}=(1-t)x_0
+\quad\Rightarrow\quad
+E_1(x_t,t)=\frac{\|(1-t)x_0\|^2}{2(1-t)^2}=\frac{\|x_0\|^2}{2}\approx \frac d2.
+\]</span> So the “teacher” contribution is <span class="math display">\[
+Z_1 = e^{-E_1}\approx e^{-d/2}.
+\]</span></p>
+</section>
+<section id="the-other-n-1-terms-form-a-random-energy-model" class="level2">
+<h2 class="anchored" data-anchor-id="the-other-n-1-terms-form-a-random-energy-model">The other <span class="math inline">\(n-1\)</span> terms form a Random Energy Model</h2>
+<p>For <span class="math inline">\(j\neq 1\)</span>, <span class="math display">\[
+x_t-tx^{(j)}=(1-t)x_0+t(x_1-x^{(j)}).
+\]</span> Under the Gaussian proxy <span class="math inline">\(x^{(j)}\stackrel{iid}{\sim}\mathcal{N}(0,\sigma^2 I_d)\)</span> with <span class="math inline">\(x_1\sim\mathcal{N}(0,\sigma^2 I_d)\)</span>, the difference <span class="math inline">\((x_1-x^{(j)})\sim\mathcal{N}(0,2\sigma^2 I_d)\)</span>, independent of <span class="math inline">\(x_0\)</span>. Hence <span class="math display">\[
+x_t-tx^{(j)}\sim\mathcal{N}\left(0,\big((1-t)^2+2\sigma^2 t^2\big)I_d\right).
+\]</span> Let <span class="math display">\[
+s^2(t)=(1-t)^2+2\sigma^2 t^2.
+\]</span> Then the “non-special” energies are approximately <span class="math display">\[
+E_j(x_t,t)=\frac{\|x_t-tx^{(j)}\|^2}{2(1-t)^2}\ \approx\ \frac{s^2(t)}{2(1-t)^2},\chi_d^2.
+\]</span> So <span class="math inline">\(E_j\)</span> is a sum of <span class="math inline">\(d\)</span> weakly dependent contributions → <strong>energy is extensive</strong> (order <span class="math inline">\(d\)</span>), and across <span class="math inline">\(j\)</span> you have <span class="math inline">\(n-1\)</span> <em>almost independent extensive energies</em>: this is the classic setup where <strong>REM tools apply</strong>.</p>
+<p>Thus the remaining partition function <span class="math display">\[
+Z_{2\ldots n}=\sum_{j=2}^n e^{-E_j}
+\]</span> is a REM-like partition sum: it is <em>not</em> governed by CLT; it is governed by <strong>extreme values / large deviations</strong>, and can enter a <strong>glass phase</strong> where a tiny number of lowest energies dominate.</p>
+</section>
+<section id="memorization-condensation-onto-the-special-term" class="level2">
+<h2 class="anchored" data-anchor-id="memorization-condensation-onto-the-special-term">“Memorization” = condensation onto the special term</h2>
+<p>The stat-phys criterion is:</p>
+<ul>
+<li><strong>Collapsed / memorization phase (glass / condensation):</strong> <span class="math inline">\(Z \approx Z_1\)</span>, i.e.&nbsp;<span class="math inline">\(\lambda_1 \approx 1\)</span>.</li>
+<li><strong>Uncollapsed / generalization phase (liquid):</strong> <span class="math inline">\(Z \approx Z_{2\ldots n}\)</span>, i.e.&nbsp;mass spread over many <span class="math inline">\(j\)</span>’s.</li>
+</ul>
+<p>In the collapsed phase, <span class="math display">\[
+u_t(x_t)\approx \frac{x^{(1)}-x_t}{1-t}=\frac{x_1-x_t}{1-t} \approx x_1-x_0,
+\]</span> so the <strong>marginal field aligns with the conditional field</strong>—which is your observed “cosine similarity rapidly goes to 1 in high dimension”.</p>
+</section>
+<section id="your-log-weight-ratio-is-a-free-energy-gap-estimate" class="level2">
+<h2 class="anchored" data-anchor-id="your-log-weight-ratio-is-a-free-energy-gap-estimate">Your “log weight ratio” is a <em>free-energy gap</em> estimate</h2>
+<p>Your hand-wavy ratio <span class="math display">\[
+\log\frac{\lambda_j}{\lambda_1}\approx -\frac{2\sigma^2 t^2 d}{2(1-t)^2}
+\]</span> is a stat-phys statement of the form <span class="math display">\[
+\log \lambda_1 \approx -E_1 - \log Z
+\]</span> and, comparing a typical other term to the special term, <span class="math display">\[
+\log\frac{e^{-E_j}}{e^{-E_1}} = -(E_j-E_1).
+\]</span></p>
+<p>Under concentration,</p>
+<ul>
+<li><span class="math inline">\(E_1 \approx d/2\)</span>,</li>
+<li>typical <span class="math inline">\(E_j \approx \frac{s^2(t)}{2(1-t)^2},d\)</span>.</li>
+</ul>
+<p>So the <strong>typical energy gap</strong> is <span class="math display">\[
+E_j-E_1 \approx \frac d2\left(\frac{s^2(t)}{(1-t)^2}-1\right)
+= \frac d2\left(\frac{(1-t)^2+2\sigma^2 t^2}{(1-t)^2}-1\right)
+= \frac{d,\sigma^2 t^2}{(1-t)^2}.
+\]</span> Thus <span class="math display">\[
+\frac{e^{-E_j}}{e^{-E_1}}\approx \exp!\Big(-\frac{d,\sigma^2 t^2}{(1-t)^2}\Big),
+\]</span> which is the same exponential-in-<span class="math inline">\(d\)</span> suppression you computed (up to small constant-factor conventions).</p>
+<p>From a stat-phys lens, that’s the statement:</p>
+<blockquote class="blockquote">
+<p>the <strong>energy advantage</strong> of the special state grows like <span class="math inline">\(d\)</span>, so at fixed <span class="math inline">\(n\)</span> it will eventually win exponentially hard.</p>
+</blockquote>
+</section>
+<section id="why-even-summing-over-n-often-cannot-beat-it-entropy-vs-energy" class="level2">
+<h2 class="anchored" data-anchor-id="why-even-summing-over-n-often-cannot-beat-it-entropy-vs-energy">Why “even summing over <span class="math inline">\(n\)</span>” often cannot beat it: entropy vs energy</h2>
+<p>Now compare <strong>one</strong> special contribution vs <strong>many</strong> others: <span class="math display">\[
+Z = Z_1 + Z_{2\ldots n}.
+\]</span></p>
+<p>A crude “annealed” entropy estimate would say <span class="math display">\[
+Z_{2\ldots n}\approx (n-1), \mathbb E[e^{-E_j}].
+\]</span> but the article stresses that this is often wrong in the relevant scaling because <span class="math inline">\(e^{-E_j}\)</span> is exponentially broad—so the sum is dominated by <strong>rare low-energy states</strong>, i.e.&nbsp;REM physics.</p>
+<p>Still, the <em>key control parameter</em> is the same as in the article: <span class="math display">\[
+\alpha=\frac{1}{d}\log n.
+\]</span> You can read your conclusion</p>
+<blockquote class="blockquote">
+<p>“even <span class="math inline">\(n=50,000\)</span> doesn’t recover it — non-stochastic regime dominates very early”</p>
+</blockquote>
+<p>as the stat-phys statement:</p>
+<blockquote class="blockquote">
+<p>with <span class="math inline">\(\alpha \ll 1\)</span> (since <span class="math inline">\(d=3072\)</span> and <span class="math inline">\(\log n \approx 10.8\)</span>, so <span class="math inline">\(\alpha \approx 0.0035\)</span>), the entropy budget <span class="math inline">\(\log n\)</span> is tiny compared to the extensive energy gaps <span class="math inline">\(\Theta(d)\)</span>. Therefore the system is deep in the <strong>condensed / glassy</strong> regime unless <span class="math inline">\(t\)</span> is extremely small.</p>
+</blockquote>
+</section>
+<section id="collapse-time-t_c-the-transition-where-z_1-stops-dominating" class="level2">
+<h2 class="anchored" data-anchor-id="collapse-time-t_c-the-transition-where-z_1-stops-dominating">“Collapse time” <span class="math inline">\(t_C\)</span>: the transition where <span class="math inline">\(Z_1\)</span> stops dominating</h2>
+<p>The article defines a collapse time <span class="math inline">\(t_C\)</span> where dominance swaps:</p>
+<ul>
+<li>for <span class="math inline">\(t&lt;t_C\)</span>, <span class="math inline">\(Z\approx Z_1\)</span> (collapse/memorization),</li>
+<li>for <span class="math inline">\(t&gt;t_C\)</span>, <span class="math inline">\(Z\approx Z_{2\ldots n}\)</span> (uncollapsed/generalization).</li>
+</ul>
+<p>In your FM setting, <span class="math inline">\(t_C\)</span> is the time when the <strong>best achievable</strong> contribution among the <span class="math inline">\(n-1\)</span> random competitors becomes comparable to the special energy <span class="math inline">\(E_1\approx d/2\)</span>.</p>
+<p>REM logic: the minimum energy among <span class="math inline">\(n\)</span> extensive random energies satisfies an extreme-value principle <span class="math display">\[
+E_{\min}(t)\approx d,e_*(t,\alpha),
+\]</span> and the phase boundary is roughly <span class="math display">\[
+E_{\min}(t_C)\approx E_1 \approx d/2.
+\]</span></p>
+<p>Your simpler (but very intuitive) calculation essentially assumes “typical competitor” rather than “best competitor”, yielding a sufficient condition for collapse: <span class="math display">\[
+\log(n)\ \ll\ \frac{d,\sigma^2 t^2}{(1-t)^2}.
+\]</span> Rearranged, collapse holds whenever <span class="math display">\[
+\frac{t}{1-t}\ \gg\ \sqrt{\frac{\log n}{d,\sigma^2}}.
+\]</span> For CIFAR-like numbers, <span class="math inline">\(\log n/d\)</span> is so small that the RHS is tiny, so collapse can happen already at small <span class="math inline">\(t\)</span>. This is the same qualitative message as the article’s explicit <span class="math inline">\(t_C\)</span> formula: <strong><span class="math inline">\(t_C\)</span> is <span class="math inline">\(O(1)\)</span> only if <span class="math inline">\(\log n\)</span> is <span class="math inline">\(O(d)\)</span></strong>.</p>
+</section>
+</section>
+<section id="rigorous-derivation-using-random-energy-model-and-statistical-physics-rapid-version" class="level1">
+<h1>Rigorous derivation using Random Energy Model and Statistical Physics (rapid version)</h1>
+<section id="setup-as-a-disordered-system" class="level2">
+<h2 class="anchored" data-anchor-id="setup-as-a-disordered-system">Setup as a disordered system</h2>
+<p>Fix a time <span class="math inline">\(t\in(0,1)\)</span> and consider a point on a “planted” trajectory <span class="math display">\[
+x_t = (1-t)x_0 + t x_1,
+\qquad x_0\sim\mathcal{N}(0,I_d),\quad x_1 = x^{(1)}\sim\mathcal{N}(0,\sigma^2 I_d).
+\]</span> The dataset <span class="math inline">\(\{x^{(i)\}_{i=1}^n\)</span> are i.i.d. <span class="math inline">\(\mathcal{N}(0,\sigma^2 I_d)\)</span>. Condition on <span class="math inline">\((x_0,x_1)\)</span> and view the remaining <span class="math inline">\(x^{(i)}\)</span> for <span class="math inline">\(i\ge 2\)</span> as “quenched disorder”.</p>
+<p>Define energies <span class="math display">\[
+E_i \equiv E_i(x_t,t)=\frac{|x_t - t x^{(i)}|^2}{2(1-t)^2},
+\qquad i=1,\dots,n,
+\]</span> and partition function <span class="math display">\[
+Z = \sum_{i=1}^n e^{-E_i}.
+\]</span> Then <span class="math inline">\(\lambda_i = e^{-E_i}/Z\)</span> is a Gibbs measure at inverse temperature <span class="math inline">\(\beta=1\)</span>.</p>
+<section id="planted-special-energy" class="level3">
+<h3 class="anchored" data-anchor-id="planted-special-energy">“Planted” (special) energy</h3>
+<p>For <span class="math inline">\(i=1\)</span>, <span class="math inline">\(x^{(1)}=x_1\)</span>, so <span class="math display">\[
+x_t - t x^{(1)} = (1-t)x_0 ;\Rightarrow; E_1 = \frac{|x_0|^2}{2}.
+\]</span> Thus <span class="math display">\[
+\frac{E_1}{d}\to \frac12 \quad \text{a.s. as } d\to\infty
+\]</span> (by LLN / chi-square concentration).</p>
+</section>
+<section id="bulk-rem-like-energies-for-i" class="level3">
+<h3 class="anchored" data-anchor-id="bulk-rem-like-energies-for-i">“Bulk” (REM-like) energies for (i)</h3>
+<p>For <span class="math inline">\(i\ge2\)</span>, <span class="math display">\[
+x_t - t x^{(i)} = (1-t)x_0 + t(x_1-x^{(i)}).
+\]</span> Conditioned on <span class="math inline">\((x_0,x_1)\)</span>, the randomness is only in <span class="math inline">\(x^{(i)}\)</span>. Since <span class="math inline">\(x^{(i)}\sim \mathcal{N}(0,\sigma^2 I_d)\)</span>, <span class="math display">\[
+x_1-x^{(i)}\sim \mathcal N(x_1,\sigma^2 I_d)\quad\text{(conditioned on }x_1).
+\]</span> So <span class="math inline">\(x_t-tx^{(i)}\)</span> is Gaussian with mean <span class="math inline">\((1-t)x_0 + t x_1\)</span> and covariance <span class="math inline">\(t^2\sigma^2 I_d\)</span>. If you <em>uncondition</em> over <span class="math inline">\((x_0,x_1)\)</span> you get a centered Gaussian with covariance <span class="math display">\[
+\Sigma(t)=\big((1-t)^2 + 2\sigma^2 t^2\big)I_d
+\]</span> (the approximation you used). For REM-style asymptotics, what matters is the <strong>energy-per-dimension LDP</strong>, which is stable under these small conditioning effects because <span class="math inline">\(|x_0|^2/d\)</span> and <span class="math inline">\(|x_1|^2/d\)</span> concentrate.</p>
+<p>So, to robustify, we take the standard REM surrogate: <span class="math display">\[
+E_i \stackrel{\text{approx}}{=} \frac{s^2(t)}{2(1-t)^2},\chi^2_d,
+\qquad s^2(t):=(1-t)^2+2\sigma^2 t^2,
+\qquad i\ge2,
+\]</span> with the <span class="math inline">\(E_i\)</span> i.i.d. across <span class="math inline">\(i\ge2\)</span>. This “i.i.d. energy levels” assumption is the REM idealization. (In the true geometry there are weak correlations; in high dimension and for i.i.d. Gaussian data, these correlations typically do not change the leading-order free energy unless you enter a strongly structured regime.)</p>
+<p>Let <span class="math display">\[
+c(t):=\frac{s^2(t)}{2(1-t)^2}=\frac12\Big(1+\frac{2\sigma^2 t^2}{(1-t)^2}\Big).
+\]</span> Then for <span class="math inline">\(i\ge2\)</span>, <span class="math display">\[
+\frac{E_i}{d}\approx c(t),\frac{\chi^2_d}{d}.
+\]</span></p>
+</section>
+</section>
+<section id="large-deviations-for-energy-density" class="level2">
+<h2 class="anchored" data-anchor-id="large-deviations-for-energy-density">2) Large deviations for energy density</h2>
+<p>Define the energy density [ e := .] For (Y=^2_d/d), Cramér’s theorem gives an LDP: [ P(Yy)e^{-d I_{}(y)}, y&gt;0, I_{}(y)=(y-1-y).] Since (e=c,Y), the energy density has LDP [ P(e)e^{-d I()}, I()=I_{}!() =(-1-), &gt;0.] This is the rigorous backbone you want: it replaces “handwavy concentration” with a controlled rate function.</p>
+</section>
+<section id="quenched-free-energy-of-rem-at" class="level2">
+<h2 class="anchored" data-anchor-id="quenched-free-energy-of-rem-at">3) Quenched free energy of REM at ()</h2>
+<p>Let (n = e^{d}) where (=1dn) (for CIFAR: ()). In REM theory, the quenched free energy density is <span class="math display">\[
+f(\beta) = -\lim_{d\to\infty}\frac1d \log Z_{\text{bulk}}(\beta),
+\qquad
+Z_{\text{bulk}}(\beta):=\sum_{i=2}^n e^{-\beta E_i}.
+\]</span> A standard REM derivation (Varadhan + counting states at given energy) yields <span class="math display">\[
+\lim_{d\to\infty}\frac1d\log Z_{\text{bulk}}(\beta)
+= \sup_{\varepsilon&gt;0}\big[\alpha - I(\varepsilon) - \beta \varepsilon\big].
+\]</span> Call the supremum value (()). Then (f()=-()).</p>
+<section id="interior-liquid-solution" class="level3">
+<h3 class="anchored" data-anchor-id="interior-liquid-solution">Interior (“liquid”) solution</h3>
+<p>If the maximizer is interior, it satisfies [ I’() = -.] Compute [ I’()=(1c - ).] So [ (1c - ) = - ;; =1c+2 ;; ] and at (): [ ] This is the energy density that dominates the bulk partition sum in the high-temperature/liquid regime.</p>
+</section>
+<section id="boundary-glass-solution-and-the-freezing-transition" class="level3">
+<h3 class="anchored" data-anchor-id="boundary-glass-solution-and-the-freezing-transition">Boundary (“glass”) solution and the freezing transition</h3>
+<p>The interior solution is valid only if there are exponentially many states around (_*), i.e. [ - I(_*) .] If (- I(_*)&lt;0), there are too few states at that energy; the supremum hits the boundary of the allowed energy region where the <strong>complexity</strong> vanishes: [ _g I(_g)=,] and the partition sum is dominated by the lowest energies (extremes): glass/condensed phase.</p>
+<p>So the REM “robustified” phase boundary is: [ ]</p>
+<p>Let’s write the explicit condition at (). Plug (_*(1)=) into (I): [ =.] Then [ I(_*)=(-1-) =((1+2c)-).] Thus the <strong>REM freezing threshold</strong> at () is [ ] If (&lt;_c(c)), the bulk is glassy (dominated by a few extremes); if (&gt;_c(c)), it is liquid.</p>
+<p>This is already substantially more rigorous than the article’s “(t_C) formula”, because it is derived from the exact LDP rate function of (^2).</p>
+<hr>
+</section>
+</section>
+<section id="now-incorporate-the-planted-state-collapse-vs-non-collapse-of-_1" class="level2">
+<h2 class="anchored" data-anchor-id="now-incorporate-the-planted-state-collapse-vs-non-collapse-of-_1">4) Now incorporate the planted state: collapse vs non-collapse of (_1)</h2>
+<p>So far we have described (Z_{}=_{i=2}^n e^{-E_i}). The full partition function is [ Z = e^{-E_1} + Z_{}.] The question “does (_1)?” is: [ _1 = <em>1 Z</em>{} &lt; -.] Since (E_1/d/2), the <strong>collapse condition</strong> becomes [ (1)=<em>{d}1dZ</em>{}(1) =_{&gt;0}.]</p>
+<section id="evaluate-1-in-both-phases" class="level3">
+<h3 class="anchored" data-anchor-id="evaluate-1-in-both-phases">Evaluate ((1)) in both phases</h3>
+<p><strong>Liquid (interior) phase</strong>: maximizer (_*=). Then [ (1)=- I(_*) - _*.] You can simplify using the explicit (I(_*)) above.</p>
+<p><strong>Glass (boundary) phase</strong>: maximizer (_g) solves (I(_g)=). Then [ (1)=- I(_g) - _g = -_g.] So in the glass phase, [ ]</p>
+</section>
+<section id="collapse-criterion-in-the-glass-phase-clean" class="level3">
+<h3 class="anchored" data-anchor-id="collapse-criterion-in-the-glass-phase-clean">Collapse criterion in the glass phase (clean!)</h3>
+<p>In the glass phase, collapse is simply [ -_g &lt; - _g &gt; .] So: [ ] And (_g) is defined <em>implicitly</em> by [ (-1-)=.] This is a rigorous REM-level relation between dimension, dataset size, and time (t) (through (c(t))).</p>
+</section>
+<section id="collapse-criterion-in-the-liquid-phase" class="level3">
+<h3 class="anchored" data-anchor-id="collapse-criterion-in-the-liquid-phase">Collapse criterion in the liquid phase</h3>
+<p>In the liquid phase, compare ((1)) to (-1/2): [ ] This can be turned into an explicit inequality in (c) and (). It’s messier but explicit.</p>
+<hr>
+</section>
+</section>
+<section id="interpreting-collapse-time-t_c-properly" class="level2">
+<h2 class="anchored" data-anchor-id="interpreting-collapse-time-t_c-properly">5) Interpreting “collapse time” (t_C) properly</h2>
+<p>Your earlier handwave essentially compared <strong>typical</strong> bulk energy to planted energy. REM says: don’t do typical—do <strong>extremes</strong>, i.e.&nbsp;(_g) solving (I(_g)=).</p>
+<p>So a principled “collapse time” is obtained by solving: [ _g(t_C)=, I(_g(t_C))=,c=c(t_C).] Set (_g=) in (I(_g)=): [ = I(1/2)=(-1-) =(-1-) =((2c)+-1).] So the REM-predicted boundary for “planted wins vs best competitor wins” is: [ ] Remember [ c(t)=(1+).] This is already much more robust than the article’s formula because it comes from the correct LDP rate function, and because it compares the planted state to the <strong>best</strong> of the (n-1) competitors (via (I()=)).</p>
+<hr>
+</section>
+<section id="what-rem-predicts-qualitatively-for-cifar-like" class="level2">
+<h2 class="anchored" data-anchor-id="what-rem-predicts-qualitatively-for-cifar-like">6) What REM predicts qualitatively for CIFAR-like ()</h2>
+<p>For CIFAR-10: (d=3072), (n^4), so [ =.] That is tiny. In REM terms, tiny () means the “entropy” budget is extremely small compared to extensive energies.</p>
+<p>Two consequences that align with your observation:</p>
+<ol type="1">
+<li><p><strong>Bulk is often glassy</strong>: because () is small, the condition (&lt;<em>c(c)) is frequently satisfied for moderate (c). That means (Z</em>{}) is dominated by a few extremes rather than a democratic sum.</p></li>
+<li><p><strong>Planted state can dominate early</strong>: the planted energy density is pinned at (1/2). If the minimal bulk energy density (_g(t)) is above (1/2), then (e^{-E_1}) beats even the best competitor and (_1). As (t) changes, (c(t)) changes, shifting the bulk energy distribution and hence (_g(t)).</p></li>
+</ol>
+<p>So the “rapid alignment” phenomenon becomes:</p>
+<blockquote class="blockquote">
+<p>in high (d), with (), the Gibbs measure condenses onto the planted state for a wide range of (t), because even the lowest-energy spurious matches don’t beat the planted match.</p>
+</blockquote>
+<hr>
+</section>
+<section id="what-is-still-approximate-and-how-to-further-robustify" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-still-approximate-and-how-to-further-robustify">7) What is still “approximate” (and how to further robustify)</h2>
+<p>REM rigor here hinges on two approximations:</p>
+<section id="a-independence-of-energy-levels-e_i" class="level3">
+<h3 class="anchored" data-anchor-id="a-independence-of-energy-levels-e_i">(A) Independence of energy levels (E_i)</h3>
+<p>In the true geometric model, energies across (i) are weakly correlated through the shared (x_t). For i.i.d. Gaussian data, these correlations are typically (O(1/d)) in overlaps, and REM predictions for free energy often remain correct at leading order (this is the same justification used in many high-d nearest-neighbor/softmax analyses). But proving it requires a “correlated REM” or GREM-type argument.</p>
+<p><strong>Robustification path:</strong> show an LDP for the empirical measure of energies conditional on (x_t), then apply a concentration result for (1dZ). Often you can prove that quenched free energy converges to the same variational formula as the i.i.d. REM.</p>
+</section>
+<section id="b-gaussian-proxy-for-cifar" class="level3">
+<h3 class="anchored" data-anchor-id="b-gaussian-proxy-for-cifar">(B) Gaussian proxy for CIFAR</h3>
+<p>Your (N(0,^2 I)) is a proxy. If CIFAR has nontrivial covariance, you replace (^2) by a quadratic form with spectrum of covariance; the LDP changes by replacing (I_{}) with a rate function depending on the eigenvalue distribution.</p>
+<p><strong>Robustification path:</strong> diagonalize covariance (C) and use known LDPs for (1d|g|^2_C) (or apply the Gärtner–Ellis theorem via log-MGF). The REM variational structure remains the same; only (I()) changes.</p>
+<hr>
+</section>
+</section>
+<section id="minimal-deliverable-summary-the-rem-correct-equations-you-can-use" class="level2">
+<h2 class="anchored" data-anchor-id="minimal-deliverable-summary-the-rem-correct-equations-you-can-use">8) Minimal “deliverable” summary: the REM-correct equations you can use</h2>
+<p>If you want a clean stat-phys section in your post, the robust REM statements are:</p>
+<ul>
+<li><p>Bulk energies have LDP: [ P!()e^{-d I()}, I()=(-1-), c(t)=(1+).]</p></li>
+<li><p>Bulk quenched free energy at (): [ (1)=<em>{d}1dZ</em>{}(1) =_{&gt;0}, =1dn.]</p></li>
+<li><p>Glass vs liquid in the bulk: [ _c(c)=((1+2c)-).] If (&lt;_c(c)): glass, maximizer at (_g) with (I(_g)=), and ((1)=-_g). If (&gt;<em>c(c)): liquid, maximizer at (</em>*=).</p></li>
+<li><p>Planted-vs-bulk collapse criterion: [ _1 (1)&lt;-.] In the glass phase this reduces to: [ _1 _g&gt;,I(_g)=.] A “collapse time” is implicitly: [ = I(1/2)=((2c(t_C))+-1).]</p></li>
+</ul>
+<p>That’s the REM-theory version of your softmax-collapse argument, with the correct quenched/extreme-value control replacing the article’s (and your earlier) typical-point heuristics.</p>
+</section>
+</section>
+<section id="detailed-ldp-derivation" class="level1">
+<h1>Detailed LDP derivation</h1>
+<section id="what-problem-are-we-trying-to-solve" class="level2">
+<h2 class="anchored" data-anchor-id="what-problem-are-we-trying-to-solve">1. What problem are we trying to solve?</h2>
+<p>You keep seeing statements like [ P(Y y) e^{-d I(y)}] and words like <strong>LDP</strong>, <strong>rate function</strong>, <strong>Cramér’s theorem</strong>.</p>
+<p>What is the <em>actual question</em> behind this?</p>
+<blockquote class="blockquote">
+<p>We have a random quantity built from <strong>many dimensions</strong> (here (d)). We want to know: <em>how unlikely is it that it deviates from its typical value?</em></p>
+</blockquote>
+<p>Not just <em>that</em> it concentrates — but <strong>how fast</strong> the probability decays.</p>
+<p>This is what <strong>Large Deviation Theory</strong> answers.</p>
+</section>
+<section id="law-of-large-numbers-vs-large-deviations" class="level2">
+<h2 class="anchored" data-anchor-id="law-of-large-numbers-vs-large-deviations">2. Law of Large Numbers vs Large Deviations</h2>
+<p>Let’s start with something familiar.</p>
+<p>Let <span class="math display">\[
+Z_1, Z_2, \dots, Z_d \sim \mathcal N(0,1) \quad \text{i.i.d.}
+\]</span></p>
+<p>Define the empirical average: [ Z_d = _{k=1}^d Z_k]</p>
+<section id="law-of-large-numbers-lln" class="level3">
+<h3 class="anchored" data-anchor-id="law-of-large-numbers-lln">Law of Large Numbers (LLN)</h3>
+<p>LLN says: [ Z_d 0]</p>
+<p>That tells you <strong>where it concentrates</strong>, but not <strong>how unlikely deviations are</strong>.</p>
+</section>
+</section>
+<section id="what-is-a-large-deviation-principle-ldp" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-a-large-deviation-principle-ldp">3. What is a Large Deviation Principle (LDP)?</h2>
+<p>An <strong>LDP</strong> answers:</p>
+<blockquote class="blockquote">
+<p>If (Z_d) is <em>not</em> close to 0, how small is that probability?</p>
+</blockquote>
+<section id="informal-definition" class="level3">
+<h3 class="anchored" data-anchor-id="informal-definition">Informal definition</h3>
+<p>A sequence of random variables (X_d) satisfies a <strong>Large Deviation Principle</strong> with rate function (I(x)) if <span class="math display">\[
+\mathbb{P}(X_d \approx x) \approx e^{-d I(x)}
+\]</span></p>
+<ul>
+<li><ol start="4" type="a">
+<li>is the <strong>large parameter</strong> (dimension, number of samples, etc.)</li>
+</ol></li>
+<li>(I(x))</li>
+<li>(I(x)=0) at the <em>typical value</em></li>
+<li>Larger (I(x)) = exponentially rarer event</li>
+</ul>
+<p>This is <em>much</em> stronger than concentration inequalities.</p>
+</section>
+</section>
+<section id="cramérs-theorem-core-result" class="level2">
+<h2 class="anchored" data-anchor-id="cramérs-theorem-core-result">4. Cramér’s Theorem (core result)</h2>
+<p><strong>Cramér’s theorem</strong> is the fundamental LDP for averages of i.i.d. variables.</p>
+<section id="theorem-informal" class="level3">
+<h3 class="anchored" data-anchor-id="theorem-informal">Theorem (informal)</h3>
+<p>Let (X_1,,X_d) be i.i.d. with finite moment generating function. Define <span class="math display">\[
+S_d = \frac{1}{d}\sum_{k=1}^d X_k
+\]</span></p>
+<p>Then (S_d) satisfies an LDP: <span class="math display">\[
+\mathbb P(S_d \approx x) \asymp e^{-d I(x)}
+\]</span></p>
+<p>where the <strong>rate function</strong> <span class="math display">\[
+I(x) = \sup_{\lambda \in \mathbb R} \big( \lambda x - \log \mathbb E[e^{\lambda X_1}] \big)
+\]</span></p>
+<p>This is a <strong>Legendre transform</strong> of the log-MGF.</p>
+</section>
+</section>
+<section id="apply-cramérs-theorem-to-2" class="level2">
+<h2 class="anchored" data-anchor-id="apply-cramérs-theorem-to-2">5. Apply Cramér’s theorem to (^2)</h2>
+<p>Now let’s connect to <em>your</em> case.</p>
+<section id="step-1-express-the-quantity-as-an-average" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-express-the-quantity-as-an-average">Step 1: Express the quantity as an average</h3>
+<p>Let <span class="math display">\[
+Z_k^2 \sim \chi^2_1
+\]</span></p>
+<p>Then <span class="math display">\[
+\chi^2_d = \sum_{k=1}^d Z_k^2
+\quad\Rightarrow\quad
+Y_d := \frac{1}{d}\chi^2_d = \frac{1}{d}\sum_{k=1}^d Z_k^2
+\]</span></p>
+<p>This is <strong>exactly</strong> an empirical average.</p>
+</section>
+<section id="step-2-compute-the-rate-function" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-compute-the-rate-function">Step 2: Compute the rate function</h3>
+<p>For <span class="math inline">\(X = Z^2\)</span>, the log-MGF is: <span class="math display">\[
+\log \mathbb E[e^{\lambda Z^2}] = -\frac12 \log(1-2\lambda)
+\quad (\lambda &lt; 1/2)
+\]</span></p>
+<p>Apply Cramér’s theorem: <span class="math display">\[
+I_\chi(y) = \sup_{\lambda&lt;1/2}
+\Big( \lambda y + \tfrac12\log(1-2\lambda) \Big)
+\]</span></p>
+<p>Solving this gives: <span class="math display">\[
+\boxed{
+I_\chi(y) = \frac12\big(y - 1 - \log y\big),
+\quad y&gt;0
+}
+\]</span></p>
+</section>
+<section id="step-3-what-does-this-mean" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-what-does-this-mean">Step 3: What does this mean?</h3>
+<p>It means: <span class="math display">\[
+\boxed{
+\mathbb P!\left(\frac{1}{d}\chi^2_d \approx y\right)
+\asymp e^{-d I_\chi(y)}
+}
+\]</span></p>
+<p>Key properties:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Property</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Minimum</td>
+<td>(I_(1)=0)</td>
+</tr>
+<tr class="even">
+<td>Typical value</td>
+<td>(y=1)</td>
+</tr>
+<tr class="odd">
+<td>Deviations</td>
+<td>exponentially unlikely in (d)</td>
+</tr>
+<tr class="even">
+<td>Shape</td>
+<td>convex</td>
+</tr>
+</tbody>
+</table>
+<p>This is <strong>far stronger</strong> than “relative fluctuations are (O(1/d))”.</p>
+</section>
+</section>
+<section id="why-ldp-beats-concentration-of-measure" class="level2">
+<h2 class="anchored" data-anchor-id="why-ldp-beats-concentration-of-measure">6. Why LDP beats “concentration of measure”</h2>
+<p>Concentration tells you: <span class="math display">\[
+\mathbb P(|Y_d - 1| &gt; \varepsilon) \le e^{-c d}
+\]</span></p>
+<p>LDP tells you: <span class="math display">\[
+\mathbb P(Y_d \approx y) \approx e^{-d I(y)}
+\]</span></p>
+<p>That means:</p>
+<ul>
+<li>You can compare <strong>two rare events</strong></li>
+<li>You can find <strong>which rare event dominates</strong></li>
+<li>You can compute <strong>free energies and phase transitions</strong></li>
+</ul>
+<p>This is why statistical physics <em>needs</em> LDPs.</p>
+</section>
+<section id="applying-the-ldp-to-your-energy" class="level2">
+<h2 class="anchored" data-anchor-id="applying-the-ldp-to-your-energy">7. Applying the LDP to your energy</h2>
+<p>You define: <span class="math display">\[
+E = c ,\chi^2_d
+\quad\Rightarrow\quad
+e := \frac{E}{d} = c,Y_d
+\]</span></p>
+<p>Change of variables: <span class="math display">\[
+\mathbb P(e \approx \varepsilon)
+= \mathbb P!\left(Y_d \approx \frac{\varepsilon}{c}\right)
+\asymp e^{-d I_\chi(\varepsilon/c)}
+\]</span></p>
+<p>So the <strong>energy density LDP</strong> is: <span class="math display">\[
+\boxed{
+\mathbb P(e \approx \varepsilon)
+\asymp e^{-d I(\varepsilon)},
+\qquad
+I(\varepsilon) = \frac12\Big(\frac{\varepsilon}{c} - 1 - \log\frac{\varepsilon}{c}\Big)
+}
+\]</span></p>
+<p>This is the <strong>rigorous backbone</strong> behind all REM arguments.</p>
+</section>
+<section id="why-this-matters-for-rem-and-softmax-collapse" class="level2">
+<h2 class="anchored" data-anchor-id="why-this-matters-for-rem-and-softmax-collapse">8. Why this matters for REM and softmax collapse</h2>
+<p>You have (n = e^{d}) energies.</p>
+<p>The expected number of energies near () is: <span class="math display">\[
+\text{count}(\varepsilon)
+\approx e^{d(\alpha - I(\varepsilon))}
+\]</span></p>
+<p>So:</p>
+<ul>
+<li>If (- I() &gt; 0): exponentially many states</li>
+<li>If (- I() = 0): <em>edge of support</em></li>
+<li>If (- I() &lt; 0): no states w.h.p.</li>
+</ul>
+<p>This is how <strong>glass transitions</strong>, <strong>condensation</strong>, and <strong>memorization</strong> emerge <em>mathematically</em>.</p>
+</section>
+<section id="one-sentence-intuition" class="level2">
+<h2 class="anchored" data-anchor-id="one-sentence-intuition">9. One-sentence intuition</h2>
+<blockquote class="blockquote">
+<p><strong>An LDP says:</strong> “In high dimension, probabilities are governed by exponential rates, and whoever has the <em>smallest exponent</em> wins.”</p>
+</blockquote>
+<p>That’s exactly why:</p>
+<ul>
+<li>one training image dominates the softmax,</li>
+<li>the marginal flow aligns with the conditional flow,</li>
+<li>memorization appears early in (t).</li>
+</ul>
+</section>
+<section id="if-you-want-the-next-step" class="level2">
+<h2 class="anchored" data-anchor-id="if-you-want-the-next-step">10. If you want the next step</h2>
+<p>Next, the natural continuation is:</p>
+<ol type="1">
+<li>Use the LDP to compute the <strong>minimum energy</strong> among (n=e^{d}) samples</li>
+<li>Compare it to the planted energy (1/2)</li>
+<li>Derive collapse time (t_C) cleanly</li>
+</ol>
+<p>If you want, I can do that <em>slowly</em>, without assuming REM knowledge.</p>
+<p>Just say: <strong>“Derive the minimum energy using LDP.”</strong></p>
+</section>
+</section>
+<section id="derivation-ldp-minimum-energy" class="level1">
+<h1>Derivation LDP minimum energy</h1>
+<section id="objects-and-scaling" class="level2">
+<h2 class="anchored" data-anchor-id="objects-and-scaling">1) Objects and scaling</h2>
+<p>We have energies <span class="math display">\[
+E_i = \frac{|x_t - t x^{(i)}|^2}{2(1-t)^2},\qquad \lambda_i=\frac{e^{-E_i}}{\sum_{j=1}^n e^{-E_j}}.
+\]</span></p>
+<p>Along the planted trajectory <span class="math inline">\(x_t=(1-t)x_0+t x_1\)</span> with <span class="math inline">\(x_1=x^{(1)}\)</span>:</p>
+<ul>
+<li><p><strong>Planted energy</strong> <span class="math display">\[
+E_1 = \frac{|x_0|^2}{2}\quad\Rightarrow\quad \frac{E_1}{d}\xrightarrow{} \frac12 \quad \text{(concentration)}.
+\]</span> Call <span class="math display">\[
+e_{\text{pl}}:=\frac{E_1}{d}\approx \frac12.
+\]</span></p></li>
+<li><p><strong>Bulk energies</strong> <span class="math inline">\(i\ge2\)</span> have energy densities <span class="math inline">\(e_i=E_i/d\)</span> satisfying an LDP with rate function <span class="math display">\[
+I(\varepsilon)=\frac12\Big(\frac{\varepsilon}{c}-1-\log\frac{\varepsilon}{c}\Big),\qquad
+c=c(t)=\frac12\Big(1+\frac{2\sigma^2 t^2}{(1-t)^2}\Big).
+\]</span></p></li>
+</ul>
+<p>Dataset size is <span class="math inline">\(n=e^{\alpha d}\)</span>, <span class="math inline">\(\alpha=\frac{1}{d}\log n\)</span>.</p>
+<p>From the previous step, the <strong>minimum bulk energy density</strong> <span class="math display">\[
+m_d:=\min_{i\ge2} e_i
+\]</span> converges in probability to (_) solving <span class="math display">\[
+\boxed{I(\varepsilon_\star)=\alpha.}
+\]</span></p>
+</section>
+<section id="what-does-collapse-mean" class="level2">
+<h2 class="anchored" data-anchor-id="what-does-collapse-mean">2) What does “collapse” mean?</h2>
+<p>Collapse means the planted weight goes to 1: <span class="math display">\[
+\lambda_1 \to 1.
+\]</span></p>
+<p>Since [ _1 = ,] this happens if the bulk sum is exponentially smaller than (e^{-E_1}).</p>
+<p>Take logs and divide by (d). Define the bulk partition function [ Z_{}:=_{i} e^{-E_i}.]</p>
+<p>Then [ <em>1 Z</em>{} &lt; - -.]</p>
+<p>So we need to understand the exponential scale of (Z_{}).</p>
+</section>
+<section id="in-the-collapsedextreme-dominated-regime-z_-is-controlled-by-the-minimum" class="level2">
+<h2 class="anchored" data-anchor-id="in-the-collapsedextreme-dominated-regime-z_-is-controlled-by-the-minimum">3) In the <em>collapsed/extreme-dominated</em> regime, (Z_{}) is controlled by the minimum</h2>
+<p>A very robust inequality is: <span class="math display">\[
+e^{-d,m_d}\le Z_{\text{bulk}} \le (n-1),e^{-d,m_d}.
+\]</span> because every term is at most (e^{-d m_d}), and at least one term equals it.</p>
+<p>Take (1d): <span class="math display">\[
+-m_d ;\le; \frac1d\log Z_{\text{bulk}} ;\le; -m_d + \frac1d\log(n-1).
+\]</span> But (1d(n-1)). Hence asymptotically: <span class="math display">\[
+\frac1d\log Z_{\text{bulk}} \in [-m_d,,-m_d+\alpha].
+\]</span></p>
+<p>Since (m_d_), we get the exponential scale: <span class="math display">\[
+\frac1d\log Z_{\text{bulk}} \approx -\varepsilon_\star \quad \text{(up to an additive }\alpha\text{)}.
+\]</span></p>
+<p>This already yields a clean <strong>sufficient condition</strong> for collapse.</p>
+</section>
+<section id="collapse-criterion-from-the-minimum-energy" class="level2">
+<h2 class="anchored" data-anchor-id="collapse-criterion-from-the-minimum-energy">4) Collapse criterion from the minimum energy</h2>
+<section id="sufficient-condition-and-often-essentially-sharp-when-extremes-dominate" class="level3">
+<h3 class="anchored" data-anchor-id="sufficient-condition-and-often-essentially-sharp-when-extremes-dominate">Sufficient condition (and often essentially sharp when extremes dominate)</h3>
+<p>If even the <strong>best spurious competitor</strong> is worse (higher energy) than the planted state: <span class="math display">\[
+\varepsilon_\star &gt; e_{\text{pl}}=\frac12,
+\]</span> then the smallest bulk term is smaller than the planted term exponentially: <span class="math display">\[
+e^{-d\varepsilon_\star} \ll e^{-d/2}.
+\]</span> And since all other bulk terms are even smaller, the bulk sum cannot catch up (unless () is huge).</p>
+<p>So you get: <span class="math display">\[
+\boxed{\text{Strong collapse (planted dominates) if }\varepsilon_\star(t)&gt;\tfrac12.}
+\]</span></p>
+<p>Conversely, if (_&lt;), then there typically exists a bulk point with energy below the planted energy, meaning the planted state cannot dominate universally: <span class="math display">\[
+\boxed{\text{No planted dominance if }\varepsilon_\star(t)&lt;\tfrac12.}
+\]</span></p>
+<p>So the boundary is (_(t)=1/2).</p>
+</section>
+</section>
+<section id="turn-that-into-an-explicit-equation-in-t-the-collapse-time" class="level2">
+<h2 class="anchored" data-anchor-id="turn-that-into-an-explicit-equation-in-t-the-collapse-time">5) Turn that into an explicit equation in (t) (the “collapse time”)</h2>
+<p>We know (_) is defined implicitly by: <span class="math display">\[
+I(\varepsilon_\star)=\alpha,
+\qquad
+I(\varepsilon)=\frac12\Big(\frac{\varepsilon}{c}-1-\log\frac{\varepsilon}{c}\Big).
+\]</span></p>
+<p>Set (_=). Then the <strong>boundary</strong> satisfies: <span class="math display">\[
+\alpha = I(1/2)=\frac12\Big(\frac{1/2}{c}-1-\log\frac{1/2}{c}\Big).
+\]</span> Simplify: <span class="math display">\[
+\frac{1/2}{c}=\frac{1}{2c},\qquad \log\frac{1/2}{c}=\log\frac{1}{2c}=-\log(2c).
+\]</span> So: <span class="math display">\[
+\boxed{\alpha = \frac12\Big(\log(2c)+\frac{1}{2c}-1\Big).}
+\]</span> Recall <span class="math display">\[
+c(t)=\frac12\Big(1+\frac{2\sigma^2 t^2}{(1-t)^2}\Big).
+\]</span></p>
+<p>This is your REM-rigorous “collapse curve” (in the Gaussian surrogate).</p>
+</section>
+<section id="intuition-energy-vs-entropy-in-one-line" class="level2">
+<h2 class="anchored" data-anchor-id="intuition-energy-vs-entropy-in-one-line">6) Intuition: energy vs entropy in one line</h2>
+<ul>
+<li>The planted contribution is <span class="math inline">\(\sim e^{-d/2}\)</span>.</li>
+<li>The best spurious competitor among <span class="math inline">\(n=e^{\alpha d}\)</span> has energy density <span class="math inline">\(\varepsilon_\star\)</span> where its rarity <span class="math inline">\(e^{-d I(\varepsilon_\star)}\)</span> matches the number of trials <span class="math inline">\(e^{\alpha d}\)</span>, hence <span class="math inline">\(I(\varepsilon_\star)=\alpha\)</span>.</li>
+<li>Collapse happens if the <em>best</em> competitor is still worse than planted: <span class="math inline">\(\varepsilon_\star&gt;1/2\)</span>.</li>
+</ul>
+<p>That’s the principled replacement for “a typical point has exponent <span class="math inline">\(-47\)</span>” arguments.</p>
+</section>
+<section id="what-this-predicts-for-cifar-like-numbers-qualitatively" class="level2">
+<h2 class="anchored" data-anchor-id="what-this-predicts-for-cifar-like-numbers-qualitatively">7) What this predicts for CIFAR-like numbers (qualitatively)</h2>
+<p>For CIFAR-10, <span class="math inline">\(\alpha=\frac{\log n}{d}\)</span> is tiny, so solving <span class="math inline">\(I(\varepsilon_\star)=\alpha\)</span> gives <span class="math inline">\(\varepsilon_\star\)</span> <strong>very close to the typical bulk energy</strong>, meaning even the minimum doesn’t drop that much below typical. As <span class="math inline">\(t\)</span> increases, <span class="math inline">\(c(t)\)</span> increases, shifting energies upward in a way that can easily keep <span class="math inline">\(\varepsilon_\star(t)\)</span> above <span class="math inline">\(1/2\)</span> for small-to-moderate <span class="math inline">\(t\)</span>. That’s the “early collapse” phenomenon.</p>
+<p>If you want, next I can do one of two things (both are useful):</p>
+<ol type="1">
+<li><strong>Compute / approximate <span class="math inline">\(t_C\)</span></strong> explicitly for your CIFAR proxy <span class="math inline">\((d=3072,\ n=50k,\ \sigma^2=0.24)\)</span> using the equation above.</li>
+<li>Go one level deeper and compute the full bulk free energy <span class="math inline">\(\Phi(1)=\sup_\varepsilon[\alpha-I(\varepsilon)-\varepsilon]\)</span> and derive collapse without relying on “min dominates” (this is what you want if you suspect the bulk is not always purely extreme-dominated).</li>
+</ol>
+</section>
+</section>
+<section id="cifar-10-proxy-numbers" class="level1">
+<h1>CIFAR-10 proxy numbers</h1>
+<p>Using the REM/LDP boundary we derived, the “collapse time” (t_c) (where the best spurious match among (n) competitors becomes as good as the planted one) is defined by</p>
+<p><span class="math display">\[
+\varepsilon_\star(t_c)=\frac12
+\quad\Longleftrightarrow\quad
+\alpha ;=; I(1/2;c(t_c)),
+\qquad \alpha=\frac{\log n}{d},
+\]</span> with <span class="math display">\[
+I(\varepsilon;c)=\frac12\Big(\frac{\varepsilon}{c}-1-\log\frac{\varepsilon}{c}\Big),
+\qquad
+c(t)=\frac12\Big(1+\frac{2\sigma^2 t^2}{(1-t)^2}\Big).
+\]</span></p>
+<p>Plugging (=) simplifies the equation to <span class="math display">\[
+\boxed{;\alpha = \frac12\Big(\log(2c(t_c))+\frac{1}{2c(t_c)}-1\Big).;}
+\]</span></p>
+<section id="cifar-10-proxy-numbers-1" class="level2">
+<h2 class="anchored" data-anchor-id="cifar-10-proxy-numbers-1">CIFAR-10 proxy numbers</h2>
+<ul>
+<li>(d=3072)</li>
+<li>(n=50{,}000)</li>
+<li>(^2=0.24)</li>
+</ul>
+<p>Compute <span class="math display">\[
+\alpha=\frac{\log(50{,}000)}{3072}\approx \frac{10.8198}{3072}\approx 0.003522.
+\]</span></p>
+<p>Solving <span class="math display">\[
+\frac12\Big(\log(2c(t))+\frac{1}{2c(t)}-1\Big)=0.003522
+\]</span> with (c(t)=(1+)) gives</p>
+<p><span class="math display">\[
+\boxed{t_c \approx 0.341.}
+\]</span></p>
+<p>At this (t_c), the corresponding <span class="math display">\[
+c(t_c)\approx 0.5644.
+\]</span></p>
+<p><strong>Interpretation:</strong> under the i.i.d. Gaussian CIFAR proxy + REM independence idealization, for (t ) the planted datapoint is no longer guaranteed to dominate because among (n) training points you can typically find at least one “spurious” point whose energy beats (or matches) the planted energy (E_1/d/2).</p>
+</section>
+</section>
+<section id="bulk-free-energy" class="level1">
+<h1>Bulk free energy</h1>
+<p>Cool — this is the right “one level deeper”: instead of saying “the minimum dominates”, we compute the <strong>quenched bulk free energy</strong> [ (1);=;<em>{d}1dZ</em>{}, Z_{}=_{i=2}^n e^{-E_i},] using the <strong>LDP + Laplace principle</strong> (the standard REM route), and <em>then</em> derive collapse by comparing ((1)) to the planted energy density (1/2).</p>
+<p>I’ll keep the same Gaussian surrogate as in your doc: [ E_i c(t),_d^2, c(t)=(1+), n=e^{d},;=.]</p>
+<hr>
+<section id="bulk-energy-ldp-input" class="level2">
+<h2 class="anchored" data-anchor-id="bulk-energy-ldp-input">1) Bulk energy LDP (input)</h2>
+<p>Let the <strong>energy density</strong> be (e=E/d). For (^2_d/d), Cramér’s theorem gives an LDP: [ P!(y)e^{-d,I_(y)}, I_(y)=(y-1-y).] Since (e=c,(_d^2/d)), by change of variables the bulk energy density satisfies [ P(e)e^{-d,I()}, I()=I_(/c) =(-1-).]</p>
+<p>This rate function is the “disorder law” of the REM.</p>
+<hr>
+</section>
+<section id="from-ldp-to-the-bulk-free-energy-via-laplace-principle" class="level2">
+<h2 class="anchored" data-anchor-id="from-ldp-to-the-bulk-free-energy-via-laplace-principle">2) From LDP to the bulk free energy via Laplace principle</h2>
+<p>The REM logic is:</p>
+<ul>
+<li><p>The expected <strong>number of states</strong> with energy density near () is [ #()nP(e) .] The quantity [ ():=-I()] is called the <strong>complexity</strong> (entropy density of states at energy ()).</p></li>
+<li><p>The bulk partition function is approximately an integral over energies: [ Z_{}=_{i=2}^n e^{-E_i} d; =d;.]</p></li>
+<li><p>By the Laplace principle (large-(d) saddle point), [ ]</p></li>
+</ul>
+<p>This is the “full bulk free energy” statement you asked for.</p>
+<hr>
+</section>
+<section id="solve-the-variational-problem-liquid-vs-glass" class="level2">
+<h2 class="anchored" data-anchor-id="solve-the-variational-problem-liquid-vs-glass">3) Solve the variational problem: liquid vs glass</h2>
+<p>Define [ F()=-I()-.] If the maximizer is interior, it satisfies (F’()=0), i.e. [ I’()=-1.] For our (I), [ I’()=(1c-).] So [ (1c-)=-1 ] (the “liquid saddle”).</p>
+<p>But this saddle is valid only if there are exponentially many states there, i.e.&nbsp;((_*)=-I(_*)). Define the critical entropy level [ ]</p>
+<p>Then REM theory gives the quenched free energy:</p>
+<section id="liquid-phase-_cc" class="level3">
+<h3 class="anchored" data-anchor-id="liquid-phase-_cc">Liquid phase ((_c(c)))</h3>
+<p>[ ]</p>
+</section>
+<section id="glass-phase-_cc" class="level3">
+<h3 class="anchored" data-anchor-id="glass-phase-_cc">Glass phase ((&lt;_c(c)))</h3>
+<p>The supremum hits the boundary where (()=0), i.e.&nbsp;(I(_g)=). Then [ ] This is “freezing”: the partition function is dominated by a vanishing fraction of lowest-energy states.</p>
+<hr>
+</section>
+</section>
+<section id="collapse-criterion-using-the-free-energy-no-min-dominates-assumption" class="level2">
+<h2 class="anchored" data-anchor-id="collapse-criterion-using-the-free-energy-no-min-dominates-assumption">4) Collapse criterion using the free energy (no “min dominates” assumption)</h2>
+<p>The full partition function is [ Z = e^{-E_1}+Z_{}, _1=.] Along the planted trajectory, [ .] So asymptotically [ 1d (1)+.] Hence: [ ] More sharply, for large (d), [ _1 .]</p>
+<p>This is the rigorous “free energy vs planted energy” criterion.</p>
+<hr>
+</section>
+<section id="now-plug-cifar-numbers-and-compute-1t" class="level2">
+<h2 class="anchored" data-anchor-id="now-plug-cifar-numbers-and-compute-1t">5) Now plug CIFAR numbers and compute ((1,t))</h2>
+<p>CIFAR proxy: (d=3072,; n=50{,}000,; ^2=0.24). [ ==.]</p>
+<p>For these numbers, **for all (t</p>
+<p>It’s convenient to solve in terms of (y:=_g/c). Since [ I()=(-1-) =(y-1-y),] the equation (I(<em>g)=) becomes [ ] So (y</em>) depends only on (), not on (t).</p>
+<p>For (), solving gives [ y_.] Therefore [ ]</p>
+<p>A few values:</p>
+<ul>
+<li>(t=0): (c=0.5)</li>
+<li>(t=0.3): (c)</li>
+<li>(t=0.35): (c)</li>
+</ul>
+<hr>
+</section>
+<section id="collapse-time-t_c-from-the-free-energy" class="level2">
+<h2 class="anchored" data-anchor-id="collapse-time-t_c-from-the-free-energy">6) Collapse time (t_c) from the free energy</h2>
+<p>Collapse boundary is ((1,t_c)=-1/2), i.e. [ c(t_c),y_= c(t_c)=.] With [ c(t)=(1+),^2=0.24,] this yields [ ]</p>
+<p><strong>Important note:</strong> because CIFAR’s () is so small, we are <em>always in the glass phase</em>, and in the glass phase the free-energy criterion reduces to the same boundary you got from “best competitor energy”. So here, “going one level deeper” mostly justifies <em>why</em> that reduction is valid.</p>
+<hr>
+<p>If you want, next I can (i) plot ((1,t)) and ((1,t)+1/2) across (t), and (ii) translate ((1,t)) into an explicit prediction for the fraction of mass (_1) at finite (d=3072) using the logistic approximation above.</p>
+</section>
+</section>
+<section id="extension-to-non-isotropic-covariance-matrices" class="level1">
+<h1>Extension to non isotropic covariance matrices</h1>
+<p>Nice — next step is exactly: <strong>swap the isotropic Gaussian proxy (^2 I)</strong> for a <strong>Gaussian with covariance (C)</strong> (or at least a diagonal / spectrum model), and redo the same REM/LDP/free-energy pipeline.</p>
+<section id="what-changes-in-the-theory" class="level2">
+<h2 class="anchored" data-anchor-id="what-changes-in-the-theory">1) What changes in the theory?</h2>
+<p>Nothing structural changes. Only the <strong>rate function</strong> (I()) changes.</p>
+<p>You still get, for bulk energies, [ (1,t)=_{}, _1(t).]</p>
+<p>But now (I_t()) is the LDP rate function for a <strong>quadratic form</strong> instead of (^2).</p>
+</section>
+<section id="the-covariance-shaped-model" class="level2">
+<h2 class="anchored" data-anchor-id="the-covariance-shaped-model">2) The covariance-shaped model</h2>
+<p>Assume training images are modeled as [ x^{(i)} N(0, C),] with eigenvalues ({<em>k}</em>{k=1}^d) (empirical spectrum of CIFAR after preprocessing).</p>
+<p>Then the relevant random quantity in the bulk is essentially of the form [ |g|^2_{C_t}=_{k=1}^d ^{(t)}_k Z_k^2] for some effective covariance (C_t) (coming from ((1-t)x_0+t(x_1-x^{(i)}))), and (Z_kN(0,1)).</p>
+<section id="ldp-via-gärtnerellis" class="level3">
+<h3 class="anchored" data-anchor-id="ldp-via-gärtnerellis">LDP via Gärtner–Ellis</h3>
+<p>Define the scaled log-mgf: [ <em>t()=</em>{d}_{k=1}^d (-(1-2^{(t)}_k)), &lt; .] Then the rate function is the Legendre transform: [ ]</p>
+<p>That’s the “drop-in replacement” for the isotropic (I()=(/c-1-(/c))).</p>
+</section>
+</section>
+<section id="what-i-can-do-next-concretely" class="level2">
+<h2 class="anchored" data-anchor-id="what-i-can-do-next-concretely">3) What I can do next (concretely)</h2>
+<p>I can produce:</p>
+<ol type="1">
+<li>A clean write-up section (“From isotropic REM to covariance REM”) with the exact formulas above.</li>
+<li>A numerical computation of (t_c) and (_1(t)) <strong>given a spectrum</strong> ({_k}).</li>
+</ol>
+<p>To run the numbers, I need <em>either</em>:</p>
+<ul>
+<li>the <strong>empirical spectrum</strong> (or even just a histogram / a few percentiles) of CIFAR after your normalization, <strong>or</strong></li>
+<li>a simplified parametric spectrum (e.g., “bulk eigenvalues around (v) plus one spike ()” à la spiked covariance, which connects directly to the stat-phys “principal component” story).</li>
+</ul>
+<p>If you don’t have the spectrum handy, the spiked model is a great next approximation: [ C = v I + (- v) uu^] and we can compute (I_t), ((1,t)), and (t_c) almost as cleanly as the isotropic case, while capturing “strong PC” effects.</p>
+<p>Tell me which you prefer: <strong>empirical spectrum</strong> (most faithful) or <strong>spiked model</strong> (most interpretable).</p>
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{untitled,
+  author = {},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-untitled" class="csl-entry quarto-appendix-citeas" role="listitem">
+n.d.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

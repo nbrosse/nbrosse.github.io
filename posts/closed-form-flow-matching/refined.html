@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>refined – Nicolas' Notebook</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-75c24fa0c77a874b0ab0aff8b6422dd8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Nicolas’ Notebook</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block"></header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#flow-matching-collapse-a-statistical-physics-perspective" id="toc-flow-matching-collapse-a-statistical-physics-perspective" class="nav-link active" data-scroll-target="#flow-matching-collapse-a-statistical-physics-perspective">Flow Matching Collapse: A Statistical Physics Perspective</a>
+  <ul class="collapse">
+  <li><a href="#gibbs-measure-and-energy-formulation" id="toc-gibbs-measure-and-energy-formulation" class="nav-link" data-scroll-target="#gibbs-measure-and-energy-formulation">1. Gibbs Measure and Energy Formulation</a>
+  <ul class="collapse">
+  <li><a href="#the-marginal-fm-weights-as-a-gibbs-measure" id="toc-the-marginal-fm-weights-as-a-gibbs-measure" class="nav-link" data-scroll-target="#the-marginal-fm-weights-as-a-gibbs-measure">1.1 The Marginal FM Weights as a Gibbs Measure</a></li>
+  <li><a href="#assumptions-on-the-data" id="toc-assumptions-on-the-data" class="nav-link" data-scroll-target="#assumptions-on-the-data">1.2 Assumptions on the Data</a></li>
+  <li><a href="#the-planted-teacher-trajectory" id="toc-the-planted-teacher-trajectory" class="nav-link" data-scroll-target="#the-planted-teacher-trajectory">1.3 The “Planted” (Teacher) Trajectory</a></li>
+  <li><a href="#the-bulk-rem-like-energies" id="toc-the-bulk-rem-like-energies" class="nav-link" data-scroll-target="#the-bulk-rem-like-energies">1.4 The “Bulk” (REM-like) Energies</a></li>
+  </ul></li>
+  <li><a href="#collapsed-vs-uncollapsed-states-glass-vs-liquid" id="toc-collapsed-vs-uncollapsed-states-glass-vs-liquid" class="nav-link" data-scroll-target="#collapsed-vs-uncollapsed-states-glass-vs-liquid">2. Collapsed vs Uncollapsed States (Glass vs Liquid)</a>
+  <ul class="collapse">
+  <li><a href="#definition-of-collapse" id="toc-definition-of-collapse" class="nav-link" data-scroll-target="#definition-of-collapse">2.1 Definition of Collapse</a></li>
+  <li><a href="#glass-phase-collapsed-memorization" id="toc-glass-phase-collapsed-memorization" class="nav-link" data-scroll-target="#glass-phase-collapsed-memorization">2.2 Glass Phase (Collapsed / Memorization)</a></li>
+  <li><a href="#liquid-phase-uncollapsed-generalization" id="toc-liquid-phase-uncollapsed-generalization" class="nav-link" data-scroll-target="#liquid-phase-uncollapsed-generalization">2.3 Liquid Phase (Uncollapsed / Generalization)</a></li>
+  <li><a href="#the-phase-transition" id="toc-the-phase-transition" class="nav-link" data-scroll-target="#the-phase-transition">2.4 The Phase Transition</a></li>
+  </ul></li>
+  <li><a href="#simple-heuristic-analysis" id="toc-simple-heuristic-analysis" class="nav-link" data-scroll-target="#simple-heuristic-analysis">3. Simple Heuristic Analysis</a>
+  <ul class="collapse">
+  <li><a href="#typical-energy-gap" id="toc-typical-energy-gap" class="nav-link" data-scroll-target="#typical-energy-gap">3.1 Typical Energy Gap</a></li>
+  <li><a href="#crude-annealed-entropy-estimate" id="toc-crude-annealed-entropy-estimate" class="nav-link" data-scroll-target="#crude-annealed-entropy-estimate">3.2 Crude Annealed Entropy Estimate</a></li>
+  <li><a href="#energy-vs-entropy-competition" id="toc-energy-vs-entropy-competition" class="nav-link" data-scroll-target="#energy-vs-entropy-competition">3.3 Energy vs Entropy Competition</a></li>
+  <li><a href="#simple-collapse-time-estimate" id="toc-simple-collapse-time-estimate" class="nav-link" data-scroll-target="#simple-collapse-time-estimate">3.4 Simple Collapse Time Estimate</a></li>
+  </ul></li>
+  <li><a href="#rigorous-remldp-derivation" id="toc-rigorous-remldp-derivation" class="nav-link" data-scroll-target="#rigorous-remldp-derivation">4. Rigorous REM/LDP Derivation</a>
+  <ul class="collapse">
+  <li><a href="#large-deviation-principles-foundations" id="toc-large-deviation-principles-foundations" class="nav-link" data-scroll-target="#large-deviation-principles-foundations">4.1 Large Deviation Principles: Foundations</a></li>
+  <li><a href="#ldp-for-chi-squared-energy-density" id="toc-ldp-for-chi-squared-energy-density" class="nav-link" data-scroll-target="#ldp-for-chi-squared-energy-density">4.2 LDP for Chi-Squared (Energy Density)</a></li>
+  <li><a href="#bulk-free-energy-via-laplace-principle" id="toc-bulk-free-energy-via-laplace-principle" class="nav-link" data-scroll-target="#bulk-free-energy-via-laplace-principle">4.3 Bulk Free Energy via Laplace Principle</a></li>
+  <li><a href="#glass-vs-liquid-phase-transition" id="toc-glass-vs-liquid-phase-transition" class="nav-link" data-scroll-target="#glass-vs-liquid-phase-transition">4.4 Glass vs Liquid Phase Transition</a></li>
+  <li><a href="#collapse-criterion-from-free-energy" id="toc-collapse-criterion-from-free-energy" class="nav-link" data-scroll-target="#collapse-criterion-from-free-energy">4.5 Collapse Criterion from Free Energy</a></li>
+  <li><a href="#explicit-collapse-time" id="toc-explicit-collapse-time" class="nav-link" data-scroll-target="#explicit-collapse-time">4.6 Explicit Collapse Time</a></li>
+  <li><a href="#summary-of-key-equations" id="toc-summary-of-key-equations" class="nav-link" data-scroll-target="#summary-of-key-equations">4.7 Summary of Key Equations</a></li>
+  </ul></li>
+  <li><a href="#appendix-extension-to-non-isotropic-covariance" id="toc-appendix-extension-to-non-isotropic-covariance" class="nav-link" data-scroll-target="#appendix-extension-to-non-isotropic-covariance">Appendix: Extension to Non-Isotropic Covariance</a>
+  <ul class="collapse">
+  <li><a href="#motivation" id="toc-motivation" class="nav-link" data-scroll-target="#motivation">Motivation</a></li>
+  <li><a href="#setup-general-covariance-model" id="toc-setup-general-covariance-model" class="nav-link" data-scroll-target="#setup-general-covariance-model">Setup: General Covariance Model</a></li>
+  <li><a href="#deriving-the-effective-covariance" id="toc-deriving-the-effective-covariance" class="nav-link" data-scroll-target="#deriving-the-effective-covariance">Deriving the Effective Covariance</a></li>
+  <li><a href="#eigenvalues-of-the-effective-covariance" id="toc-eigenvalues-of-the-effective-covariance" class="nav-link" data-scroll-target="#eigenvalues-of-the-effective-covariance">Eigenvalues of the Effective Covariance</a></li>
+  <li><a href="#ldp-for-weighted-chi-squared-gärtner-ellis-theorem" id="toc-ldp-for-weighted-chi-squared-gärtner-ellis-theorem" class="nav-link" data-scroll-target="#ldp-for-weighted-chi-squared-gärtner-ellis-theorem">LDP for Weighted Chi-Squared: Gärtner-Ellis Theorem</a></li>
+  <li><a href="#verifying-the-isotropic-case" id="toc-verifying-the-isotropic-case" class="nav-link" data-scroll-target="#verifying-the-isotropic-case">Verifying the Isotropic Case</a></li>
+  <li><a href="#the-full-pipeline-with-general-covariance" id="toc-the-full-pipeline-with-general-covariance" class="nav-link" data-scroll-target="#the-full-pipeline-with-general-covariance">The Full Pipeline with General Covariance</a></li>
+  <li><a href="#practical-implementation" id="toc-practical-implementation" class="nav-link" data-scroll-target="#practical-implementation">Practical Implementation</a></li>
+  <li><a href="#spiked-covariance-model-analytical-tractability" id="toc-spiked-covariance-model-analytical-tractability" class="nav-link" data-scroll-target="#spiked-covariance-model-analytical-tractability">Spiked Covariance Model (Analytical Tractability)</a></li>
+  </ul></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<section id="flow-matching-collapse-a-statistical-physics-perspective" class="level1">
+<h1>Flow Matching Collapse: A Statistical Physics Perspective</h1>
+<p>This document provides a rigorous analysis of the collapse phenomenon in Flow Matching using tools from statistical physics, specifically the Random Energy Model (REM) and Large Deviation Principles (LDP).</p>
+<section id="gibbs-measure-and-energy-formulation" class="level2">
+<h2 class="anchored" data-anchor-id="gibbs-measure-and-energy-formulation">1. Gibbs Measure and Energy Formulation</h2>
+<section id="the-marginal-fm-weights-as-a-gibbs-measure" class="level3">
+<h3 class="anchored" data-anchor-id="the-marginal-fm-weights-as-a-gibbs-measure">1.1 The Marginal FM Weights as a Gibbs Measure</h3>
+<p>The marginal velocity field in Flow Matching is given by: <span class="math display">\[
+u_t(x) = \sum_{i=1}^n \lambda_i(x,t) \frac{x^{(i)} - x}{1-t}
+\]</span> where the weights <span class="math inline">\(\lambda_i(x,t)\)</span> take the form: <span class="math display">\[
+\lambda_i(x,t) = \frac{\exp\left(-\frac{\|x - tx^{(i)}\|^2}{2(1-t)^2}\right)}{\sum_{j=1}^n \exp\left(-\frac{\|x - tx^{(j)}\|^2}{2(1-t)^2}\right)}.
+\]</span></p>
+<p>This is precisely a <strong>Boltzmann distribution</strong> at inverse temperature <span class="math inline">\(\beta = 1\)</span> over “states” <span class="math inline">\(i \in \{1, \dots, n\}\)</span> with energy: <span class="math display">\[
+E_i(x,t) = \frac{\|x - tx^{(i)}\|^2}{2(1-t)^2}.
+\]</span></p>
+<p>The denominator defines the <strong>partition function</strong>: <span class="math display">\[
+Z(x,t) = \sum_{j=1}^n e^{-E_j(x,t)}.
+\]</span></p>
+</section>
+<section id="assumptions-on-the-data" class="level3">
+<h3 class="anchored" data-anchor-id="assumptions-on-the-data">1.2 Assumptions on the Data</h3>
+<p>We consider a <strong>Gaussian proxy</strong> for the training data: <span class="math display">\[
+x^{(i)} \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma^2 I_d), \quad i = 1, \dots, n.
+\]</span></p>
+<p>This approximation captures the essential high-dimensional geometry while enabling analytical tractability. For CIFAR-10 after standard normalization, <span class="math inline">\(\sigma^2 \approx 0.24\)</span> provides a reasonable proxy.</p>
+</section>
+<section id="the-planted-teacher-trajectory" class="level3">
+<h3 class="anchored" data-anchor-id="the-planted-teacher-trajectory">1.3 The “Planted” (Teacher) Trajectory</h3>
+<p>Consider a trajectory starting from noise and targeting a specific training image: <span class="math display">\[
+x_t = (1-t)x_0 + tx_1, \quad x_0 \sim \mathcal{N}(0, I_d), \quad x_1 = x^{(1)}.
+\]</span></p>
+<p>We call <span class="math inline">\(i = 1\)</span> the <strong>special (planted) index</strong>. For this index: <span class="math display">\[
+x_t - tx^{(1)} = (1-t)x_0
+\]</span> which gives the <strong>planted energy</strong>: <span class="math display">\[
+E_1(x_t, t) = \frac{\|(1-t)x_0\|^2}{2(1-t)^2} = \frac{\|x_0\|^2}{2}.
+\]</span></p>
+<p>By the law of large numbers for chi-squared random variables: <span class="math display">\[
+\frac{E_1}{d} \xrightarrow{d \to \infty} \frac{1}{2} \quad \text{almost surely.}
+\]</span></p>
+<p>Hence the planted contribution to the partition function is: <span class="math display">\[
+Z_1 = e^{-E_1} \approx e^{-d/2}.
+\]</span></p>
+</section>
+<section id="the-bulk-rem-like-energies" class="level3">
+<h3 class="anchored" data-anchor-id="the-bulk-rem-like-energies">1.4 The “Bulk” (REM-like) Energies</h3>
+<p>For <span class="math inline">\(j \neq 1\)</span>, we have: <span class="math display">\[
+x_t - tx^{(j)} = (1-t)x_0 + t(x_1 - x^{(j)}).
+\]</span></p>
+<p>Under the Gaussian proxy, <span class="math inline">\(x_1 - x^{(j)} \sim \mathcal{N}(0, 2\sigma^2 I_d)\)</span> (independent of <span class="math inline">\(x_0\)</span>). Therefore: <span class="math display">\[
+x_t - tx^{(j)} \sim \mathcal{N}\left(0, s^2(t) I_d\right), \quad s^2(t) := (1-t)^2 + 2\sigma^2 t^2.
+\]</span></p>
+<p>The bulk energies become: <span class="math display">\[
+E_j(x_t, t) = \frac{\|x_t - tx^{(j)}\|^2}{2(1-t)^2} \approx \frac{s^2(t)}{2(1-t)^2} \cdot \chi_d^2.
+\]</span></p>
+<p>Define the <strong>time-dependent energy scale</strong>: <span class="math display">\[
+c(t) := \frac{s^2(t)}{2(1-t)^2} = \frac{1}{2}\left(1 + \frac{2\sigma^2 t^2}{(1-t)^2}\right).
+\]</span></p>
+<p><strong>Key observation:</strong> The bulk energies are approximately i.i.d. across <span class="math inline">\(j \geq 2\)</span>, each extensive (order <span class="math inline">\(d\)</span>). This is the classic setup where <strong>Random Energy Model (REM)</strong> tools apply.</p>
+<hr>
+</section>
+</section>
+<section id="collapsed-vs-uncollapsed-states-glass-vs-liquid" class="level2">
+<h2 class="anchored" data-anchor-id="collapsed-vs-uncollapsed-states-glass-vs-liquid">2. Collapsed vs Uncollapsed States (Glass vs Liquid)</h2>
+<section id="definition-of-collapse" class="level3">
+<h3 class="anchored" data-anchor-id="definition-of-collapse">2.1 Definition of Collapse</h3>
+<p>The central question is whether the partition function <span class="math inline">\(Z(x_t, t)\)</span> is dominated by: - <strong>One special term</strong> (the planted state), or - <strong>Exponentially many comparable terms</strong> (the bulk).</p>
+<p>This leads to two phases:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 39%">
+<col style="width: 28%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Phase</th>
+<th>Statistical Physics</th>
+<th>Flow Matching</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Collapsed</strong></td>
+<td>Glass / Condensed</td>
+<td>Memorization</td>
+<td><span class="math inline">\(\lambda_1 \approx 1\)</span></td>
+</tr>
+<tr class="even">
+<td><strong>Uncollapsed</strong></td>
+<td>Liquid</td>
+<td>Generalization</td>
+<td>Mass spread over many <span class="math inline">\(j\)</span>’s</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="glass-phase-collapsed-memorization" class="level3">
+<h3 class="anchored" data-anchor-id="glass-phase-collapsed-memorization">2.2 Glass Phase (Collapsed / Memorization)</h3>
+<p>In the collapsed phase, <span class="math inline">\(Z \approx Z_1 = e^{-E_1}\)</span>, meaning <span class="math inline">\(\lambda_1 \approx 1\)</span>.</p>
+<p>The marginal velocity field then reduces to: <span class="math display">\[
+u_t(x_t) \approx \frac{x^{(1)} - x_t}{1-t} = \frac{x_1 - x_t}{1-t} = x_1 - x_0.
+\]</span></p>
+<p>This is precisely the <strong>conditional velocity field</strong>. The marginal flow aligns perfectly with the teacher trajectory, leading to memorization of training data.</p>
+</section>
+<section id="liquid-phase-uncollapsed-generalization" class="level3">
+<h3 class="anchored" data-anchor-id="liquid-phase-uncollapsed-generalization">2.3 Liquid Phase (Uncollapsed / Generalization)</h3>
+<p>In the liquid phase, <span class="math inline">\(Z \approx Z_{\text{bulk}} = \sum_{j=2}^n e^{-E_j}\)</span>, with mass distributed across many states.</p>
+<p>The velocity field is a genuine mixture of directions toward different training points, enabling interpolation and generalization.</p>
+</section>
+<section id="the-phase-transition" class="level3">
+<h3 class="anchored" data-anchor-id="the-phase-transition">2.4 The Phase Transition</h3>
+<p>The transition between phases depends on: - <strong>Energy advantage</strong> of the planted state (order <span class="math inline">\(d\)</span>) - <strong>Entropy</strong> from having <span class="math inline">\(n\)</span> competitors (order <span class="math inline">\(\log n\)</span>)</p>
+<p>The competition is controlled by the <strong>dimensionless ratio</strong>: <span class="math display">\[
+\alpha := \frac{\log n}{d}.
+\]</span></p>
+<p>For typical datasets (e.g., CIFAR-10 with <span class="math inline">\(d = 3072\)</span>, <span class="math inline">\(n = 50{,}000\)</span>): <span class="math display">\[
+\alpha = \frac{\log(50{,}000)}{3072} \approx 0.0035 \ll 1.
+\]</span></p>
+<p>This tiny <span class="math inline">\(\alpha\)</span> means the entropy budget is negligible compared to extensive energy gaps, placing the system deep in the collapsed regime for most values of <span class="math inline">\(t\)</span>.</p>
+<hr>
+</section>
+</section>
+<section id="simple-heuristic-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="simple-heuristic-analysis">3. Simple Heuristic Analysis</h2>
+<section id="typical-energy-gap" class="level3">
+<h3 class="anchored" data-anchor-id="typical-energy-gap">3.1 Typical Energy Gap</h3>
+<p>Compare a typical bulk energy to the planted energy. The <strong>typical energy gap</strong> is: <span class="math display">\[
+E_j - E_1 \approx \frac{d}{2}\left(\frac{s^2(t)}{(1-t)^2} - 1\right) = \frac{d}{2} \cdot \frac{2\sigma^2 t^2}{(1-t)^2} = \frac{d \sigma^2 t^2}{(1-t)^2}.
+\]</span></p>
+<p>Therefore, the log-weight ratio is: <span class="math display">\[
+\log \frac{\lambda_j}{\lambda_1} \approx -(E_j - E_1) \approx -\frac{d \sigma^2 t^2}{(1-t)^2}.
+\]</span></p>
+<p>This shows <strong>exponential-in-<span class="math inline">\(d\)</span> suppression</strong> of bulk weights relative to the planted weight.</p>
+</section>
+<section id="crude-annealed-entropy-estimate" class="level3">
+<h3 class="anchored" data-anchor-id="crude-annealed-entropy-estimate">3.2 Crude Annealed Entropy Estimate</h3>
+<p>A naive estimate of the bulk partition function uses the <strong>annealed approximation</strong>: <span class="math display">\[
+Z_{\text{bulk}} \approx (n-1) \cdot \mathbb{E}[e^{-E_j}].
+\]</span></p>
+<p>However, this is often wrong because <span class="math inline">\(e^{-E_j}\)</span> has exponentially broad fluctuations. The sum is dominated by <strong>rare low-energy states</strong>, not typical ones. This is precisely where REM physics becomes essential.</p>
+</section>
+<section id="energy-vs-entropy-competition" class="level3">
+<h3 class="anchored" data-anchor-id="energy-vs-entropy-competition">3.3 Energy vs Entropy Competition</h3>
+<p>The competition can be summarized as: - <strong>Planted contribution:</strong> <span class="math inline">\(Z_1 \sim e^{-d/2}\)</span> - <strong>Bulk contribution (naive):</strong> <span class="math inline">\(Z_{\text{bulk}} \sim n \cdot e^{-d \cdot c(t)} = e^{\alpha d - d \cdot c(t)}\)</span></p>
+<p>For the planted state to dominate, we need the energy advantage to exceed the entropy: <span class="math display">\[
+\frac{d \sigma^2 t^2}{(1-t)^2} \gg \log n.
+\]</span></p>
+<p>Rearranging, collapse holds whenever: <span class="math display">\[
+\frac{t}{1-t} \gg \sqrt{\frac{\log n}{d \sigma^2}}.
+\]</span></p>
+<p>For CIFAR-like numbers, the right-hand side is tiny (<span class="math inline">\(\approx 0.12\)</span>), so collapse can occur at small <span class="math inline">\(t\)</span>.</p>
+</section>
+<section id="simple-collapse-time-estimate" class="level3">
+<h3 class="anchored" data-anchor-id="simple-collapse-time-estimate">3.4 Simple Collapse Time Estimate</h3>
+<p>Setting the two sides equal gives a heuristic collapse time: <span class="math display">\[
+t_C^{\text{heuristic}} \approx \frac{\sqrt{\alpha/\sigma^2}}{1 + \sqrt{\alpha/\sigma^2}}.
+\]</span></p>
+<p>For CIFAR-10 (<span class="math inline">\(\alpha \approx 0.0035\)</span>, <span class="math inline">\(\sigma^2 \approx 0.24\)</span>): <span class="math display">\[
+t_C^{\text{heuristic}} \approx 0.11.
+\]</span></p>
+<p><strong>Caveat:</strong> This estimate compares typical bulk energy to planted energy. A rigorous analysis must consider the <strong>best</strong> competitor among <span class="math inline">\(n-1\)</span> states, not a typical one. This requires REM/LDP tools.</p>
+<hr>
+</section>
+</section>
+<section id="rigorous-remldp-derivation" class="level2">
+<h2 class="anchored" data-anchor-id="rigorous-remldp-derivation">4. Rigorous REM/LDP Derivation</h2>
+<section id="large-deviation-principles-foundations" class="level3">
+<h3 class="anchored" data-anchor-id="large-deviation-principles-foundations">4.1 Large Deviation Principles: Foundations</h3>
+<section id="why-ldp" class="level4">
+<h4 class="anchored" data-anchor-id="why-ldp">Why LDP?</h4>
+<p>The Law of Large Numbers tells us <em>where</em> random variables concentrate, but not <em>how unlikely</em> deviations are. Large Deviation Theory provides <strong>exponential decay rates</strong> for rare events.</p>
+</section>
+<section id="definition" class="level4">
+<h4 class="anchored" data-anchor-id="definition">Definition</h4>
+<p>A sequence of random variables <span class="math inline">\(X_d\)</span> satisfies a <strong>Large Deviation Principle (LDP)</strong> with rate function <span class="math inline">\(I(x)\)</span> if: <span class="math display">\[
+\mathbb{P}(X_d \approx x) \asymp e^{-d \, I(x)}
+\]</span> where: - <span class="math inline">\(d\)</span> is the large parameter (dimension) - <span class="math inline">\(I(x) \geq 0\)</span> with <span class="math inline">\(I(x) = 0\)</span> at the typical value - Larger <span class="math inline">\(I(x)\)</span> means exponentially rarer events</p>
+</section>
+<section id="cramérs-theorem" class="level4">
+<h4 class="anchored" data-anchor-id="cramérs-theorem">Cramér’s Theorem</h4>
+<p>For i.i.d. random variables <span class="math inline">\(X_1, \dots, X_d\)</span> with finite moment generating function, the empirical average <span class="math inline">\(S_d = \frac{1}{d}\sum_{k=1}^d X_k\)</span> satisfies an LDP: <span class="math display">\[
+\mathbb{P}(S_d \approx x) \asymp e^{-d \, I(x)}
+\]</span> where the <strong>rate function</strong> is the Legendre transform of the log-MGF: <span class="math display">\[
+I(x) = \sup_{\lambda \in \mathbb{R}} \left( \lambda x - \log \mathbb{E}[e^{\lambda X_1}] \right).
+\]</span></p>
+</section>
+</section>
+<section id="ldp-for-chi-squared-energy-density" class="level3">
+<h3 class="anchored" data-anchor-id="ldp-for-chi-squared-energy-density">4.2 LDP for Chi-Squared (Energy Density)</h3>
+<section id="deriving-the-rate-function" class="level4">
+<h4 class="anchored" data-anchor-id="deriving-the-rate-function">Deriving the Rate Function</h4>
+<p>Let <span class="math inline">\(Z_k \sim \mathcal{N}(0,1)\)</span> i.i.d., so <span class="math inline">\(\chi_d^2 = \sum_{k=1}^d Z_k^2\)</span>. Define: <span class="math display">\[
+Y_d := \frac{\chi_d^2}{d} = \frac{1}{d}\sum_{k=1}^d Z_k^2.
+\]</span></p>
+<p>For <span class="math inline">\(X = Z^2\)</span>, the log-MGF is: <span class="math display">\[
+\log \mathbb{E}[e^{\lambda Z^2}] = -\frac{1}{2}\log(1 - 2\lambda), \quad \lambda &lt; \frac{1}{2}.
+\]</span></p>
+<p>Applying Cramér’s theorem and computing the Legendre transform: <span class="math display">\[
+I_\chi(y) = \sup_{\lambda &lt; 1/2}\left(\lambda y + \frac{1}{2}\log(1 - 2\lambda)\right) = \frac{1}{2}(y - 1 - \log y), \quad y &gt; 0.
+\]</span></p>
+<p><strong>Key properties:</strong> - Minimum at <span class="math inline">\(y = 1\)</span> with <span class="math inline">\(I_\chi(1) = 0\)</span> (typical value) - Convex and non-negative - Deviations are exponentially unlikely in <span class="math inline">\(d\)</span></p>
+</section>
+<section id="energy-density-ldp" class="level4">
+<h4 class="anchored" data-anchor-id="energy-density-ldp">Energy Density LDP</h4>
+<p>For bulk energies with <span class="math inline">\(E = c(t) \cdot \chi_d^2\)</span>, the energy density <span class="math inline">\(e = E/d = c \cdot Y_d\)</span> satisfies: <span class="math display">\[
+\mathbb{P}(e \approx \varepsilon) \asymp e^{-d \, I(\varepsilon)}
+\]</span> where: <span class="math display">\[
+\boxed{I(\varepsilon) = \frac{1}{2}\left(\frac{\varepsilon}{c} - 1 - \log\frac{\varepsilon}{c}\right)}
+\]</span></p>
+<p>This is the <strong>rigorous backbone</strong> for all REM arguments.</p>
+</section>
+</section>
+<section id="bulk-free-energy-via-laplace-principle" class="level3">
+<h3 class="anchored" data-anchor-id="bulk-free-energy-via-laplace-principle">4.3 Bulk Free Energy via Laplace Principle</h3>
+<section id="complexity-entropy-of-states" class="level4">
+<h4 class="anchored" data-anchor-id="complexity-entropy-of-states">Complexity (Entropy of States)</h4>
+<p>With <span class="math inline">\(n = e^{\alpha d}\)</span> bulk energies, the expected <strong>number of states</strong> with energy density near <span class="math inline">\(\varepsilon\)</span> is: <span class="math display">\[
+\#(\varepsilon) \approx n \cdot \mathbb{P}(e \approx \varepsilon) \approx \exp\{d(\alpha - I(\varepsilon))\}.
+\]</span></p>
+<p>The quantity: <span class="math display">\[
+\Sigma(\varepsilon) := \alpha - I(\varepsilon)
+\]</span> is the <strong>complexity</strong> (entropy density of states at energy <span class="math inline">\(\varepsilon\)</span>).</p>
+</section>
+<section id="laplace-principle" class="level4">
+<h4 class="anchored" data-anchor-id="laplace-principle">Laplace Principle</h4>
+<p>The bulk partition function is approximately: <span class="math display">\[
+Z_{\text{bulk}} = \sum_{j=2}^n e^{-E_j} \approx \int d\varepsilon \, \exp\{d(\Sigma(\varepsilon) - \varepsilon)\}.
+\]</span></p>
+<p>By the Laplace principle (large-<span class="math inline">\(d\)</span> saddle point): <span class="math display">\[
+\boxed{\Phi(1) := \lim_{d \to \infty} \frac{1}{d}\log Z_{\text{bulk}} = \sup_{\varepsilon &gt; 0}\left[\alpha - I(\varepsilon) - \varepsilon\right]}
+\]</span></p>
+</section>
+</section>
+<section id="glass-vs-liquid-phase-transition" class="level3">
+<h3 class="anchored" data-anchor-id="glass-vs-liquid-phase-transition">4.4 Glass vs Liquid Phase Transition</h3>
+<section id="the-variational-problem" class="level4">
+<h4 class="anchored" data-anchor-id="the-variational-problem">The Variational Problem</h4>
+<p>Define <span class="math inline">\(F(\varepsilon) = \alpha - I(\varepsilon) - \varepsilon\)</span>. The maximizer determines the phase.</p>
+</section>
+<section id="liquid-phase-interior-solution" class="level4">
+<h4 class="anchored" data-anchor-id="liquid-phase-interior-solution">Liquid Phase (Interior Solution)</h4>
+<p>If the maximizer is interior, it satisfies <span class="math inline">\(F'(\varepsilon) = 0\)</span>, i.e., <span class="math inline">\(I'(\varepsilon) = -1\)</span>.</p>
+<p>Computing: <span class="math display">\[
+I'(\varepsilon) = \frac{1}{2}\left(\frac{1}{c} - \frac{1}{\varepsilon}\right) = -1
+\]</span> yields the <strong>liquid saddle point</strong>: <span class="math display">\[
+\boxed{\varepsilon_* = \frac{c}{1 + 2c}}
+\]</span></p>
+<p>This solution is valid only if there are exponentially many states there: <span class="math inline">\(\Sigma(\varepsilon_*) = \alpha - I(\varepsilon_*) \geq 0\)</span>.</p>
+</section>
+<section id="glass-phase-boundary-solution" class="level4">
+<h4 class="anchored" data-anchor-id="glass-phase-boundary-solution">Glass Phase (Boundary Solution)</h4>
+<p>If <span class="math inline">\(\alpha - I(\varepsilon_*) &lt; 0\)</span>, there are too few states at the liquid saddle. The supremum hits the boundary where complexity vanishes: <span class="math display">\[
+I(\varepsilon_g) = \alpha
+\]</span></p>
+<p>The partition sum is then dominated by the <strong>lowest-energy extremes</strong>: this is the glass/condensed phase.</p>
+</section>
+<section id="freezing-threshold" class="level4">
+<h4 class="anchored" data-anchor-id="freezing-threshold">Freezing Threshold</h4>
+<p>The critical entropy level separating phases is: <span class="math display">\[
+\boxed{\alpha_c(c) := I(\varepsilon_*) = \frac{1}{2}\left(\log(1 + 2c) - \frac{2c}{1 + 2c}\right)}
+\]</span></p>
+<p><strong>Phase diagram:</strong> - <strong>Liquid phase:</strong> <span class="math inline">\(\alpha \geq \alpha_c(c)\)</span>, maximizer at <span class="math inline">\(\varepsilon_*\)</span>, free energy <span class="math inline">\(\Phi(1) = \alpha - I(\varepsilon_*) - \varepsilon_*\)</span> - <strong>Glass phase:</strong> <span class="math inline">\(\alpha &lt; \alpha_c(c)\)</span>, maximizer at <span class="math inline">\(\varepsilon_g\)</span> with <span class="math inline">\(I(\varepsilon_g) = \alpha\)</span>, free energy <span class="math inline">\(\Phi(1) = -\varepsilon_g\)</span></p>
+</section>
+</section>
+<section id="collapse-criterion-from-free-energy" class="level3">
+<h3 class="anchored" data-anchor-id="collapse-criterion-from-free-energy">4.5 Collapse Criterion from Free Energy</h3>
+<section id="full-partition-function" class="level4">
+<h4 class="anchored" data-anchor-id="full-partition-function">Full Partition Function</h4>
+<p>The complete partition function is: <span class="math display">\[
+Z = e^{-E_1} + Z_{\text{bulk}}, \quad \lambda_1 = \frac{e^{-E_1}}{Z}.
+\]</span></p>
+<p>Since <span class="math inline">\(E_1/d \to 1/2\)</span>, we have: <span class="math display">\[
+\frac{1}{d}\log\frac{Z_{\text{bulk}}}{e^{-E_1}} \to \Phi(1) + \frac{1}{2}.
+\]</span></p>
+</section>
+<section id="collapse-condition" class="level4">
+<h4 class="anchored" data-anchor-id="collapse-condition">Collapse Condition</h4>
+<p><span class="math display">\[
+\boxed{\lambda_1 \to 1 \iff \Phi(1) &lt; -\frac{1}{2}}
+\]</span></p>
+<p>More precisely, for large <span class="math inline">\(d\)</span>: <span class="math display">\[
+\lambda_1 \approx \frac{1}{1 + \exp\{d(\Phi(1) + 1/2)\}}.
+\]</span></p>
+</section>
+<section id="glass-phase-collapse-criterion" class="level4">
+<h4 class="anchored" data-anchor-id="glass-phase-collapse-criterion">Glass Phase Collapse Criterion</h4>
+<p>In the glass phase, <span class="math inline">\(\Phi(1) = -\varepsilon_g\)</span>, so collapse requires: <span class="math display">\[
+\boxed{-\varepsilon_g &lt; -\frac{1}{2} \iff \varepsilon_g &gt; \frac{1}{2}}
+\]</span></p>
+<p>where <span class="math inline">\(\varepsilon_g\)</span> is defined implicitly by <span class="math inline">\(I(\varepsilon_g) = \alpha\)</span>.</p>
+<p><strong>Interpretation:</strong> Collapse occurs when even the <em>best</em> spurious competitor (with energy density <span class="math inline">\(\varepsilon_g\)</span>) has higher energy than the planted state (energy density <span class="math inline">\(1/2\)</span>).</p>
+</section>
+<section id="liquid-phase-collapse-criterion" class="level4">
+<h4 class="anchored" data-anchor-id="liquid-phase-collapse-criterion">Liquid Phase Collapse Criterion</h4>
+<p>In the liquid phase, collapse requires: <span class="math display">\[
+\alpha - I(\varepsilon_*) - \varepsilon_* &lt; -\frac{1}{2}.
+\]</span></p>
+<p>This gives an explicit inequality in <span class="math inline">\(c\)</span> and <span class="math inline">\(\alpha\)</span>.</p>
+</section>
+</section>
+<section id="explicit-collapse-time" class="level3">
+<h3 class="anchored" data-anchor-id="explicit-collapse-time">4.6 Explicit Collapse Time</h3>
+<section id="collapse-time-equation" class="level4">
+<h4 class="anchored" data-anchor-id="collapse-time-equation">Collapse Time Equation</h4>
+<p>The collapse time <span class="math inline">\(t_C\)</span> is defined by <span class="math inline">\(\varepsilon_g(t_C) = 1/2\)</span>. Setting <span class="math inline">\(\varepsilon_g = 1/2\)</span> in <span class="math inline">\(I(\varepsilon_g) = \alpha\)</span>: <span class="math display">\[
+\alpha = I(1/2) = \frac{1}{2}\left(\frac{1/2}{c} - 1 - \log\frac{1/2}{c}\right) = \frac{1}{2}\left(\frac{1}{2c} - 1 + \log(2c)\right).
+\]</span></p>
+<p>This gives the <strong>REM-rigorous collapse boundary</strong>: <span class="math display">\[
+\boxed{\alpha = \frac{1}{2}\left(\log(2c(t_C)) + \frac{1}{2c(t_C)} - 1\right)}
+\]</span></p>
+<p>with <span class="math inline">\(c(t) = \frac{1}{2}\left(1 + \frac{2\sigma^2 t^2}{(1-t)^2}\right)\)</span>.</p>
+</section>
+<section id="cifar-10-proxy-calculation" class="level4">
+<h4 class="anchored" data-anchor-id="cifar-10-proxy-calculation">CIFAR-10 Proxy Calculation</h4>
+<p>For CIFAR-10: <span class="math inline">\(d = 3072\)</span>, <span class="math inline">\(n = 50{,}000\)</span>, <span class="math inline">\(\sigma^2 = 0.24\)</span>.</p>
+<p>Compute: <span class="math display">\[
+\alpha = \frac{\log(50{,}000)}{3072} \approx 0.003522.
+\]</span></p>
+<p>Solving the collapse equation yields: <span class="math display">\[
+\boxed{t_C \approx 0.341}
+\]</span></p>
+<p>with corresponding <span class="math inline">\(c(t_C) \approx 0.5644\)</span>.</p>
+<p><strong>Interpretation:</strong> Under the i.i.d. Gaussian proxy + REM idealization, for <span class="math inline">\(t \lesssim 0.34\)</span>, the planted datapoint is no longer guaranteed to dominate because among <span class="math inline">\(n\)</span> training points, one can typically find at least one spurious point whose energy matches or beats the planted energy. For <span class="math inline">\(t \gtrsim 0.34\)</span>, collapse occurs and the planted state dominates.</p>
+</section>
+<section id="why-cifar-is-always-in-the-glass-phase" class="level4">
+<h4 class="anchored" data-anchor-id="why-cifar-is-always-in-the-glass-phase">Why CIFAR is Always in the Glass Phase</h4>
+<p>For CIFAR-like <span class="math inline">\(\alpha \ll 1\)</span>, we have <span class="math inline">\(\alpha \ll \alpha_c(c(t))\)</span> for all <span class="math inline">\(t \in [0,1)\)</span>. The system is <strong>always in the glass phase</strong>, meaning: 1. The bulk partition function is dominated by a few extreme low-energy states 2. The free-energy criterion reduces to the minimum-energy criterion 3. The “going one level deeper” analysis confirms the simpler extreme-value argument</p>
+</section>
+</section>
+<section id="summary-of-key-equations" class="level3">
+<h3 class="anchored" data-anchor-id="summary-of-key-equations">4.7 Summary of Key Equations</h3>
+<section id="bulk-energy-ldp" class="level4">
+<h4 class="anchored" data-anchor-id="bulk-energy-ldp">Bulk Energy LDP</h4>
+<p><span class="math display">\[
+\mathbb{P}\left(\frac{E}{d} \approx \varepsilon\right) \asymp e^{-d \, I(\varepsilon)}, \quad I(\varepsilon) = \frac{1}{2}\left(\frac{\varepsilon}{c} - 1 - \log\frac{\varepsilon}{c}\right)
+\]</span></p>
+</section>
+<section id="bulk-quenched-free-energy" class="level4">
+<h4 class="anchored" data-anchor-id="bulk-quenched-free-energy">Bulk Quenched Free Energy</h4>
+<p><span class="math display">\[
+\Phi(1) = \sup_{\varepsilon &gt; 0}\left[\alpha - I(\varepsilon) - \varepsilon\right], \quad \alpha = \frac{\log n}{d}
+\]</span></p>
+</section>
+<section id="glass-vs-liquid-threshold" class="level4">
+<h4 class="anchored" data-anchor-id="glass-vs-liquid-threshold">Glass vs Liquid Threshold</h4>
+<p><span class="math display">\[
+\alpha_c(c) = \frac{1}{2}\left(\log(1 + 2c) - \frac{2c}{1 + 2c}\right)
+\]</span></p>
+</section>
+<section id="collapse-criterion" class="level4">
+<h4 class="anchored" data-anchor-id="collapse-criterion">Collapse Criterion</h4>
+<p><span class="math display">\[
+\lambda_1 \to 1 \iff \Phi(1) &lt; -\frac{1}{2}
+\]</span></p>
+<p>In the glass phase (<span class="math inline">\(\alpha &lt; \alpha_c\)</span>): <span class="math display">\[
+\lambda_1 \to 1 \iff \varepsilon_g &gt; \frac{1}{2}, \quad I(\varepsilon_g) = \alpha
+\]</span></p>
+</section>
+<section id="collapse-time-glass-phase" class="level4">
+<h4 class="anchored" data-anchor-id="collapse-time-glass-phase">Collapse Time (Glass Phase)</h4>
+<p><span class="math display">\[
+\alpha = \frac{1}{2}\left(\log(2c(t_C)) + \frac{1}{2c(t_C)} - 1\right)
+\]</span></p>
+<hr>
+</section>
+</section>
+</section>
+<section id="appendix-extension-to-non-isotropic-covariance" class="level2">
+<h2 class="anchored" data-anchor-id="appendix-extension-to-non-isotropic-covariance">Appendix: Extension to Non-Isotropic Covariance</h2>
+<section id="motivation" class="level3">
+<h3 class="anchored" data-anchor-id="motivation">Motivation</h3>
+<p>The isotropic Gaussian proxy <span class="math inline">\(x^{(i)} \sim \mathcal{N}(0, \sigma^2 I_d)\)</span> is convenient but unrealistic. Real image datasets have structured covariance with varying eigenvalues (some directions have high variance, others low).</p>
+<p><strong>Key insight:</strong> The REM/LDP framework extends naturally to non-isotropic covariance. The structure of the theory remains identical — only the <strong>rate function</strong> <span class="math inline">\(I(\varepsilon)\)</span> changes.</p>
+</section>
+<section id="setup-general-covariance-model" class="level3">
+<h3 class="anchored" data-anchor-id="setup-general-covariance-model">Setup: General Covariance Model</h3>
+<p>Assume training images follow: <span class="math display">\[
+x^{(i)} \sim \mathcal{N}(0, C), \quad i = 1, \dots, n
+\]</span> where <span class="math inline">\(C\)</span> is a <span class="math inline">\(d \times d\)</span> positive definite covariance matrix with eigendecomposition: <span class="math display">\[
+C = U \text{diag}(\mu_1, \dots, \mu_d) U^\top.
+\]</span></p>
+</section>
+<section id="deriving-the-effective-covariance" class="level3">
+<h3 class="anchored" data-anchor-id="deriving-the-effective-covariance">Deriving the Effective Covariance</h3>
+<p>Recall the bulk energy for <span class="math inline">\(j \geq 2\)</span>: <span class="math display">\[
+E_j = \frac{\|x_t - tx^{(j)}\|^2}{2(1-t)^2}, \quad x_t = (1-t)x_0 + tx_1.
+\]</span></p>
+<p><strong>Step 1: Decompose the displacement</strong> <span class="math display">\[
+x_t - tx^{(j)} = (1-t)x_0 + t(x_1 - x^{(j)}).
+\]</span></p>
+<p><strong>Step 2: Identify the distributions</strong> - <span class="math inline">\(x_0 \sim \mathcal{N}(0, I_d)\)</span> (noise) - <span class="math inline">\(x_1 - x^{(j)} \sim \mathcal{N}(0, 2C)\)</span> (difference of two i.i.d. samples from <span class="math inline">\(\mathcal{N}(0, C)\)</span>)</p>
+<p><strong>Step 3: Compute the covariance of <span class="math inline">\(x_t - tx^{(j)}\)</span></strong></p>
+<p>Since <span class="math inline">\(x_0\)</span> and <span class="math inline">\((x_1 - x^{(j)})\)</span> are independent: <span class="math display">\[
+\text{Cov}(x_t - tx^{(j)}) = (1-t)^2 I_d + 2t^2 C =: \Sigma_t.
+\]</span></p>
+<p><strong>Step 4: Define the effective covariance for the energy</strong></p>
+<p>The energy involves <span class="math inline">\(\|x_t - tx^{(j)}\|^2 / (2(1-t)^2)\)</span>. Let <span class="math inline">\(g \sim \mathcal{N}(0, I_d)\)</span> be a standard Gaussian vector. Then: <span class="math display">\[
+x_t - tx^{(j)} \stackrel{d}{=} \Sigma_t^{1/2} g
+\]</span> and the energy becomes: <span class="math display">\[
+E_j = \frac{g^\top \Sigma_t g}{2(1-t)^2} = \frac{1}{2} g^\top C_t g
+\]</span> where the <strong>effective covariance</strong> is: <span class="math display">\[
+C_t := \frac{\Sigma_t}{(1-t)^2} = I_d + \frac{2t^2}{(1-t)^2} C.
+\]</span></p>
+</section>
+<section id="eigenvalues-of-the-effective-covariance" class="level3">
+<h3 class="anchored" data-anchor-id="eigenvalues-of-the-effective-covariance">Eigenvalues of the Effective Covariance</h3>
+<p>If <span class="math inline">\(C\)</span> has eigenvalues <span class="math inline">\(\{\mu_k\}_{k=1}^d\)</span>, then <span class="math inline">\(C_t\)</span> has eigenvalues: <span class="math display">\[
+\lambda_k^{(t)} = 1 + \frac{2t^2}{(1-t)^2} \mu_k, \quad k = 1, \dots, d.
+\]</span></p>
+<p>The bulk energy density is: <span class="math display">\[
+\frac{E_j}{d} = \frac{1}{2d} \sum_{k=1}^d \lambda_k^{(t)} Z_k^2
+\]</span> where <span class="math inline">\(Z_k \sim \mathcal{N}(0,1)\)</span> are i.i.d. (the components of <span class="math inline">\(g\)</span> in the eigenbasis of <span class="math inline">\(C_t\)</span>).</p>
+<p><strong>Recovery of isotropic case:</strong> When <span class="math inline">\(C = \sigma^2 I_d\)</span>, all <span class="math inline">\(\mu_k = \sigma^2\)</span>, so: <span class="math display">\[
+\lambda_k^{(t)} = 1 + \frac{2\sigma^2 t^2}{(1-t)^2} = 2c(t)
+\]</span> which matches our earlier formula (the factor of 2 accounts for the <span class="math inline">\(1/2\)</span> in <span class="math inline">\(E_j = \frac{1}{2}g^\top C_t g\)</span>).</p>
+</section>
+<section id="ldp-for-weighted-chi-squared-gärtner-ellis-theorem" class="level3">
+<h3 class="anchored" data-anchor-id="ldp-for-weighted-chi-squared-gärtner-ellis-theorem">LDP for Weighted Chi-Squared: Gärtner-Ellis Theorem</h3>
+<p>The energy density is a <strong>weighted sum of chi-squared variables</strong>: <span class="math display">\[
+\frac{E_j}{d} = \frac{1}{2d} \sum_{k=1}^d \lambda_k^{(t)} Z_k^2.
+\]</span></p>
+<p>To find its LDP, we use the <strong>Gärtner-Ellis theorem</strong>, which generalizes Cramér’s theorem to non-i.i.d. settings.</p>
+<p><strong>Step 1: Compute the scaled cumulant generating function</strong></p>
+<p>For a single term <span class="math inline">\(\lambda Z^2\)</span> with <span class="math inline">\(Z \sim \mathcal{N}(0,1)\)</span>: <span class="math display">\[
+\mathbb{E}[e^{\theta \lambda Z^2}] = \frac{1}{\sqrt{1 - 2\theta\lambda}}, \quad \theta &lt; \frac{1}{2\lambda}.
+\]</span> Thus: <span class="math display">\[
+\log \mathbb{E}[e^{\theta \lambda Z^2}] = -\frac{1}{2}\log(1 - 2\theta\lambda).
+\]</span></p>
+<p><strong>Step 2: Sum over all eigenvalues</strong></p>
+<p>The scaled log-MGF for the energy density <span class="math inline">\(e = E_j/d\)</span> is: <span class="math display">\[
+\Lambda_t(\theta) := \lim_{d \to \infty} \frac{1}{d} \log \mathbb{E}\left[e^{d\theta \cdot \frac{1}{2d}\sum_k \lambda_k^{(t)} Z_k^2}\right] = \lim_{d \to \infty} \frac{1}{d} \sum_{k=1}^d \left(-\frac{1}{2}\log\left(1 - \theta\lambda_k^{(t)}\right)\right).
+\]</span></p>
+<p>This limit exists if the <strong>empirical spectral distribution</strong> of <span class="math inline">\(C_t\)</span> converges: <span class="math display">\[
+\Lambda_t(\theta) = \int \left(-\frac{1}{2}\log(1 - \theta\lambda)\right) d\nu_t(\lambda)
+\]</span> where <span class="math inline">\(\nu_t\)</span> is the limiting spectral measure of <span class="math inline">\(\{lambda_k^{(t)}\}\)</span>.</p>
+<p><strong>Step 3: Legendre transform gives the rate function</strong></p>
+<p>By the Gärtner-Ellis theorem: <span class="math display">\[
+\boxed{I_t(\varepsilon) = \sup_{\theta &lt; 1/\lambda_{\max}^{(t)}} \left(\theta\varepsilon - \Lambda_t(\theta)\right)}
+\]</span></p>
+<p>This is the <strong>drop-in replacement</strong> for the isotropic rate function.</p>
+</section>
+<section id="verifying-the-isotropic-case" class="level3">
+<h3 class="anchored" data-anchor-id="verifying-the-isotropic-case">Verifying the Isotropic Case</h3>
+<p>For <span class="math inline">\(C = \sigma^2 I_d\)</span>, all eigenvalues are equal: <span class="math inline">\(\lambda_k^{(t)} = \lambda^{(t)} = 1 + \frac{2\sigma^2 t^2}{(1-t)^2}\)</span>.</p>
+<p>Then: <span class="math display">\[
+\Lambda_t(\theta) = -\frac{1}{2}\log(1 - \theta\lambda^{(t)}).
+\]</span></p>
+<p>The Legendre transform: <span class="math display">\[
+I_t(\varepsilon) = \sup_\theta \left(\theta\varepsilon + \frac{1}{2}\log(1 - \theta\lambda^{(t)})\right).
+\]</span></p>
+<p>Setting the derivative to zero: <span class="math display">\[
+\varepsilon - \frac{\lambda^{(t)}/2}{1 - \theta\lambda^{(t)}} = 0 \quad \Rightarrow \quad \theta^* = \frac{1}{\lambda^{(t)}} - \frac{1}{2\varepsilon}.
+\]</span></p>
+<p>Substituting back and simplifying: <span class="math display">\[
+I_t(\varepsilon) = \frac{1}{2}\left(\frac{2\varepsilon}{\lambda^{(t)}} - 1 - \log\frac{2\varepsilon}{\lambda^{(t)}}\right).
+\]</span></p>
+<p>With <span class="math inline">\(c(t) = \lambda^{(t)}/2\)</span>, this becomes: <span class="math display">\[
+I_t(\varepsilon) = \frac{1}{2}\left(\frac{\varepsilon}{c(t)} - 1 - \log\frac{\varepsilon}{c(t)}\right)
+\]</span> which matches our earlier isotropic formula exactly.</p>
+</section>
+<section id="the-full-pipeline-with-general-covariance" class="level3">
+<h3 class="anchored" data-anchor-id="the-full-pipeline-with-general-covariance">The Full Pipeline with General Covariance</h3>
+<p>The REM framework carries through unchanged:</p>
+<ol type="1">
+<li><p><strong>Bulk free energy:</strong> <span class="math display">\[
+\Phi(1,t) = \sup_{\varepsilon &gt; 0}\left[\alpha - I_t(\varepsilon) - \varepsilon\right]
+\]</span></p></li>
+<li><p><strong>Collapse criterion:</strong> <span class="math display">\[
+\lambda_1 \to 1 \iff \Phi(1,t) &lt; -\frac{1}{2}
+\]</span></p></li>
+<li><p><strong>Planted weight approximation:</strong> <span class="math display">\[
+\lambda_1(t) \approx \frac{1}{1 + \exp\{d(\Phi(1,t) + 1/2)\}}
+\]</span></p></li>
+</ol>
+<p>Only <span class="math inline">\(I_t(\varepsilon)\)</span> changes — the rest of the theory is identical.</p>
+</section>
+<section id="practical-implementation" class="level3">
+<h3 class="anchored" data-anchor-id="practical-implementation">Practical Implementation</h3>
+<p><strong>To compute <span class="math inline">\(t_C\)</span> and <span class="math inline">\(\lambda_1(t)\)</span> for real data:</strong></p>
+<ol type="1">
+<li><p><strong>Estimate the covariance spectrum:</strong> Compute the eigenvalues <span class="math inline">\(\{\mu_k\}\)</span> of the sample covariance of your training data.</p></li>
+<li><p><strong>Compute the effective spectrum at each <span class="math inline">\(t\)</span>:</strong> <span class="math display">\[
+\lambda_k^{(t)} = 1 + \frac{2t^2}{(1-t)^2} \mu_k
+\]</span></p></li>
+<li><p><strong>Evaluate the scaled log-MGF numerically:</strong> <span class="math display">\[
+\Lambda_t(\theta) = \frac{1}{d}\sum_{k=1}^d \left(-\frac{1}{2}\log(1 - \theta\lambda_k^{(t)})\right)
+\]</span></p></li>
+<li><p><strong>Compute the rate function via numerical Legendre transform:</strong> <span class="math display">\[
+I_t(\varepsilon) = \sup_{\theta} \left(\theta\varepsilon - \Lambda_t(\theta)\right)
+\]</span></p></li>
+<li><p><strong>Solve the variational problem:</strong> <span class="math display">\[
+\Phi(1,t) = \sup_\varepsilon\left[\alpha - I_t(\varepsilon) - \varepsilon\right]
+\]</span></p></li>
+<li><p><strong>Find <span class="math inline">\(t_C\)</span>:</strong> Solve <span class="math inline">\(\Phi(1,t_C) = -1/2\)</span>.</p></li>
+</ol>
+</section>
+<section id="spiked-covariance-model-analytical-tractability" class="level3">
+<h3 class="anchored" data-anchor-id="spiked-covariance-model-analytical-tractability">Spiked Covariance Model (Analytical Tractability)</h3>
+<p>For interpretability, consider a <strong>spiked covariance</strong> model: <span class="math display">\[
+C = v I_d + (\Lambda - v) uu^\top
+\]</span> where: - <span class="math inline">\(v &gt; 0\)</span> is the bulk variance - <span class="math inline">\(\Lambda &gt; v\)</span> is the spike strength (top eigenvalue) - <span class="math inline">\(u \in \mathbb{R}^d\)</span> is the principal direction (<span class="math inline">\(\|u\| = 1\)</span>)</p>
+<p>This model has: - One eigenvalue <span class="math inline">\(\Lambda\)</span> (the spike) - <span class="math inline">\((d-1)\)</span> eigenvalues equal to <span class="math inline">\(v\)</span> (the bulk)</p>
+<p>The effective spectrum becomes: - One eigenvalue: <span class="math inline">\(\lambda_{\text{spike}}^{(t)} = 1 + \frac{2t^2}{(1-t)^2}\Lambda\)</span> - <span class="math inline">\((d-1)\)</span> eigenvalues: <span class="math inline">\(\lambda_{\text{bulk}}^{(t)} = 1 + \frac{2t^2}{(1-t)^2}v\)</span></p>
+<p>As <span class="math inline">\(d \to \infty\)</span>, the spike contributes negligibly to <span class="math inline">\(\Lambda_t(\theta)\)</span>, and we recover the isotropic formula with <span class="math inline">\(\sigma^2 = v\)</span>. However, the spike can significantly affect the <strong>planted energy</strong> if the planted trajectory aligns with the principal direction — this connects to the statistical physics of “principal component recovery”.</p>
+
+
+</section>
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{untitled,
+  author = {},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-untitled" class="csl-entry quarto-appendix-citeas" role="listitem">
+n.d.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

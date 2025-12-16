@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.40">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Nicolas Brosse">
+<meta name="dcterms.date" content="2025-12-07">
+<meta name="description" content="A mathematical and system-level overview of Model Predictive Control for robotics and humanoid locomotion.">
+
+<title>Model Predictive Control for Robotics and Humanoid Locomotion: A Mathematical and System-Level Overview – Nicolas’ Notebook</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-313591559204ad6a7884cc02194e8f50.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Nicolas’ Notebook</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Model Predictive Control for Robotics and Humanoid Locomotion: A Mathematical and System-Level Overview</h1>
+                  <div>
+        <div class="description">
+          A mathematical and system-level overview of Model Predictive Control for robotics and humanoid locomotion.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">robotics</div>
+                <div class="quarto-category">MPC</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Nicolas Brosse </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">December 7, 2025</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#foundations-of-model-predictive-control-mpc" id="toc-foundations-of-model-predictive-control-mpc" class="nav-link" data-scroll-target="#foundations-of-model-predictive-control-mpc">1. Foundations of Model Predictive Control (MPC)</a></li>
+  <li><a href="#example-mpc-for-a-simple-1d-robot-double-integrator" id="toc-example-mpc-for-a-simple-1d-robot-double-integrator" class="nav-link" data-scroll-target="#example-mpc-for-a-simple-1d-robot-double-integrator">2. Example: MPC for a Simple 1D Robot (Double Integrator)</a>
+  <ul class="collapse">
+  <li><a href="#discretization" id="toc-discretization" class="nav-link" data-scroll-target="#discretization">2.1 Discretization</a></li>
+  <li><a href="#dynamic-prediction" id="toc-dynamic-prediction" class="nav-link" data-scroll-target="#dynamic-prediction">2.2 Dynamic prediction</a></li>
+  <li><a href="#stacked-form" id="toc-stacked-form" class="nav-link" data-scroll-target="#stacked-form">2.3 Stacked form</a></li>
+  <li><a href="#mpc-cost-in-quadratic-form" id="toc-mpc-cost-in-quadratic-form" class="nav-link" data-scroll-target="#mpc-cost-in-quadratic-form">2.4 MPC cost in quadratic form</a></li>
+  </ul></li>
+  <li><a href="#mpc-for-humanoid-locomotion" id="toc-mpc-for-humanoid-locomotion" class="nav-link" data-scroll-target="#mpc-for-humanoid-locomotion">3. MPC for Humanoid Locomotion</a>
+  <ul class="collapse">
+  <li><a href="#lipm-dynamics" id="toc-lipm-dynamics" class="nav-link" data-scroll-target="#lipm-dynamics">3.1 LIPM Dynamics</a></li>
+  <li><a href="#mpc-cost" id="toc-mpc-cost" class="nav-link" data-scroll-target="#mpc-cost">3.2 MPC cost</a></li>
+  <li><a href="#zmp-constraints" id="toc-zmp-constraints" class="nav-link" data-scroll-target="#zmp-constraints">3.3 ZMP constraints</a></li>
+  <li><a href="#mpc-outputs" id="toc-mpc-outputs" class="nav-link" data-scroll-target="#mpc-outputs">3.4 MPC outputs</a></li>
+  </ul></li>
+  <li><a href="#whole-body-control-using-quadratic-programming-wbqp" id="toc-whole-body-control-using-quadratic-programming-wbqp" class="nav-link" data-scroll-target="#whole-body-control-using-quadratic-programming-wbqp">4. Whole-Body Control Using Quadratic Programming (WBQP)</a>
+  <ul class="collapse">
+  <li><a href="#optimization-variables" id="toc-optimization-variables" class="nav-link" data-scroll-target="#optimization-variables">4.1 Optimization variables</a></li>
+  <li><a href="#objective-function" id="toc-objective-function" class="nav-link" data-scroll-target="#objective-function">4.2 Objective function</a></li>
+  <li><a href="#constraints" id="toc-constraints" class="nav-link" data-scroll-target="#constraints">4.3 Constraints</a>
+  <ul class="collapse">
+  <li><a href="#dynamic-consistency" id="toc-dynamic-consistency" class="nav-link" data-scroll-target="#dynamic-consistency">Dynamic consistency</a></li>
+  <li><a href="#contact-constraints" id="toc-contact-constraints" class="nav-link" data-scroll-target="#contact-constraints">Contact constraints</a></li>
+  <li><a href="#friction-cones" id="toc-friction-cones" class="nav-link" data-scroll-target="#friction-cones">Friction cones</a></li>
+  <li><a href="#joint-and-torque-limits" id="toc-joint-and-torque-limits" class="nav-link" data-scroll-target="#joint-and-torque-limits">Joint and torque limits</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#complete-humanoid-locomotion-architecture" id="toc-complete-humanoid-locomotion-architecture" class="nav-link" data-scroll-target="#complete-humanoid-locomotion-architecture">5. Complete Humanoid Locomotion Architecture</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>Model Predictive Control (MPC) has become one of the most influential paradigms in control for modern robotics, especially in humanoid locomotion. This article provides a structured and mathematically rigorous introduction to MPC, starting from linear systems and moving toward the architectures used in real humanoid robots.</p>
+<p>We cover:</p>
+<ul>
+<li>The classical Model–Plan–Control (MPC) framework in robotics<br>
+</li>
+<li>The mathematical foundations of Model Predictive Control<br>
+</li>
+<li>A fully worked-out MPC example for a simple robot (a 1D mass)<br>
+</li>
+<li>The structure of an MPC used for humanoid locomotion (LIPM + ZMP)<br>
+</li>
+<li>Whole-Body Control using Quadratic Programming (WBQP)<br>
+</li>
+<li>The complete locomotion architecture used on real humanoids (Atlas, HRP-4, Talos, Digit, etc.)</li>
+</ul>
+</section>
+<section id="foundations-of-model-predictive-control-mpc" class="level1">
+<h1>1. Foundations of Model Predictive Control (MPC)</h1>
+<p>MPC solves, at each control step, an optimization problem over a finite prediction horizon. Given a discrete-time linear system:</p>
+<p><span class="math display">\[
+x_{k+1} = A x_k + B u_k ,
+\]</span></p>
+<p>we define a cost function:</p>
+<p><span class="math display">\[
+J = \sum_{i=0}^{N-1} \left( x_{k+i}^\top Q x_{k+i} + u_{k+i}^\top R u_{k+i} \right)
+    + x_{k+N}^\top P x_{k+N},
+\]</span></p>
+<p>and constraints:</p>
+<p><span class="math display">\[
+x_{k+i} \in \mathcal{X},\quad
+u_{k+i} \in \mathcal{U}.
+\]</span></p>
+<p>At time step <span class="math inline">\(k\)</span>, MPC solves:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\min_{\{u_k, \dots, u_{k+N-1}\}} \quad &amp; J \\
+\text{s.t.} \quad
+&amp; x_{k+i+1} = A x_{k+i} + B u_{k+i}, \\
+&amp; x_{k+i} \in \mathcal{X}, \\
+&amp; u_{k+i} \in \mathcal{U}.
+\end{aligned}
+\]</span></p>
+<p>Only the <strong>first control input</strong> <span class="math inline">\(u_k^{*}\)</span> is applied.<br>
+At the next time step, the optimization is solved again (receding horizon).</p>
+</section>
+<section id="example-mpc-for-a-simple-1d-robot-double-integrator" class="level1">
+<h1>2. Example: MPC for a Simple 1D Robot (Double Integrator)</h1>
+<p>We consider a robot moving along a line, with state:</p>
+<p><span class="math display">\[
+x = \begin{bmatrix} p \\ v \end{bmatrix},
+\]</span></p>
+<p>and acceleration input <span class="math inline">\(a = u\)</span>. The continuous-time model is:</p>
+<p><span class="math display">\[
+\dot{x} =
+\begin{bmatrix}
+0 &amp; 1 \\
+0 &amp; 0
+\end{bmatrix} x +
+\begin{bmatrix}
+0 \\
+1
+\end{bmatrix} u .
+\]</span></p>
+<section id="discretization" class="level2">
+<h2 class="anchored" data-anchor-id="discretization">2.1 Discretization</h2>
+<p>Using a sampling period <span class="math inline">\(T_s = 0.1\,\text{s}\)</span>:</p>
+<p><span class="math display">\[
+A =
+\begin{bmatrix}
+1 &amp; T_s \\
+0 &amp; 1
+\end{bmatrix},
+\qquad
+B =
+\begin{bmatrix}
+\frac{T_s^2}{2} \\
+T_s
+\end{bmatrix}
+=
+\begin{bmatrix}
+0.005 \\
+0.1
+\end{bmatrix}.
+\]</span></p>
+</section>
+<section id="dynamic-prediction" class="level2">
+<h2 class="anchored" data-anchor-id="dynamic-prediction">2.2 Dynamic prediction</h2>
+<p>For horizon <span class="math inline">\(N = 3\)</span>:</p>
+[
+<span class="math display">\[\begin{aligned}
+x_1 &amp;= A x_0 + B u_0, \\
+x_2 &amp;= A^2 x_0 + A B u_0 + B u_1, \\
+x_3 &amp;= A^3 x_0 + A^2 B u_0 + A B u_1 + B u_2.
+\end{aligned}\]</span>
+<p>]</p>
+<p>With:</p>
+<p><span class="math display">\[
+A^2 = \begin{bmatrix} 1 &amp; 0.2 \\ 0 &amp; 1 \end{bmatrix}, \qquad
+A^3 = \begin{bmatrix} 1 &amp; 0.3 \\ 0 &amp; 1 \end{bmatrix}.
+\]</span></p>
+</section>
+<section id="stacked-form" class="level2">
+<h2 class="anchored" data-anchor-id="stacked-form">2.3 Stacked form</h2>
+<p>We define stacked vectors:</p>
+<p><span class="math display">\[
+\mathbf{x} =
+\begin{bmatrix}
+x_1 \\ x_2 \\ x_3
+\end{bmatrix},
+\qquad
+\mathbf{u} =
+\begin{bmatrix}
+u_0 \\ u_1 \\ u_2
+\end{bmatrix}.
+\]</span></p>
+<p>Then:</p>
+<p><span class="math display">\[
+\mathbf{x} = \mathbf{A} x_0 + \mathbf{B} \mathbf{u}.
+\]</span></p>
+<p>Where:</p>
+<p><span class="math display">\[
+\mathbf{A} =
+\begin{bmatrix}
+A \\ A^2 \\ A^3
+\end{bmatrix},
+\quad
+\mathbf{B} =
+\begin{bmatrix}
+B &amp; 0 &amp; 0 \\
+A B &amp; B &amp; 0 \\
+A^2 B &amp; A B &amp; B
+\end{bmatrix}.
+\]</span></p>
+</section>
+<section id="mpc-cost-in-quadratic-form" class="level2">
+<h2 class="anchored" data-anchor-id="mpc-cost-in-quadratic-form">2.4 MPC cost in quadratic form</h2>
+<p>Define:</p>
+<ul>
+<li><span class="math inline">\(\mathbf{Q} = \text{diag}(Q, Q, Q)\)</span><br>
+</li>
+<li><span class="math inline">\(\mathbf{R} = \text{diag}(R, R, R)\)</span></li>
+</ul>
+<p>Then:</p>
+<p><span class="math display">\[
+J(\mathbf{u}) =
+\frac{1}{2} \mathbf{u}^\top H \mathbf{u} + f^\top \mathbf{u} + \text{constant},
+\]</span></p>
+<p>with:</p>
+<p><span class="math display">\[
+H = 2(\mathbf{B}^\top \mathbf{Q} \mathbf{B} + \mathbf{R}), \qquad
+f = 2\mathbf{B}^\top \mathbf{Q} \mathbf{A} x_0 .
+\]</span></p>
+<p>This is a <strong>Quadratic Program (QP)</strong>:</p>
+<p><span class="math display">\[
+\min_{\mathbf{u}} \frac{1}{2}\mathbf{u}^\top H \mathbf{u} + f^\top \mathbf{u}.
+\]</span></p>
+<p>Constraints (input saturation, position bounds, etc.) yield linear inequalities:</p>
+<p><span class="math display">\[
+G \mathbf{u} \le g + S x_0.
+\]</span></p>
+</section>
+</section>
+<section id="mpc-for-humanoid-locomotion" class="level1">
+<h1>3. MPC for Humanoid Locomotion</h1>
+<p>Humanoid walking controllers use MPC on a <em>simplified dynamic model</em>, not on the full-body dynamics. The most common model is the <strong>Linear Inverted Pendulum Model (LIPM)</strong>.</p>
+<section id="lipm-dynamics" class="level2">
+<h2 class="anchored" data-anchor-id="lipm-dynamics">3.1 LIPM Dynamics</h2>
+<p>Assume constant CoM height <span class="math inline">\(h\)</span>. Then:</p>
+<p><span class="math display">\[
+\ddot{x} = \omega^2 (x - z),
+\qquad
+\omega = \sqrt{\frac{g}{h}},
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(x\)</span>: CoM horizontal position,</li>
+<li><span class="math inline">\(z\)</span>: ZMP (Zero Moment Point).</li>
+</ul>
+<p>The ZMP acts as the <strong>control input</strong>.</p>
+<p>In state-space form:</p>
+<p><span class="math display">\[
+X = \begin{bmatrix} x \\ \dot{x} \end{bmatrix},
+\quad
+X_{k+1} = A X_k + B z_k.
+\]</span></p>
+</section>
+<section id="mpc-cost" class="level2">
+<h2 class="anchored" data-anchor-id="mpc-cost">3.2 MPC cost</h2>
+<p>The MPC minimizes CoM tracking error and ZMP effort:</p>
+<p><span class="math display">\[
+J =
+\sum_{i=0}^{N-1}
+\left[
+(X_{k+i} - X_{k+i}^{ref})^\top Q (X_{k+i} - X_{k+i}^{ref})
++ (z_{k+i} - z_{k+i}^{ref})^\top R (z_{k+i} - z_{k+i}^{ref})
+\right]
++ X_{k+N}^\top P X_{k+N}.
+\]</span></p>
+</section>
+<section id="zmp-constraints" class="level2">
+<h2 class="anchored" data-anchor-id="zmp-constraints">3.3 ZMP constraints</h2>
+<p>The ZMP must remain inside the support polygon:</p>
+<p><span class="math display">\[
+z_{k+i} \in \mathcal{Z}_{\text{support}(i)} =
+\{ z \mid F_z z \le f_z \}.
+\]</span></p>
+<p>This ensures <strong>dynamic balance</strong>.</p>
+</section>
+<section id="mpc-outputs" class="level2">
+<h2 class="anchored" data-anchor-id="mpc-outputs">3.4 MPC outputs</h2>
+<p>The MPC provides smooth trajectories for:</p>
+<ul>
+<li>CoM position, velocity, acceleration<br>
+</li>
+<li>Torso orientation<br>
+</li>
+<li>Foot placements and swing trajectories</li>
+</ul>
+<p>These references are fed into the Whole-Body QP.</p>
+</section>
+</section>
+<section id="whole-body-control-using-quadratic-programming-wbqp" class="level1">
+<h1>4. Whole-Body Control Using Quadratic Programming (WBQP)</h1>
+<p>The full rigid-body dynamics of a humanoid robot is:</p>
+<p><span class="math display">\[
+M(q)\dot{v} + h(q,v) =
+S^\top \tau + J_c^\top f ,
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(q\)</span>: configuration,</li>
+<li><span class="math inline">\(v\)</span>: joint velocities,</li>
+<li><span class="math inline">\(f\)</span>: contact forces,</li>
+<li><span class="math inline">\(\tau\)</span>: joint torques,</li>
+<li><span class="math inline">\(J_c\)</span>: contact Jacobian.</li>
+</ul>
+<section id="optimization-variables" class="level2">
+<h2 class="anchored" data-anchor-id="optimization-variables">4.1 Optimization variables</h2>
+<p><span class="math display">\[
+x =
+\begin{bmatrix}
+\dot{v} \\ f \\ \tau
+\end{bmatrix}.
+\]</span></p>
+</section>
+<section id="objective-function" class="level2">
+<h2 class="anchored" data-anchor-id="objective-function">4.2 Objective function</h2>
+<p>Tasks are expressed as accelerations:</p>
+<ul>
+<li>CoM tracking: <span class="math display">\[
+J_{CoM} \dot{v} \approx \ddot{x}_{CoM}^{ref},
+\]</span></li>
+<li>Foot swing trajectories: <span class="math display">\[
+J_{foot} \dot{v} \approx \ddot{x}_{foot}^{ref}.
+\]</span></li>
+</ul>
+<p>Complete cost:</p>
+<p><span class="math display">\[
+\min_{\dot{v}, f, \tau}
+\| J_{CoM} \dot{v} - \ddot{x}_{CoM}^{ref} \|_w^2
++
+\| J_{foot} \dot{v} - \ddot{x}_{foot}^{ref} \|_w^2
++
+\| \tau \|_\lambda^2.
+\]</span></p>
+</section>
+<section id="constraints" class="level2">
+<h2 class="anchored" data-anchor-id="constraints">4.3 Constraints</h2>
+<section id="dynamic-consistency" class="level3">
+<h3 class="anchored" data-anchor-id="dynamic-consistency">Dynamic consistency</h3>
+<p><span class="math display">\[
+M(q)\dot{v} + h(q,v) = S^\top \tau + J_c^\top f .
+\]</span></p>
+</section>
+<section id="contact-constraints" class="level3">
+<h3 class="anchored" data-anchor-id="contact-constraints">Contact constraints</h3>
+<p><span class="math display">\[
+J_c \dot{v} = -\dot{J}_c v.
+\]</span></p>
+</section>
+<section id="friction-cones" class="level3">
+<h3 class="anchored" data-anchor-id="friction-cones">Friction cones</h3>
+<p><span class="math display">\[
+\sqrt{f_x^2 + f_y^2} \le \mu f_z, \qquad f_z \ge 0.
+\]</span></p>
+</section>
+<section id="joint-and-torque-limits" class="level3">
+<h3 class="anchored" data-anchor-id="joint-and-torque-limits">Joint and torque limits</h3>
+<p><span class="math display">\[
+|\tau_i| \le \tau_i^{max}.
+\]</span></p>
+<p>The output is joint torques <span class="math inline">\(\tau^{*}\)</span> or desired accelerations <span class="math inline">\(\dot{v}^{*}\)</span>.</p>
+</section>
+</section>
+</section>
+<section id="complete-humanoid-locomotion-architecture" class="level1">
+<h1>5. Complete Humanoid Locomotion Architecture</h1>
+<p>A modern humanoid uses the following layered control system:</p>
+<pre><code>User velocity command
+↓
+Footstep planner (1–10 Hz)
+↓
+MPC locomotion (50–200 Hz)
+↓
+Whole-Body QP controller (200–1000 Hz)
+↓
+Low-level torque control (500–2000 Hz)
+</code></pre>
+<p>Each layer has a specific role:</p>
+<ul>
+<li><strong>Footstep planner</strong>: chooses future foot placements<br>
+</li>
+<li><strong>MPC</strong>: stabilizes CoM, controls balance, anticipates future steps<br>
+</li>
+<li><strong>Whole-Body QP</strong>: enforces full dynamics, contacts, friction, torques<br>
+</li>
+<li><strong>Low-level control</strong>: applies torques to hardware</li>
+</ul>
+<p>This architecture is used in <strong>Atlas</strong>, <strong>HRP-4</strong>, <strong>Talos</strong>, <strong>Valkyrie</strong>, <strong>Digit</strong>, and many research robots.</p>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>Model Predictive Control is a cornerstone of modern robotic locomotion. By combining anticipative high-level MPC (on simplified models) with fast whole-body QP controllers (on full-body dynamics), humanoid robots achieve stable, natural, and robust walking behavior.</p>
+<p>This layered optimization architecture is one of the most successful control paradigms in robotics today, and remains an active area of research, particularly as reinforcement learning and learned models begin to augment or replace traditional components.</p>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2025,
+  author = {Brosse, Nicolas},
+  title = {Model {Predictive} {Control} for {Robotics} and {Humanoid}
+    {Locomotion:} {A} {Mathematical} and {System-Level} {Overview}},
+  date = {2025-12-07},
+  url = {https://nbrosse.github.io/posts/robotics/humanoid_mpc.html},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2025" class="csl-entry quarto-appendix-citeas" role="listitem">
+Brosse, Nicolas. 2025. <span>“Model Predictive Control for Robotics and
+Humanoid Locomotion: A Mathematical and System-Level Overview.”</span>
+December 7, 2025. <a href="https://nbrosse.github.io/posts/robotics/humanoid_mpc.html">https://nbrosse.github.io/posts/robotics/humanoid_mpc.html</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
