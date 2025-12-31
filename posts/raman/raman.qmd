@@ -158,9 +158,13 @@ The first step in preprocessing is often to reduce the spectral range to the reg
 
 The algorithm is straightforward: given a wavenumber axis $w$ and spectrum $s$, we create a boolean mask and apply it to both:
 
-$$w_{cropped} = w[w_{min} \leq w \leq w_{max}]$$
+$$
+w_{\text{cropped}} = w[w_{\text{min}} \leq w \leq w_{\text{max}}]
+$$
 
-$$s_{cropped} = s[w_{min} \leq w \leq w_{max}]$$
+$$
+s_{\text{cropped}} = s[w_{\text{min}} \leq w \leq w_{\text{max}}]
+$$
 
 This operation has linear computational complexity $O(n)$ where $n$ is the spectrum length, making it an efficient first step in any preprocessing pipeline.
 
@@ -170,22 +174,31 @@ Cosmic rays striking the CCD detector during spectral acquisition can produce sh
 
 The algorithm identifies spikes using **modified z-scores** computed from the first differences of the spectrum. The modified z-score is more robust to outliers than the standard z-score because it uses the median absolute deviation (MAD) instead of the standard deviation:
 
-$$\text{MAD} = \text{median}(|x_i - \text{median}(x)|)$$
+$$
+\text{MAD} = \text{median}(|x_i - \text{median}(x)|)
+$$
 
-$$\text{Modified Z-score} = 0.6745 \times \frac{x_i - \text{median}(x)}{\text{MAD}}$$
+$$
+\text{Modified Z-score} = 0.6745 \times \frac{x_i - \text{median}(x)}{\text{MAD}}
+$$
 
 The constant 0.6745 makes the MAD consistent with the standard deviation for normal distributions. The algorithm examines the first differences of the spectrum:
 
-$$\Delta s_i = s_{i+1} - s_i$$
+$$
+\Delta s_i = s_{i+1} - s_i
+$$ 
 
 Because cosmic rays cause sharp discontinuities, examining differences amplifies these sudden changes while smoothing gradual variations, making spike detection more sensitive than direct intensity analysis.
 
 For each detected spike at position $i$ (where $|z_{\Delta s_i}| > \tau$, typically $\tau = 8$), the algorithm iteratively replaces it with the local mean of non-spike neighbors within a kernel of size $k$:
 
-$$s'_i = \begin{cases}
+$$
+s'_i = 
+\begin{cases}
 \text{mean}(s_j : j \in N(i), \text{spike}_j = \text{False}) & \text{if spike}_i = \text{True} \\
 s_i & \text{otherwise}
-\end{cases}$$
+\end{cases}
+$$
 
 where $N(i) = \{\max(0, i-k), \ldots, \min(n-1, i+k)\}$ is the neighborhood around position $i$.
 
@@ -205,11 +218,15 @@ Mathematically, for a window centered at position $i$ with $m = (\text{window\_l
 
 The polynomial fit is:
 
-$$P(x) = a_0 + a_1 x + a_2 x^2 + \ldots + a_p x^p$$
+$$
+P(x) = a_0 + a_1 x + a_2 x^2 + \ldots + a_p x^p
+$$
 
 where $p = \text{polyorder}$. The least squares objective minimizes:
 
-$$\sum_{j=i-m}^{i+m} [y_j - P(x_j)]^2$$
+$$
+\sum_{j=i-m}^{i+m} [y_j - P(x_j)]^2
+$$
 
 The smoothed value is then $y'_i = P(x_i)$.
 
@@ -225,9 +242,12 @@ Baseline drift in Raman spectra arises from fluorescence, sample holder interfer
 
 The goal is to find a baseline $z$ that minimizes:
 
-$$Q = \sum_i w_i(y_i - z_i)^2 + \lambda \sum_j (\Delta^d z_j)^2$$
+$$
+Q = \sum_i w_i(y_i - z_i)^2 + \lambda \sum_j (\Delta^d z_j)^2
+$$
 
 where:
+
 - $y_i$ = observed spectrum values
 - $z_i$ = baseline values
 - $w_i$ = asymmetric weights
@@ -238,24 +258,32 @@ This formulation balances two competing objectives: **fidelity** (baseline close
 
 **Asymmetric weighting** is the key innovation that prevents the baseline from following peaks. Unlike symmetric least squares, ASPLS uses:
 
-$$w_i = \begin{cases}
+$$
+w_i = 
+\begin{cases}
 p & \text{if } y_i > z_i \text{ (points above baseline)} \\
 1-p & \text{if } y_i \leq z_i \text{ (points below baseline)}
-\end{cases}$$
+\end{cases}
+$$
 
 where $p \ll 0.5$ (typically $p = 0.01$). Since peaks are above the baseline, they receive low weight, while baseline regions receive high weight. This forces the fitted baseline to pass **under** the peaks.
 
 **Smoothness penalty:** The difference operator $\Delta^d$ penalizes roughness. For second-order differences ($d=2$, the default):
 
-$$\Delta^2 z = [z_2 - 2z_1 + z_0, z_3 - 2z_2 + z_1, \ldots]$$
+$$
+\Delta^2 z = [z_2 - 2z_1 + z_0, z_3 - 2z_2 + z_1, \ldots]
+$$
 
 This penalizes curvature changes (second derivative), encouraging a smooth baseline.
 
 **Adaptive smoothness** is the method's key advantage: it varies $\lambda$ locally based on signal characteristics:
 
-$$\lambda_i^{\text{adaptive}} = \frac{\lambda}{1 + \alpha \times \text{feature}_i}$$
+$$
+\lambda_i^{\text{adaptive}} = \frac{\lambda}{1 + \alpha \times \text{feature}_i}
+$$
 
 where $\alpha$ is an adaptation strength parameter and $\text{feature}_i$ represents local signal characteristics (e.g., magnitude of residual). This means:
+
 - **Strong peaks** (large residuals) → $\lambda$ decreases → more flexible baseline
 - **Flat regions** → $\lambda$ remains high → smooth baseline
 
@@ -267,20 +295,126 @@ The algorithm iteratively solves the weighted penalized least squares problem, u
 
 The standard RamanSPy preprocessing workflow [@georgiev2024ramanspy] applies these algorithms in a specific order, as the sequence of operations is critical for optimal results:
 
-1. **Cropping** (optional) - Focus on region of interest, reduce data size
+1. **Cropping** - Focus on region of interest, reduce data size
 2. **Whitaker-Hayes Despiking** - Remove cosmic rays
 3. **Savitzky-Golay Smoothing** - Reduce noise
 4. **ASPLS Baseline Correction** - Remove baseline drift
 5. **Normalization** (optional) - Scale for comparison
 
-**Why this order matters:**
-
-- **Despiking before smoothing:** Spikes would be smoothed and spread by filters, making them harder to detect. Smoothing after despiking removes any artifacts from spike replacement.
-
-- **Smoothing before baseline:** Noise can confuse baseline fitting algorithms. Smoothing stabilizes baseline estimation, as baseline algorithms assume a relatively smooth underlying signal.
-
-- **Baseline before normalization:** The baseline contributes to normalization metrics (like area under curve) but isn't signal. We must remove the baseline first to normalize only the peaks.
-
-- **Normalization last:** This operates on the final preprocessed spectrum, preserving all previous corrections while only scaling the data.
-
 The default parameters recommended by RamanSPy provide a good starting point for most applications: cropping to 600-1800 $cm^{-1}$ (or full fingerprint region 400-1800 $cm^{-1}$), despiking with `kernel_size=3` and `threshold=8.0`, smoothing with `window_length=9` and `polyorder=3`, and baseline correction with $\lambda = 10^5$ and `diff_order=2`. These parameters should be kept consistent across all spectra within a study to ensure reproducibility and comparability.
+
+# Appendix: PLS Canonical (PLSW2A) Algorithm
+
+## 1. Overview
+
+**PLS Canonical** (also known as **PLSW2A**) is a method for finding low-dimensional projections of two data matrices $X$ and $Y$ that maximize the covariance between their projected representations. Given two centered data matrices $X \in \mathbb{R}^{n \times p}$ and $Y \in \mathbb{R}^{n \times q}$, and a desired number of latent components $K$, the objective is to find projections that maximize shared covariance while allowing reconstruction of both $X$ and $Y$ from latent components.
+
+**PLS Canonical** focuses on **symmetric covariance maximization** between $X$ and $Y$, treating both matrices equally. This distinguishes it from **PLS Regression**, which focuses on **predicting** $Y$ from $X$. The key algorithmic differences are: (1) In PLS Regression, the Y-weight vector $c_k$ is never normalized (no unit length constraint); (2) PLS Regression regresses $Y_{k-1}$ on X-scores $t_k$ instead of Y-scores $u_k$:
+$$
+q_k = \frac{Y_{k-1}^\top t_k}{t_k^\top t_k} \quad \text{(PLS Regression)}
+$$
+versus:
+$$
+q_k = \frac{Y_{k-1}^\top u_k}{u_k^\top u_k} \quad \text{(PLS Canonical)}
+$$
+
+## 2. Algorithm
+
+The algorithm initializes with $X_0 = X$ and $Y_0 = Y$. For each component $k = 1, \dots, K$, the following steps are performed iteratively.
+
+**Step (a): Compute Weights via Covariance Maximization.** Compute the cross-covariance matrix $C_k = X_{k-1}^\top Y_{k-1}$ and find the top left and right singular vectors:
+$$
+(w_k, c_k) = \arg\max_{\|w\|=\|c\|=1} w^\top C_k c
+$$
+These are obtained from the singular value decomposition of $C_k$, where $w_k \in \mathbb{R}^p$ is the X-weight vector and $c_k \in \mathbb{R}^q$ is the Y-weight vector. These directions define projections of $X$ and $Y$ that maximize their covariance. Implementation options include full SVD of $X_{k-1}^\top Y_{k-1}$ or power iteration (NIPALS algorithm).
+
+**Step (b): Compute Scores.** Project data onto the weight vectors:
+$$
+t_k = X_{k-1} w_k \quad \in \mathbb{R}^n \quad \text{(X-score)}
+$$
+$$
+u_k = Y_{k-1} c_k \quad \in \mathbb{R}^n \quad \text{(Y-score)}
+$$
+Scores are the sample coordinates in the shared latent space.
+
+**Step (c): Compute Loadings via Regression.** Regress original variables onto their respective scores:
+$$
+p_k = \frac{X_{k-1}^\top t_k}{t_k^\top t_k} \quad \in \mathbb{R}^p \quad \text{(X-loading)}
+$$
+$$
+q_k = \frac{Y_{k-1}^\top u_k}{u_k^\top u_k} \quad \in \mathbb{R}^q \quad \text{(Y-loading)}
+$$
+Loadings indicate how each original variable contributes to the latent component and provide the best rank-1 reconstruction of the deflated data.
+
+**Step (d): Deflation.** Remove the extracted rank-1 structure:
+$$
+X_k = X_{k-1} - t_k p_k^\top
+$$
+$$
+Y_k = Y_{k-1} - u_k q_k^\top
+$$
+Deflation ensures each subsequent component captures new, orthogonal covariance structure.
+
+## 3. Matrix Decompositions
+
+After extracting $K$ components, we obtain low-rank approximations. For $X$:
+$$
+X \approx T P^\top
+$$
+where $T = [t_1, \dots, t_K] \in \mathbb{R}^{n \times K}$ is the X-score matrix and $P = [p_1, \dots, p_K] \in \mathbb{R}^{p \times K}$ is the X-loading matrix. For $Y$:
+$$
+Y \approx U Q^\top
+$$
+where $U = [u_1, \dots, u_K] \in \mathbb{R}^{n \times K}$ is the Y-score matrix and $Q = [q_1, \dots, q_K] \in \mathbb{R}^{q \times K}$ is the Y-loading matrix.
+
+## 4. Rotation Matrices
+
+During training, we compute scores iteratively on deflated data. For new data $X_{\text{new}}$, we need a single transformation that maps directly from the original space to scores **without re-running the deflation algorithm**. We seek a matrix $R_x \in \mathbb{R}^{p \times K}$ such that $T = X R_x$, and then for new data: $T_{\text{new}} = X_{\text{new}} R_x$.
+
+One might expect $T = XW$ where $W = [w_1, \dots, w_K]$, but this is **incorrect** after the first component because each $w_k$ was computed on **deflated data** $X_{k-1}$ while $X$ is the **original, undeflated data**. Deflation breaks the direct relationship between weights and scores, so $XW \neq T$ in general.
+
+From the decomposition $X \approx TP^\top$, multiply both sides by $W$: $XW \approx TP^\top W$. Since $P^\top W \in \mathbb{R}^{K \times K}$ is invertible in PLS Canonical, we have $T = XW(P^\top W)^{-1}$. Define the **X-rotation matrix**:
+$$
+R_x = W(P^\top W)^{-1}
+$$
+Then $T = XR_x$. The dimensions are: $X \in \mathbb{R}^{n \times p}$, $W \in \mathbb{R}^{p \times K}$, $P \in \mathbb{R}^{p \times K}$, $P^\top W \in \mathbb{R}^{K \times K}$, $R_x \in \mathbb{R}^{p \times K}$, and $T \in \mathbb{R}^{n \times K}$. Intuitively, $W$ provides "raw" projections based on deflated data, $(P^\top W)^{-1}$ corrects for interference between components, and $R_x$ gives the equivalent direct projection from original space.
+
+By identical reasoning, from $Y \approx UQ^\top$: $U = YC(Q^\top C)^{-1}$. Define the **Y-rotation matrix**:
+$$
+R_y = C(Q^\top C)^{-1}
+$$
+where $C = [c_1, \dots, c_K] \in \mathbb{R}^{q \times K}$. Then $U = YR_y$. In scikit-learn, `x_rotations_` stores $R_x$ and `y_rotations_` stores $R_y$. Geometrically, rotation matrices re-embed the sequential deflation process into a single linear transformation in the original space.
+
+## 5. Prediction: Mapping X to Y
+
+The objective is to find a coefficient matrix $B \in \mathbb{R}^{p \times q}$ such that $\hat{Y} = XB$. The prediction follows a three-stage pipeline through the latent space. **Stage 1: X to X-scores** uses $T = XR_x$. **Stage 2: X-scores to Y-scores (latent regression)** models the relationship between latent scores as $U \approx TG$, where $G \in \mathbb{R}^{K \times K}$ is obtained via least squares:
+$$
+G = (T^\top T)^{-1}T^\top U
+$$
+**Stage 3: Y-scores to Y (reconstruction)** uses the decomposition $Y \approx UQ^\top$ to get $\hat{Y} = UQ^\top$. Combining all stages:
+$$
+\hat{Y} = XR_x \cdot G \cdot Q^\top
+$$
+Therefore, the coefficient matrix is:
+$$
+B = R_x G Q^\top
+$$
+In scikit-learn, this is stored in the `coef_` attribute. The pipeline summary is: $X \xrightarrow{R_x} T \xrightarrow{G} U \xrightarrow{Q^\top} \hat{Y}$.
+
+## 6. Key Characteristics
+
+The algorithm has several key properties: **symmetric treatment** of $X$ and $Y$ (both are modeled equally), it maximizes **covariance** (not correlation), and uses sequential extraction of orthogonal latent components. Applications include multi-view learning, paired high-dimensional datasets, handling multicollinearity, and dimensionality reduction with two data sources. PLS Canonical is equivalent to **PLSW2A** in the literature, generalizes canonical correlation analysis (CCA) to handle $p, q > n$, and is related to but distinct from PLS Regression (see Section 1).
+
+---
+
+## 7. Summary Table
+
+| Concept | Symbol | Dimension | Meaning |
+|---------|--------|-----------|---------|
+| **Weights** | $W, C$ | $p \times K$, $q \times K$ | Directions of maximal shared covariance |
+| **Scores** | $T, U$ | $n \times K$ | Latent representations of samples |
+| **Loadings** | $P, Q$ | $p \times K$, $q \times K$ | Reconstruction directions |
+| **Rotations** | $R_x, R_y$ | $p \times K$, $q \times K$ | Direct projection from original to latent space |
+| **Coefficients** | $B$ | $p \times q$ | Prediction map $X \to Y$ via latent space |
+
+The core equations are: **Scores from original data:** $T = XR_x$, $U = YR_y$; **Decompositions:** $X \approx TP^\top$, $Y \approx UQ^\top$; **Prediction:** $\hat{Y} = XB$ where $B = R_xGQ^\top$.
