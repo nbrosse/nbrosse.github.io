@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+    <meta charset="utf-8">
+    <meta name="generator" content="quarto-1.8.26">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+    <title>Raman Challenge: Machine Learning Model for Concentration Prediction – Nicolas’ Notebook</title>
+    <style>
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      div.columns{display: flex; gap: min(4vw, 1.5em);}
+      div.column{flex: auto; overflow-x: auto;}
+      div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+      ul.task-list{list-style: none;}
+      ul.task-list li input[type="checkbox"] {
+        width: 0.8em;
+        margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+        vertical-align: middle;
+      }
+      /* CSS for syntax highlighting */
+      html { -webkit-text-size-adjust: 100%; }
+      pre > code.sourceCode { white-space: pre; position: relative; }
+      pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+      pre > code.sourceCode > span:empty { height: 1.2em; }
+      .sourceCode { overflow: visible; }
+      code.sourceCode > span { color: inherit; text-decoration: inherit; }
+      div.sourceCode { margin: 1em 0; }
+      pre.sourceCode { margin: 0; }
+      @media screen {
+      div.sourceCode { overflow: auto; }
+      }
+      @media print {
+      pre > code.sourceCode { white-space: pre-wrap; }
+      pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+      }
+      pre.numberSource code
+        { counter-reset: source-line 0; }
+      pre.numberSource code > span
+        { position: relative; left: -4em; counter-increment: source-line; }
+      pre.numberSource code > span > a:first-child::before
+        { content: counter(source-line);
+          position: relative; left: -1em; text-align: right; vertical-align: baseline;
+          border: none; display: inline-block;
+          -webkit-touch-callout: none; -webkit-user-select: none;
+          -khtml-user-select: none; -moz-user-select: none;
+          -ms-user-select: none; user-select: none;
+          padding: 0 4px; width: 4em;
+        }
+      pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+      div.sourceCode
+        {   }
+      @media screen {
+      pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+      }
+    </style>
+
+    <style>
+      body.hypothesis-enabled #quarto-embed-header {
+        padding-right: 36px;
+      }
+
+      #quarto-embed-header {
+        height: 3em;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: solid 1px;
+      }
+
+      #quarto-embed-header h6 {
+        font-size: 1.1em;
+        padding-top: 0.6em;
+        margin-left: 1em;
+        margin-right: 1em;
+        font-weight: 400;
+      }
+
+      #quarto-embed-header a.quarto-back-link,
+      #quarto-embed-header a.quarto-download-embed {
+        font-size: 0.8em;
+        margin-top: 1em;
+        margin-bottom: 1em;
+        margin-left: 1em;
+        margin-right: 1em;
+      }
+
+      .quarto-back-container {
+        padding-left: 0.5em;
+        display: flex;
+      }
+
+      .headroom {
+          will-change: transform;
+          transition: transform 200ms linear;
+      }
+
+      .headroom--pinned {
+          transform: translateY(0%);
+      }
+
+      .headroom--unpinned {
+          transform: translateY(-100%);
+      }      
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script>
+    window.document.addEventListener("DOMContentLoaded", function () {
+
+      var header = window.document.querySelector("#quarto-embed-header");
+      const titleBannerEl = window.document.querySelector("body > #title-block-header");
+      if (titleBannerEl) {
+        titleBannerEl.style.paddingTop = header.clientHeight + "px";
+      }
+      const contentEl = window.document.getElementById('quarto-content');
+      for (const child of contentEl.children) {
+        child.style.paddingTop = header.clientHeight + "px";
+        child.style.marginTop = "1em";
+      }
+
+      // Use the article root if the `back` call doesn't work. This isn't perfect
+      // but should typically work
+      window.quartoBackToArticle = () => {
+        var currentUrl = window.location.href;
+        window.history.back();
+        setTimeout(() => {
+            // if location was not changed in 100 ms, then there is no history back
+            if(currentUrl === window.location.href){              
+                // redirect to site root
+                window.location.href = '/';
+            }
+        }, 100);
+      }
+
+      const headroom = new window.Headroom(header, {
+        tolerance: 5,
+        onPin: function () {
+        },
+        onUnpin: function () {
+        },
+      });
+      headroom.init();
+    });
+    </script>
+
+    
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-75c24fa0c77a874b0ab0aff8b6422dd8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+     <script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>  <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>  
+        <link rel="stylesheet" href="../../../styles.css">
+      </head>
+
+  <body class="floating nav-fixed quarto-notebook quarto-light">
+    <div id="quarto-embed-header" class="headroom fixed-top bg-primary">
+      
+      <a onclick="window.quartoBackToArticle(); return false;" class="btn btn-primary quarto-back-link"><i class="bi bi-caret-left"></i> Back to Article</a>
+      <h6><i class="bi bi-journal-code"></i> Raman Challenge: Machine Learning Model for Concentration Prediction</h6>
+
+            <a href="../../../posts/raman/notebooks/_ml.ipynb" class="btn btn-primary quarto-download-embed" download="_ml.ipynb">Download Notebook</a>
+          </div>
+
+     <div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">Nicolas’ Notebook</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&amp;hl"> <i class="bi bi-google" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.researchgate.net/profile/Nicolas-Brosse-3"> <i class="bi bi-r-circle" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default toc-left page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Raman Challenge: Machine Learning Model for Concentration Prediction</h1>
+                      </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#normalization-a-critical-preprocessing-decision" id="toc-normalization-a-critical-preprocessing-decision" class="nav-link active" data-scroll-target="#normalization-a-critical-preprocessing-decision">Normalization: A Critical Preprocessing Decision</a></li>
+  <li><a href="#discussion-normalization-in-the-preprocessing-pipeline" id="toc-discussion-normalization-in-the-preprocessing-pipeline" class="nav-link" data-scroll-target="#discussion-normalization-in-the-preprocessing-pipeline">Discussion: Normalization in the Preprocessing Pipeline</a></li>
+  <li><a href="#machine-learning-approach" id="toc-machine-learning-approach" class="nav-link" data-scroll-target="#machine-learning-approach">Machine Learning Approach</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a>
+  <ul class="collapse">
+  <li><a href="#preprocessing-pipeline" id="toc-preprocessing-pipeline" class="nav-link" data-scroll-target="#preprocessing-pipeline">Preprocessing Pipeline</a></li>
+  <li><a href="#modeling-approach" id="toc-modeling-approach" class="nav-link" data-scroll-target="#modeling-approach">Modeling Approach</a></li>
+  <li><a href="#key-insights" id="toc-key-insights" class="nav-link" data-scroll-target="#key-insights">Key Insights</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">      
+     <div id="0fd619c2" class="cell markdown">
+<p>This notebook demonstrates the development of <strong>Partial Least Squares (PLS) regression models</strong> for predicting concentrations of three compounds from Raman spectra:</p>
+<ul>
+<li><strong>Glucose</strong> (C₆H₁₂O₆)</li>
+<li><strong>Sodium acetate</strong> (Na_acetate)</li>
+<li><strong>Magnesium sulfate</strong> (Mg_SO4)</li>
+</ul>
+<p>The analysis is performed <strong>one instrument at a time</strong> to account for instrument-specific variations in spectral characteristics. This approach ensures that models are tailored to the unique spectral response and calibration of each instrument, improving prediction accuracy and model reliability.</p>
+</div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [1]:</pre></div><div id="fa60a041" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Literal</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> ramanspy <span class="im">as</span> rp</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> GroupKFold, cross_val_predict</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cross_decomposition <span class="im">import</span> PLSRegression</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> r2_score, root_mean_squared_error</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">"ignore"</span>, category<span class="op">=</span><span class="pp">SyntaxWarning</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/home/nicolas/PycharmProjects/raman-spectra/.venv/lib/python3.12/site-packages/ramanspy/core.py:26: SyntaxWarning: invalid escape sequence '\ '
+  """</code></pre>
+</div>
+</div></div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [2]:</pre></div><div id="194df86f" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Data directory path</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>data_path <span class="op">=</span> Path(<span class="st">"../data/dig-4-bio-raman-transfer-learning-challenge"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Fingerprint region</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>MIN_WAVENUMBER <span class="op">=</span> <span class="dv">300</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>MAX_WAVENUMBER <span class="op">=</span> <span class="dv">1942</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Standard preprocessing pipeline without normalization</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>standard_pipeline_without_normalisation <span class="op">=</span> rp.preprocessing.Pipeline([</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    rp.preprocessing.misc.Cropper(region<span class="op">=</span>(MIN_WAVENUMBER, MAX_WAVENUMBER)),  <span class="co"># Fingerprint region</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    rp.preprocessing.despike.WhitakerHayes(),          <span class="co"># Remove cosmic rays</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    rp.preprocessing.denoise.SavGol(window_length<span class="op">=</span><span class="dv">9</span>, polyorder<span class="op">=</span><span class="dv">3</span>),  <span class="co"># Smooth noise</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    rp.preprocessing.baseline.ASPLS(),                 <span class="co"># Remove baseline drift</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># rp.preprocessing.normalise.MinMax()  # Excluded for regression tasks</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Standard preprocessing pipeline with normalization</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>standard_pipeline <span class="op">=</span> rp.preprocessing.Pipeline([</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    rp.preprocessing.misc.Cropper(region<span class="op">=</span>(MIN_WAVENUMBER, MAX_WAVENUMBER)),</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    rp.preprocessing.despike.WhitakerHayes(),</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    rp.preprocessing.denoise.SavGol(window_length<span class="op">=</span><span class="dv">9</span>, polyorder<span class="op">=</span><span class="dv">3</span>),</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    rp.preprocessing.baseline.ASPLS(),</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    rp.preprocessing.normalise.MinMax()</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [3]:</pre></div><div id="0d6d3f6d" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">"""</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">Utility functions</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">"""</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> find_spectral_columns(df: pd.DataFrame) <span class="op">-&gt;</span> <span class="bu">tuple</span>[<span class="bu">list</span>[<span class="bu">str</span>], <span class="bu">list</span>[<span class="bu">str</span>], np.ndarray]:</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">    Identifies spectral data columns by checking if the column name can be converted to a float.</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co">    This is a robust way to separate metadata from spectral data.</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    spectral_cols <span class="op">=</span> []</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    metadata_cols <span class="op">=</span> []</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> col <span class="kw">in</span> df.columns:</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">try</span>:</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>            <span class="bu">float</span>(col)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>            spectral_cols.append(col)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">except</span> (<span class="pp">ValueError</span>, <span class="pp">TypeError</span>):</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>            metadata_cols.append(col)</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    wavenumbers <span class="op">=</span> pd.to_numeric(spectral_cols)</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> metadata_cols, spectral_cols, wavenumbers</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+<div id="1a26ff97" class="cell markdown">
+<section id="normalization-a-critical-preprocessing-decision" class="level3">
+<h3 class="anchored" data-anchor-id="normalization-a-critical-preprocessing-decision">Normalization: A Critical Preprocessing Decision</h3>
+<p>A fundamental preprocessing decision in quantitative Raman spectroscopy is whether to normalize the spectra. This choice involves an important trade-off:</p>
+<ul>
+<li><p><strong>Normalize</strong>: Ensures the model learns from <strong>chemical differences</strong> rather than measurement artifacts (laser power fluctuations, integration time variations, focusing differences, etc.). This helps remove instrumental effects that could confound the analysis.</p></li>
+<li><p><strong>Don’t normalize</strong>: Preserves the <strong>relationship between peak height and concentration</strong>, which is essential for quantitative regression. Absolute intensity information can be directly related to analyte concentration in ideal conditions.</p></li>
+</ul>
+<p><strong>Objective</strong>: Display some random spectra from the dataset to visually assess the intensity variations and determine whether normalization is necessary for this analysis.</p>
+</section>
+</div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [4]:</pre></div><div id="13d916ef" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">"""</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">Display some random spectra from the dataset</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">"""</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Load data from anton_532 instrument</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(data_path <span class="op">/</span> <span class="st">"anton_532.csv"</span>).drop(columns<span class="op">=</span>[<span class="st">"MSM_present"</span>, <span class="st">"fold_idx"</span>])</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Separate spectral columns (numeric column names = wavenumbers) from metadata</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>metadata_cols, spectral_cols, wavenumbers <span class="op">=</span> find_spectral_columns(df)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>spectral_container <span class="op">=</span> rp.SpectralContainer(</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    spectral_data<span class="op">=</span>df[spectral_cols].values,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    spectral_axis<span class="op">=</span>wavenumbers</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>spectral_container <span class="op">=</span> standard_pipeline_without_normalisation.<span class="bu">apply</span>(spectral_container)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Select 2 random spectra</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>random_indices <span class="op">=</span> np.random.choice(<span class="bu">len</span>(df), size<span class="op">=</span><span class="dv">2</span>, replace<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> random_indices:</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    spectrum <span class="op">=</span> spectral_container[i]</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    metadata <span class="op">=</span> df[metadata_cols].iloc[i].to_dict()</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create informative title with concentration information</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    title <span class="op">=</span> (</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"Spectrum (preprocessed without normalization) - "</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"glucose </span><span class="sc">{</span>metadata[<span class="st">'glucose'</span>]<span class="sc">:.4f}</span><span class="ss"> g/L - "</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"Na_acetate </span><span class="sc">{</span>metadata[<span class="st">'Na_acetate'</span>]<span class="sc">:.4f}</span><span class="ss"> g/L - "</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"Mg_SO4 </span><span class="sc">{</span>metadata[<span class="st">'Mg_SO4'</span>]<span class="sc">:.4f}</span><span class="ss"> g/L"</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot the spectrum</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    rp.plot.spectra(spectra<span class="op">=</span>[spectrum], plot_type<span class="op">=</span><span class="st">"single"</span>, title<span class="op">=</span>title)</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    rp.plot.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="_ml_files/figure-html/cell-5-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="_ml_files/figure-html/cell-5-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div></div>
+<div id="9864e5fc" class="cell markdown">
+<section id="discussion-normalization-in-the-preprocessing-pipeline" class="level3">
+<h3 class="anchored" data-anchor-id="discussion-normalization-in-the-preprocessing-pipeline">Discussion: Normalization in the Preprocessing Pipeline</h3>
+<p>We observe that without normalization, spectral intensities can reach very high values (e.g., ~350 arbitrary units), which is problematic for machine learning models that expect scaled data. However, choosing the appropriate normalization method is challenging due to noise and subtle spectral variations that must be preserved for quantitative analysis.</p>
+<p>Variations in overall spectral intensity can result from several instrumental factors:</p>
+<ul>
+<li><strong>Laser power fluctuations</strong>: Changes in laser output power between measurements</li>
+<li><strong>Focusing/sampling position</strong>: Variations in sample positioning and laser focus</li>
+<li><strong>Integration time</strong>: Differences in measurement duration</li>
+<li><strong>Detector response</strong>: Variations in detector sensitivity or calibration</li>
+</ul>
+<p>Normalization corrects for these instrumental effects, ensuring that differences between spectra reflect <strong>chemical composition</strong> rather than <strong>measurement artifacts</strong>.</p>
+<section id="common-normalization-methods" class="level4">
+<h4 class="anchored" data-anchor-id="common-normalization-methods">Common Normalization Methods</h4>
+<p><strong>1. Area Under the Curve (AUC) Scaling</strong></p>
+<ul>
+<li><strong>What it does:</strong> Divides each spectrum by its total area, making all spectra have area = 1.</li>
+<li><strong>Why it’s problematic for regression:</strong> Destroys concentration information. Stronger peaks (indicating higher concentration) lead to a larger total area, but AUC scaling erases this difference by forcing all spectra to have the same area.</li>
+<li><strong>Best for:</strong> Classification tasks (focus on spectral shape, not absolute intensity). <strong>Avoid for regression.</strong></li>
+</ul>
+<p><strong>2. MinMax Scaling</strong></p>
+<ul>
+<li><strong>What it does:</strong> Scales each spectrum so its minimum is 0 and maximum is 1.</li>
+<li><strong>Problems for regression:</strong>
+<ul>
+<li>Scaling depends on the highest point, which may be a compound peak, solvent peak, or noise artifact.</li>
+<li>Inconsistent scaling between samples distorts the linear relationship between peak height and concentration.</li>
+<li>Different samples may have different scaling factors, making quantitative comparisons difficult.</li>
+</ul></li>
+<li><strong>Best for:</strong> Some ML classification tasks. <strong>Use with caution for regression.</strong></li>
+</ul>
+<p><strong>3. Internal Standard Normalization (Preferred for Quantitative Analysis)</strong></p>
+<ul>
+<li><p><strong>What it is:</strong> Normalize by dividing the analyte peak(s) by a stable reference peak (from a constant component or added internal standard).</p></li>
+<li><p><strong>Why it’s best:</strong> Corrects for experimental variations (laser power, integration time, focus, detector response) while preserving the linear relationship needed for regression.</p></li>
+<li><p><strong>Formula:</strong></p>
+<pre><code>Normalized Signal = (Analyte Peak Intensity) / (Standard Peak Intensity)</code></pre></li>
+<li><p><strong>Best for:</strong> Quantitative analysis and regression.</p></li>
+</ul>
+</section>
+<section id="summary-table" class="level4">
+<h4 class="anchored" data-anchor-id="summary-table">Summary Table</h4>
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 17%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>What it Does</th>
+<th>Pro</th>
+<th>Con</th>
+<th>Best for</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>AUC Scaling</strong></td>
+<td>Area = 1 for all spectra</td>
+<td>Focuses on shape</td>
+<td><strong>Destroys intensity info</strong></td>
+<td>Classification</td>
+</tr>
+<tr class="even">
+<td><strong>MinMax Scaling</strong></td>
+<td>Scales to [0, 1]</td>
+<td>Preserves relative peak heights</td>
+<td>Inconsistent; distorts quantitative info</td>
+<td>Some classification</td>
+</tr>
+<tr class="odd">
+<td><strong>Internal Standard</strong></td>
+<td>Ratio to stable peak</td>
+<td><strong>Corrects for variations; preserves linearity</strong></td>
+<td>Requires suitable standard/peak</td>
+<td><strong>Regression, quantitative</strong></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="decision" class="level4">
+<h4 class="anchored" data-anchor-id="decision">Decision</h4>
+<p>Unfortunately, internal standard normalization is difficult to implement in this context due to the lack of a suitable reference peak or internal standard in the dataset. Since we need to normalize the spectra due to very high intensity values that would otherwise cause numerical issues in the models, we choose to apply <strong>MinMax scaling</strong> while being aware of its limitations for quantitative regression tasks. This represents a pragmatic compromise between correcting for instrumental variations and preserving as much quantitative information as possible.</p>
+</section>
+</section>
+</div>
+<div id="05807a77" class="cell markdown">
+<section id="machine-learning-approach" class="level3">
+<h3 class="anchored" data-anchor-id="machine-learning-approach">Machine Learning Approach</h3>
+<p>We now train PLS regression models for concentration prediction, analyzing each instrument separately to account for instrument-specific spectral characteristics.</p>
+<section id="quantitative-modeling" class="level4">
+<h4 class="anchored" data-anchor-id="quantitative-modeling">1. Quantitative Modeling</h4>
+<p><strong>Model Choice:</strong></p>
+<ul>
+<li><strong>Partial Least Squares (PLS) Regression</strong> is the industry standard for spectroscopic data analysis. It effectively handles:
+<ul>
+<li><strong>High dimensionality</strong>: Many wavenumbers (features) relative to the number of samples</li>
+<li><strong>Severe multicollinearity</strong>: Highly correlated spectral features (adjacent wavenumbers are typically very similar)</li>
+<li><strong>Noise reduction</strong>: Projects data onto a lower-dimensional space of latent variables</li>
+</ul></li>
+<li>PLS finds latent variables (components) that <strong>maximize covariance</strong> between spectra (X) and concentrations (Y), making it ideal for quantitative prediction tasks.</li>
+</ul>
+<p><strong>Validation Strategy:</strong></p>
+<ul>
+<li>Use <strong>GroupKFold cross-validation</strong> with the sample <code>fold_idx</code> ID as the grouping variable.</li>
+<li>This ensures that spectra from the same sample are <strong>not split across training and validation sets</strong>, providing a more realistic performance estimate that accounts for sample-to-sample variation.</li>
+<li>This approach prevents data leakage and gives a better estimate of how the model will perform on truly unseen samples.</li>
+</ul>
+<p><strong>Hyperparameter Tuning:</strong></p>
+<ul>
+<li>The key parameter for PLS is the <strong>number of latent variables (components)</strong>.</li>
+<li>Train models with increasing numbers of components (1-20) and select the number that yields the lowest <strong>Root Mean Squared Error of Cross-Validation (RMSECV)</strong>.</li>
+<li>Too few components may underfit the data, while too many may overfit to noise.</li>
+</ul>
+</section>
+<section id="model-evaluation-interpretation" class="level4">
+<h4 class="anchored" data-anchor-id="model-evaluation-interpretation">2. Model Evaluation &amp; Interpretation</h4>
+<p><strong>Performance Metrics:</strong></p>
+<ul>
+<li>Evaluate the final model using the optimal number of components.</li>
+<li>Calculate <strong>R²</strong> (coefficient of determination) and <strong>RMSE</strong> (Root Mean Squared Error) from cross-validated predictions.</li>
+<li>R² indicates the proportion of variance explained by the model (closer to 1 is better).</li>
+<li>RMSE indicates the average prediction error in concentration units (g/L).</li>
+</ul>
+<p><strong>Visualization:</strong></p>
+<ul>
+<li>Generate <strong>Predicted vs.&nbsp;Actual</strong> plots to provide a clear visual assessment of model performance.</li>
+<li>Inspect <strong>PLS loadings</strong> to identify which spectral regions (wavenumbers) the model uses for predictions, enabling chemical interpretation and validation of the model’s behavior.</li>
+</ul>
+</section>
+</section>
+</div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [5]:</pre></div><div id="e7d2832a" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Loading the data</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>instrument: Literal[<span class="st">"anton_532"</span>, <span class="st">"anton_785"</span>, <span class="st">"kaiser"</span>, <span class="st">"metrohm"</span>, <span class="st">"mettler_toledo"</span>, <span class="st">"tec5"</span>, <span class="st">"timegate"</span>, <span class="st">"tornado"</span>] <span class="op">=</span> <span class="st">"anton_532"</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(data_path <span class="op">/</span> <span class="ss">f"</span><span class="sc">{</span>instrument<span class="sc">}</span><span class="ss">.csv"</span>).drop(columns<span class="op">=</span>[<span class="st">"MSM_present"</span>])</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>df</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">200.0</th>
+<th data-quarto-table-cell-role="th">202.0</th>
+<th data-quarto-table-cell-role="th">204.0</th>
+<th data-quarto-table-cell-role="th">206.0</th>
+<th data-quarto-table-cell-role="th">208.0</th>
+<th data-quarto-table-cell-role="th">210.0</th>
+<th data-quarto-table-cell-role="th">212.0</th>
+<th data-quarto-table-cell-role="th">214.0</th>
+<th data-quarto-table-cell-role="th">216.0</th>
+<th data-quarto-table-cell-role="th">218.0</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">3490.0</th>
+<th data-quarto-table-cell-role="th">3492.0</th>
+<th data-quarto-table-cell-role="th">3494.0</th>
+<th data-quarto-table-cell-role="th">3496.0</th>
+<th data-quarto-table-cell-role="th">3498.0</th>
+<th data-quarto-table-cell-role="th">3500.0</th>
+<th data-quarto-table-cell-role="th">glucose</th>
+<th data-quarto-table-cell-role="th">Na_acetate</th>
+<th data-quarto-table-cell-role="th">Mg_SO4</th>
+<th data-quarto-table-cell-role="th">fold_idx</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>7519.06</td>
+<td>7582.15</td>
+<td>7379.73</td>
+<td>7054.04</td>
+<td>6818.64</td>
+<td>6684.24</td>
+<td>6562.20</td>
+<td>6398.03</td>
+<td>6256.17</td>
+<td>6135.72</td>
+<td>...</td>
+<td>6475.20</td>
+<td>6573.45</td>
+<td>6488.44</td>
+<td>6284.99</td>
+<td>6216.51</td>
+<td>6409.21</td>
+<td>0.26335</td>
+<td>1.43570</td>
+<td>1.44101</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>7414.24</td>
+<td>7502.98</td>
+<td>7327.93</td>
+<td>7002.97</td>
+<td>6760.01</td>
+<td>6638.17</td>
+<td>6539.84</td>
+<td>6360.47</td>
+<td>6200.67</td>
+<td>6080.42</td>
+<td>...</td>
+<td>6451.34</td>
+<td>6564.97</td>
+<td>6465.79</td>
+<td>6241.37</td>
+<td>6171.89</td>
+<td>6358.46</td>
+<td>0.26335</td>
+<td>1.43570</td>
+<td>1.44101</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>7376.45</td>
+<td>7474.90</td>
+<td>7304.00</td>
+<td>6961.46</td>
+<td>6691.31</td>
+<td>6557.30</td>
+<td>6470.64</td>
+<td>6309.66</td>
+<td>6177.40</td>
+<td>6090.05</td>
+<td>...</td>
+<td>6432.22</td>
+<td>6521.16</td>
+<td>6452.89</td>
+<td>6248.68</td>
+<td>6137.06</td>
+<td>6318.74</td>
+<td>0.26335</td>
+<td>1.43570</td>
+<td>1.44101</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>7383.60</td>
+<td>7456.90</td>
+<td>7264.59</td>
+<td>6938.71</td>
+<td>6707.66</td>
+<td>6594.61</td>
+<td>6493.20</td>
+<td>6307.50</td>
+<td>6144.74</td>
+<td>6033.89</td>
+<td>...</td>
+<td>6412.12</td>
+<td>6532.58</td>
+<td>6459.36</td>
+<td>6240.35</td>
+<td>6146.15</td>
+<td>6325.52</td>
+<td>0.26335</td>
+<td>1.43570</td>
+<td>1.44101</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>7345.77</td>
+<td>7435.40</td>
+<td>7263.58</td>
+<td>6929.82</td>
+<td>6671.51</td>
+<td>6544.19</td>
+<td>6459.28</td>
+<td>6302.71</td>
+<td>6158.40</td>
+<td>6043.02</td>
+<td>...</td>
+<td>6414.26</td>
+<td>6530.51</td>
+<td>6435.62</td>
+<td>6214.08</td>
+<td>6156.26</td>
+<td>6348.95</td>
+<td>0.26335</td>
+<td>1.43570</td>
+<td>1.44101</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">...</th>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">265</th>
+<td>7832.00</td>
+<td>7938.65</td>
+<td>7758.85</td>
+<td>7401.53</td>
+<td>7122.56</td>
+<td>6982.76</td>
+<td>6884.94</td>
+<td>6702.59</td>
+<td>6537.42</td>
+<td>6417.34</td>
+<td>...</td>
+<td>7790.07</td>
+<td>7890.47</td>
+<td>7786.45</td>
+<td>7544.57</td>
+<td>7448.89</td>
+<td>7652.59</td>
+<td>10.71080</td>
+<td>0.74408</td>
+<td>3.48079</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">266</th>
+<td>7799.25</td>
+<td>7874.64</td>
+<td>7683.97</td>
+<td>7335.51</td>
+<td>7069.06</td>
+<td>6933.33</td>
+<td>6827.90</td>
+<td>6633.28</td>
+<td>6466.11</td>
+<td>6358.28</td>
+<td>...</td>
+<td>7735.00</td>
+<td>7846.83</td>
+<td>7756.49</td>
+<td>7530.37</td>
+<td>7427.52</td>
+<td>7587.48</td>
+<td>10.71080</td>
+<td>0.74408</td>
+<td>3.48079</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">267</th>
+<td>7752.49</td>
+<td>7823.53</td>
+<td>7631.56</td>
+<td>7311.92</td>
+<td>7087.74</td>
+<td>6973.90</td>
+<td>6867.04</td>
+<td>6686.11</td>
+<td>6522.25</td>
+<td>6391.02</td>
+<td>...</td>
+<td>7713.69</td>
+<td>7774.98</td>
+<td>7694.02</td>
+<td>7490.46</td>
+<td>7377.11</td>
+<td>7541.42</td>
+<td>10.71080</td>
+<td>0.74408</td>
+<td>3.48079</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">268</th>
+<td>7757.55</td>
+<td>7803.91</td>
+<td>7606.17</td>
+<td>7295.83</td>
+<td>7082.62</td>
+<td>6976.21</td>
+<td>6870.14</td>
+<td>6678.14</td>
+<td>6495.80</td>
+<td>6352.90</td>
+<td>...</td>
+<td>7702.41</td>
+<td>7801.14</td>
+<td>7693.90</td>
+<td>7459.89</td>
+<td>7372.70</td>
+<td>7559.06</td>
+<td>10.71080</td>
+<td>0.74408</td>
+<td>3.48079</td>
+<td>4</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">269</th>
+<td>7726.52</td>
+<td>7799.61</td>
+<td>7607.11</td>
+<td>7281.07</td>
+<td>7047.06</td>
+<td>6924.05</td>
+<td>6810.98</td>
+<td>6627.21</td>
+<td>6470.48</td>
+<td>6357.52</td>
+<td>...</td>
+<td>7624.59</td>
+<td>7756.07</td>
+<td>7675.02</td>
+<td>7459.47</td>
+<td>7398.34</td>
+<td>7572.52</td>
+<td>10.71080</td>
+<td>0.74408</td>
+<td>3.48079</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+
+<p>270 rows × 1655 columns</p>
+</div>
+</div>
+</div></div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [6]:</pre></div><div id="fef212f0" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Processing the data</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>metadata_cols, spectral_cols, wavenumbers <span class="op">=</span> find_spectral_columns(df)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>groups <span class="op">=</span> df[<span class="st">"fold_idx"</span>].to_numpy()</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>spectra_raw_df <span class="op">=</span> df[spectral_cols]</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>Y <span class="op">=</span> df[[<span class="st">"glucose"</span>, <span class="st">"Na_acetate"</span>, <span class="st">"Mg_SO4"</span>]].to_numpy()</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>spectral_container <span class="op">=</span> rp.SpectralContainer(</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    spectral_data<span class="op">=</span>spectra_raw_df.values,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    spectral_axis<span class="op">=</span>wavenumbers,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>processed_spectra <span class="op">=</span> standard_pipeline.<span class="bu">apply</span>(spectral_container)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>X_processed <span class="op">=</span> processed_spectra.spectral_data</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [7]:</pre></div><div id="d1e116fe" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># We will test a range of components (latent variables)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>n_components_range <span class="op">=</span> np.arange(<span class="dv">1</span>, <span class="dv">21</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>rmsecv_scores <span class="op">=</span> []</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>r2cv_scores <span class="op">=</span> []</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Use GroupKFold to ensure spectra from the same sample are not split across folds</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co"># This gives a more realistic performance estimate. We use fold_idx as the group.</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>cv_splitter <span class="op">=</span> GroupKFold(n_splits<span class="op">=</span><span class="dv">5</span>) <span class="co"># 5 groups for 5 folds</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> n_comp <span class="kw">in</span> n_components_range:</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    pls <span class="op">=</span> PLSRegression(n_components<span class="op">=</span>n_comp)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Predict using cross-validation</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    y_pred_cv <span class="op">=</span> cross_val_predict(pls, X_processed, Y, cv<span class="op">=</span>cv_splitter, groups<span class="op">=</span>groups)</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    rmsecv <span class="op">=</span> root_mean_squared_error(Y, y_pred_cv)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    r2cv <span class="op">=</span> r2_score(Y, y_pred_cv)</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    rmsecv_scores.append(rmsecv)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    r2cv_scores.append(r2cv)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"RMSECV with </span><span class="sc">{</span>n_comp<span class="sc">}</span><span class="ss"> components: </span><span class="sc">{</span>rmsecv<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"R2CV with </span><span class="sc">{</span>n_comp<span class="sc">}</span><span class="ss"> components: </span><span class="sc">{</span>r2cv<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Find the optimal number of components (the one with the minimum RMSECV)</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>optimal_n_components <span class="op">=</span> n_components_range[np.argmin(rmsecv_scores)]</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Optimal number of PLS components found: </span><span class="sc">{</span>optimal_n_components<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Plot RMSECV vs. Number of Components, and R2 vs. Number of Components ---</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>fig, ax1 <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>color_rmse <span class="op">=</span> <span class="st">'tab:red'</span></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>color_r2 <span class="op">=</span> <span class="st">'tab:blue'</span></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>ax1.set_xlabel(<span class="st">'Number of Components'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>ax1.set_ylabel(<span class="st">'RMSE of Cross-Validation (g/L)'</span>, color<span class="op">=</span>color_rmse, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>ax1.plot(n_components_range, rmsecv_scores, <span class="st">'o-'</span>, mfc<span class="op">=</span><span class="st">'w'</span>, color<span class="op">=</span>color_rmse, label<span class="op">=</span><span class="st">'RMSECV'</span>)</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>ax1.axvline(x<span class="op">=</span>optimal_n_components, color<span class="op">=</span><span class="st">'r'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, label<span class="op">=</span><span class="ss">f'Optimal Components = </span><span class="sc">{</span>optimal_n_components<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>ax1.tick_params(axis<span class="op">=</span><span class="st">'y'</span>, labelcolor<span class="op">=</span>color_rmse)</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>ax1.legend(loc<span class="op">=</span><span class="st">'upper left'</span>)</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> ax1.twinx()</span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>ax2.set_ylabel(<span class="st">'R² of Cross-Validation'</span>, color<span class="op">=</span>color_r2, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>ax2.plot(n_components_range, r2cv_scores, <span class="st">'-'</span>, color<span class="op">=</span>color_r2, label<span class="op">=</span><span class="st">'R²'</span>)</span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>ax2.tick_params(axis<span class="op">=</span><span class="st">'y'</span>, labelcolor<span class="op">=</span>color_r2)</span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>ax2.legend(loc<span class="op">=</span><span class="st">'upper right'</span>)</span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'RMSECV and R² vs. Number of PLS Components'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>RMSECV with 1 components: 2.0614
+R2CV with 1 components: 0.0021
+RMSECV with 2 components: 1.9507
+R2CV with 2 components: 0.1411
+RMSECV with 3 components: 2.0019
+R2CV with 3 components: 0.1405
+RMSECV with 4 components: 1.8235
+R2CV with 4 components: 0.2169
+RMSECV with 5 components: 1.6823
+R2CV with 5 components: 0.3021
+RMSECV with 6 components: 1.6804
+R2CV with 6 components: 0.2938
+RMSECV with 7 components: 1.5609
+R2CV with 7 components: 0.3664
+RMSECV with 8 components: 1.5313
+R2CV with 8 components: 0.3533
+RMSECV with 9 components: 1.5394
+R2CV with 9 components: 0.3469
+RMSECV with 10 components: 1.5132
+R2CV with 10 components: 0.3592
+RMSECV with 11 components: 1.5052
+R2CV with 11 components: 0.3569
+RMSECV with 12 components: 1.5003
+R2CV with 12 components: 0.3398
+RMSECV with 13 components: 1.5246
+R2CV with 13 components: 0.3177
+RMSECV with 14 components: 1.5137
+R2CV with 14 components: 0.3010
+RMSECV with 15 components: 1.5298
+R2CV with 15 components: 0.2747
+RMSECV with 16 components: 1.5465
+R2CV with 16 components: 0.2485
+RMSECV with 17 components: 1.5418
+R2CV with 17 components: 0.2396
+RMSECV with 18 components: 1.5498
+R2CV with 18 components: 0.2290
+RMSECV with 19 components: 1.5826
+R2CV with 19 components: 0.1800
+RMSECV with 20 components: 1.5891
+R2CV with 20 components: 0.1416
+Optimal number of PLS components found: 12</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div class="">
+<figure class="figure">
+<p class=""><img src="_ml_files/figure-html/cell-8-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div></div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [8]:</pre></div><div id="b5dd912a" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Final Model Training and Evaluation</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the final PLS model with the optimal number of components</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>final_pls_model <span class="op">=</span> PLSRegression(n_components<span class="op">=</span>optimal_n_components)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Get cross-validated predictions for the final model</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>y_pred_final <span class="op">=</span> cross_val_predict(final_pls_model, X_processed, Y, cv<span class="op">=</span>cv_splitter, groups<span class="op">=</span>groups)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate final performance metrics (overall)</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>final_rmse <span class="op">=</span> root_mean_squared_error(Y, y_pred_final)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>final_r2 <span class="op">=</span> r2_score(Y, y_pred_final)</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Final Cross-Validated Model Performance (Overall):"</span>)</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"R²: </span><span class="sc">{</span>final_r2<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"RMSE: </span><span class="sc">{</span>final_rmse<span class="sc">:.4f}</span><span class="ss"> g/L"</span>)</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate individual metrics for each target</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>target_names <span class="op">=</span> [<span class="st">"Glucose"</span>, <span class="st">"Na_acetate"</span>, <span class="st">"Mg_SO4"</span>]</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>target_metrics <span class="op">=</span> []</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, target_name <span class="kw">in</span> <span class="bu">enumerate</span>(target_names):</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>    Y_target <span class="op">=</span> Y[:, i]</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>    y_pred_target <span class="op">=</span> y_pred_final[:, i]</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    r2_target <span class="op">=</span> r2_score(Y_target, y_pred_target)</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>    rmse_target <span class="op">=</span> root_mean_squared_error(Y_target, y_pred_target)</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>    target_metrics.append((r2_target, rmse_target))</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>target_name<span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  R²: </span><span class="sc">{</span>r2_target<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  RMSE: </span><span class="sc">{</span>rmse_target<span class="sc">:.4f}</span><span class="ss"> g/L"</span>)</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Predicted vs. Actual Plots for All Targets ---</span></span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">18</span>, <span class="dv">5</span>))</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, (target_name, ax) <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="bu">zip</span>(target_names, axes)):</span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>    Y_target <span class="op">=</span> Y[:, i]</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>    y_pred_target <span class="op">=</span> y_pred_final[:, i]</span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>    r2_target, rmse_target <span class="op">=</span> target_metrics[i]</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>    sns.scatterplot(x<span class="op">=</span>Y_target, y<span class="op">=</span>y_pred_target, alpha<span class="op">=</span><span class="fl">0.7</span>, ax<span class="op">=</span>ax)</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>    ax.plot([Y_target.<span class="bu">min</span>(), Y_target.<span class="bu">max</span>()], [Y_target.<span class="bu">min</span>(), Y_target.<span class="bu">max</span>()], </span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>            <span class="st">'r--'</span>, lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">'1:1 Line'</span>)</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f'Predicted vs. Actual </span><span class="sc">{</span>target_name<span class="sc">}</span><span class="ss">'</span>, fontsize<span class="op">=</span><span class="dv">14</span>)</span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">'Actual Concentration (g/L)'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">'Predicted Concentration (g/L)'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="fl">0.05</span>, <span class="fl">0.95</span>, <span class="ss">f'R² = </span><span class="sc">{</span>r2_target<span class="sc">:.4f}</span><span class="ch">\n</span><span class="ss">RMSE = </span><span class="sc">{</span>rmse_target<span class="sc">:.4f}</span><span class="ss"> g/L'</span>, </span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>            transform<span class="op">=</span>ax.transAxes, fontsize<span class="op">=</span><span class="dv">10</span>, </span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>            bbox<span class="op">=</span><span class="bu">dict</span>(facecolor<span class="op">=</span><span class="st">'white'</span>, alpha<span class="op">=</span><span class="fl">0.8</span>), verticalalignment<span class="op">=</span><span class="st">'top'</span>)</span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>    ax.legend()</span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>    ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>    ax.set_aspect(<span class="st">'equal'</span>, adjustable<span class="op">=</span><span class="st">'box'</span>)</span>
+<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Final Cross-Validated Model Performance (Overall):
+R²: 0.3398
+RMSE: 1.5003 g/L
+Glucose:
+  R²: 0.3915
+  RMSE: 3.3367 g/L
+Na_acetate:
+  R²: -0.1697
+  RMSE: 0.5485 g/L
+Mg_SO4:
+  R²: 0.7974
+  RMSE: 0.6159 g/L</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div class="">
+<figure class="figure">
+<p class=""><img src="_ml_files/figure-html/cell-9-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div></div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [9]:</pre></div><div id="1ee961cd" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Model Interpretation - Inspecting PLS Loadings</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co"># To interpret the model, we fit it on all data and inspect the loadings.</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co"># The loadings show which variables (wavenumbers) are important for each component.</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>final_pls_model.fit(X_processed, Y)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>loadings <span class="op">=</span> final_pls_model.x_loadings_</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Plot Loadings for the first few components ---</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">6</span>))</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure wavenumbers and loadings have matching dimensions</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>wavenumbers_plot <span class="op">=</span> wavenumbers</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">hasattr</span>(wavenumbers, <span class="st">'values'</span>):</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    wavenumbers_plot <span class="op">=</span> wavenumbers.values</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">len</span>(wavenumbers_plot) <span class="op">!=</span> loadings.shape[<span class="dv">0</span>]:</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Try to slice wavenumbers to match loadings shape</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    wavenumbers_plot <span class="op">=</span> wavenumbers_plot[:loadings.shape[<span class="dv">0</span>]]</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">min</span>(<span class="dv">3</span>, optimal_n_components)): <span class="co"># Plot up to the first 3 components</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    plt.plot(wavenumbers_plot, loadings[:, i], label<span class="op">=</span><span class="ss">f'Component </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'PLS Loadings'</span>, fontsize<span class="op">=</span><span class="dv">16</span>)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Raman Shift (cm⁻¹)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Loading Weight'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div class="">
+<figure class="figure">
+<p class=""><img src="_ml_files/figure-html/cell-10-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div></div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [10]:</pre></div><div id="50e94436" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Separate PLS Models Per Target</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Training one PLS model per target allows:</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co"># - Better interpretability: each target has its own loadings showing which </span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   spectral regions are important for that specific compound</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># - Independent optimization: each target can have its own optimal number of </span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   components</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co"># - Potentially better performance: models can focus on the specific spectral </span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co">#   regions relevant to each compound</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>target_names <span class="op">=</span> [<span class="st">"glucose"</span>, <span class="st">"Na_acetate"</span>, <span class="st">"Mg_SO4"</span>]</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>target_models <span class="op">=</span> {}</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>target_optimal_components <span class="op">=</span> {}</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>target_metrics_separate <span class="op">=</span> {}</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>target_predictions_separate <span class="op">=</span> {}</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Store single model metrics for comparison (from cell 11)</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>target_metrics_single <span class="op">=</span> {}</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, target_name <span class="kw">in</span> <span class="bu">enumerate</span>(target_names):</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>    Y_target <span class="op">=</span> Y[:, i]</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>    y_pred_target <span class="op">=</span> y_pred_final[:, i]</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>    r2_target <span class="op">=</span> r2_score(Y_target, y_pred_target)</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>    rmse_target <span class="op">=</span> root_mean_squared_error(Y_target, y_pred_target)</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    target_metrics_single[target_name] <span class="op">=</span> (r2_target, rmse_target)</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Train separate PLS model for each target</span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> target_idx, target_name <span class="kw">in</span> <span class="bu">enumerate</span>(target_names):</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Training PLS model for </span><span class="sc">{</span>target_name<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extract single target</span></span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>    Y_target <span class="op">=</span> Y[:, target_idx].reshape(<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>)  <span class="co"># Reshape to (n_samples, 1)</span></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Find optimal number of components for this target</span></span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>    n_components_range <span class="op">=</span> np.arange(<span class="dv">1</span>, <span class="dv">21</span>)</span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>    rmsecv_scores <span class="op">=</span> []</span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>    r2cv_scores <span class="op">=</span> []</span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> n_comp <span class="kw">in</span> n_components_range:</span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>        pls <span class="op">=</span> PLSRegression(n_components<span class="op">=</span>n_comp)</span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>        y_pred_cv <span class="op">=</span> cross_val_predict(pls, X_processed, Y_target, cv<span class="op">=</span>cv_splitter, groups<span class="op">=</span>groups)</span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>        rmsecv <span class="op">=</span> root_mean_squared_error(Y_target, y_pred_cv)</span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>        r2cv <span class="op">=</span> r2_score(Y_target, y_pred_cv)</span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>        rmsecv_scores.append(rmsecv)</span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>        r2cv_scores.append(r2cv)</span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>n_comp<span class="sc">:2d}</span><span class="ss"> components: RMSECV=</span><span class="sc">{</span>rmsecv<span class="sc">:.4f}</span><span class="ss">, R²CV=</span><span class="sc">{</span>r2cv<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Find optimal number of components</span></span>
+<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a>    optimal_n_components <span class="op">=</span> n_components_range[np.argmin(rmsecv_scores)]</span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a>    target_optimal_components[target_name] <span class="op">=</span> optimal_n_components</span>
+<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">  Optimal components for </span><span class="sc">{</span>target_name<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>optimal_n_components<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Train final model and get cross-validated predictions</span></span>
+<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a>    final_pls <span class="op">=</span> PLSRegression(n_components<span class="op">=</span>optimal_n_components)</span>
+<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a>    y_pred_final_separate <span class="op">=</span> cross_val_predict(final_pls, X_processed, Y_target, cv<span class="op">=</span>cv_splitter, groups<span class="op">=</span>groups)</span>
+<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate metrics</span></span>
+<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a>    r2_final <span class="op">=</span> r2_score(Y_target, y_pred_final_separate)</span>
+<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a>    rmse_final <span class="op">=</span> root_mean_squared_error(Y_target, y_pred_final_separate)</span>
+<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a>    target_metrics_separate[target_name] <span class="op">=</span> (r2_final, rmse_final)</span>
+<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a>    target_models[target_name] <span class="op">=</span> final_pls</span>
+<span id="cb14-65"><a href="#cb14-65" aria-hidden="true" tabindex="-1"></a>    target_predictions_separate[target_name] <span class="op">=</span> y_pred_final_separate</span>
+<span id="cb14-66"><a href="#cb14-66" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-67"><a href="#cb14-67" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Final R²: </span><span class="sc">{</span>r2_final<span class="sc">:.4f}</span><span class="ss">, RMSE: </span><span class="sc">{</span>rmse_final<span class="sc">:.4f}</span><span class="ss"> g/L"</span>)</span>
+<span id="cb14-68"><a href="#cb14-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-69"><a href="#cb14-69" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb14-70"><a href="#cb14-70" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot Loadings for Each Target (Much More Interpretable!)</span></span>
+<span id="cb14-71"><a href="#cb14-71" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb14-72"><a href="#cb14-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-73"><a href="#cb14-73" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="bu">len</span>(target_names), <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">5</span><span class="op">*</span><span class="bu">len</span>(target_names)))</span>
+<span id="cb14-74"><a href="#cb14-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-75"><a href="#cb14-75" aria-hidden="true" tabindex="-1"></a><span class="co"># Handle case where we have only one target (axes would be 1D, not 2D)</span></span>
+<span id="cb14-76"><a href="#cb14-76" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">len</span>(target_names) <span class="op">==</span> <span class="dv">1</span>:</span>
+<span id="cb14-77"><a href="#cb14-77" aria-hidden="true" tabindex="-1"></a>    axes <span class="op">=</span> [axes]</span>
+<span id="cb14-78"><a href="#cb14-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-79"><a href="#cb14-79" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> idx, target_name <span class="kw">in</span> <span class="bu">enumerate</span>(target_names):</span>
+<span id="cb14-80"><a href="#cb14-80" aria-hidden="true" tabindex="-1"></a>    model <span class="op">=</span> target_models[target_name]</span>
+<span id="cb14-81"><a href="#cb14-81" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Fit the model on all data to get loadings</span></span>
+<span id="cb14-82"><a href="#cb14-82" aria-hidden="true" tabindex="-1"></a>    model.fit(X_processed, Y[:, idx].reshape(<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb14-83"><a href="#cb14-83" aria-hidden="true" tabindex="-1"></a>    loadings <span class="op">=</span> model.x_loadings_</span>
+<span id="cb14-84"><a href="#cb14-84" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-85"><a href="#cb14-85" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Use wavenumbers from processed spectra to match loadings dimensions</span></span>
+<span id="cb14-86"><a href="#cb14-86" aria-hidden="true" tabindex="-1"></a>    wavenumbers_processed <span class="op">=</span> processed_spectra.spectral_axis</span>
+<span id="cb14-87"><a href="#cb14-87" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">hasattr</span>(wavenumbers_processed, <span class="st">'values'</span>):</span>
+<span id="cb14-88"><a href="#cb14-88" aria-hidden="true" tabindex="-1"></a>        wavenumbers_processed <span class="op">=</span> wavenumbers_processed.values</span>
+<span id="cb14-89"><a href="#cb14-89" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-90"><a href="#cb14-90" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> axes[idx]</span>
+<span id="cb14-91"><a href="#cb14-91" aria-hidden="true" tabindex="-1"></a>    n_comp_to_plot <span class="op">=</span> <span class="bu">min</span>(<span class="dv">3</span>, target_optimal_components[target_name])</span>
+<span id="cb14-92"><a href="#cb14-92" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> comp_idx <span class="kw">in</span> <span class="bu">range</span>(n_comp_to_plot):</span>
+<span id="cb14-93"><a href="#cb14-93" aria-hidden="true" tabindex="-1"></a>        ax.plot(wavenumbers_processed, loadings[:, comp_idx], </span>
+<span id="cb14-94"><a href="#cb14-94" aria-hidden="true" tabindex="-1"></a>                label<span class="op">=</span><span class="ss">f'Component </span><span class="sc">{</span>comp_idx<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">'</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, linewidth<span class="op">=</span><span class="fl">1.5</span>)</span>
+<span id="cb14-95"><a href="#cb14-95" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-96"><a href="#cb14-96" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f'PLS Loadings for </span><span class="sc">{</span>target_name<span class="sc">}</span><span class="ss"> (Optimal: </span><span class="sc">{</span>target_optimal_components[target_name]<span class="sc">}</span><span class="ss"> components)'</span>, </span>
+<span id="cb14-97"><a href="#cb14-97" aria-hidden="true" tabindex="-1"></a>                 fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb14-98"><a href="#cb14-98" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">'Raman Shift (cm⁻¹)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb14-99"><a href="#cb14-99" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">'Loading Weight'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb14-100"><a href="#cb14-100" aria-hidden="true" tabindex="-1"></a>    ax.legend(loc<span class="op">=</span><span class="st">'best'</span>)</span>
+<span id="cb14-101"><a href="#cb14-101" aria-hidden="true" tabindex="-1"></a>    ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb14-102"><a href="#cb14-102" aria-hidden="true" tabindex="-1"></a>    ax.axhline(y<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">'k'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, linewidth<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb14-103"><a href="#cb14-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-104"><a href="#cb14-104" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb14-105"><a href="#cb14-105" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb14-106"><a href="#cb14-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-107"><a href="#cb14-107" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb14-108"><a href="#cb14-108" aria-hidden="true" tabindex="-1"></a><span class="co"># Performance Comparison: Single vs. Separate Models</span></span>
+<span id="cb14-109"><a href="#cb14-109" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb14-110"><a href="#cb14-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-111"><a href="#cb14-111" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span><span class="op">*</span><span class="dv">80</span>)</span>
+<span id="cb14-112"><a href="#cb14-112" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Performance Comparison: Single Multi-Output Model vs. Separate Models"</span>)</span>
+<span id="cb14-113"><a href="#cb14-113" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">80</span>)</span>
+<span id="cb14-114"><a href="#cb14-114" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'Target'</span><span class="sc">:&lt;15}</span><span class="ss"> </span><span class="sc">{</span><span class="st">'Single Model R²'</span><span class="sc">:&lt;18}</span><span class="ss"> </span><span class="sc">{</span><span class="st">'Separate Model R²'</span><span class="sc">:&lt;18}</span><span class="ss"> </span><span class="sc">{</span><span class="st">'R² Improvement'</span><span class="sc">:&lt;15}</span><span class="ss"> </span><span class="sc">{</span><span class="st">'Single RMSE'</span><span class="sc">:&lt;15}</span><span class="ss"> </span><span class="sc">{</span><span class="st">'Separate RMSE'</span><span class="sc">:&lt;15}</span><span class="ss"> </span><span class="sc">{</span><span class="st">'RMSE Improvement'</span><span class="sc">:&lt;15}</span><span class="ss">"</span>)</span>
+<span id="cb14-115"><a href="#cb14-115" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"-"</span><span class="op">*</span><span class="dv">80</span>)</span>
+<span id="cb14-116"><a href="#cb14-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-117"><a href="#cb14-117" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> target_name <span class="kw">in</span> target_names:</span>
+<span id="cb14-118"><a href="#cb14-118" aria-hidden="true" tabindex="-1"></a>    single_r2, single_rmse <span class="op">=</span> target_metrics_single[target_name]</span>
+<span id="cb14-119"><a href="#cb14-119" aria-hidden="true" tabindex="-1"></a>    separate_r2, separate_rmse <span class="op">=</span> target_metrics_separate[target_name]</span>
+<span id="cb14-120"><a href="#cb14-120" aria-hidden="true" tabindex="-1"></a>    r2_improvement <span class="op">=</span> separate_r2 <span class="op">-</span> single_r2</span>
+<span id="cb14-121"><a href="#cb14-121" aria-hidden="true" tabindex="-1"></a>    rmse_improvement <span class="op">=</span> single_rmse <span class="op">-</span> separate_rmse  <span class="co"># Positive = better (lower RMSE)</span></span>
+<span id="cb14-122"><a href="#cb14-122" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-123"><a href="#cb14-123" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>target_name<span class="sc">:&lt;15}</span><span class="ss"> </span><span class="sc">{</span>single_r2<span class="sc">:&gt;17.4f}</span><span class="ss"> </span><span class="sc">{</span>separate_r2<span class="sc">:&gt;17.4f}</span><span class="ss"> </span><span class="sc">{</span>r2_improvement<span class="sc">:&gt;+14.4f}</span><span class="ss"> </span><span class="sc">{</span>single_rmse<span class="sc">:&gt;14.4f}</span><span class="ss"> g/L </span><span class="sc">{</span>separate_rmse<span class="sc">:&gt;14.4f}</span><span class="ss"> g/L </span><span class="sc">{</span>rmse_improvement<span class="sc">:&gt;+14.4f}</span><span class="ss"> g/L"</span>)</span>
+<span id="cb14-124"><a href="#cb14-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-125"><a href="#cb14-125" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">80</span>)</span>
+<span id="cb14-126"><a href="#cb14-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-127"><a href="#cb14-127" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb14-128"><a href="#cb14-128" aria-hidden="true" tabindex="-1"></a><span class="co"># Predicted vs. Actual Plots for Separate Models</span></span>
+<span id="cb14-129"><a href="#cb14-129" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb14-130"><a href="#cb14-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-131"><a href="#cb14-131" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">18</span>, <span class="dv">5</span>))</span>
+<span id="cb14-132"><a href="#cb14-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-133"><a href="#cb14-133" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> idx, (target_name, ax) <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="bu">zip</span>(target_names, axes)):</span>
+<span id="cb14-134"><a href="#cb14-134" aria-hidden="true" tabindex="-1"></a>    Y_target <span class="op">=</span> Y[:, idx]</span>
+<span id="cb14-135"><a href="#cb14-135" aria-hidden="true" tabindex="-1"></a>    y_pred_target <span class="op">=</span> target_predictions_separate[target_name].flatten()</span>
+<span id="cb14-136"><a href="#cb14-136" aria-hidden="true" tabindex="-1"></a>    r2_target, rmse_target <span class="op">=</span> target_metrics_separate[target_name]</span>
+<span id="cb14-137"><a href="#cb14-137" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb14-138"><a href="#cb14-138" aria-hidden="true" tabindex="-1"></a>    sns.scatterplot(x<span class="op">=</span>Y_target, y<span class="op">=</span>y_pred_target, alpha<span class="op">=</span><span class="fl">0.7</span>, ax<span class="op">=</span>ax)</span>
+<span id="cb14-139"><a href="#cb14-139" aria-hidden="true" tabindex="-1"></a>    ax.plot([Y_target.<span class="bu">min</span>(), Y_target.<span class="bu">max</span>()], [Y_target.<span class="bu">min</span>(), Y_target.<span class="bu">max</span>()], </span>
+<span id="cb14-140"><a href="#cb14-140" aria-hidden="true" tabindex="-1"></a>            <span class="st">'r--'</span>, lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">'1:1 Line'</span>)</span>
+<span id="cb14-141"><a href="#cb14-141" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f'Predicted vs. Actual </span><span class="sc">{</span>target_name<span class="sc">}</span><span class="ss"> (Separate Model)'</span>, fontsize<span class="op">=</span><span class="dv">14</span>)</span>
+<span id="cb14-142"><a href="#cb14-142" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">'Actual Concentration (g/L)'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb14-143"><a href="#cb14-143" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">'Predicted Concentration (g/L)'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb14-144"><a href="#cb14-144" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="fl">0.05</span>, <span class="fl">0.95</span>, <span class="ss">f'R² = </span><span class="sc">{</span>r2_target<span class="sc">:.4f}</span><span class="ch">\n</span><span class="ss">RMSE = </span><span class="sc">{</span>rmse_target<span class="sc">:.4f}</span><span class="ss"> g/L</span><span class="ch">\n</span><span class="ss">Components = </span><span class="sc">{</span>target_optimal_components[target_name]<span class="sc">}</span><span class="ss">'</span>, </span>
+<span id="cb14-145"><a href="#cb14-145" aria-hidden="true" tabindex="-1"></a>            transform<span class="op">=</span>ax.transAxes, fontsize<span class="op">=</span><span class="dv">10</span>, </span>
+<span id="cb14-146"><a href="#cb14-146" aria-hidden="true" tabindex="-1"></a>            bbox<span class="op">=</span><span class="bu">dict</span>(facecolor<span class="op">=</span><span class="st">'white'</span>, alpha<span class="op">=</span><span class="fl">0.8</span>), verticalalignment<span class="op">=</span><span class="st">'top'</span>)</span>
+<span id="cb14-147"><a href="#cb14-147" aria-hidden="true" tabindex="-1"></a>    ax.legend()</span>
+<span id="cb14-148"><a href="#cb14-148" aria-hidden="true" tabindex="-1"></a>    ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb14-149"><a href="#cb14-149" aria-hidden="true" tabindex="-1"></a>    ax.set_aspect(<span class="st">'equal'</span>, adjustable<span class="op">=</span><span class="st">'box'</span>)</span>
+<span id="cb14-150"><a href="#cb14-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-151"><a href="#cb14-151" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb14-152"><a href="#cb14-152" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+============================================================
+Training PLS model for glucose
+============================================================
+   1 components: RMSECV=4.3714, R²CV=-0.0445
+   2 components: RMSECV=4.6011, R²CV=-0.1571
+   3 components: RMSECV=3.8873, R²CV=0.1740
+   4 components: RMSECV=3.6280, R²CV=0.2806
+   5 components: RMSECV=3.3775, R²CV=0.3765
+   6 components: RMSECV=3.3941, R²CV=0.3703
+   7 components: RMSECV=3.3577, R²CV=0.3838
+   8 components: RMSECV=3.3525, R²CV=0.3857
+   9 components: RMSECV=3.4223, R²CV=0.3598
+  10 components: RMSECV=3.4784, R²CV=0.3387
+  11 components: RMSECV=3.5761, R²CV=0.3010
+  12 components: RMSECV=3.6763, R²CV=0.2613
+  13 components: RMSECV=3.7758, R²CV=0.2207
+  14 components: RMSECV=3.8433, R²CV=0.1926
+  15 components: RMSECV=3.8770, R²CV=0.1784
+  16 components: RMSECV=3.9075, R²CV=0.1655
+  17 components: RMSECV=3.9259, R²CV=0.1576
+  18 components: RMSECV=3.9506, R²CV=0.1469
+  19 components: RMSECV=3.9550, R²CV=0.1450
+  20 components: RMSECV=3.9898, R²CV=0.1299
+
+  Optimal components for glucose: 8
+  Final R²: 0.3857, RMSE: 3.3525 g/L
+
+============================================================
+Training PLS model for Na_acetate
+============================================================
+   1 components: RMSECV=0.5332, R²CV=-0.1053
+   2 components: RMSECV=0.5376, R²CV=-0.1238
+   3 components: RMSECV=0.5270, R²CV=-0.0800
+   4 components: RMSECV=0.5032, R²CV=0.0156
+   5 components: RMSECV=0.5282, R²CV=-0.0846
+   6 components: RMSECV=0.5444, R²CV=-0.1522
+   7 components: RMSECV=0.5339, R²CV=-0.1083
+   8 components: RMSECV=0.5567, R²CV=-0.2051
+   9 components: RMSECV=0.5732, R²CV=-0.2773
+  10 components: RMSECV=0.5949, R²CV=-0.3761
+  11 components: RMSECV=0.6134, R²CV=-0.4629
+  12 components: RMSECV=0.6396, R²CV=-0.5904
+  13 components: RMSECV=0.6623, R²CV=-0.7056
+  14 components: RMSECV=0.6793, R²CV=-0.7939
+  15 components: RMSECV=0.6882, R²CV=-0.8415
+  16 components: RMSECV=0.6992, R²CV=-0.9010
+  17 components: RMSECV=0.7049, R²CV=-0.9317
+  18 components: RMSECV=0.7113, R²CV=-0.9673
+  19 components: RMSECV=0.7204, R²CV=-1.0177
+  20 components: RMSECV=0.7285, R²CV=-1.0634
+
+  Optimal components for Na_acetate: 4
+  Final R²: 0.0156, RMSE: 0.5032 g/L
+
+============================================================
+Training PLS model for Mg_SO4
+============================================================
+   1 components: RMSECV=1.2813, R²CV=0.1234
+   2 components: RMSECV=0.8643, R²CV=0.6011
+   3 components: RMSECV=0.6878, R²CV=0.7474
+   4 components: RMSECV=0.5916, R²CV=0.8131
+   5 components: RMSECV=0.6017, R²CV=0.8067
+   6 components: RMSECV=0.6490, R²CV=0.7751
+   7 components: RMSECV=0.6623, R²CV=0.7658
+   8 components: RMSECV=0.6818, R²CV=0.7518
+   9 components: RMSECV=0.7159, R²CV=0.7263
+  10 components: RMSECV=0.7463, R²CV=0.7026
+  11 components: RMSECV=0.7748, R²CV=0.6794
+  12 components: RMSECV=0.7860, R²CV=0.6701
+  13 components: RMSECV=0.8074, R²CV=0.6519
+  14 components: RMSECV=0.8163, R²CV=0.6441
+  15 components: RMSECV=0.8323, R²CV=0.6301
+  16 components: RMSECV=0.8413, R²CV=0.6220
+  17 components: RMSECV=0.8559, R²CV=0.6088
+  18 components: RMSECV=0.8697, R²CV=0.5961
+  19 components: RMSECV=0.8806, R²CV=0.5859
+  20 components: RMSECV=0.8913, R²CV=0.5758
+
+  Optimal components for Mg_SO4: 4
+  Final R²: 0.8131, RMSE: 0.5916 g/L</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="_ml_files/figure-html/cell-11-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+================================================================================
+Performance Comparison: Single Multi-Output Model vs. Separate Models
+================================================================================
+Target          Single Model R²    Separate Model R²  R² Improvement  Single RMSE     Separate RMSE   RMSE Improvement
+--------------------------------------------------------------------------------
+glucose                    0.3915            0.3857        -0.0058         3.3367 g/L         3.3525 g/L        -0.0159 g/L
+Na_acetate                -0.1697            0.0156        +0.1853         0.5485 g/L         0.5032 g/L        +0.0453 g/L
+Mg_SO4                     0.7974            0.8131        +0.0157         0.6159 g/L         0.5916 g/L        +0.0243 g/L
+================================================================================</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="_ml_files/figure-html/cell-11-output-4.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div></div>
+<div id="03c9c34a" class="cell markdown">
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>This notebook demonstrates the development of <strong>Partial Least Squares (PLS) regression models</strong> for predicting concentrations of glucose, Na_acetate, and Mg_SO4 from Raman spectra. The following summarizes key findings and decisions:</p>
+<section id="preprocessing-pipeline" class="level3">
+<h3 class="anchored" data-anchor-id="preprocessing-pipeline">Preprocessing Pipeline</h3>
+<p><strong>Spectral Preprocessing Steps:</strong></p>
+<ol type="1">
+<li><strong>Cropping</strong> to the fingerprint region (300-1942 cm⁻¹) to focus on the most informative spectral region</li>
+<li><strong>Cosmic ray removal</strong> using the Whitaker-Hayes algorithm to eliminate spurious high-intensity spikes</li>
+<li><strong>Savitzky-Golay smoothing</strong> (window length=9, polynomial order=3) to reduce high-frequency noise</li>
+<li><strong>Baseline correction</strong> using Adaptive Smoothing Parameter Least Squares (ASPLS) to remove fluorescence background</li>
+</ol>
+<p><strong>Normalization:</strong></p>
+<ul>
+<li><strong>MinMax normalization</strong> was applied despite its limitations for regression tasks. This choice was necessary to handle high intensity variations (values reaching ~350 arbitrary units), as internal standard normalization was not feasible in this context due to the lack of a suitable reference peak.</li>
+</ul>
+</section>
+<section id="modeling-approach" class="level3">
+<h3 class="anchored" data-anchor-id="modeling-approach">Modeling Approach</h3>
+<p>Two modeling strategies were compared:</p>
+<p><strong>1. Single Multi-Output PLS Model</strong></p>
+<ul>
+<li>One PLS model predicting all three targets simultaneously</li>
+<li>Optimal components: 12</li>
+<li>Overall R²: 0.34, RMSE: 1.50 g/L</li>
+<li>Individual performance varied significantly across targets</li>
+</ul>
+<p><strong>2. Separate PLS Models Per Target</strong></p>
+<ul>
+<li>Independent PLS models for each compound with individually optimized component counts</li>
+<li><strong>Glucose</strong>: 8 components, R²: 0.39, RMSE: 3.35 g/L</li>
+<li><strong>Na_acetate</strong>: 4 components, R²: 0.02, RMSE: 0.50 g/L<br>
+</li>
+<li><strong>Mg_SO4</strong>: 4 components, R²: 0.81, RMSE: 0.59 g/L</li>
+</ul>
+</section>
+<section id="key-insights" class="level3">
+<h3 class="anchored" data-anchor-id="key-insights">Key Insights</h3>
+<ol type="1">
+<li><p><strong>Separate models provide superior interpretability</strong>: Each target has its own loadings that clearly show which spectral regions are important for that specific compound, making the models more interpretable and chemically meaningful.</p></li>
+<li><p><strong>Independent optimization is beneficial</strong>: Different targets require different numbers of components (8 for glucose vs.&nbsp;4 for Na_acetate and Mg_SO4), demonstrating that separate models allow for better hyperparameter tuning tailored to each compound’s spectral characteristics.</p></li>
+<li><p><strong>Performance varies significantly by compound</strong>:</p>
+<ul>
+<li><strong>Mg_SO4</strong> shows <strong>excellent</strong> predictive performance (R² = 0.81), indicating strong, distinct spectral signatures that are easily captured by the model.</li>
+<li><strong>Glucose</strong> shows <strong>moderate</strong> performance (R² = 0.39), suggesting some predictive capability but with room for improvement through feature engineering or alternative preprocessing.</li>
+<li><strong>Na_acetate</strong> shows <strong>poor</strong> performance (R² ≈ 0.02), indicating weak or overlapping spectral features that may require additional preprocessing, feature selection, or alternative modeling approaches.</li>
+</ul></li>
+<li><p><strong>Model selection recommendation</strong>: For production use, <strong>separate PLS models per target are recommended</strong> due to their:</p>
+<ul>
+<li>Improved interpretability through target-specific loadings</li>
+<li>Independent optimization capabilities for each compound</li>
+<li>Ability to focus on compound-specific spectral regions</li>
+</ul></li>
+</ol>
+</section>
+</section>
+</div>
+
+
+     </main> <!-- /main -->  <script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/nbrosse\.github\.io\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>  </div> <!-- /content --> 
+  
+</body></html>

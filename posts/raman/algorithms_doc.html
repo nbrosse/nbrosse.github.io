@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>algorithms_doc – Nicolas' Notebook</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-75c24fa0c77a874b0ab0aff8b6422dd8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Nicolas’ Notebook</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&amp;hl"> <i class="bi bi-google" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.researchgate.net/profile/Nicolas-Brosse-3"> <i class="bi bi-r-circle" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block"></header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#preprocessing-algorithms-documentation" id="toc-preprocessing-algorithms-documentation" class="nav-link active" data-scroll-target="#preprocessing-algorithms-documentation">Preprocessing Algorithms Documentation</a>
+  <ul class="collapse">
+  <li><a href="#table-of-contents" id="toc-table-of-contents" class="nav-link" data-scroll-target="#table-of-contents">Table of Contents</a></li>
+  <li><a href="#spectral-cropping" id="toc-spectral-cropping" class="nav-link" data-scroll-target="#spectral-cropping">1. Spectral Cropping</a>
+  <ul class="collapse">
+  <li><a href="#purpose" id="toc-purpose" class="nav-link" data-scroll-target="#purpose">Purpose</a></li>
+  <li><a href="#algorithm" id="toc-algorithm" class="nav-link" data-scroll-target="#algorithm">Algorithm</a></li>
+  </ul></li>
+  <li><a href="#cosmic-ray-removal-whitaker-hayes" id="toc-cosmic-ray-removal-whitaker-hayes" class="nav-link" data-scroll-target="#cosmic-ray-removal-whitaker-hayes">2. Cosmic Ray Removal (Whitaker-Hayes)</a>
+  <ul class="collapse">
+  <li><a href="#purpose-1" id="toc-purpose-1" class="nav-link" data-scroll-target="#purpose-1">Purpose</a></li>
+  <li><a href="#algorithm-1" id="toc-algorithm-1" class="nav-link" data-scroll-target="#algorithm-1">Algorithm</a></li>
+  <li><a href="#theory" id="toc-theory" class="nav-link" data-scroll-target="#theory">Theory</a></li>
+  <li><a href="#mathematical-formulation" id="toc-mathematical-formulation" class="nav-link" data-scroll-target="#mathematical-formulation">Mathematical Formulation</a></li>
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#advantages" id="toc-advantages" class="nav-link" data-scroll-target="#advantages">Advantages</a></li>
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">Limitations</a></li>
+  </ul></li>
+  <li><a href="#denoising-savitzky-golay" id="toc-denoising-savitzky-golay" class="nav-link" data-scroll-target="#denoising-savitzky-golay">3. Denoising (Savitzky-Golay)</a>
+  <ul class="collapse">
+  <li><a href="#purpose-2" id="toc-purpose-2" class="nav-link" data-scroll-target="#purpose-2">Purpose</a></li>
+  <li><a href="#algorithm-2" id="toc-algorithm-2" class="nav-link" data-scroll-target="#algorithm-2">Algorithm</a></li>
+  <li><a href="#theory-1" id="toc-theory-1" class="nav-link" data-scroll-target="#theory-1">Theory</a></li>
+  <li><a href="#why-it-works" id="toc-why-it-works" class="nav-link" data-scroll-target="#why-it-works">Why It Works</a></li>
+  <li><a href="#parameter-selection" id="toc-parameter-selection" class="nav-link" data-scroll-target="#parameter-selection">Parameter Selection</a></li>
+  <li><a href="#constraints" id="toc-constraints" class="nav-link" data-scroll-target="#constraints">Constraints</a></li>
+  <li><a href="#advantages-1" id="toc-advantages-1" class="nav-link" data-scroll-target="#advantages-1">Advantages</a></li>
+  <li><a href="#limitations-1" id="toc-limitations-1" class="nav-link" data-scroll-target="#limitations-1">Limitations</a></li>
+  </ul></li>
+  <li><a href="#baseline-correction-aspls" id="toc-baseline-correction-aspls" class="nav-link" data-scroll-target="#baseline-correction-aspls">4. Baseline Correction (ASPLS)</a>
+  <ul class="collapse">
+  <li><a href="#purpose-3" id="toc-purpose-3" class="nav-link" data-scroll-target="#purpose-3">Purpose</a></li>
+  <li><a href="#algorithm-3" id="toc-algorithm-3" class="nav-link" data-scroll-target="#algorithm-3">Algorithm</a></li>
+  <li><a href="#theory-2" id="toc-theory-2" class="nav-link" data-scroll-target="#theory-2">Theory</a></li>
+  <li><a href="#algorithm-steps" id="toc-algorithm-steps" class="nav-link" data-scroll-target="#algorithm-steps">Algorithm Steps</a></li>
+  <li><a href="#matrix-formulation" id="toc-matrix-formulation" class="nav-link" data-scroll-target="#matrix-formulation">Matrix Formulation</a></li>
+  <li><a href="#parameters-1" id="toc-parameters-1" class="nav-link" data-scroll-target="#parameters-1">Parameters</a></li>
+  <li><a href="#advantages-2" id="toc-advantages-2" class="nav-link" data-scroll-target="#advantages-2">Advantages</a></li>
+  <li><a href="#limitations-2" id="toc-limitations-2" class="nav-link" data-scroll-target="#limitations-2">Limitations</a></li>
+  <li><a href="#normalization-comparison" id="toc-normalization-comparison" class="nav-link" data-scroll-target="#normalization-comparison">Normalization Comparison</a></li>
+  </ul></li>
+  <li><a href="#complete-pipeline" id="toc-complete-pipeline" class="nav-link" data-scroll-target="#complete-pipeline">6. Complete Pipeline</a>
+  <ul class="collapse">
+  <li><a href="#ramanspy-compatible-pipeline" id="toc-ramanspy-compatible-pipeline" class="nav-link" data-scroll-target="#ramanspy-compatible-pipeline">RamanSPy-Compatible Pipeline</a></li>
+  <li><a href="#pipeline-order-rationale" id="toc-pipeline-order-rationale" class="nav-link" data-scroll-target="#pipeline-order-rationale">Pipeline Order Rationale</a></li>
+  <li><a href="#dos-and-donts" id="toc-dos-and-donts" class="nav-link" data-scroll-target="#dos-and-donts">Do’s and Don’ts</a></li>
+  </ul></li>
+  <li><a href="#parameter-selection-guidelines" id="toc-parameter-selection-guidelines" class="nav-link" data-scroll-target="#parameter-selection-guidelines">Parameter Selection Guidelines</a>
+  <ul class="collapse">
+  <li><a href="#general-principles" id="toc-general-principles" class="nav-link" data-scroll-target="#general-principles">General Principles</a></li>
+  <li><a href="#ramanspy-default-parameters-recommended" id="toc-ramanspy-default-parameters-recommended" class="nav-link" data-scroll-target="#ramanspy-default-parameters-recommended">RamanSPy Default Parameters (Recommended)</a></li>
+  <li><a href="#when-to-adjust-parameters" id="toc-when-to-adjust-parameters" class="nav-link" data-scroll-target="#when-to-adjust-parameters">When to Adjust Parameters</a></li>
+  </ul></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a>
+  <ul class="collapse">
+  <li><a href="#key-papers" id="toc-key-papers" class="nav-link" data-scroll-target="#key-papers">Key Papers</a></li>
+  <li><a href="#additional-resources" id="toc-additional-resources" class="nav-link" data-scroll-target="#additional-resources">Additional Resources</a></li>
+  </ul></li>
+  <li><a href="#implementation-notes" id="toc-implementation-notes" class="nav-link" data-scroll-target="#implementation-notes">Implementation Notes</a>
+  <ul class="collapse">
+  <li><a href="#dependencies" id="toc-dependencies" class="nav-link" data-scroll-target="#dependencies">Dependencies</a></li>
+  <li><a href="#computational-complexity" id="toc-computational-complexity" class="nav-link" data-scroll-target="#computational-complexity">Computational Complexity</a></li>
+  <li><a href="#memory-usage" id="toc-memory-usage" class="nav-link" data-scroll-target="#memory-usage">Memory Usage</a></li>
+  <li><a href="#thread-safety" id="toc-thread-safety" class="nav-link" data-scroll-target="#thread-safety">Thread Safety</a></li>
+  </ul></li>
+  <li><a href="#usage-examples" id="toc-usage-examples" class="nav-link" data-scroll-target="#usage-examples">Usage Examples</a>
+  <ul class="collapse">
+  <li><a href="#basic-usage" id="toc-basic-usage" class="nav-link" data-scroll-target="#basic-usage">Basic Usage</a></li>
+  <li><a href="#custom-pipeline" id="toc-custom-pipeline" class="nav-link" data-scroll-target="#custom-pipeline">Custom Pipeline</a></li>
+  <li><a href="#parameter-tuning-example" id="toc-parameter-tuning-example" class="nav-link" data-scroll-target="#parameter-tuning-example">Parameter Tuning Example</a></li>
+  </ul></li>
+  <li><a href="#troubleshooting" id="toc-troubleshooting" class="nav-link" data-scroll-target="#troubleshooting">Troubleshooting</a>
+  <ul class="collapse">
+  <li><a href="#common-issues" id="toc-common-issues" class="nav-link" data-scroll-target="#common-issues">Common Issues</a></li>
+  </ul></li>
+  <li><a href="#quality-control-checklist" id="toc-quality-control-checklist" class="nav-link" data-scroll-target="#quality-control-checklist">Quality Control Checklist</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<section id="preprocessing-algorithms-documentation" class="level1">
+<h1>Preprocessing Algorithms Documentation</h1>
+<p>This document provides detailed theoretical explanations of the preprocessing algorithms implemented in <code>preprocess.py</code>, with a focus on the RamanSPy-compatible implementations.</p>
+<hr>
+<section id="table-of-contents" class="level2">
+<h2 class="anchored" data-anchor-id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#1-spectral-cropping">Spectral Cropping</a></li>
+<li><a href="#2-cosmic-ray-removal-whitaker-hayes">Cosmic Ray Removal (Whitaker-Hayes)</a></li>
+<li><a href="#3-denoising-savitzky-golay">Denoising (Savitzky-Golay)</a></li>
+<li><a href="#4-baseline-correction-aspls">Baseline Correction (ASPLS)</a></li>
+<li><a href="#6-complete-pipeline">Complete Pipeline</a></li>
+</ol>
+<hr>
+</section>
+<section id="spectral-cropping" class="level2">
+<h2 class="anchored" data-anchor-id="spectral-cropping">1. Spectral Cropping</h2>
+<section id="purpose" class="level3">
+<h3 class="anchored" data-anchor-id="purpose">Purpose</h3>
+<p>Reduces the spectral range to the region of interest, typically the “fingerprint region” (400-1800 cm⁻¹) where most characteristic Raman peaks appear.</p>
+</section>
+<section id="algorithm" class="level3">
+<h3 class="anchored" data-anchor-id="algorithm">Algorithm</h3>
+<p><strong>Function:</strong> <code>crop_region(wavenumbers, spectrum, min_cm, max_cm)</code></p>
+<p><strong>Method:</strong> 1. Create a boolean mask: <code>mask = (wavenumbers &gt;= min_cm) &amp; (wavenumbers &lt;= max_cm)</code> 2. Apply mask to both wavenumber axis and spectrum: <code>wavenumbers[mask], spectrum[mask]</code></p>
+<p><strong>Mathematics:</strong></p>
+<pre><code>For wavenumber axis w and spectrum s:
+w_cropped = w[w_min ≤ w ≤ w_max]
+s_cropped = s[w_min ≤ w ≤ w_max]</code></pre>
+<p><strong>Parameters:</strong> - <code>min_cm</code>: Minimum wavenumber (cm⁻¹) - <code>max_cm</code>: Maximum wavenumber (cm⁻¹)</p>
+<p><strong>Computational Complexity:</strong> O(n) where n is spectrum length</p>
+<p><strong>Use Case:</strong> - Remove noisy edge regions - Focus on fingerprint region - Reduce computational cost of downstream operations</p>
+<hr>
+</section>
+</section>
+<section id="cosmic-ray-removal-whitaker-hayes" class="level2">
+<h2 class="anchored" data-anchor-id="cosmic-ray-removal-whitaker-hayes">2. Cosmic Ray Removal (Whitaker-Hayes)</h2>
+<section id="purpose-1" class="level3">
+<h3 class="anchored" data-anchor-id="purpose-1">Purpose</h3>
+<p>Remove sharp intensity spikes caused by cosmic ray hits on the CCD detector during spectral acquisition.</p>
+</section>
+<section id="algorithm-1" class="level3">
+<h3 class="anchored" data-anchor-id="algorithm-1">Algorithm</h3>
+<p><strong>Function:</strong> <code>remove_cosmic_rays_whitaker_hayes(spectrum, kernel_size=3, threshold=8.0)</code></p>
+<p><strong>Reference:</strong> Whitaker, D. A., &amp; Hayes, K. (2018). A simple algorithm for despiking Raman spectra. <em>Chemometrics and Intelligent Laboratory Systems</em>, 179, 82-84.</p>
+</section>
+<section id="theory" class="level3">
+<h3 class="anchored" data-anchor-id="theory">Theory</h3>
+<p>The algorithm identifies spikes based on <strong>modified z-scores</strong> of the first differences of the spectrum, then iteratively replaces them with local averages.</p>
+<section id="step-1-modified-z-score-calculation" class="level4">
+<h4 class="anchored" data-anchor-id="step-1-modified-z-score-calculation">Step 1: Modified Z-Score Calculation</h4>
+<p>The modified z-score is more robust to outliers than the standard z-score:</p>
+<pre><code>MAD = median(|x_i - median(x)|)
+
+Modified Z-score = 0.6745 × (x_i - median(x)) / MAD</code></pre>
+<p>Where: - <strong>MAD</strong> = Median Absolute Deviation - <strong>0.6745</strong> = constant that makes MAD consistent with standard deviation for normal distributions - Specifically: 0.6745 ≈ 1/Φ⁻¹(0.75) where Φ is the CDF of standard normal</p>
+</section>
+<section id="step-2-difference-based-spike-detection" class="level4">
+<h4 class="anchored" data-anchor-id="step-2-difference-based-spike-detection">Step 2: Difference-Based Spike Detection</h4>
+<p>Spikes are identified by examining the <strong>first differences</strong> of the spectrum:</p>
+<pre><code>diff = [s[i+1] - s[i] for i in range(len(s)-1)]
+z_diff = modified_z_score(diff)
+spikes = |z_diff| &gt; threshold</code></pre>
+<p><strong>Why use differences?</strong> - Cosmic rays cause sharp discontinuities - Differences amplify sudden changes while smoothing gradual variations - More sensitive to spikes than direct intensity analysis</p>
+</section>
+<section id="step-3-iterative-spike-replacement" class="level4">
+<h4 class="anchored" data-anchor-id="step-3-iterative-spike-replacement">Step 3: Iterative Spike Replacement</h4>
+<p>For each detected spike at position i:</p>
+<ol type="1">
+<li>Define neighborhood: <code>neighbors = [i-kernel_size, ..., i+kernel_size]</code></li>
+<li>Select non-spike neighbors: <code>valid = neighbors[~spikes[neighbors]]</code></li>
+<li>Replace spike: <code>spectrum[i] = mean(spectrum[valid])</code></li>
+<li>Mark as corrected: <code>spikes[i] = False</code></li>
+</ol>
+<p>Iterate until no more changes occur or all spikes are corrected.</p>
+</section>
+</section>
+<section id="mathematical-formulation" class="level3">
+<h3 class="anchored" data-anchor-id="mathematical-formulation">Mathematical Formulation</h3>
+<pre><code>Given spectrum s = [s₀, s₁, ..., sₙ₋₁]:
+
+1. Compute differences:
+   Δs_i = s_{i+1} - s_i,  i = 0, ..., n-2
+
+2. Compute modified z-scores:
+   MAD(Δs) = median(|Δs_i - median(Δs)|)
+   z_i = 0.6745 × (Δs_i - median(Δs)) / MAD(Δs)
+
+3. Identify spikes:
+   spike_i = |z_i| &gt; τ  (typically τ = 8)
+
+4. Replace spikes iteratively:
+   s'_i = {
+       mean(s_j : j ∈ N(i), spike_j = False)  if spike_i = True
+       s_i                                      otherwise
+   }
+
+   where N(i) = {max(0, i-k), ..., min(n-1, i+k)} is the neighborhood</code></pre>
+</section>
+<section id="parameters" class="level3">
+<h3 class="anchored" data-anchor-id="parameters">Parameters</h3>
+<ul>
+<li><strong><code>kernel_size</code></strong> (default: 3): Radius of neighborhood for replacement
+<ul>
+<li>Larger values → smoother interpolation but may over-smooth</li>
+<li>Smaller values → sharper replacement but may miss wide spikes</li>
+</ul></li>
+<li><strong><code>threshold</code></strong> (default: 8.0): Modified z-score threshold
+<ul>
+<li>Higher values → detect only extreme spikes (more conservative)</li>
+<li>Lower values → detect more spikes (may flag real peaks)</li>
+<li>Standard: 3.5 for normal outliers, 8 for very extreme outliers</li>
+</ul></li>
+</ul>
+</section>
+<section id="advantages" class="level3">
+<h3 class="anchored" data-anchor-id="advantages">Advantages</h3>
+<ol type="1">
+<li><strong>Robust:</strong> Uses median-based statistics (resistant to outliers)</li>
+<li><strong>Iterative:</strong> Can handle multiple adjacent spikes</li>
+<li><strong>Preserves peak shape:</strong> Uses local mean from valid neighbors</li>
+<li><strong>Well-validated:</strong> Standard method in Raman spectroscopy</li>
+</ol>
+</section>
+<section id="limitations" class="level3">
+<h3 class="anchored" data-anchor-id="limitations">Limitations</h3>
+<ul>
+<li>May fail on very broad spikes (wider than kernel_size)</li>
+<li>Can remove genuine sharp peaks if threshold too low</li>
+<li>Requires spectrum with reasonable baseline (extreme slopes can be misidentified)</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="denoising-savitzky-golay" class="level2">
+<h2 class="anchored" data-anchor-id="denoising-savitzky-golay">3. Denoising (Savitzky-Golay)</h2>
+<section id="purpose-2" class="level3">
+<h3 class="anchored" data-anchor-id="purpose-2">Purpose</h3>
+<p>Reduce random noise while preserving peak shapes and positions through local polynomial fitting.</p>
+</section>
+<section id="algorithm-2" class="level3">
+<h3 class="anchored" data-anchor-id="algorithm-2">Algorithm</h3>
+<p><strong>Function:</strong> <code>savgol_smooth(spectrum, window_length=9, polyorder=3)</code></p>
+<p><strong>Reference:</strong> Savitzky, A., &amp; Golay, M. J. E. (1964). Smoothing and differentiation of data by simplified least squares procedures. <em>Analytical Chemistry</em>, 36(8), 1627-1639.</p>
+</section>
+<section id="theory-1" class="level3">
+<h3 class="anchored" data-anchor-id="theory-1">Theory</h3>
+<p>The Savitzky-Golay filter performs <strong>local polynomial regression</strong> on sliding windows of the spectrum.</p>
+<section id="core-concept" class="level4">
+<h4 class="anchored" data-anchor-id="core-concept">Core Concept</h4>
+<p>For each point in the spectrum: 1. Consider a window of <code>window_length</code> points centered at that position 2. Fit a polynomial of degree <code>polyorder</code> to these points using least squares 3. Replace the center point with the polynomial’s predicted value</p>
+</section>
+<section id="mathematical-formulation-1" class="level4">
+<h4 class="anchored" data-anchor-id="mathematical-formulation-1">Mathematical Formulation</h4>
+<p>For a window centered at position i:</p>
+<pre><code>Window data: (x_{i-m}, y_{i-m}), ..., (x_i, y_i), ..., (x_{i+m}, y_{i+m})
+
+where m = (window_length - 1) / 2</code></pre>
+<p><strong>Fit polynomial:</strong></p>
+<pre><code>P(x) = a₀ + a₁x + a₂x² + ... + aₚxᵖ
+
+where p = polyorder</code></pre>
+<p><strong>Least squares objective:</strong></p>
+<pre><code>Minimize: Σⱼ [yⱼ - P(xⱼ)]²  for j ∈ [i-m, i+m]</code></pre>
+<p><strong>Smoothed value:</strong></p>
+<pre><code>y'_i = P(x_i)</code></pre>
+</section>
+<section id="convolution-representation" class="level4">
+<h4 class="anchored" data-anchor-id="convolution-representation">Convolution Representation</h4>
+<p>The Savitzky-Golay filter can be expressed as a <strong>convolution</strong> with precomputed coefficients:</p>
+<pre><code>y'_i = Σⱼ cⱼ · y_{i+j}
+
+where j ∈ [-m, m]</code></pre>
+<p>The coefficients <code>c</code> depend only on <code>window_length</code> and <code>polyorder</code>, not on the data, making the filter very efficient.</p>
+</section>
+</section>
+<section id="why-it-works" class="level3">
+<h3 class="anchored" data-anchor-id="why-it-works">Why It Works</h3>
+<ol type="1">
+<li><strong>Noise Reduction:</strong> Averaging over window reduces random noise by factor of √(window_length)</li>
+<li><strong>Peak Preservation:</strong> Polynomial fitting preserves local trends better than simple moving average</li>
+<li><strong>Derivative Preservation:</strong> Can simultaneously compute derivatives (useful for peak finding)</li>
+</ol>
+</section>
+<section id="parameter-selection" class="level3">
+<h3 class="anchored" data-anchor-id="parameter-selection">Parameter Selection</h3>
+<section id="window_length-must-be-odd" class="level4">
+<h4 class="anchored" data-anchor-id="window_length-must-be-odd"><code>window_length</code> (must be odd)</h4>
+<ul>
+<li><strong>Smaller</strong> (5-7):
+<ul>
+<li>Preserves narrow peaks</li>
+<li>Less noise reduction</li>
+<li>Better for high-resolution spectra</li>
+</ul></li>
+<li><strong>Larger</strong> (11-15):
+<ul>
+<li>Stronger noise reduction</li>
+<li>May broaden narrow peaks</li>
+<li>Better for noisy, low-resolution spectra</li>
+</ul></li>
+<li><strong>RamanSPy default: 9</strong> (good balance)</li>
+</ul>
+</section>
+<section id="polyorder" class="level4">
+<h4 class="anchored" data-anchor-id="polyorder"><code>polyorder</code></h4>
+<ul>
+<li><strong>Lower</strong> (2-3):
+<ul>
+<li>Simpler fit</li>
+<li>More robust to outliers</li>
+<li>Suitable for smooth spectral features</li>
+</ul></li>
+<li><strong>Higher</strong> (4-5):
+<ul>
+<li>More flexible fit</li>
+<li>Can overfit noise if window too small</li>
+<li>Suitable for complex peak shapes</li>
+</ul></li>
+<li><strong>RamanSPy default: 3</strong> (cubic polynomial)</li>
+</ul>
+</section>
+</section>
+<section id="constraints" class="level3">
+<h3 class="anchored" data-anchor-id="constraints">Constraints</h3>
+<p><strong>Critical:</strong> <code>window_length &gt; polyorder</code> - Otherwise, polynomial perfectly fits all points → no smoothing</p>
+<p><strong>Rule of thumb:</strong> <code>window_length ≥ 2 × polyorder + 1</code></p>
+</section>
+<section id="advantages-1" class="level3">
+<h3 class="anchored" data-anchor-id="advantages-1">Advantages</h3>
+<ol type="1">
+<li><strong>Peak preservation:</strong> Unlike moving average, doesn’t significantly broaden peaks</li>
+<li><strong>Efficient:</strong> O(n) complexity due to convolution</li>
+<li><strong>Derivative capability:</strong> Can compute derivatives simultaneously</li>
+<li><strong>Well-established:</strong> Standard in spectroscopy since 1960s</li>
+</ol>
+</section>
+<section id="limitations-1" class="level3">
+<h3 class="anchored" data-anchor-id="limitations-1">Limitations</h3>
+<ul>
+<li>Edge effects (padding needed at boundaries)</li>
+<li>Window must be odd length</li>
+<li>Not ideal for very irregular sampling</li>
+<li>May not remove systematic noise (use baseline correction)</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="baseline-correction-aspls" class="level2">
+<h2 class="anchored" data-anchor-id="baseline-correction-aspls">4. Baseline Correction (ASPLS)</h2>
+<section id="purpose-3" class="level3">
+<h3 class="anchored" data-anchor-id="purpose-3">Purpose</h3>
+<p>Remove slowly-varying baseline drift caused by fluorescence, sample holder interference, or optical effects.</p>
+</section>
+<section id="algorithm-3" class="level3">
+<h3 class="anchored" data-anchor-id="algorithm-3">Algorithm</h3>
+<p><strong>Function:</strong> <code>baseline_aspls_pybaselines(y, lam=1e5, diff_order=2, max_iter=100, tol=1e-3)</code></p>
+<p><strong>Reference:</strong> Zhang, Z. M., Chen, S., &amp; Liang, Y. Z. (2010). Baseline correction using adaptive iteratively reweighted penalized least squares. <em>Analyst</em>, 135(5), 1138-1146.</p>
+</section>
+<section id="theory-2" class="level3">
+<h3 class="anchored" data-anchor-id="theory-2">Theory</h3>
+<p>ASPLS (Adaptive Smoothness Penalized Least Squares) is an advanced variant of the asymmetric least squares (ALS) method that <strong>adapts the smoothness constraint</strong> based on local signal characteristics.</p>
+<section id="foundation-penalized-least-squares" class="level4">
+<h4 class="anchored" data-anchor-id="foundation-penalized-least-squares">Foundation: Penalized Least Squares</h4>
+<p>The goal is to find a baseline <code>z</code> that minimizes:</p>
+<pre><code>Q = Σᵢ wᵢ(yᵢ - zᵢ)² + λ × Σⱼ (Δᵈzⱼ)²
+
+where:
+- yᵢ = observed spectrum values
+- zᵢ = baseline values
+- wᵢ = asymmetric weights
+- λ = smoothness penalty parameter
+- Δᵈ = d-th order difference operator
+- d = diff_order (typically 2)</code></pre>
+<p><strong>Two competing objectives:</strong> 1. <strong>Fidelity:</strong> Σ wᵢ(yᵢ - zᵢ)² → baseline close to data 2. <strong>Smoothness:</strong> λ × Σ (Δᵈzⱼ)² → baseline is smooth</p>
+</section>
+<section id="component-1-asymmetric-weighting" class="level4">
+<h4 class="anchored" data-anchor-id="component-1-asymmetric-weighting">Component 1: Asymmetric Weighting</h4>
+<p>Unlike symmetric least squares, ASPLS uses <strong>asymmetric weights</strong>:</p>
+<pre><code>wᵢ = {
+    p       if yᵢ &gt; zᵢ  (points above baseline)
+    1-p     if yᵢ ≤ zᵢ  (points below baseline)
+}
+
+where p ≪ 0.5 (typically p = 0.01)</code></pre>
+<p><strong>Rationale:</strong> - Peaks are <strong>above</strong> the baseline → low weight (p = 0.01) - Baseline is <strong>below</strong> peaks → high weight (1-p = 0.99) - This forces the fitted baseline to pass <strong>under</strong> the peaks</p>
+</section>
+<section id="component-2-smoothness-penalty" class="level4">
+<h4 class="anchored" data-anchor-id="component-2-smoothness-penalty">Component 2: Smoothness Penalty</h4>
+<p>The <strong>difference operator</strong> Δᵈ penalizes roughness:</p>
+<p><strong>First-order difference</strong> (d=1):</p>
+<pre><code>Δ¹z = [z₁-z₀, z₂-z₁, ..., zₙ₋₁-zₙ₋₂]</code></pre>
+<p>Penalizes slope changes (gradient)</p>
+<p><strong>Second-order difference</strong> (d=2, default):</p>
+<pre><code>Δ²z = [Δ¹z₁-Δ¹z₀, Δ¹z₂-Δ¹z₁, ...]
+    = [z₂-2z₁+z₀, z₃-2z₂+z₁, ...]</code></pre>
+<p>Penalizes curvature changes (second derivative)</p>
+<p><strong>Higher orders</strong> → smoother baseline but computationally expensive</p>
+</section>
+<section id="component-3-adaptive-smoothness-key-innovation" class="level4">
+<h4 class="anchored" data-anchor-id="component-3-adaptive-smoothness-key-innovation">Component 3: Adaptive Smoothness (Key Innovation)</h4>
+<p>The adaptive variant varies λ <strong>locally</strong> based on signal characteristics:</p>
+<pre><code>λᵢ_adaptive = λ / (1 + α × feature_i)
+
+where:
+- α = adaptation strength parameter
+- feature_i = local signal characteristic (e.g., magnitude of residual)</code></pre>
+<p><strong>Effect:</strong> - <strong>Strong peaks</strong> (large residuals) → λ decreases → more flexible baseline - <strong>Flat regions</strong> → λ remains high → smooth baseline - Prevents baseline from “chasing” strong peaks</p>
+</section>
+</section>
+<section id="algorithm-steps" class="level3">
+<h3 class="anchored" data-anchor-id="algorithm-steps">Algorithm Steps</h3>
+<pre><code>1. Initialize:
+   - z = initial baseline estimate (often zeros or linear fit)
+   - w = uniform weights
+
+2. For iteration = 1 to max_iter:
+
+   a. Compute local features (residual magnitudes):
+      r = |y - z|
+      feature = smooth(r)  (e.g., moving average)
+
+   b. Adapt smoothness parameters:
+      λᵢ = λ / (1 + α × feature_i)
+
+   c. Solve weighted penalized least squares:
+      Minimize: Σᵢ wᵢ(yᵢ - zᵢ)² + Σⱼ λⱼ(Δᵈzⱼ)²
+
+      In matrix form:
+      z = (W + λ·D'D)⁻¹ · (W·y)
+
+      where:
+      - W = diag(w) (weight matrix)
+      - D = difference matrix (d-th order)
+
+   d. Update asymmetric weights:
+      wᵢ = p if yᵢ &gt; zᵢ else (1-p)
+
+   e. Check convergence:
+      if ||z_new - z_old|| &lt; tol: break
+
+3. Return: z (estimated baseline)</code></pre>
+</section>
+<section id="matrix-formulation" class="level3">
+<h3 class="anchored" data-anchor-id="matrix-formulation">Matrix Formulation</h3>
+<p>The optimization problem in step 2c can be written as:</p>
+<pre><code>Minimize: ||W^(1/2)(y - z)||² + λ||Dz||²
+
+Solution: z = (W + λD'D)⁻¹(Wy)
+
+where D is the difference matrix:</code></pre>
+<p>For second-order differences (d=2):</p>
+<pre><code>D = [
+     1  -2   1   0   0  ...
+     0   1  -2   1   0  ...
+     0   0   1  -2   1  ...
+     ...
+]</code></pre>
+<p>This is a <strong>banded matrix</strong> → efficient sparse linear algebra solvers can be used.</p>
+</section>
+<section id="parameters-1" class="level3">
+<h3 class="anchored" data-anchor-id="parameters-1">Parameters</h3>
+<section id="lam-lambda-default-1e5" class="level4">
+<h4 class="anchored" data-anchor-id="lam-lambda-default-1e5"><code>lam</code> (lambda, default: 1e5)</h4>
+<p>Controls baseline smoothness: - <strong>Smaller</strong> (1e3-1e4): Flexible baseline, follows local variations - Risk: May follow peaks (under-correction) - <strong>Larger</strong> (1e6-1e7): Very smooth baseline - Risk: May not capture slow drifts (over-smoothing) - <strong>RamanSPy default: 1e5</strong> (good for most Raman spectra)</p>
+</section>
+<section id="diff_order-default-2" class="level4">
+<h4 class="anchored" data-anchor-id="diff_order-default-2"><code>diff_order</code> (default: 2)</h4>
+<p>Order of the difference operator: - <strong>1:</strong> Penalizes slope (first derivative) - <strong>2:</strong> Penalizes curvature (second derivative) — <strong>most common</strong> - <strong>3+:</strong> Penalizes higher derivatives (rarely used)</p>
+</section>
+<section id="max_iter-default-100" class="level4">
+<h4 class="anchored" data-anchor-id="max_iter-default-100"><code>max_iter</code> (default: 100)</h4>
+<p>Maximum iterations: - Typically converges in 10-50 iterations - If not converging, may need to adjust <code>lam</code> or <code>p</code></p>
+</section>
+<section id="tol-tolerance-default-1e-3" class="level4">
+<h4 class="anchored" data-anchor-id="tol-tolerance-default-1e-3"><code>tol</code> (tolerance, default: 1e-3)</h4>
+<p>Convergence criterion: - Stop when ||z_new - z_old||₂ &lt; tol - Smaller → more precise but slower</p>
+</section>
+<section id="alpha-adaptation-parameter-optional" class="level4">
+<h4 class="anchored" data-anchor-id="alpha-adaptation-parameter-optional"><code>alpha</code> (adaptation parameter, optional)</h4>
+<p>Controls adaptive smoothness strength: - <strong>0:</strong> No adaptation (reduces to standard ALS) - <strong>0.1-0.5:</strong> Moderate adaptation - <strong>&gt;1:</strong> Strong adaptation (may be unstable) - <strong>pybaselines default:</strong> Auto-determined based on signal</p>
+</section>
+</section>
+<section id="advantages-2" class="level3">
+<h3 class="anchored" data-anchor-id="advantages-2">Advantages</h3>
+<ol type="1">
+<li><strong>Automatic:</strong> Minimal manual tuning required</li>
+<li><strong>Robust:</strong> Handles varying baseline shapes</li>
+<li><strong>Adaptive:</strong> Adjusts to local signal characteristics</li>
+<li><strong>Peak-preserving:</strong> Asymmetric weights prevent baseline from following peaks</li>
+<li><strong>Widely used:</strong> Standard in chemometrics and spectroscopy</li>
+</ol>
+</section>
+<section id="limitations-2" class="level3">
+<h3 class="anchored" data-anchor-id="limitations-2">Limitations</h3>
+<ul>
+<li>Computationally intensive (requires matrix inversion per iteration)</li>
+<li>May struggle with very steep baselines</li>
+<li>Requires appropriate λ selection (though default works well for most cases)</li>
+<li>Can fail if peaks are extremely broad (may be confused with baseline)</li>
+</ul>
+<hr>
+</section>
+<section id="normalization-comparison" class="level3">
+<h3 class="anchored" data-anchor-id="normalization-comparison">Normalization Comparison</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Range</th>
+<th>Robust to Outliers</th>
+<th>Preserves Ratios</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>AUC</strong></td>
+<td>Varies</td>
+<td>Moderate</td>
+<td>Yes</td>
+<td>Quantitative analysis</td>
+</tr>
+<tr class="even">
+<td><strong>MinMax</strong></td>
+<td>[0, 1]</td>
+<td>No</td>
+<td>No</td>
+<td>Visualization</td>
+</tr>
+<tr class="odd">
+<td><strong>Vector</strong></td>
+<td>Varies</td>
+<td>No</td>
+<td>Approximately</td>
+<td>Machine learning</td>
+</tr>
+</tbody>
+</table>
+<p><strong>General Rule:</strong> - <strong>AUC</strong> for quantitative analysis - <strong>MinMax</strong> for visualization and neural networks - <strong>Vector</strong> for distance-based machine learning</p>
+<hr>
+</section>
+</section>
+<section id="complete-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="complete-pipeline">6. Complete Pipeline</h2>
+<section id="ramanspy-compatible-pipeline" class="level3">
+<h3 class="anchored" data-anchor-id="ramanspy-compatible-pipeline">RamanSPy-Compatible Pipeline</h3>
+<p><strong>Function:</strong> <code>pipeline_ramanspy_compatible(crop_min=600.0, crop_max=None)</code></p>
+<p>Implements the standard RamanSPy preprocessing workflow:</p>
+<pre><code>Input Spectrum
+      ↓
+1. Cropping (optional)
+   └─→ Focus on region of interest
+      ↓
+2. Whitaker-Hayes Despiking
+   └─→ Remove cosmic rays
+      ↓
+3. Savitzky-Golay Smoothing (window=9, poly=3)
+   └─→ Reduce noise
+      ↓
+4. ASPLS Baseline Correction (λ=1e5)
+   └─→ Remove baseline drift
+      ↓
+5. Normalization (optional, not included by default)
+   └─→ Scale for comparison
+      ↓
+Output: Preprocessed Spectrum</code></pre>
+</section>
+<section id="pipeline-order-rationale" class="level3">
+<h3 class="anchored" data-anchor-id="pipeline-order-rationale">Pipeline Order Rationale</h3>
+<p>The order of operations is <strong>critical</strong>:</p>
+<section id="cropping-first-optional" class="level4">
+<h4 class="anchored" data-anchor-id="cropping-first-optional">1. Cropping First (Optional)</h4>
+<ul>
+<li><strong>Why first?</strong> Reduces data size for faster downstream processing</li>
+<li><strong>Why optional?</strong> May want full spectrum for some applications</li>
+</ul>
+</section>
+<section id="despiking-before-smoothing" class="level4">
+<h4 class="anchored" data-anchor-id="despiking-before-smoothing">2. Despiking Before Smoothing</h4>
+<ul>
+<li><strong>Why?</strong> Spikes will be smoothed/spread by filters</li>
+<li><strong>Why?</strong> Easier to detect discrete spikes in raw data</li>
+<li>Smoothing after despiking removes any artifacts from spike replacement</li>
+</ul>
+</section>
+<section id="smoothing-before-baseline" class="level4">
+<h4 class="anchored" data-anchor-id="smoothing-before-baseline">3. Smoothing Before Baseline</h4>
+<ul>
+<li><strong>Why?</strong> Noise can confuse baseline fitting algorithms</li>
+<li><strong>Why?</strong> Smoothing stabilizes baseline estimation</li>
+<li>Baseline algorithms assume relatively smooth underlying signal</li>
+</ul>
+</section>
+<section id="baseline-before-normalization" class="level4">
+<h4 class="anchored" data-anchor-id="baseline-before-normalization">4. Baseline Before Normalization</h4>
+<ul>
+<li><strong>Why?</strong> Baseline contributes to norm/area but isn’t signal</li>
+<li><strong>Why?</strong> Normalization scales everything including baseline</li>
+<li>Must remove baseline first to normalize only the peaks</li>
+</ul>
+</section>
+<section id="normalization-last" class="level4">
+<h4 class="anchored" data-anchor-id="normalization-last">5. Normalization Last</h4>
+<ul>
+<li><strong>Why?</strong> Operates on final preprocessed spectrum</li>
+<li><strong>Why?</strong> Preserves previous corrections</li>
+<li>Only scales, doesn’t change shape or structure</li>
+</ul>
+</section>
+</section>
+<section id="dos-and-donts" class="level3">
+<h3 class="anchored" data-anchor-id="dos-and-donts">Do’s and Don’ts</h3>
+<section id="do" class="level4">
+<h4 class="anchored" data-anchor-id="do">✅ DO:</h4>
+<ul>
+<li>Baseline correct before normalizing</li>
+<li>Despike before smoothing</li>
+<li>Smooth before baseline fitting</li>
+<li>Crop early to reduce computation</li>
+<li>Use consistent parameters across dataset</li>
+</ul>
+</section>
+<section id="dont" class="level4">
+<h4 class="anchored" data-anchor-id="dont">❌ DON’T:</h4>
+<ul>
+<li>Normalize before baseline correction</li>
+<li>Smooth before despiking</li>
+<li>Over-smooth (too large window)</li>
+<li>Use extreme λ values in ASPLS</li>
+<li>Skip baseline correction for quantitative work</li>
+</ul>
+<hr>
+</section>
+</section>
+</section>
+<section id="parameter-selection-guidelines" class="level2">
+<h2 class="anchored" data-anchor-id="parameter-selection-guidelines">Parameter Selection Guidelines</h2>
+<section id="general-principles" class="level3">
+<h3 class="anchored" data-anchor-id="general-principles">General Principles</h3>
+<ol type="1">
+<li><strong>Start with defaults</strong> (validated on diverse Raman spectra)</li>
+<li><strong>Visual inspection</strong> is essential</li>
+<li><strong>Keep parameters constant</strong> within a study</li>
+<li><strong>Document all parameters</strong> for reproducibility</li>
+</ol>
+</section>
+<section id="ramanspy-default-parameters-recommended" class="level3">
+<h3 class="anchored" data-anchor-id="ramanspy-default-parameters-recommended">RamanSPy Default Parameters (Recommended)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cropping</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>crop_min <span class="op">=</span> <span class="fl">600.0</span>  <span class="co"># cm⁻¹ (or 400 for full fingerprint)</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>crop_max <span class="op">=</span> <span class="va">None</span>   <span class="co"># cm⁻¹ (or 1800 for full fingerprint)</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Despiking (Whitaker-Hayes)</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>kernel_size <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>threshold <span class="op">=</span> <span class="fl">8.0</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Smoothing (Savitzky-Golay)</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>window_length <span class="op">=</span> <span class="dv">9</span>  <span class="co"># must be odd</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>polyorder <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Baseline (ASPLS)</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>lam <span class="op">=</span> <span class="fl">1e5</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>diff_order <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>max_iter <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>tol <span class="op">=</span> <span class="fl">1e-3</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="when-to-adjust-parameters" class="level3">
+<h3 class="anchored" data-anchor-id="when-to-adjust-parameters">When to Adjust Parameters</h3>
+<section id="high-noise-increase-smoothing" class="level4">
+<h4 class="anchored" data-anchor-id="high-noise-increase-smoothing">High Noise → Increase Smoothing</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>window_length <span class="op">=</span> <span class="dv">11</span> <span class="kw">or</span> <span class="dv">13</span>  <span class="co"># instead of 9</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="very-sharp-peaks-decrease-smoothing" class="level4">
+<h4 class="anchored" data-anchor-id="very-sharp-peaks-decrease-smoothing">Very Sharp Peaks → Decrease Smoothing</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>window_length <span class="op">=</span> <span class="dv">7</span> <span class="kw">or</span> <span class="dv">5</span>  <span class="co"># instead of 9</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="strong-baseline-drift-adjust-λ" class="level4">
+<h4 class="anchored" data-anchor-id="strong-baseline-drift-adjust-λ">Strong Baseline Drift → Adjust λ</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>lam <span class="op">=</span> <span class="fl">1e4</span>  <span class="co"># more flexible (for steep baselines)</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>lam <span class="op">=</span> <span class="fl">1e6</span>  <span class="co"># smoother (for flat baselines)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="persistent-spikes-adjust-despiking" class="level4">
+<h4 class="anchored" data-anchor-id="persistent-spikes-adjust-despiking">Persistent Spikes → Adjust Despiking</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>threshold <span class="op">=</span> <span class="fl">6.0</span>  <span class="co"># more aggressive (detect more spikes)</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>threshold <span class="op">=</span> <span class="fl">10.0</span>  <span class="co"># conservative (only extreme spikes)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<section id="key-papers" class="level3">
+<h3 class="anchored" data-anchor-id="key-papers">Key Papers</h3>
+<ol type="1">
+<li><strong>Whitaker-Hayes Despiking:</strong>
+<ul>
+<li>Whitaker, D. A., &amp; Hayes, K. (2018). A simple algorithm for despiking Raman spectra. <em>Chemometrics and Intelligent Laboratory Systems</em>, 179, 82-84.</li>
+</ul></li>
+<li><strong>Savitzky-Golay Filter:</strong>
+<ul>
+<li>Savitzky, A., &amp; Golay, M. J. E. (1964). Smoothing and differentiation of data by simplified least squares procedures. <em>Analytical Chemistry</em>, 36(8), 1627-1639.</li>
+</ul></li>
+<li><strong>ASPLS Baseline Correction:</strong>
+<ul>
+<li>Zhang, Z. M., Chen, S., &amp; Liang, Y. Z. (2010). Baseline correction using adaptive iteratively reweighted penalized least squares. <em>Analyst</em>, 135(5), 1138-1146.</li>
+</ul></li>
+<li><strong>Asymmetric Least Squares (ALS):</strong>
+<ul>
+<li>Eilers, P. H., &amp; Boelens, H. F. (2005). Baseline correction with asymmetric least squares smoothing. <em>Leiden University Medical Centre Report</em>, 1(1), 5.</li>
+</ul></li>
+<li><strong>RamanSPy Package:</strong>
+<ul>
+<li>Georgiev, D., Pedersen, S. V., Xie, R., Fernández-Galiana, Á., Stevens, M. M., &amp; Barahona, M. (2024). RamanSPy: An open-source Python package for integrative Raman spectroscopy data analysis. <em>Analytical Chemistry</em>, 96(21), 8492-8500.</li>
+</ul></li>
+</ol>
+</section>
+<section id="additional-resources" class="level3">
+<h3 class="anchored" data-anchor-id="additional-resources">Additional Resources</h3>
+<ul>
+<li><strong>pybaselines documentation:</strong> https://pybaselines.readthedocs.io/</li>
+<li><strong>scipy.signal documentation:</strong> https://docs.scipy.org/doc/scipy/reference/signal.html</li>
+<li><strong>RamanSPy documentation:</strong> https://ramanspy.readthedocs.io/</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="implementation-notes" class="level2">
+<h2 class="anchored" data-anchor-id="implementation-notes">Implementation Notes</h2>
+<section id="dependencies" class="level3">
+<h3 class="anchored" data-anchor-id="dependencies">Dependencies</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>numpy              <span class="co"># Core numerical operations</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>scipy              <span class="co"># Signal processing (Savitzky-Golay)</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>pybaselines        <span class="co"># ASPLS baseline correction</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="computational-complexity" class="level3">
+<h3 class="anchored" data-anchor-id="computational-complexity">Computational Complexity</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Operation</th>
+<th>Complexity</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Cropping</td>
+<td>O(n)</td>
+<td>Simple masking</td>
+</tr>
+<tr class="even">
+<td>Whitaker-Hayes</td>
+<td>O(k·n)</td>
+<td>k = iterations (typically &lt;10)</td>
+</tr>
+<tr class="odd">
+<td>Savitzky-Golay</td>
+<td>O(n)</td>
+<td>Convolution</td>
+</tr>
+<tr class="even">
+<td>ASPLS</td>
+<td>O(m·n²)</td>
+<td>m = iterations, sparse solve</td>
+</tr>
+<tr class="odd">
+<td>Normalization</td>
+<td>O(n)</td>
+<td>Simple arithmetic</td>
+</tr>
+</tbody>
+</table>
+<p>Where n = spectrum length (typically 500-2000 points)</p>
+</section>
+<section id="memory-usage" class="level3">
+<h3 class="anchored" data-anchor-id="memory-usage">Memory Usage</h3>
+<ul>
+<li><strong>In-place operations</strong> where possible</li>
+<li><strong>Copy-on-write</strong> for safety in pipeline</li>
+<li><strong>Typical memory:</strong> ~10 KB per spectrum</li>
+</ul>
+</section>
+<section id="thread-safety" class="level3">
+<h3 class="anchored" data-anchor-id="thread-safety">Thread Safety</h3>
+<p>All functions are <strong>thread-safe</strong> and support: - Parallel processing of multiple spectra - Batch processing via numpy broadcasting - Integration with multiprocessing</p>
+<hr>
+</section>
+</section>
+<section id="usage-examples" class="level2">
+<h2 class="anchored" data-anchor-id="usage-examples">Usage Examples</h2>
+<section id="basic-usage" class="level3">
+<h3 class="anchored" data-anchor-id="basic-usage">Basic Usage</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> src.inspek.preprocess <span class="im">import</span> pipeline_ramanspy_compatible</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Create pipeline</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>pipeline <span class="op">=</span> pipeline_ramanspy_compatible(crop_min<span class="op">=</span><span class="fl">600.0</span>, crop_max<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply to spectrum</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>wavenumbers_out, spectrum_out <span class="op">=</span> pipeline.<span class="bu">apply</span>(wavenumbers, spectrum)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="custom-pipeline" class="level3">
+<h3 class="anchored" data-anchor-id="custom-pipeline">Custom Pipeline</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> src.inspek.preprocess <span class="im">import</span> (</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    SpectralPreprocessor,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    remove_cosmic_rays_whitaker_hayes,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    savgol_smooth,</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    baseline_aspls_pybaselines,</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    normalize_minmax</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Build custom pipeline</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>custom_pipeline <span class="op">=</span> SpectralPreprocessor(</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>    steps<span class="op">=</span>[</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>        remove_cosmic_rays_whitaker_hayes,</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>        <span class="kw">lambda</span> y: savgol_smooth(y, window_length<span class="op">=</span><span class="dv">11</span>, polyorder<span class="op">=</span><span class="dv">3</span>),</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>        <span class="kw">lambda</span> y: y <span class="op">-</span> baseline_aspls_pybaselines(y, lam<span class="op">=</span><span class="fl">5e4</span>),</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>        normalize_minmax,</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply</span></span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>wn_out, spec_out <span class="op">=</span> custom_pipeline.<span class="bu">apply</span>(wavenumbers, spectrum)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="parameter-tuning-example" class="level3">
+<h3 class="anchored" data-anchor-id="parameter-tuning-example">Parameter Tuning Example</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># High-noise spectrum</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>pipeline_high_noise <span class="op">=</span> SpectralPreprocessor(</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    steps<span class="op">=</span>[</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>        remove_cosmic_rays_whitaker_hayes,</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>        <span class="kw">lambda</span> y: savgol_smooth(y, window_length<span class="op">=</span><span class="dv">13</span>, polyorder<span class="op">=</span><span class="dv">3</span>),  <span class="co"># more smoothing</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">lambda</span> y: y <span class="op">-</span> baseline_aspls_pybaselines(y, lam<span class="op">=</span><span class="fl">1e5</span>),</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Sharp peaks spectrum</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>pipeline_sharp_peaks <span class="op">=</span> SpectralPreprocessor(</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>    steps<span class="op">=</span>[</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>        remove_cosmic_rays_whitaker_hayes,</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>        <span class="kw">lambda</span> y: savgol_smooth(y, window_length<span class="op">=</span><span class="dv">7</span>, polyorder<span class="op">=</span><span class="dv">3</span>),  <span class="co"># less smoothing</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>        <span class="kw">lambda</span> y: y <span class="op">-</span> baseline_aspls_pybaselines(y, lam<span class="op">=</span><span class="fl">1e5</span>),</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+<section id="troubleshooting" class="level2">
+<h2 class="anchored" data-anchor-id="troubleshooting">Troubleshooting</h2>
+<section id="common-issues" class="level3">
+<h3 class="anchored" data-anchor-id="common-issues">Common Issues</h3>
+<section id="spikes-still-visible-after-despiking" class="level4">
+<h4 class="anchored" data-anchor-id="spikes-still-visible-after-despiking">1. Spikes Still Visible After Despiking</h4>
+<p><strong>Problem:</strong> Threshold too high or kernel too small <strong>Solution:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Lower threshold or increase kernel</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>remove_cosmic_rays_whitaker_hayes(spectrum, kernel_size<span class="op">=</span><span class="dv">5</span>, threshold<span class="op">=</span><span class="fl">6.0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="peaks-appear-smoothedbroadened" class="level4">
+<h4 class="anchored" data-anchor-id="peaks-appear-smoothedbroadened">2. Peaks Appear Smoothed/Broadened</h4>
+<p><strong>Problem:</strong> Window too large in Savitzky-Golay <strong>Solution:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reduce window length</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>savgol_smooth(spectrum, window_length<span class="op">=</span><span class="dv">7</span>, polyorder<span class="op">=</span><span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="baseline-follows-peaks" class="level4">
+<h4 class="anchored" data-anchor-id="baseline-follows-peaks">3. Baseline Follows Peaks</h4>
+<p><strong>Problem:</strong> λ too small in ASPLS <strong>Solution:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Increase lambda for smoother baseline</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>baseline_aspls_pybaselines(spectrum, lam<span class="op">=</span><span class="fl">1e6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="baseline-too-flat" class="level4">
+<h4 class="anchored" data-anchor-id="baseline-too-flat">4. Baseline Too Flat</h4>
+<p><strong>Problem:</strong> λ too large <strong>Solution:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Decrease lambda for more flexible baseline</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>baseline_aspls_pybaselines(spectrum, lam<span class="op">=</span><span class="fl">1e4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="negative-values-after-baseline-correction" class="level4">
+<h4 class="anchored" data-anchor-id="negative-values-after-baseline-correction">5. Negative Values After Baseline Correction</h4>
+<p><strong>Problem:</strong> Baseline estimated too high <strong>Explanation:</strong> This is normal and correct behavior <strong>Solution:</strong> Can shift to non-negative if needed:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>corrected <span class="op">=</span> spectrum <span class="op">-</span> baseline</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>corrected <span class="op">=</span> corrected <span class="op">-</span> corrected.<span class="bu">min</span>()  <span class="co"># shift to [0, ...]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+</section>
+</section>
+</section>
+<section id="quality-control-checklist" class="level2">
+<h2 class="anchored" data-anchor-id="quality-control-checklist">Quality Control Checklist</h2>
+<p>Before accepting preprocessed spectra:</p>
+<ul class="task-list">
+<li><label><input type="checkbox">Cosmic rays removed (no sharp spikes)</label></li>
+<li><label><input type="checkbox">Noise reduced (smooth spectral features)</label></li>
+<li><label><input type="checkbox">Baseline flat (near zero between peaks)</label></li>
+<li><label><input type="checkbox">Peaks preserved (positions and relative intensities maintained)</label></li>
+<li><label><input type="checkbox">No edge artifacts (check spectrum boundaries)</label></li>
+<li><label><input type="checkbox">Consistent parameters across all spectra in dataset</label></li>
+<li><label><input type="checkbox">Visual inspection of at least 5-10 random spectra</label></li>
+</ul>
+<hr>
+<p><em>Document Version: 1.0</em> <em>Last Updated: 2025</em> <em>Compatible with: RamanSPy 0.2.10+, pybaselines 1.0.0+</em></p>
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{untitled,
+  author = {},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-untitled" class="csl-entry quarto-appendix-citeas" role="listitem">
+n.d.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

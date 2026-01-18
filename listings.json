@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/raman/raman.html",
       "/posts/llm-slides/llm-slides.html",
       "/posts/llm-observability/llm-observability.html",
       "/posts/pdf-rag/pdf-rag.html",
