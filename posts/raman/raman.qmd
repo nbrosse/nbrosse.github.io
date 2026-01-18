@@ -1,17 +1,25 @@
 ---
-title: "Raman Spectroscopy: An Overview"
+title: "Analyzing Raman Spectra with Machine Learning"
 author: "Nicolas Brosse"
-date: "2025-12-31"
-categories: [deep learning, chemistry]
+date: "2026-01-18"
+categories: [machine learning, chemistry]
 bibliography: raman-references.bib
-description: "An overview of Raman spectroscopy with machine learning approaches."
+description: "Analyzing Raman spectra with machine learning approaches."
 citation:
   url: https://nbrosse.github.io/posts/raman/raman.html
 ---
 
-This blog post is inspired by an interview homework and a Kaggle competition. The objective is to provide an overview of Raman spectroscopy and provide some ML approaches to analyze Raman spectra.
+This blog post is inspired by an interview homework and a Kaggle competition. The objective is to provide an overview of Raman spectroscopy and provide some ML approaches to analyze Raman spectra. The associated code is available on GitHub at [raman-spectra](https://github.com/nbrosse/raman-spectra).
 
-# Raman Spectroscopy: An Overview
+In the first part, @sec-raman-overview, we review the physical principles underlying Raman scattering, the distinction between Stokes and anti-Stokes lines, the relationship between Raman and IR selection rules, and the main components of a Raman spectrometer.
+
+The second part, @sec-eda-raman, uses the Dig4Bio Raman Transfer Learning Challenge dataset as a concrete example. Through the accompanying notebook, we perform a brief exploratory data analysis and motivate the need for a robust preprocessing pipeline when working with real-world spectra from multiple instruments. The dedicated section @sec-preprocessing-raman then details the individual steps of this pipeline—spectral cropping, Whitaker–Hayes cosmic-ray removal, Savitzky–Golay denoising, and ASPLS baseline correction—both conceptually and mathematically, following their implementation in RamanSPy.
+
+The third part @sec-ml-raman, focuses on predicting analyte concentrations from preprocessed spectra. We start with a classical chemometrics baseline using PLS Canonical (PLSW2A), reviewing the underlying algorithm, the geometry of scores, loadings, and rotation matrices, and how these pieces assemble into a linear map from spectra to concentrations. The goal is to provide a transparent, end-to-end example of a supervised learning pipeline—from raw spectra, through preprocessing, to a calibrated regression model.
+
+Finally, the [accompanying codebase](https://github.com/nbrosse/raman-spectra) extends beyond traditional PLS models and includes an experimental transformer-based toolkit, SpecBERT, for spectral analysis. SpecBERT adapts BERT/ViT-style encoders to 1D Raman spectra, using Masked Spectral Modeling (MSM) for self-supervised pretraining on large unlabeled spectral collections, followed by supervised fine-tuning for regression or classification. This implementation is intentionally labeled as experimental: it was largely generated with AI assistance as a proof of concept and should be treated as a starting point rather than production-ready software. Nevertheless, it illustrates how modern representation-learning techniques can complement classical chemometric methods when spectral data are abundant but accurate concentration labels are scarce.
+
+# Raman Spectroscopy: An Overview {#sec-raman-overview}
 
 This section provides an overview of Raman spectroscopy, including the theoretical principle, instrumentation, and interpretation of the Raman spectrum. The main source is the Wikipedia article [@wikipedia-raman-spectroscopy].
 
@@ -67,8 +75,8 @@ At room temperature, the vast majority of molecules are in the ground state, as 
 
 This section explains the "rules" that determine whether a specific vibration will produce a Raman signal. This is the critical difference between Raman and Infrared (IR) spectroscopy.
 
-*   **The Raman Rule: Change in Polarizability:** A vibration is "Raman active" only if it causes a **change in the molecule's polarizability**. Polarizability is a measure of how easily the electron cloud of a molecule can be distorted by an external electric field (like that of the laser).
-*   **The IR Rule: Change in Dipole Moment:** A vibration is "IR active" only if it causes a **change in the molecule's dipole moment**.
+*   **The Raman Rule - Change in Polarizability:** A vibration is "Raman active" only if it causes a **change in the molecule's polarizability**. Polarizability is a measure of how easily the electron cloud of a molecule can be distorted by an external electric field (like that of the laser).
+*   **The IR Rule - Change in Dipole Moment:** A vibration is "IR active" only if it causes a **change in the molecule's dipole moment**.
 
 This difference leads to complementarity:
 
@@ -100,7 +108,7 @@ Fluorescence and Raman scattering are both optical phenomena that involve the in
 | **Information Provided**   | A sharp "fingerprint" of specific molecular vibrations.      | A broad signal indicating the presence of a fluorescent molecule. |
 | **Efficiency / Intensity** | **Extremely Inefficient** (1 in 10⁷ photons) -> **Very Weak Signal** | **Very Efficient** (can be >90%) -> **Extremely Strong Signal** |
 
-## Instrumentation: A Modern Raman Spectrometer
+## Instrumentation: A Raman Spectrometer
 
 A Raman spectrometer is designed to isolate and detect the extremely weak Raman scattered light from the overwhelmingly strong Rayleigh scattered light.
 
@@ -114,7 +122,7 @@ The essential components are:
 
 ## The Raman Spectrum: Interpretation
 
-The output from the spectrometer is a Raman spectrum.
+The output from the spectrometer is a Raman spectrum, see for example the spectrum in @fig-raman-spectrum-example.
 
 *   **X-axis:** **Raman Shift ($cm^{-1}$)**. This corresponds to the vibrational frequency (energy) of molecular bonds. A key advantage is that the Raman shift is independent of the laser wavelength used.
 *   **Y-axis:** **Intensity (Arbitrary Units)**. This is proportional to the concentration of the molecule and how "Raman active" that particular vibration is.
@@ -142,13 +150,17 @@ Each peak in the spectrum corresponds to a specific molecular vibration.
 *   **Sample Heating:** High-intensity lasers can heat or burn sensitive samples.
 *   **Not Ideal for Metals:** Cannot be used for elemental analysis of metals as they lack molecular bonds.
 
-# Machine Learning Approaches to Raman Spectroscopy
+# Exploration and Preprocessing {#sec-eda-raman}
 
 Since the data of the interview homework is not publicly available, we will use the dataset from the Kaggle competition [@dig-4-bio-raman-transfer-learning-challenge] to illustrate some machine learning approaches to Raman spectroscopy. This dataset and the Kaggle competition are inspired by the article [@LANGE2025125861] which compares machine learning methods on Raman spectra from eight different spectrometers.
 
 Note that we do not follow the extensive analysis of the article [@LANGE2025125861] but rather focus on some simple machine learning approaches to analyze the Raman spectra that we implemented for the interview homework. We use the Python package [@georgiev2024ramanspy] to analyze the Raman spectra.
 
-## Preprocessing Algorithms
+We first present a notebook that contains an exploration of the dataset and some preprocessing algorithms. The preprocessing algorithms are presented and explained in @sec-preprocessing-raman.
+
+{{< embed notebooks/_eda.ipynb echo=true >}}
+
+## Preprocessing Algorithms {#sec-preprocessing-raman}
 
 Raw Raman spectra often contain artifacts and noise that must be addressed before meaningful analysis can be performed. These preprocessing steps are essential for accurate peak identification, quantitative analysis, and machine learning applications. The standard preprocessing pipeline for Raman spectroscopy typically includes: spectral cropping to focus on regions of interest, cosmic ray removal to eliminate detector artifacts, denoising to reduce random noise, and baseline correction to remove fluorescence and drift effects. We describe each of these algorithms below, following the implementations available in RamanSPy [@georgiev2024ramanspy].
 
@@ -303,13 +315,23 @@ The standard RamanSPy preprocessing workflow [@georgiev2024ramanspy] applies the
 
 The default parameters recommended by RamanSPy provide a good starting point for most applications: cropping to 600-1800 $cm^{-1}$ (or full fingerprint region 400-1800 $cm^{-1}$), despiking with `kernel_size=3` and `threshold=8.0`, smoothing with `window_length=9` and `polyorder=3`, and baseline correction with $\lambda = 10^5$ and `diff_order=2`. These parameters should be kept consistent across all spectra within a study to ensure reproducibility and comparability.
 
-# Appendix: PLS Canonical (PLSW2A) Algorithm
+# Machine Learning Approaches {#sec-ml-raman}
 
-## 1. Overview
+We now present a Machine Learning approach to predic the concentration of the different chemicals in the sample. The PLS Canonical algorithm is presented and explained in @sec-pls-canonical.
 
-**PLS Canonical** (also known as **PLSW2A**) is a method for finding low-dimensional projections of two data matrices $X$ and $Y$ that maximize the covariance between their projected representations. Given two centered data matrices $X \in \mathbb{R}^{n \times p}$ and $Y \in \mathbb{R}^{n \times q}$, and a desired number of latent components $K$, the objective is to find projections that maximize shared covariance while allowing reconstruction of both $X$ and $Y$ from latent components.
+{{< embed notebooks/_ml.ipynb echo=true >}}
 
-**PLS Canonical** focuses on **symmetric covariance maximization** between $X$ and $Y$, treating both matrices equally. This distinguishes it from **PLS Regression**, which focuses on **predicting** $Y$ from $X$. The key algorithmic differences are: (1) In PLS Regression, the Y-weight vector $c_k$ is never normalized (no unit length constraint); (2) PLS Regression regresses $Y_{k-1}$ on X-scores $t_k$ instead of Y-scores $u_k$:
+## PLS Canonical (PLSW2A) Algorithm {#sec-pls-canonical}
+
+### Overview
+
+[**PLS Canonical**](https://scikit-learn.org/stable/modules/cross_decomposition.html#cross-decomposition) (also known as **PLSW2A**) is a method for finding low-dimensional projections of two data matrices $X$ and $Y$ that maximize the covariance between their projected representations. Given two centered data matrices $X \in \mathbb{R}^{n \times p}$ and $Y \in \mathbb{R}^{n \times q}$, and a desired number of latent components $K$, the objective is to find projections that maximize shared covariance while allowing reconstruction of both $X$ and $Y$ from latent components.
+
+**PLS Canonical** focuses on **symmetric covariance maximization** between $X$ and $Y$, treating both matrices equally. This distinguishes it from **PLS Regression**, which focuses on **predicting** $Y$ from $X$. The key algorithmic differences are: 
+
+1. In PLS Regression, the $Y$-weight vector $c_k$ is never normalized (no unit length constraint); 
+2. PLS Regression regresses $Y_{k-1}$ on $X$-scores $t_k$ instead of $Y$-scores $u_k$:
+
 $$
 q_k = \frac{Y_{k-1}^\top t_k}{t_k^\top t_k} \quad \text{(PLS Regression)}
 $$
@@ -318,7 +340,7 @@ $$
 q_k = \frac{Y_{k-1}^\top u_k}{u_k^\top u_k} \quad \text{(PLS Canonical)}
 $$
 
-## 2. Algorithm
+### Algorithm
 
 The algorithm initializes with $X_0 = X$ and $Y_0 = Y$. For each component $k = 1, \dots, K$, the following steps are performed iteratively.
 
@@ -326,24 +348,27 @@ The algorithm initializes with $X_0 = X$ and $Y_0 = Y$. For each component $k = 
 $$
 (w_k, c_k) = \arg\max_{\|w\|=\|c\|=1} w^\top C_k c
 $$
-These are obtained from the singular value decomposition of $C_k$, where $w_k \in \mathbb{R}^p$ is the X-weight vector and $c_k \in \mathbb{R}^q$ is the Y-weight vector. These directions define projections of $X$ and $Y$ that maximize their covariance. Implementation options include full SVD of $X_{k-1}^\top Y_{k-1}$ or power iteration (NIPALS algorithm).
+
+These are obtained from the singular value decomposition of $C_k$, where $w_k \in \mathbb{R}^p$ is the $X$-weight vector and $c_k \in \mathbb{R}^q$ is the $Y$-weight vector. These directions define projections of $X$ and $Y$ that maximize their covariance. Implementation options include full SVD of $X_{k-1}^\top Y_{k-1}$ or power iteration (NIPALS algorithm).
 
 **Step (b): Compute Scores.** Project data onto the weight vectors:
 $$
-t_k = X_{k-1} w_k \quad \in \mathbb{R}^n \quad \text{(X-score)}
+t_k = X_{k-1} w_k \quad \in \mathbb{R}^n \quad \text{($X$-score)}
 $$
 $$
-u_k = Y_{k-1} c_k \quad \in \mathbb{R}^n \quad \text{(Y-score)}
+u_k = Y_{k-1} c_k \quad \in \mathbb{R}^n \quad \text{($Y$-score)}
 $$
+
 Scores are the sample coordinates in the shared latent space.
 
 **Step (c): Compute Loadings via Regression.** Regress original variables onto their respective scores:
 $$
-p_k = \frac{X_{k-1}^\top t_k}{t_k^\top t_k} \quad \in \mathbb{R}^p \quad \text{(X-loading)}
+p_k = \frac{X_{k-1}^\top t_k}{t_k^\top t_k} \quad \in \mathbb{R}^p \quad \text{($X$-loading)}
 $$
 $$
-q_k = \frac{Y_{k-1}^\top u_k}{u_k^\top u_k} \quad \in \mathbb{R}^q \quad \text{(Y-loading)}
+q_k = \frac{Y_{k-1}^\top u_k}{u_k^\top u_k} \quad \in \mathbb{R}^q \quad \text{($Y$-loading)}
 $$
+
 Loadings indicate how each original variable contributes to the latent component and provide the best rank-1 reconstruction of the deflated data.
 
 **Step (d): Deflation.** Remove the extracted rank-1 structure:
@@ -353,45 +378,58 @@ $$
 $$
 Y_k = Y_{k-1} - u_k q_k^\top
 $$
+
 Deflation ensures each subsequent component captures new, orthogonal covariance structure.
 
-## 3. Matrix Decompositions
+### Matrix Decompositions
 
 After extracting $K$ components, we obtain low-rank approximations. For $X$:
 $$
 X \approx T P^\top
 $$
-where $T = [t_1, \dots, t_K] \in \mathbb{R}^{n \times K}$ is the X-score matrix and $P = [p_1, \dots, p_K] \in \mathbb{R}^{p \times K}$ is the X-loading matrix. For $Y$:
+
+where $T = [t_1, \dots, t_K] \in \mathbb{R}^{n \times K}$ is the $X$-score matrix and $P = [p_1, \dots, p_K] \in \mathbb{R}^{p \times K}$ is the $X$-loading matrix. For $Y$:
 $$
 Y \approx U Q^\top
 $$
-where $U = [u_1, \dots, u_K] \in \mathbb{R}^{n \times K}$ is the Y-score matrix and $Q = [q_1, \dots, q_K] \in \mathbb{R}^{q \times K}$ is the Y-loading matrix.
 
-## 4. Rotation Matrices
+where $U = [u_1, \dots, u_K] \in \mathbb{R}^{n \times K}$ is the $Y$-score matrix and $Q = [q_1, \dots, q_K] \in \mathbb{R}^{q \times K}$ is the $Y$-loading matrix.
+
+### Rotation Matrices
 
 During training, we compute scores iteratively on deflated data. For new data $X_{\text{new}}$, we need a single transformation that maps directly from the original space to scores **without re-running the deflation algorithm**. We seek a matrix $R_x \in \mathbb{R}^{p \times K}$ such that $T = X R_x$, and then for new data: $T_{\text{new}} = X_{\text{new}} R_x$.
 
 One might expect $T = XW$ where $W = [w_1, \dots, w_K]$, but this is **incorrect** after the first component because each $w_k$ was computed on **deflated data** $X_{k-1}$ while $X$ is the **original, undeflated data**. Deflation breaks the direct relationship between weights and scores, so $XW \neq T$ in general.
 
-From the decomposition $X \approx TP^\top$, multiply both sides by $W$: $XW \approx TP^\top W$. Since $P^\top W \in \mathbb{R}^{K \times K}$ is invertible in PLS Canonical, we have $T = XW(P^\top W)^{-1}$. Define the **X-rotation matrix**:
+From the decomposition $X \approx TP^\top$, multiply both sides by $W$: $XW \approx TP^\top W$. Since $P^\top W \in \mathbb{R}^{K \times K}$ is invertible in PLS Canonical, we have $T = XW(P^\top W)^{-1}$. Define the **$X$-rotation matrix**:
 $$
 R_x = W(P^\top W)^{-1}
 $$
-Then $T = XR_x$. The dimensions are: $X \in \mathbb{R}^{n \times p}$, $W \in \mathbb{R}^{p \times K}$, $P \in \mathbb{R}^{p \times K}$, $P^\top W \in \mathbb{R}^{K \times K}$, $R_x \in \mathbb{R}^{p \times K}$, and $T \in \mathbb{R}^{n \times K}$. Intuitively, $W$ provides "raw" projections based on deflated data, $(P^\top W)^{-1}$ corrects for interference between components, and $R_x$ gives the equivalent direct projection from original space.
 
-By identical reasoning, from $Y \approx UQ^\top$: $U = YC(Q^\top C)^{-1}$. Define the **Y-rotation matrix**:
+Then $T = XR_x$. The dimensions are: 
+$$
+X \in \mathbb{R}^{n \times p}, \quad W \in \mathbb{R}^{p \times K}, \quad P \in \mathbb{R}^{p \times K}, \quad P^\top W \in \mathbb{R}^{K \times K}, \quad R_x \in \mathbb{R}^{p \times K}, \quad T \in \mathbb{R}^{n \times K}.
+$$
+
+Intuitively, $W$ provides "raw" projections based on deflated data, $(P^\top W)^{-1}$ corrects for interference between components, and $R_x$ gives the equivalent direct projection from original space.
+
+By identical reasoning, from $Y \approx UQ^\top$: $U = YC(Q^\top C)^{-1}$. Define the **$Y$-rotation matrix**:
 $$
 R_y = C(Q^\top C)^{-1}
 $$
+
 where $C = [c_1, \dots, c_K] \in \mathbb{R}^{q \times K}$. Then $U = YR_y$. In scikit-learn, `x_rotations_` stores $R_x$ and `y_rotations_` stores $R_y$. Geometrically, rotation matrices re-embed the sequential deflation process into a single linear transformation in the original space.
 
-## 5. Prediction: Mapping X to Y
+### Prediction: Mapping $X$ to $Y$
 
-The objective is to find a coefficient matrix $B \in \mathbb{R}^{p \times q}$ such that $\hat{Y} = XB$. The prediction follows a three-stage pipeline through the latent space. **Stage 1: X to X-scores** uses $T = XR_x$. **Stage 2: X-scores to Y-scores (latent regression)** models the relationship between latent scores as $U \approx TG$, where $G \in \mathbb{R}^{K \times K}$ is obtained via least squares:
+The objective is to find a coefficient matrix $B \in \mathbb{R}^{p \times q}$ such that $\hat{Y} = XB$. The prediction follows a three-stage pipeline through the latent space. 
+
+1. **Stage 1: $X$ to $X$-scores** uses $T = XR_x$. 
+2. **Stage 2: $X$-scores to $Y$-scores (latent regression)** models the relationship between latent scores as $U \approx TG$, where $G \in \mathbb{R}^{K \times K}$ is obtained via least squares:
 $$
 G = (T^\top T)^{-1}T^\top U
 $$
-**Stage 3: Y-scores to Y (reconstruction)** uses the decomposition $Y \approx UQ^\top$ to get $\hat{Y} = UQ^\top$. Combining all stages:
+3. **Stage 3: $Y$-scores to $Y$ (reconstruction)** uses the decomposition $Y \approx UQ^\top$ to get $\hat{Y} = UQ^\top$. Combining all stages:
 $$
 \hat{Y} = XR_x \cdot G \cdot Q^\top
 $$
@@ -399,15 +437,12 @@ Therefore, the coefficient matrix is:
 $$
 B = R_x G Q^\top
 $$
-In scikit-learn, this is stored in the `coef_` attribute. The pipeline summary is: $X \xrightarrow{R_x} T \xrightarrow{G} U \xrightarrow{Q^\top} \hat{Y}$.
+In scikit-learn, this is stored in the `coef_` attribute. The pipeline summary is: 
+$$
+X \xrightarrow{R_x} T \xrightarrow{G} U \xrightarrow{Q^\top} \hat{Y}
+$$
 
-## 6. Key Characteristics
-
-The algorithm has several key properties: **symmetric treatment** of $X$ and $Y$ (both are modeled equally), it maximizes **covariance** (not correlation), and uses sequential extraction of orthogonal latent components. Applications include multi-view learning, paired high-dimensional datasets, handling multicollinearity, and dimensionality reduction with two data sources. PLS Canonical is equivalent to **PLSW2A** in the literature, generalizes canonical correlation analysis (CCA) to handle $p, q > n$, and is related to but distinct from PLS Regression (see Section 1).
-
----
-
-## 7. Summary Table
+### Summary Table
 
 | Concept | Symbol | Dimension | Meaning |
 |---------|--------|-----------|---------|
@@ -417,4 +452,17 @@ The algorithm has several key properties: **symmetric treatment** of $X$ and $Y$
 | **Rotations** | $R_x, R_y$ | $p \times K$, $q \times K$ | Direct projection from original to latent space |
 | **Coefficients** | $B$ | $p \times q$ | Prediction map $X \to Y$ via latent space |
 
-The core equations are: **Scores from original data:** $T = XR_x$, $U = YR_y$; **Decompositions:** $X \approx TP^\top$, $Y \approx UQ^\top$; **Prediction:** $\hat{Y} = XB$ where $B = R_xGQ^\top$.
+The core equations are: 
+
+**Scores from original data:** 
+$$
+T = XR_x, \quad U = YR_y
+$$
+**Decompositions:** 
+$$
+X \approx TP^\top, \quad Y \approx UQ^\top
+$$
+**Prediction:** 
+$$
+\hat{Y} = XB \quad \text{where} \quad B = R_xGQ^\top
+$$
