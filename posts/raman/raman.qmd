@@ -1,0 +1,468 @@
+---
+title: "Analyzing Raman Spectra with Machine Learning"
+author: "Nicolas Brosse"
+date: "2026-01-18"
+categories: [machine learning, chemistry]
+bibliography: raman-references.bib
+description: "Analyzing Raman spectra with machine learning approaches."
+citation:
+  url: https://nbrosse.github.io/posts/raman/raman.html
+---
+
+This blog post is inspired by an interview homework and a Kaggle competition. The objective is to provide an overview of Raman spectroscopy and provide some ML approaches to analyze Raman spectra. The associated code is available on GitHub at [raman-spectra](https://github.com/nbrosse/raman-spectra).
+
+In the first part, @sec-raman-overview, we review the physical principles underlying Raman scattering, the distinction between Stokes and anti-Stokes lines, the relationship between Raman and IR selection rules, and the main components of a Raman spectrometer.
+
+The second part, @sec-eda-raman, uses the Dig4Bio Raman Transfer Learning Challenge dataset as a concrete example. Through the accompanying notebook, we perform a brief exploratory data analysis and motivate the need for a robust preprocessing pipeline when working with real-world spectra from multiple instruments. The dedicated section @sec-preprocessing-raman then details the individual steps of this pipeline—spectral cropping, Whitaker–Hayes cosmic-ray removal, Savitzky–Golay denoising, and ASPLS baseline correction—both conceptually and mathematically, following their implementation in RamanSPy.
+
+The third part @sec-ml-raman, focuses on predicting analyte concentrations from preprocessed spectra. We start with a classical chemometrics baseline using PLS Canonical (PLSW2A), reviewing the underlying algorithm, the geometry of scores, loadings, and rotation matrices, and how these pieces assemble into a linear map from spectra to concentrations. The goal is to provide a transparent, end-to-end example of a supervised learning pipeline—from raw spectra, through preprocessing, to a calibrated regression model.
+
+Finally, the [accompanying codebase](https://github.com/nbrosse/raman-spectra) extends beyond traditional PLS models and includes an experimental transformer-based toolkit, SpecBERT, for spectral analysis. SpecBERT adapts BERT/ViT-style encoders to 1D Raman spectra, using Masked Spectral Modeling (MSM) for self-supervised pretraining on large unlabeled spectral collections, followed by supervised fine-tuning for regression or classification. This implementation is intentionally labeled as experimental: it was largely generated with AI assistance as a proof of concept and should be treated as a starting point rather than production-ready software. Nevertheless, it illustrates how modern representation-learning techniques can complement classical chemometric methods when spectral data are abundant but accurate concentration labels are scarce.
+
+# Raman Spectroscopy: An Overview {#sec-raman-overview}
+
+This section provides an overview of Raman spectroscopy, including the theoretical principle, instrumentation, and interpretation of the Raman spectrum. The main source is the Wikipedia article [@wikipedia-raman-spectroscopy].
+
+## Introduction: What is Raman Spectroscopy?
+
+Raman Spectroscopy is a non-destructive analytical technique used to observe vibrational, rotational, and other low-frequency modes in a system. It provides a structural "fingerprint" by which molecules can be identified and characterized.
+
+The technique is named after Indian physicist Sir C. V. Raman, who, along with his student K. S. Krishnan, discovered the phenomenon in 1928, earning Raman the Nobel Prize in Physics in 1930.
+
+At its core, Raman spectroscopy relies on the **inelastic scattering of monochromatic light**, usually from a laser. When light interacts with a molecule, most of it is scattered at the same energy (and wavelength) as the incident light. This is called **Rayleigh Scattering**. However, a tiny fraction of the light (about 1 in 10 million photons) is scattered at a different energy. This inelastic scattering is the **Raman Effect**, and the energy difference provides the chemical and structural information.
+
+We illustrate a Raman spectrum in @fig-raman-spectrum-example.
+
+![Example Raman spectrum from the Kaiser dataset showing characteristic peaks for glucose, sodium acetate, and magnesium sulfate. Peak locations are based on literature values. Sample concentrations: glucose 10.59 g/L, sodium acetate 1.11 g/L, and magnesium sulfate 3.48 g/L. [@LANGE2025125861, Figure 1]](figures/raman-spectrum-example.png){#fig-raman-spectrum-example fig-alt="Raman spectrum plot showing intensity versus Raman shift, with labeled peaks corresponding to glucose, sodium acetate, and magnesium sulfate."}
+
+
+## The Theoretical Principle of Raman Spectroscopy
+
+### Molecular Vibrations & Degrees of Freedom
+
+Molecules are not static. Their atoms are constantly in motion, and these motions can be categorized. Raman spectroscopy is a tool to measure the energy of one specific type of motion: **vibration**.
+
+*   **Degrees of Freedom ($3N$):** For a molecule with $N$ atoms, each atom can move independently in three dimensions $(x, y, z)$. This gives a total of $3N$ possible movements for the entire molecule.
+*   **Partitioning the Motion:** These $3N$ motions are not all vibrations. They are a combination of:
+    1.  **Translational Motion (3 degrees):** The entire molecule moving as a single unit through space (up/down, left/right, forward/backward). This accounts for $3$ of the $3N$ motions.
+    2.  **Rotational Motion (2 or 3 degrees):** The entire molecule spinning around its center of mass. For a **non-linear molecule** it accounts for another $3$ motions, and for a **linear molecule** it accounts for $2$ motions.
+    3.  **Vibrational Motion (The Remainder):** Any motion that is left over is an internal vibration—the stretching, bending, twisting, or rocking of the chemical bonds themselves.
+        *   **Number of Vibrational Modes for a non-linear molecule = $3N - 6$**
+        *   **Number of Vibrational Modes for a linear molecule = $3N - 5$**
+
+This simple calculation tells a scientist the theoretical number of fundamental vibrations a molecule has, which helps in interpreting a complex spectrum by knowing how many peaks to look for.
+
+### Vibrational Energy
+
+The energy associated with molecular vibrations is **quantized**. A vibrating bond cannot have *any* arbitrary amount of energy. It can only exist at discrete energy levels, like the rungs of a ladder.
+
+*   **Quantum Harmonic Oscillator (QHO):** This is a simplified physical model used to describe these energy levels. The formula $E_n = h(n + 1/2)\nu$ describes the energy of each level, where $n$ is the quantum number (0, 1, 2...), $h$ is Planck's constant, and $\nu$ is the natural frequency of the vibration. This frequency depends on the strength of the bond and the mass of the atoms.
+*   **Energy Change:** Raman spectroscopy doesn't measure the absolute energy of a level ($E_n$), but rather the **energy difference** required to jump from one level to another (typically from $n=0$ to $n=1$). This energy difference, $\Delta E = h\nu$, is what we see as a peak in the spectrum, reported as a **Raman Shift** in wavenumbers ($cm^{-1}$).
+
+### Raman Scattering
+
+This is the core of the Raman effect, explaining the interaction between light and the molecule that produces the signal. When a laser photon strikes a molecule, it pushes the molecule into an unstable, extremely short-lived "virtual state." The molecule immediately relaxes from this state by emitting a new photon.
+
+Three things can happen:
+
+1.  **Rayleigh Scattering (Elastic):** The molecule relaxes back to the *exact same* vibrational energy level it started from. The emitted photon has the **exact same energy** as the incident laser photon. This is the most common event by far and contains no chemical information.
+2.  **Stokes Raman Scattering (Inelastic):** The molecule starts in the ground state ($n=0$), is excited to the virtual state, and then relaxes to a *higher* vibrational level ($n=1$). Because the molecule has absorbed energy, the emitted photon must have **less energy** than the incident photon. The energy difference corresponds exactly to the vibrational energy $h\nu$. This is the signal we typically measure as it is most intense.
+3.  **Anti-Stokes Raman Scattering (Inelastic):** The molecule starts in an already excited vibrational state ($n=1$), is excited to the virtual state, and then relaxes down to the ground state ($n=0$). The molecule has lost energy, so the emitted photon has **more energy** than the incident photon.
+
+At room temperature, the vast majority of molecules are in the ground state, as described by the **Boltzmann distribution**. Therefore, **Stokes peaks are always significantly more intense (stronger) than Anti-Stokes peaks.**
+
+### IR and Raman Active Vibrations
+
+This section explains the "rules" that determine whether a specific vibration will produce a Raman signal. This is the critical difference between Raman and Infrared (IR) spectroscopy.
+
+*   **The Raman Rule - Change in Polarizability:** A vibration is "Raman active" only if it causes a **change in the molecule's polarizability**. Polarizability is a measure of how easily the electron cloud of a molecule can be distorted by an external electric field (like that of the laser).
+*   **The IR Rule - Change in Dipole Moment:** A vibration is "IR active" only if it causes a **change in the molecule's dipole moment**.
+
+This difference leads to complementarity:
+
+*   Symmetric vibrations (e.g., C-C, S-S) often cause large changes in polarizability. They are **strong in Raman but weak or absent in IR.**
+*   Asymmetric vibrations involving polar bonds (e.g., C=O) cause large changes in dipole moment. They are **strong in IR but may be weak in Raman.**
+*   For molecules with a center of symmetry (like CO₂), the **Rule of Mutual Exclusion** states that a vibration cannot be both IR and Raman active.
+
+To fully grasp this, we summarize the differences between dipole moment and polarizability in the table below.
+
+| Feature              | **Dipole Moment (μ)**                                     | **Polarizability (α)**                                       |
+| -------------------- | --------------------------------------------------------- | ------------------------------------------------------------ |
+| **Nature**           | Intrinsic, permanent property                             | Induced, response property                                   |
+| **Origin**           | Unequal sharing of electrons (electronegativity difference) | Distortion of electron cloud by an external electric field   |
+| **Existence**        | Exists even without an external field                     | Describes the potential to be distorted; distortion occurs only in a field |
+| **Analogy**          | A permanent magnet                                        | The "squishiness" of a ball                                  |
+| **Key Example**      | **H₂O** is polar (large dipole moment).                   | **Benzene** is non-polar (zero dipole moment) but highly polarizable. |
+| **Spectroscopy Rule**| **Change in Dipole Moment** during vibration -> **IR Active** | **Change in Polarizability** during vibration -> **Raman Active** |
+
+### Fluorescence and Raman Scattering
+
+Fluorescence and Raman scattering are both optical phenomena that involve the interaction of light with matter, but they differ fundamentally in their mechanisms and the information they provide.
+
+
+| Feature                    | **Raman Scattering**                                        | **Fluorescence**                                               |
+| -------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------- |
+| **Mechanism**              | **Scattering** process involving a "virtual state."         | **Absorption-Emission** process involving real electronic states. |
+| **Timescale**              | Virtually instantaneous (~femtoseconds)                     | Delayed by nanoseconds (fluorescence lifetime)                 |
+| **Energy Shift**           | **Small, specific shifts** (Raman Shifts) corresponding to *vibrational* energies. | **Large, broad shift** (Stokes Shift) corresponding to the energy gap between *electronic* states. |
+| **Information Provided**   | A sharp "fingerprint" of specific molecular vibrations.      | A broad signal indicating the presence of a fluorescent molecule. |
+| **Efficiency / Intensity** | **Extremely Inefficient** (1 in 10⁷ photons) -> **Very Weak Signal** | **Very Efficient** (can be >90%) -> **Extremely Strong Signal** |
+
+## Instrumentation: A Raman Spectrometer
+
+A Raman spectrometer is designed to isolate and detect the extremely weak Raman scattered light from the overwhelmingly strong Rayleigh scattered light.
+
+The essential components are:
+
+1.  **Light Source (Laser):** A powerful, stable, monochromatic light source. Common lasers include Visible (e.g., 532 nm, 633 nm) and Near-Infrared (NIR) (e.g., 785 nm, 1064 nm) which reduces fluorescence.
+2.  **Sample Illumination and Collection Optics:** Lenses or microscope objectives focus the laser onto the sample and collect the scattered light. In **micro-Raman spectroscopy**, this allows analysis of areas down to ~1 micron.
+3.  **Optical Filter (Notch or Edge Filter):** The most critical component. It blocks the intense Rayleigh scattered light while allowing the Stokes and/or Anti-Stokes light to pass through.
+4.  **Dispersive Element (Spectrograph):** A **diffraction grating** separates the Raman signal into its constituent wavelengths.
+5.  **Detector:** A highly sensitive detector, almost universally a **Charge-Coupled Device (CCD)** camera, is used to detect the weak signal and capture the entire spectrum at once.
+
+## The Raman Spectrum: Interpretation
+
+The output from the spectrometer is a Raman spectrum, see for example the spectrum in @fig-raman-spectrum-example.
+
+*   **X-axis:** **Raman Shift ($cm^{-1}$)**. This corresponds to the vibrational frequency (energy) of molecular bonds. A key advantage is that the Raman shift is independent of the laser wavelength used.
+*   **Y-axis:** **Intensity (Arbitrary Units)**. This is proportional to the concentration of the molecule and how "Raman active" that particular vibration is.
+
+Each peak in the spectrum corresponds to a specific molecular vibration.
+
+*   **Fingerprint Region (approx. 400 - 1800 $cm^{-1}$):** This region is rich with peaks from various bending and stretching modes. The complex pattern is unique to each molecule, making it a "molecular fingerprint" for identification.
+*   **Functional Group Region (approx. 1800 - 4000 $cm^{-1}$):** This region contains peaks from specific functional groups, such as C-H stretches (~2800-3100 $cm^{-1}$), C≡C triple bonds (~2100-2300 $cm^{-1}$), and O-H stretches (~3200-3600 $cm^{-1}$).
+
+## Advantages and Limitations
+
+### Advantages:
+
+*   **Non-Destructive:** Uses low-power light and typically does not damage the sample.
+*   **Minimal Sample Preparation:** Can analyze solids, liquids, and gases directly, often through containers.
+*   **Water is a Weak Scatterer:** Excellent for analyzing biological or aqueous samples, a major advantage over IR.
+*   **High Spatial Resolution:** Micro-Raman can provide chemical information on a micron scale.
+*   **Specificity:** Provides a sharp, well-resolved "fingerprint" spectrum for unambiguous identification.
+*   **Remote & In-situ Analysis:** Can be coupled with fiber optics for remote monitoring.
+
+### Limitations:
+
+*   **Weak Signal:** The Raman effect is inherently inefficient, sometimes requiring long acquisition times.
+*   **Fluorescence Interference:** The most significant challenge. Fluorescence from the sample can overwhelm the weak Raman signal. This is often mitigated by using NIR lasers (e.g., 785 nm).
+*   **Sample Heating:** High-intensity lasers can heat or burn sensitive samples.
+*   **Not Ideal for Metals:** Cannot be used for elemental analysis of metals as they lack molecular bonds.
+
+# Exploration and Preprocessing {#sec-eda-raman}
+
+Since the data of the interview homework is not publicly available, we will use the dataset from the Kaggle competition [@dig-4-bio-raman-transfer-learning-challenge] to illustrate some machine learning approaches to Raman spectroscopy. This dataset and the Kaggle competition are inspired by the article [@LANGE2025125861] which compares machine learning methods on Raman spectra from eight different spectrometers.
+
+Note that we do not follow the extensive analysis of the article [@LANGE2025125861] but rather focus on some simple machine learning approaches to analyze the Raman spectra that we implemented for the interview homework. We use the Python package [@georgiev2024ramanspy] to analyze the Raman spectra.
+
+We first present a notebook that contains an exploration of the dataset and some preprocessing algorithms. The preprocessing algorithms are presented and explained in @sec-preprocessing-raman.
+
+{{< embed notebooks/_eda.ipynb echo=true >}}
+
+## Preprocessing Algorithms {#sec-preprocessing-raman}
+
+Raw Raman spectra often contain artifacts and noise that must be addressed before meaningful analysis can be performed. These preprocessing steps are essential for accurate peak identification, quantitative analysis, and machine learning applications. The standard preprocessing pipeline for Raman spectroscopy typically includes: spectral cropping to focus on regions of interest, cosmic ray removal to eliminate detector artifacts, denoising to reduce random noise, and baseline correction to remove fluorescence and drift effects. We describe each of these algorithms below, following the implementations available in RamanSPy [@georgiev2024ramanspy].
+
+### Spectral Cropping
+
+The first step in preprocessing is often to reduce the spectral range to the region of interest. For Raman spectroscopy, this typically means focusing on the "fingerprint region" (approximately 400-1800 $cm^{-1}$) where most characteristic molecular vibrations appear. Cropping serves multiple purposes: it removes noisy edge regions that may contain artifacts, focuses computational resources on the relevant spectral features, and reduces the data size for downstream processing.
+
+The algorithm is straightforward: given a wavenumber axis $w$ and spectrum $s$, we create a boolean mask and apply it to both:
+
+$$
+w_{\text{cropped}} = w[w_{\text{min}} \leq w \leq w_{\text{max}}]
+$$
+
+$$
+s_{\text{cropped}} = s[w_{\text{min}} \leq w \leq w_{\text{max}}]
+$$
+
+This operation has linear computational complexity $O(n)$ where $n$ is the spectrum length, making it an efficient first step in any preprocessing pipeline.
+
+### Cosmic Ray Removal (Whitaker-Hayes)
+
+Cosmic rays striking the CCD detector during spectral acquisition can produce sharp intensity spikes that are easily mistaken for genuine Raman peaks. The Whitaker-Hayes algorithm [@WhitakerHayes2018] provides a robust method for identifying and removing these artifacts.
+
+The algorithm identifies spikes using **modified z-scores** computed from the first differences of the spectrum. The modified z-score is more robust to outliers than the standard z-score because it uses the median absolute deviation (MAD) instead of the standard deviation:
+
+$$
+\text{MAD} = \text{median}(|x_i - \text{median}(x)|)
+$$
+
+$$
+\text{Modified Z-score} = 0.6745 \times \frac{x_i - \text{median}(x)}{\text{MAD}}
+$$
+
+The constant 0.6745 makes the MAD consistent with the standard deviation for normal distributions. The algorithm examines the first differences of the spectrum:
+
+$$
+\Delta s_i = s_{i+1} - s_i
+$$ 
+
+Because cosmic rays cause sharp discontinuities, examining differences amplifies these sudden changes while smoothing gradual variations, making spike detection more sensitive than direct intensity analysis.
+
+For each detected spike at position $i$ (where $|z_{\Delta s_i}| > \tau$, typically $\tau = 8$), the algorithm iteratively replaces it with the local mean of non-spike neighbors within a kernel of size $k$:
+
+$$
+s'_i = 
+\begin{cases}
+\text{mean}(s_j : j \in N(i), \text{spike}_j = \text{False}) & \text{if spike}_i = \text{True} \\
+s_i & \text{otherwise}
+\end{cases}
+$$
+
+where $N(i) = \{\max(0, i-k), \ldots, \min(n-1, i+k)\}$ is the neighborhood around position $i$.
+
+The algorithm's robustness comes from its use of median-based statistics, which are resistant to outliers. The iterative nature allows it to handle multiple adjacent spikes, and the local mean replacement preserves peak shapes while removing artifacts.
+
+### Denoising (Savitzky-Golay)
+
+Random noise in Raman spectra can obscure genuine peaks and complicate analysis. The Savitzky-Golay filter [@SavitzkyGolay1964] reduces noise while preserving peak shapes and positions through local polynomial regression, making it superior to simple moving averages for spectroscopic data.
+
+For each point in the spectrum, the algorithm:
+
+1. Considers a window of `window_length` points centered at that position
+2. Fits a polynomial of degree `polyorder` to these points using least squares
+3. Replaces the center point with the polynomial's predicted value
+
+Mathematically, for a window centered at position $i$ with $m = (\text{window\_length} - 1) / 2$:
+
+The polynomial fit is:
+
+$$
+P(x) = a_0 + a_1 x + a_2 x^2 + \ldots + a_p x^p
+$$
+
+where $p = \text{polyorder}$. The least squares objective minimizes:
+
+$$
+\sum_{j=i-m}^{i+m} [y_j - P(x_j)]^2
+$$
+
+The smoothed value is then $y'_i = P(x_i)$.
+
+The Savitzky-Golay filter can be efficiently implemented as a convolution with precomputed coefficients that depend only on `window_length` and `polyorder`, not on the data itself, giving it $O(n)$ complexity.
+
+**Why it works:** Averaging over the window reduces random noise by a factor of approximately $\sqrt{\text{window\_length}}$, while polynomial fitting preserves local trends better than a simple moving average. This means narrow peaks are not significantly broadened, and the filter can even compute derivatives simultaneously, which is useful for peak finding algorithms.
+
+**Parameter selection:** The `window_length` must be odd and greater than `polyorder`. RamanSPy defaults to `window_length = 9` and `polyorder = 3` (cubic polynomial), which provides a good balance between noise reduction and peak preservation. Smaller windows (5-7) preserve narrow peaks better but provide less noise reduction, while larger windows (11-15) provide stronger noise reduction but may broaden narrow peaks.
+
+### Baseline Correction (ASPLS)
+
+Baseline drift in Raman spectra arises from fluorescence, sample holder interference, or optical effects. This slowly-varying background can obscure peaks and complicate quantitative analysis. The ASPLS (Adaptive Smoothness Penalized Least Squares) method [@ZhangASPLS2010] is an advanced variant of asymmetric least squares [@EilersALS2005] that adapts the smoothness constraint based on local signal characteristics.
+
+The goal is to find a baseline $z$ that minimizes:
+
+$$
+Q = \sum_i w_i(y_i - z_i)^2 + \lambda \sum_j (\Delta^d z_j)^2
+$$
+
+where:
+
+- $y_i$ = observed spectrum values
+- $z_i$ = baseline values
+- $w_i$ = asymmetric weights
+- $\lambda$ = smoothness penalty parameter
+- $\Delta^d$ = $d$-th order difference operator (typically $d=2$)
+
+This formulation balances two competing objectives: **fidelity** (baseline close to data) and **smoothness** (baseline is smooth).
+
+**Asymmetric weighting** is the key innovation that prevents the baseline from following peaks. Unlike symmetric least squares, ASPLS uses:
+
+$$
+w_i = 
+\begin{cases}
+p & \text{if } y_i > z_i \text{ (points above baseline)} \\
+1-p & \text{if } y_i \leq z_i \text{ (points below baseline)}
+\end{cases}
+$$
+
+where $p \ll 0.5$ (typically $p = 0.01$). Since peaks are above the baseline, they receive low weight, while baseline regions receive high weight. This forces the fitted baseline to pass **under** the peaks.
+
+**Smoothness penalty:** The difference operator $\Delta^d$ penalizes roughness. For second-order differences ($d=2$, the default):
+
+$$
+\Delta^2 z = [z_2 - 2z_1 + z_0, z_3 - 2z_2 + z_1, \ldots]
+$$
+
+This penalizes curvature changes (second derivative), encouraging a smooth baseline.
+
+**Adaptive smoothness** is the method's key advantage: it varies $\lambda$ locally based on signal characteristics:
+
+$$
+\lambda_i^{\text{adaptive}} = \frac{\lambda}{1 + \alpha \times \text{feature}_i}
+$$
+
+where $\alpha$ is an adaptation strength parameter and $\text{feature}_i$ represents local signal characteristics (e.g., magnitude of residual). This means:
+
+- **Strong peaks** (large residuals) → $\lambda$ decreases → more flexible baseline
+- **Flat regions** → $\lambda$ remains high → smooth baseline
+
+This prevents the baseline from "chasing" strong peaks while maintaining smoothness in flat regions.
+
+The algorithm iteratively solves the weighted penalized least squares problem, updating the asymmetric weights based on whether points are above or below the current baseline estimate, until convergence. RamanSPy defaults to $\lambda = 10^5$ and `diff_order = 2`, which work well for most Raman spectra.
+
+### Complete Preprocessing Pipeline
+
+The standard RamanSPy preprocessing workflow [@georgiev2024ramanspy] applies these algorithms in a specific order, as the sequence of operations is critical for optimal results:
+
+1. **Cropping** - Focus on region of interest, reduce data size
+2. **Whitaker-Hayes Despiking** - Remove cosmic rays
+3. **Savitzky-Golay Smoothing** - Reduce noise
+4. **ASPLS Baseline Correction** - Remove baseline drift
+5. **Normalization** (optional) - Scale for comparison
+
+The default parameters recommended by RamanSPy provide a good starting point for most applications: cropping to 600-1800 $cm^{-1}$ (or full fingerprint region 400-1800 $cm^{-1}$), despiking with `kernel_size=3` and `threshold=8.0`, smoothing with `window_length=9` and `polyorder=3`, and baseline correction with $\lambda = 10^5$ and `diff_order=2`. These parameters should be kept consistent across all spectra within a study to ensure reproducibility and comparability.
+
+# Machine Learning Approaches {#sec-ml-raman}
+
+We now present a Machine Learning approach to predic the concentration of the different chemicals in the sample. The PLS Canonical algorithm is presented and explained in @sec-pls-canonical.
+
+{{< embed notebooks/_ml.ipynb echo=true >}}
+
+## PLS Canonical (PLSW2A) Algorithm {#sec-pls-canonical}
+
+### Overview
+
+[**PLS Canonical**](https://scikit-learn.org/stable/modules/cross_decomposition.html#cross-decomposition) (also known as **PLSW2A**) is a method for finding low-dimensional projections of two data matrices $X$ and $Y$ that maximize the covariance between their projected representations. Given two centered data matrices $X \in \mathbb{R}^{n \times p}$ and $Y \in \mathbb{R}^{n \times q}$, and a desired number of latent components $K$, the objective is to find projections that maximize shared covariance while allowing reconstruction of both $X$ and $Y$ from latent components.
+
+**PLS Canonical** focuses on **symmetric covariance maximization** between $X$ and $Y$, treating both matrices equally. This distinguishes it from **PLS Regression**, which focuses on **predicting** $Y$ from $X$. The key algorithmic differences are: 
+
+1. In PLS Regression, the $Y$-weight vector $c_k$ is never normalized (no unit length constraint); 
+2. PLS Regression regresses $Y_{k-1}$ on $X$-scores $t_k$ instead of $Y$-scores $u_k$:
+
+$$
+q_k = \frac{Y_{k-1}^\top t_k}{t_k^\top t_k} \quad \text{(PLS Regression)}
+$$
+versus:
+$$
+q_k = \frac{Y_{k-1}^\top u_k}{u_k^\top u_k} \quad \text{(PLS Canonical)}
+$$
+
+### Algorithm
+
+The algorithm initializes with $X_0 = X$ and $Y_0 = Y$. For each component $k = 1, \dots, K$, the following steps are performed iteratively.
+
+**Step (a): Compute Weights via Covariance Maximization.** Compute the cross-covariance matrix $C_k = X_{k-1}^\top Y_{k-1}$ and find the top left and right singular vectors:
+$$
+(w_k, c_k) = \arg\max_{\|w\|=\|c\|=1} w^\top C_k c
+$$
+
+These are obtained from the singular value decomposition of $C_k$, where $w_k \in \mathbb{R}^p$ is the $X$-weight vector and $c_k \in \mathbb{R}^q$ is the $Y$-weight vector. These directions define projections of $X$ and $Y$ that maximize their covariance. Implementation options include full SVD of $X_{k-1}^\top Y_{k-1}$ or power iteration (NIPALS algorithm).
+
+**Step (b): Compute Scores.** Project data onto the weight vectors:
+$$
+t_k = X_{k-1} w_k \quad \in \mathbb{R}^n \quad \text{($X$-score)}
+$$
+$$
+u_k = Y_{k-1} c_k \quad \in \mathbb{R}^n \quad \text{($Y$-score)}
+$$
+
+Scores are the sample coordinates in the shared latent space.
+
+**Step (c): Compute Loadings via Regression.** Regress original variables onto their respective scores:
+$$
+p_k = \frac{X_{k-1}^\top t_k}{t_k^\top t_k} \quad \in \mathbb{R}^p \quad \text{($X$-loading)}
+$$
+$$
+q_k = \frac{Y_{k-1}^\top u_k}{u_k^\top u_k} \quad \in \mathbb{R}^q \quad \text{($Y$-loading)}
+$$
+
+Loadings indicate how each original variable contributes to the latent component and provide the best rank-1 reconstruction of the deflated data.
+
+**Step (d): Deflation.** Remove the extracted rank-1 structure:
+$$
+X_k = X_{k-1} - t_k p_k^\top
+$$
+$$
+Y_k = Y_{k-1} - u_k q_k^\top
+$$
+
+Deflation ensures each subsequent component captures new, orthogonal covariance structure.
+
+### Matrix Decompositions
+
+After extracting $K$ components, we obtain low-rank approximations. For $X$:
+$$
+X \approx T P^\top
+$$
+
+where $T = [t_1, \dots, t_K] \in \mathbb{R}^{n \times K}$ is the $X$-score matrix and $P = [p_1, \dots, p_K] \in \mathbb{R}^{p \times K}$ is the $X$-loading matrix. For $Y$:
+$$
+Y \approx U Q^\top
+$$
+
+where $U = [u_1, \dots, u_K] \in \mathbb{R}^{n \times K}$ is the $Y$-score matrix and $Q = [q_1, \dots, q_K] \in \mathbb{R}^{q \times K}$ is the $Y$-loading matrix.
+
+### Rotation Matrices
+
+During training, we compute scores iteratively on deflated data. For new data $X_{\text{new}}$, we need a single transformation that maps directly from the original space to scores **without re-running the deflation algorithm**. We seek a matrix $R_x \in \mathbb{R}^{p \times K}$ such that $T = X R_x$, and then for new data: $T_{\text{new}} = X_{\text{new}} R_x$.
+
+One might expect $T = XW$ where $W = [w_1, \dots, w_K]$, but this is **incorrect** after the first component because each $w_k$ was computed on **deflated data** $X_{k-1}$ while $X$ is the **original, undeflated data**. Deflation breaks the direct relationship between weights and scores, so $XW \neq T$ in general.
+
+From the decomposition $X \approx TP^\top$, multiply both sides by $W$: $XW \approx TP^\top W$. Since $P^\top W \in \mathbb{R}^{K \times K}$ is invertible in PLS Canonical, we have $T = XW(P^\top W)^{-1}$. Define the **$X$-rotation matrix**:
+$$
+R_x = W(P^\top W)^{-1}
+$$
+
+Then $T = XR_x$. The dimensions are: 
+$$
+X \in \mathbb{R}^{n \times p}, \quad W \in \mathbb{R}^{p \times K}, \quad P \in \mathbb{R}^{p \times K}, \quad P^\top W \in \mathbb{R}^{K \times K}, \quad R_x \in \mathbb{R}^{p \times K}, \quad T \in \mathbb{R}^{n \times K}.
+$$
+
+Intuitively, $W$ provides "raw" projections based on deflated data, $(P^\top W)^{-1}$ corrects for interference between components, and $R_x$ gives the equivalent direct projection from original space.
+
+By identical reasoning, from $Y \approx UQ^\top$: $U = YC(Q^\top C)^{-1}$. Define the **$Y$-rotation matrix**:
+$$
+R_y = C(Q^\top C)^{-1}
+$$
+
+where $C = [c_1, \dots, c_K] \in \mathbb{R}^{q \times K}$. Then $U = YR_y$. In scikit-learn, `x_rotations_` stores $R_x$ and `y_rotations_` stores $R_y$. Geometrically, rotation matrices re-embed the sequential deflation process into a single linear transformation in the original space.
+
+### Prediction: Mapping $X$ to $Y$
+
+The objective is to find a coefficient matrix $B \in \mathbb{R}^{p \times q}$ such that $\hat{Y} = XB$. The prediction follows a three-stage pipeline through the latent space. 
+
+1. **Stage 1: $X$ to $X$-scores** uses $T = XR_x$. 
+2. **Stage 2: $X$-scores to $Y$-scores (latent regression)** models the relationship between latent scores as $U \approx TG$, where $G \in \mathbb{R}^{K \times K}$ is obtained via least squares:
+$$
+G = (T^\top T)^{-1}T^\top U
+$$
+3. **Stage 3: $Y$-scores to $Y$ (reconstruction)** uses the decomposition $Y \approx UQ^\top$ to get $\hat{Y} = UQ^\top$. Combining all stages:
+$$
+\hat{Y} = XR_x \cdot G \cdot Q^\top
+$$
+Therefore, the coefficient matrix is:
+$$
+B = R_x G Q^\top
+$$
+In scikit-learn, this is stored in the `coef_` attribute. The pipeline summary is: 
+$$
+X \xrightarrow{R_x} T \xrightarrow{G} U \xrightarrow{Q^\top} \hat{Y}
+$$
+
+### Summary Table
+
+| Concept | Symbol | Dimension | Meaning |
+|---------|--------|-----------|---------|
+| **Weights** | $W, C$ | $p \times K$, $q \times K$ | Directions of maximal shared covariance |
+| **Scores** | $T, U$ | $n \times K$ | Latent representations of samples |
+| **Loadings** | $P, Q$ | $p \times K$, $q \times K$ | Reconstruction directions |
+| **Rotations** | $R_x, R_y$ | $p \times K$, $q \times K$ | Direct projection from original to latent space |
+| **Coefficients** | $B$ | $p \times q$ | Prediction map $X \to Y$ via latent space |
+
+The core equations are: 
+
+**Scores from original data:** 
+$$
+T = XR_x, \quad U = YR_y
+$$
+**Decompositions:** 
+$$
+X \approx TP^\top, \quad Y \approx UQ^\top
+$$
+**Prediction:** 
+$$
+\hat{Y} = XB \quad \text{where} \quad B = R_xGQ^\top
+$$
