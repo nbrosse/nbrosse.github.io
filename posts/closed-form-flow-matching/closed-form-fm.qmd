@@ -3,7 +3,7 @@ title: "Closed-Form Flow Matching: High-Dimensional Statistics and the Softmax C
 author: "Nicolas Brosse"
 date: "2025-12-10"
 bibliography: closed-form-fm-references.bib
-categories: [deep learning, generative models, flow matching]
+categories: [deep learning, flow matching]
 description: "An analysis of the closed-form optimal velocity field in flow matching, explaining why softmax collapse occurs early in high dimensions and how to predict the collapse time."
 toc: true
 toc-depth: 3
@@ -11,18 +11,27 @@ citation:
   url: https://nbrosse.github.io/posts/closed-form-flow-matching/closed-form-fm.html
 ---
 
-Flow matching has emerged as a powerful framework for training continuous normalizing flows. In this blog post, building on @bertrand_closed-form_2025, we analyze the **closed-form optimal velocity field**: its connection to the conditional vector field and the challenges neural networks face in approximating it. We explore how, in high dimensions, the softmax weights collapse to near one-hot vectors surprisingly early in the interpolation path, and provide a formula to predict when this collapse occurs.
 
-We use @biroli_dynamical_2024 to understand the softmax collapse in flow matching, contrary to what is claimed in @bertrand_closed-form_2025, the framework of @biroli_dynamical_2024 is able to predict the collapse time in flow matching. We adapt their arguments to the context of flow matching and provide a formula to predict the collapse time, in particular for CIFAR-10.
+Flow matching has emerged as a powerful framework for training continuous normalizing flows. In its Gaussian-OT instantiation, the **marginal velocity field** admits a closed form: it is a softmax-weighted average of per-example conditional velocities. In high dimension, a striking phenomenon occurs: the softmax weights become almost one-hot very early along the interpolation path. We refer to this as **softmax collapse**. It implies that the learned flow rapidly behaves like a nearest-neighbor map and tends to memorize the training set instead of sampling from the underlying data distribution.
 
-In this blog post, we will present a rigorous analysis of the softmax collapse in flow matching, using tools from statistical physics, specifically the Random Energy Model (REM) and Large Deviation Principles (LDP).
+In this post, building on the closed-form analysis of @bertrand_closed-form_2025, we study this collapse phenomenon through the lens of high-dimensional statistics and statistical physics. We view the softmax weights as a Gibbs measure over the training examples, with an energy that depends on the interpolation time $t$. This connects the behavior of flow matching to classic models such as the Random Energy Model (REM) and to Large Deviation Principles (LDP).
 
-Contributions:
+Our main goal is twofold:
 
-- We do a connection between the observations on the training of the marginal velocity field (based on the conditional velocity field loss) and the collapse of the softmax weights and the probability distribution.
-- We provide a self-contained proof of the LDP and REM perhaps better than the one in @bertrand_closed-form_2025 and useful for other readers.
+1. **Mechanism.** Explain why, in high dimension, the marginal velocity field very quickly aligns with the conditional velocity field even for small $t$, and why neural networks find certain time regimes (around $t \approx 0.1$ and near $t \approx 1$) particularly hard to learn.
+2. **Prediction.** Derive a **predictive formula for the collapse time**—the value of $t$ at which the softmax weights become essentially one-hot in a CIFAR-10 proxy.
 
-# Setup and Notation
+We adapt the dynamical and statistical-physics framework of @biroli_dynamical_2024 to the flow-matching setting. Treating the softmax energies as REM-like random energies, we obtain an explicit asymptotic expression for the free energy, which in turn controls when the planted datapoint wins over all competing training samples. Specializing this analysis to a Gaussian proxy calibrated to CIFAR-10 yields a concrete collapse-time prediction.
+
+**Contributions**
+
+- We interpret the closed-form marginal velocity field in flow matching as a Gibbs measure
+- Within an i.i.d. Gaussian toy model calibrated to CIFAR-10, we derive an **explicit high-dimensional formula for the collapse time** as a function of the dataset dimension, sample size, and variance, and give its numerical specialization for CIFAR-10.
+- We provide a **self-contained, pedagogical derivation** of the relevant LDP and REM results, aiming to be more accessible than @bertrand_closed-form_2025 and to serve as a reference for readers interested in using these tools in generative modeling.
+
+In the section @sec-setup-and-notation we briefly recall the flow-matching and conditional flow-matching formulations and fix notation. In @sec-observations-on-the-marginal-velocity-field-conditional-velocity-field-and-training-difficulties, we summarize the empirical behavior reported in @bertrand_closed-form_2025. The section @sec-cifar-10-preprocessing-and-statistics justifies the Gaussian toy model used in the theory. The core statistical-physics analysis appears in @sec-marginal-velocity-field-collapse-a-statistical-physics-perspective, and @sec-error-analysis-training-difficulties-across-time connects the collapse picture back to the observed error profile of learned velocity fields. We include an accompanying notebook that numerically analyzes the CIFAR-10 dataset, computing both the collapse times and the correlation between the marginal and conditional velocity fields.
+
+# Setup and Notation {#sec-setup-and-notation}
 
 We follow the notation and setup of[ @lipman_flow_2024, Section 2] to present Flow Matching (FM). Given a training dataset with samples from an unknown target distribution $q$ over $\mathbb{R}^d$, the goal is to learn a model that can generate new samples from $q$. Flow Matching (FM) does this by defining a **continuous probability path** $(p_t)_{0\le t\le 1}$ that morphs a **known source distribution** $p_0=p$ (typically noise) into the **data distribution** $p_1=q$. FM learns a **time-dependent velocity field** $u_t$ (a vector field) that describes how samples move along this path. After training, sampling from $q$ works by:
 
@@ -52,7 +61,7 @@ $$
 X_t = tX_1 + (1-t)X_0 \sim p_t,
 $$
 
-where $X_0\sim p$ and $X_1\sim q$. Condition on a randomly chosen training sample $X_1=x_1$. Define: 
+where $X_0\sim p$ and $X_1\sim q$. Condition on a randomly chosen training sample $X_1=x_1$ and define: 
 $$
 X_{t|1}=t x_1+(1-t)X_0 \sim p_{t|1}(\cdot|x_1).
 $$
@@ -110,7 +119,7 @@ Expanding and taking the conditional expectation, the cross-term vanishes and we
 
 The second term is the **irreducible variance** — it does not depend on $\theta$ and represents the inherent uncertainty in predicting the conditional velocity $X_1 - X_0$ from $X_t$ alone. This variance captures how much the target $X_1 - X_0$ fluctuates across different $(X_0, X_1)$ pairs that pass through the same interpolant $X_t$.
 
-# Observations on the marginal vector field, conditional vector field and training difficulties
+# Observations on the Marginal Velocity Field, Conditional Velocity Field and Training Difficulties {#sec-observations-on-the-marginal-velocity-field-conditional-velocity-field-and-training-difficulties}
 
 In this section, we present some observations made in @bertrand_closed-form_2025. We focus on the case where the source distribution $p_0$ is the standard normal distribution and the data distribution $p_{\text{data}}$ is the CIFAR-10 dataset. We observe $n$ datapoints from CIFAR-10: 
 $$
@@ -151,7 +160,7 @@ We will expand on these observations in the next sections. The objective of this
 
 ![Failure to learn the marginal velocity field on CIFAR-10: the leftmost figure represents the average error between the marginal empirical velocity field $u_t$ and the learned velocity $u^\theta_t$ for multiple values of time $t$. All the quantities are computed/learned on a varying number of training samples ($10$ to $10^4$) of the CIFAR-10 dataset. We are not interested in the other figures in this blog post. [@bertrand_closed-form_2025, figure 3]](figures/article-fig-3.png){#fig-article-fig-3 fig-alt="Failure to learn the marginal velocity field on CIFAR-10: the leftmost figure represents the average error between the marginal empirical velocity field $u_t$ and the learned velocity $u^\theta_t$ for multiple values of time $t$. All the quantities are computed/learned on a varying number of training samples ($10$ to $10^4$) of the CIFAR-10 dataset. We are not interested in the other figures in this blog post."}
 
-# CIFAR-10 Preprocessing and Statistics
+# CIFAR-10 Preprocessing and Statistics {#sec-cifar-10-preprocessing-and-statistics}
 
 We use standard CIFAR-10 preprocessing following the [conditional-flow-matching](https://github.com/atong01/conditional-flow-matching) repository:
 
@@ -203,46 +212,72 @@ Using the CIFAR-10 channel stds above:
 -   $\mathrm{Var}(x_G) \approx 0.243^2 \approx 0.0590 \Rightarrow \mathrm{Var}(y_G)\approx 0.236$
 -   $\mathrm{Var}(x_B) \approx 0.261^2 \approx 0.0681 \Rightarrow \mathrm{Var}(y_B)\approx 0.273$
 
-So  we use the variance $\approx 0.24$ for the CIFAR-10 dataset.
+These are all of the same order, and for simplicity we use a representative value
+$$
+\sigma^2 \approx 0.24
+$$
 
-Do a remark on channel => pixel statistics. 
+for the per-coordinate variance of the normalized dataset.
 
-Yes — they should be the same **order of magnitude**, and in fact they’re tightly linked by a simple identity.
+## Remark: Channel Statistics vs. Pixel Statistics
 
-Let $X_{u,v}$ be the (say) red-channel pixel at location $(u,v)$ when you sample a random CIFAR image. Let $(U,V)$ be a uniform random pixel location independent of the image, and define the “global random pixel”
+It is natural to ask how **channel-wise statistics** (mean and variance computed over all pixels in a given channel) relate to **per-pixel statistics** (mean and variance at a fixed spatial location).
+
+Fix a channel (say, red) and let $X_{u,v}$ denote the intensity at pixel location $(u,v)$ for a random CIFAR-10 image. Let $(U,V)$ be a pixel location drawn uniformly at random from the grid, independently of the image, and define the “global random pixel”
 $$
 Y := X_{U,V}.
 $$
 
-Then you have the law of total variance:
+By the law of total variance,
 $$
-\mathrm{Var}(Y) = \mathbb E_{U,V}\big[\mathrm{Var}(X_{u,v})\big] + \mathrm{Var}_{U,V}\big(\mathbb E[X_{u,v}]\big).
+\mathrm{Var}(Y)= \mathbb{E}_{U,V}\bigl[\mathrm{Var}(X_{u,v})\bigr] + \mathrm{Var}_{U,V}\bigl(\mathbb{E}[X_{u,v}]\bigr).
 $$
 
-So:
+Interpreting the terms:
 
-* **Average per-pixel variance** is $\mathbb E_{u,v}[\mathrm{Var}(X_{u,v})]$.
-* **Global variance over all pixels pooled** is $\mathrm{Var}(Y)$.
+* $\mathbb{E}_{U,V}[\mathrm{Var}(X_{u,v})]$ is the **average per-pixel variance** (variance across images, averaged over spatial locations).
+* $\mathrm{Var}(Y)$ is the **global channel variance** when pooling all pixels in that channel.
+* The nonnegative term $\mathrm{Var}_{U,V}(\mathbb{E}[X_{u,v}])$ measures how much the **mean image** varies across spatial location.
 
-They differ by the extra nonnegative term $\mathrm{Var}_{U,V}\big(\mathbb E[X_{u,v}]\big)$, i.e. how much the *mean image* varies across location. On CIFAR-10, that term exists (background/center bias etc.) but it's not typically enormous relative to the pixel variance itself.
-
-They’re not only same order:
+Therefore,
 $$
-\mathbb E_{u,v}[\mathrm{Var}(X_{u,v})] \le \mathrm{Var}(Y)
+\mathbb{E_{U,V}}\bigl[\mathrm{Var}(X_{u,v})\bigr] \le \mathrm{Var}(Y),
 $$
-and the gap is exactly “variance of the per-pixel means”.
-After your normalization by 0.5, everything’s scaled by 4 in variance, so the same relationship holds.
+and the gap is exactly the “variance of the per-pixel means.”
 
-So: **yes, same magnitude; global is typically a bit larger** than the average per-pixel variance because of spatial variation in the mean image.
+On CIFAR-10, this spatial variation term is present (e.g., backgrounds vs. object centers) but is not typically huge compared to the intrinsic per-pixel variability. Hence:
 
-In the following, we assume that the $n$ datapoints from the CFAR-10 dataset are i.i.d. Gaussian vectors with variance $\sigma^2 \approx 0.24$.
-Modeling images as random vectors with i.i.d.-ish coordinates of variance $\sigma^2$.
+* channel-level variances (like the CIFAR-10 stds above) and
+* average per-pixel variances
 
-Of course, it is wrong. It is not i.i.d. Gaussian vectors, see @fig-eigenvalues-cifar10.
+are of the **same order of magnitude**, with the global (pooled) variance usually slightly larger.
+
+## Gaussian Toy Model and Its Limitations {#sec-gaussian-toy-model}
+
+In the theoretical analysis below, we **idealize** the dataset as consisting of i.i.d. Gaussian vectors:
+$$
+x_1, \dots, x_n \in \mathbb{R}^d,
+\qquad
+x_i \sim \mathcal{N}(0, \sigma^2 I_d),
+$$
+with
+$$
+d = 3072,
+\quad
+n = 50{,}000,
+\quad
+\sigma^2 \approx 0.24.
+$$
+
+This model should be understood as a **toy approximation**: it preserves only very coarse statistics (dimension, scale of per-coordinate variance, approximate centering) and treats coordinates as independent and identically distributed.
+
+Of course, real CIFAR-10 images are far from i.i.d. Gaussian vectors. The true covariance has a highly nontrivial structure, as illustrated by the empirical eigenvalue spectrum of the covariance matrix @fig-eigenvalues-cifar10.
 
 ![The eigenvalues of the covariance matrix of the CIFAR-10 dataset.](figures/eigenvalues-cifar10.png){#fig-eigenvalues-cifar10 fig-alt="The eigenvalues of the covariance matrix of the CIFAR-10 dataset."}
 
-# Marginal Velocity Field Collapse: A Statistical Physics Perspective
+The pronounced decay and variability of eigenvalues in @fig-eigenvalues-cifar10 reflect strong dependencies across pixels and channels (e.g., spatial correlation, global color structure, object/background patterns). The i.i.d. Gaussian model thus serves only as a **simplified reference**, not as a realistic generative model for CIFAR-10.
+
+# Marginal Velocity Field Collapse: A Statistical Physics Perspective {#sec-marginal-velocity-field-collapse-a-statistical-physics-perspective}
 
 This section provides a rigorous analysis of the collapse phenomenon in the marginal velocity field using tools from statistical physics, specifically the Random Energy Model (REM) and Large Deviation Principles (LDP).
 
@@ -272,7 +307,7 @@ $$
 
 ### Assumptions on the Data
 
-We consider a **Gaussian proxy** for the training data:
+From @sec-gaussian-toy-model, we consider a **Gaussian proxy** for the training data:
 $$
 x^{(i)} \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma^2 I_d), \quad i = 1, \dots, n.
 $$
@@ -329,6 +364,18 @@ c(t) = \frac{s^2(t)}{2(1-t)^2} = \frac{1}{2}\left(1 + \frac{2\sigma^2 t^2}{(1-t)
 $$
 
 **Key observation:** The bulk energies are approximately i.i.d. across $j \geq 2$, each extensive (order $d$). This is the classic setup where **Random Energy Model (REM)** tools apply.
+
+We define the partition function associated with the bulk states as:
+$$
+Z_{\text{bulk}}(x,t) := \sum_{j=2}^n e^{-E_j(x,t)}.
+$$
+
+Following the statistical-physics convention, we call the normalized log of the bulk partition function the (quenched) **bulk free-energy density** at inverse temperature $\beta = 1$:
+$$
+\Phi(1) := \lim_{d \to \infty} \frac{1}{d} \log Z_{\text{bulk}}(x_t,t),
+$$
+
+whenever the limit exists. When we want to keep the time dependence explicit we will also write $\Phi(1,t)$.
 
 ## Collapsed vs Uncollapsed States (Glass vs Liquid)
 
@@ -535,9 +582,9 @@ $$
 Z_{\text{bulk}} = \sum_{j=2}^n e^{-E_j} \approx \int d\varepsilon \, \exp\{d(\Sigma(\varepsilon) - \varepsilon)\}.
 $$
 
-By the Laplace principle (large-$d$ saddle point):
+Using the LDP for the bulk energies, the bulk free-energy density $\Phi(1)$ defined above can be computed via a Laplace (saddle-point) principle:
 $$
-\boxed{\Phi(1) = \lim_{d \to \infty} \frac{1}{d}\log Z_{\text{bulk}} = \sup_{\varepsilon > 0}\left[\alpha - I(\varepsilon) - \varepsilon\right]}
+\boxed{\Phi(1) = \sup_{\varepsilon > 0}\left[\alpha - I(\varepsilon) - \varepsilon\right]}
 $$
 
 ### Glass vs Liquid Phase Transition
@@ -776,12 +823,12 @@ which matches our earlier formula (the factor of 2 accounts for the $1/2$ in $E_
 
 ### LDP for Weighted Chi-Squared: Gärtner-Ellis Theorem
 
-The energy density is a **weighted sum of chi-squared variables**:
+In the general covariance case, the energy density is a weighted sum of chi-squared variables:
 $$
-\frac{E_j}{d} = \frac{1}{2d} \sum_{k=1}^d \lambda_k^{(t)} Z_k^2.
+\frac{E_j}{d} = \frac{1}{2d}\sum_{k=1}^d \lambda_k^{(t)} Z_k^2,
 $$
 
-To find its LDP, we use the **Gärtner-Ellis theorem**, which generalizes Cramér's theorem to non-i.i.d. settings.
+a sum of independent but **non-identically distributed** terms (the weights $\lambda_k^{(t)}$ vary with $k$). To obtain an LDP in this heterogeneous setting, we use the **Gärtner–Ellis theorem**, which handles such triangular arrays via the limit of the log-moment generating function.
 
 **Step 1: Compute the scaled cumulant generating function**
 
@@ -805,7 +852,7 @@ This limit exists if the **empirical spectral distribution** of $C_t$ converges:
 $$
 \Lambda_t(\theta) = \int \left(-\frac{1}{2}\log(1 - \theta\lambda)\right) d\nu_t(\lambda)
 $$
-where $\nu_t$ is the limiting spectral measure of $\{lambda_k^{(t)}\}$.
+where $\nu_t$ is the limiting spectral measure of $\{\lambda_k^{(t)}\}$.
 
 **Step 3: Legendre transform gives the rate function**
 
@@ -815,36 +862,6 @@ $$
 $$
 
 This is the **drop-in replacement** for the isotropic rate function.
-
-### Verifying the Isotropic Case
-
-For $C = \sigma^2 I_d$, all eigenvalues are equal: $\lambda_k^{(t)} = \lambda^{(t)} = 1 + \frac{2\sigma^2 t^2}{(1-t)^2}$.
-
-Then:
-$$
-\Lambda_t(\theta) = -\frac{1}{2}\log(1 - \theta\lambda^{(t)}).
-$$
-
-The Legendre transform:
-$$
-I_t(\varepsilon) = \sup_\theta \left(\theta\varepsilon + \frac{1}{2}\log(1 - \theta\lambda^{(t)})\right).
-$$
-
-Setting the derivative to zero:
-$$
-\varepsilon - \frac{\lambda^{(t)}/2}{1 - \theta\lambda^{(t)}} = 0 \quad \Rightarrow \quad \theta^* = \frac{1}{\lambda^{(t)}} - \frac{1}{2\varepsilon}.
-$$
-
-Substituting back and simplifying:
-$$
-I_t(\varepsilon) = \frac{1}{2}\left(\frac{2\varepsilon}{\lambda^{(t)}} - 1 - \log\frac{2\varepsilon}{\lambda^{(t)}}\right).
-$$
-
-With $c(t) = \lambda^{(t)}/2$, this becomes:
-$$
-I_t(\varepsilon) = \frac{1}{2}\left(\frac{\varepsilon}{c(t)} - 1 - \log\frac{\varepsilon}{c(t)}\right)
-$$
-which matches our earlier isotropic formula exactly.
 
 ### The Full Pipeline with General Covariance
 
@@ -867,43 +884,13 @@ $$
 
 Only $I_t(\varepsilon)$ changes — the rest of the theory is identical.
 
-### Practical Implementation
-
-**To compute $t_C$ and $\lambda_1(t)$ for real data:**
-
-1. **Estimate the covariance spectrum:** Compute the eigenvalues $\{\mu_k\}$ of the sample covariance of your training data.
-
-2. **Compute the effective spectrum at each $t$:**
-$$
-\lambda_k^{(t)} = 1 + \frac{2t^2}{(1-t)^2} \mu_k
-$$
-
-3. **Evaluate the scaled log-MGF numerically:**
-$$
-\Lambda_t(\theta) = \frac{1}{d}\sum_{k=1}^d \left(-\frac{1}{2}\log(1 - \theta\lambda_k^{(t)})\right)
-$$
-
-4. **Compute the rate function via numerical Legendre transform:**
-$$
-I_t(\varepsilon) = \sup_{\theta} \left(\theta\varepsilon - \Lambda_t(\theta)\right)
-$$
-
-5. **Solve the variational problem:**
-$$
-\Phi(1,t) = \sup_\varepsilon\left[\alpha - I_t(\varepsilon) - \varepsilon\right]
-$$
-
-6. **Find $t_C$:** Solve $\Phi(1,t_C) = -1/2$.
-
-# Error Analysis: Training Difficulties Across Time
+# Error Analysis: Training Difficulties Across Time {#sec-error-analysis-training-difficulties-across-time}
 
 As observed in @fig-article-fig-3, the learned velocity field $u^\theta_t$ exhibits a characteristic error profile when approximating the marginal velocity field $u_t$: low error near $t = 0$, a peak around $t \approx 0.1$, a decrease for intermediate $t$, and a final spike near $t = 1$. This section tries to explain these four regimes.
 
 ## Training Error Trajectory: Four Regimes
 
-### Regime 1: $t \approx 0$ — Easy Despite High Variance
-
-Despite the high irreducible variance at small $t$, the training error is **low** near $t = 0$. This apparent paradox resolves when we examine what the neural network must predict.
+### Regime 1: $t \approx 0$ — Trivial Learning Phase
 
 For small $t$, the interpolant is dominated by noise: $X_t = (1-t)X_0 + tX_1 \approx X_0$. The marginal velocity field at $X_t$ is:
 $$
@@ -914,14 +901,15 @@ When $t \approx 0$, the interpolant $X_t \approx X_0$ carries almost no informat
 $$
 \mathbb{E}[X_1 \mid X_t] \approx \bar{x} \approx 0
 $$
+
 where $\bar{x}$ is the mean of the training data (approximately zero after normalization).
 
 Therefore, the optimal velocity field simplifies to:
 $$
-u_t(X_t) \approx \frac{0 - X_t}{1-t} \approx \frac{-X_0}{1} = -X_0.
+u_t(X_t) \approx \frac{0 - X_t}{1-t} \approx \frac{-X_t}{1} = -X_t.
 $$
 
-This is essentially a **negation map**: the neural network only needs to learn $u^\theta_t(x) \approx -x$, which is trivial. The high variance in targets $X_1 - X_0$ averages out to a simple function of $X_t$ alone.
+This is essentially a **negation map**: the neural network only needs to learn $u^\theta_t(x) \approx -x$, which is trivial.
 
 ### Regime 2: $t \approx t_C$ — Peak Difficulty (Collapse Transition)
 
@@ -942,6 +930,7 @@ This creates several sources of difficulty:
 $$
 E_j - E_1 \approx \frac{d \sigma^2 t^2}{(1-t)^2}.
 $$
+
 Near $t_C$, the system transitions from having exponentially many competing states to a single dominant state. This transition is sharp in high dimensions, creating rapid variation in the velocity field as a function of both $x$ and $t$.
 
 4. **High sensitivity:** Near the transition, the map $x \mapsto \arg\max_i \lambda_i(x,t)$ is extremely sensitive to perturbations. Small changes in $X_t$ can cause different training points to dominate the posterior.
@@ -967,6 +956,7 @@ Geometrically, the velocity field becomes piecewise-affine: within each Voronoi 
 $$
 \frac{x^{(i)} - x}{1-t},
 $$
+
 where $i$ indexes the training point whose cell contains $x$. Although the coefficient $1/(1-t)$ grows as $t$ increases, the key simplification is that the posterior has collapsed—the network no longer faces the challenge of averaging over multiple competing directions.
 
 ### Regime 4: $t \to 1$ — Final Blow-Up
@@ -985,7 +975,7 @@ $$
 u_t(x) \approx \frac{x^{(i^*)} - x}{1-t}, \quad \text{where } i^* = \arg\min_j \|x - x^{(j)}\|.
 $$
 
-This is a **piecewise-affine vector field** that switches abruptly across **Voronoi cell boundaries** in $\mathbb{R}^d$. Such discontinuous fields are notoriously difficult to approximate with smooth neural networks, explaining the error spike near $t \approx 1$. Besides, the $x$ coefficient is 1/(1-t), which blows up as $t \to 1$.
+This is a **piecewise-affine vector field** that switches abruptly across **Voronoi cell boundaries** in $\mathbb{R}^d$. Such discontinuous fields are notoriously difficult to approximate with smooth neural networks, explaining the error spike near $t \approx 1$.
 
 ## Summary: Error Profile Across Time
 
@@ -995,3 +985,13 @@ This is a **piecewise-affine vector field** that switches abruptly across **Voro
 | 2 | $t \approx t_C$ | **Peak** | Complex posterior; phase transition; high sensitivity |
 | 3 | $t > t_C$ | Decreasing | Posterior concentrates; clear signal; simpler target structure |
 | 4 | $t \to 1$ | **Spike** | Voronoi discontinuities; $1/(1-t)$ blow-up |
+
+{{< embed notebooks/_cifar10_numerical_analysis.ipynb echo=false >}}
+
+# Conclusion
+
+Flow matching with Gaussian-OT admits a closed-form expression for the marginal velocity field: a softmax over the training examples. In high dimensions, this softmax typically **collapses** early, assigning nearly all weight to a single training point. As a result, the flow effectively implements a nearest-neighbor mapping and tends to memorize the dataset.
+
+By representing CIFAR-10 data with a Gaussian proxy and leveraging techniques from the REM and LDP frameworks, we model the softmax weights as a Gibbs distribution and analyze the competition between the true (planted) data point and all others. This leads to an explicit, high-dimensional prediction of the **collapse time** ($t_C$), which is found to be surprisingly small for realistically sized CIFAR-10 data.
+
+This analysis clarifies the characteristic error profile: neural networks struggle most at intermediate $t$ (near the collapse transition), and again as $t \to 1$ (where the velocity field develops Voronoi-type discontinuities), but not at small $t$. Softmax collapse thus emerges as a fundamental, high-dimensional property of the Gaussian-OT path—rather than merely an artifact of optimization—and should be deliberately considered in the design and training of flow-matching models.
