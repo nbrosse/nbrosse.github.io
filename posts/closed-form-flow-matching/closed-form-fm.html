@@ -191,6 +191,16 @@ window.Quarto = {
 </i> 
 <span class="menu-text"></span></a>
   </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&amp;hl"> <i class="bi bi-google" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.researchgate.net/profile/Nicolas-Brosse-3"> <i class="bi bi-r-circle" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -210,7 +220,6 @@ window.Quarto = {
       </div>
                           <div class="quarto-categories">
                 <div class="quarto-category">deep learning</div>
-                <div class="quarto-category">generative models</div>
                 <div class="quarto-category">flow matching</div>
               </div>
                   </div>
@@ -245,10 +254,14 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#setup-and-notation" id="toc-setup-and-notation" class="nav-link active" data-scroll-target="#setup-and-notation">Setup and Notation</a></li>
-  <li><a href="#observations-on-the-marginal-vector-field-conditional-vector-field-and-training-difficulties" id="toc-observations-on-the-marginal-vector-field-conditional-vector-field-and-training-difficulties" class="nav-link" data-scroll-target="#observations-on-the-marginal-vector-field-conditional-vector-field-and-training-difficulties">Observations on the marginal vector field, conditional vector field and training difficulties</a></li>
-  <li><a href="#cifar-10-preprocessing-and-statistics" id="toc-cifar-10-preprocessing-and-statistics" class="nav-link" data-scroll-target="#cifar-10-preprocessing-and-statistics">CIFAR-10 Preprocessing and Statistics</a></li>
-  <li><a href="#marginal-velocity-field-collapse-a-statistical-physics-perspective" id="toc-marginal-velocity-field-collapse-a-statistical-physics-perspective" class="nav-link" data-scroll-target="#marginal-velocity-field-collapse-a-statistical-physics-perspective">Marginal Velocity Field Collapse: A Statistical Physics Perspective</a>
+  <li><a href="#sec-setup-and-notation" id="toc-sec-setup-and-notation" class="nav-link active" data-scroll-target="#sec-setup-and-notation">Setup and Notation</a></li>
+  <li><a href="#sec-observations-on-the-marginal-velocity-field-conditional-velocity-field-and-training-difficulties" id="toc-sec-observations-on-the-marginal-velocity-field-conditional-velocity-field-and-training-difficulties" class="nav-link" data-scroll-target="#sec-observations-on-the-marginal-velocity-field-conditional-velocity-field-and-training-difficulties">Observations on the Marginal Velocity Field, Conditional Velocity Field and Training Difficulties</a></li>
+  <li><a href="#sec-cifar-10-preprocessing-and-statistics" id="toc-sec-cifar-10-preprocessing-and-statistics" class="nav-link" data-scroll-target="#sec-cifar-10-preprocessing-and-statistics">CIFAR-10 Preprocessing and Statistics</a>
+  <ul class="collapse">
+  <li><a href="#remark-channel-statistics-vs.-pixel-statistics" id="toc-remark-channel-statistics-vs.-pixel-statistics" class="nav-link" data-scroll-target="#remark-channel-statistics-vs.-pixel-statistics">Remark: Channel Statistics vs.&nbsp;Pixel Statistics</a></li>
+  <li><a href="#sec-gaussian-toy-model" id="toc-sec-gaussian-toy-model" class="nav-link" data-scroll-target="#sec-gaussian-toy-model">Gaussian Toy Model and Its Limitations</a></li>
+  </ul></li>
+  <li><a href="#sec-marginal-velocity-field-collapse-a-statistical-physics-perspective" id="toc-sec-marginal-velocity-field-collapse-a-statistical-physics-perspective" class="nav-link" data-scroll-target="#sec-marginal-velocity-field-collapse-a-statistical-physics-perspective">Marginal Velocity Field Collapse: A Statistical Physics Perspective</a>
   <ul class="collapse">
   <li><a href="#gibbs-measure-and-energy-formulation" id="toc-gibbs-measure-and-energy-formulation" class="nav-link" data-scroll-target="#gibbs-measure-and-energy-formulation">Gibbs Measure and Energy Formulation</a>
   <ul class="collapse">
@@ -288,24 +301,48 @@ window.Quarto = {
   <li><a href="#deriving-the-effective-covariance" id="toc-deriving-the-effective-covariance" class="nav-link" data-scroll-target="#deriving-the-effective-covariance">Deriving the Effective Covariance</a></li>
   <li><a href="#eigenvalues-of-the-effective-covariance" id="toc-eigenvalues-of-the-effective-covariance" class="nav-link" data-scroll-target="#eigenvalues-of-the-effective-covariance">Eigenvalues of the Effective Covariance</a></li>
   <li><a href="#ldp-for-weighted-chi-squared-gärtner-ellis-theorem" id="toc-ldp-for-weighted-chi-squared-gärtner-ellis-theorem" class="nav-link" data-scroll-target="#ldp-for-weighted-chi-squared-gärtner-ellis-theorem">LDP for Weighted Chi-Squared: Gärtner-Ellis Theorem</a></li>
-  <li><a href="#verifying-the-isotropic-case" id="toc-verifying-the-isotropic-case" class="nav-link" data-scroll-target="#verifying-the-isotropic-case">Verifying the Isotropic Case</a></li>
   <li><a href="#the-full-pipeline-with-general-covariance" id="toc-the-full-pipeline-with-general-covariance" class="nav-link" data-scroll-target="#the-full-pipeline-with-general-covariance">The Full Pipeline with General Covariance</a></li>
-  <li><a href="#practical-implementation" id="toc-practical-implementation" class="nav-link" data-scroll-target="#practical-implementation">Practical Implementation</a></li>
   </ul></li>
   </ul></li>
-  <li><a href="#error-analysis-training-difficulties-across-time" id="toc-error-analysis-training-difficulties-across-time" class="nav-link" data-scroll-target="#error-analysis-training-difficulties-across-time">Error Analysis: Training Difficulties Across Time</a>
+  <li><a href="#sec-error-analysis-training-difficulties-across-time" id="toc-sec-error-analysis-training-difficulties-across-time" class="nav-link" data-scroll-target="#sec-error-analysis-training-difficulties-across-time">Error Analysis: Training Difficulties Across Time</a>
   <ul class="collapse">
   <li><a href="#training-error-trajectory-four-regimes" id="toc-training-error-trajectory-four-regimes" class="nav-link" data-scroll-target="#training-error-trajectory-four-regimes">Training Error Trajectory: Four Regimes</a>
   <ul class="collapse">
-  <li><a href="#regime-1-t-approx-0-easy-despite-high-variance" id="toc-regime-1-t-approx-0-easy-despite-high-variance" class="nav-link" data-scroll-target="#regime-1-t-approx-0-easy-despite-high-variance">Regime 1: <span class="math inline">\(t \approx 0\)</span> — Easy Despite High Variance</a></li>
+  <li><a href="#regime-1-t-approx-0-trivial-learning-phase" id="toc-regime-1-t-approx-0-trivial-learning-phase" class="nav-link" data-scroll-target="#regime-1-t-approx-0-trivial-learning-phase">Regime 1: <span class="math inline">\(t \approx 0\)</span> — Trivial Learning Phase</a></li>
   <li><a href="#regime-2-t-approx-t_c-peak-difficulty-collapse-transition" id="toc-regime-2-t-approx-t_c-peak-difficulty-collapse-transition" class="nav-link" data-scroll-target="#regime-2-t-approx-t_c-peak-difficulty-collapse-transition">Regime 2: <span class="math inline">\(t \approx t_C\)</span> — Peak Difficulty (Collapse Transition)</a></li>
   <li><a href="#regime-3-t-t_c-decreasing-error-concentration" id="toc-regime-3-t-t_c-decreasing-error-concentration" class="nav-link" data-scroll-target="#regime-3-t-t_c-decreasing-error-concentration">Regime 3: <span class="math inline">\(t &gt; t_C\)</span> — Decreasing Error (Concentration)</a></li>
   <li><a href="#regime-4-t-to-1-final-blow-up" id="toc-regime-4-t-to-1-final-blow-up" class="nav-link" data-scroll-target="#regime-4-t-to-1-final-blow-up">Regime 4: <span class="math inline">\(t \to 1\)</span> — Final Blow-Up</a></li>
   </ul></li>
   <li><a href="#summary-error-profile-across-time" id="toc-summary-error-profile-across-time" class="nav-link" data-scroll-target="#summary-error-profile-across-time">Summary: Error Profile Across Time</a></li>
   </ul></li>
+  <li><a href="#cifar-10-numerical-analysis" id="toc-cifar-10-numerical-analysis" class="nav-link" data-scroll-target="#cifar-10-numerical-analysis">CIFAR-10: Numerical Analysis</a>
+  <ul class="collapse">
+  <li><a href="#entropy-of-the-softmax-weights" id="toc-entropy-of-the-softmax-weights" class="nav-link" data-scroll-target="#entropy-of-the-softmax-weights">Entropy of the Softmax Weights</a></li>
+  <li><a href="#collapse-time-in-the-isotropic-case" id="toc-collapse-time-in-the-isotropic-case" class="nav-link" data-scroll-target="#collapse-time-in-the-isotropic-case">Collapse Time in the Isotropic Case</a>
+  <ul class="collapse">
+  <li><a href="#key-quantities" id="toc-key-quantities" class="nav-link" data-scroll-target="#key-quantities">Key quantities</a></li>
+  <li><a href="#two-methods-for-computing-t_c" id="toc-two-methods-for-computing-t_c" class="nav-link" data-scroll-target="#two-methods-for-computing-t_c">Two methods for computing <span class="math inline">\(t_C\)</span></a></li>
+  </ul></li>
+  <li><a href="#eigenvalues-of-the-data-covariance-matrix" id="toc-eigenvalues-of-the-data-covariance-matrix" class="nav-link" data-scroll-target="#eigenvalues-of-the-data-covariance-matrix">Eigenvalues of the Data Covariance Matrix</a></li>
+  <li><a href="#collapse-time-in-the-non-isotropic-case" id="toc-collapse-time-in-the-non-isotropic-case" class="nav-link" data-scroll-target="#collapse-time-in-the-non-isotropic-case">Collapse Time in the Non-Isotropic Case</a>
+  <ul class="collapse">
+  <li><a href="#time-dependent-effective-eigenvalues" id="toc-time-dependent-effective-eigenvalues" class="nav-link" data-scroll-target="#time-dependent-effective-eigenvalues">Time-dependent effective eigenvalues</a></li>
+  <li><a href="#scaled-log-moment-generating-function" id="toc-scaled-log-moment-generating-function" class="nav-link" data-scroll-target="#scaled-log-moment-generating-function">Scaled log-moment generating function</a></li>
+  <li><a href="#rate-function-via-legendre-transform" id="toc-rate-function-via-legendre-transform" class="nav-link" data-scroll-target="#rate-function-via-legendre-transform">Rate function via Legendre transform</a></li>
+  <li><a href="#collapse-criterion-1" id="toc-collapse-criterion-1" class="nav-link" data-scroll-target="#collapse-criterion-1">Collapse criterion</a></li>
+  </ul></li>
+  <li><a href="#the-discrepancy-theory-vs-observation" id="toc-the-discrepancy-theory-vs-observation" class="nav-link" data-scroll-target="#the-discrepancy-theory-vs-observation">The Discrepancy: Theory vs Observation</a>
+  <ul class="collapse">
+  <li><a href="#the-gaussian-assumption-is-violated" id="toc-the-gaussian-assumption-is-violated" class="nav-link" data-scroll-target="#the-gaussian-assumption-is-violated">1. The Gaussian Assumption is Violated</a></li>
+  <li><a href="#effective-dimension-reduction" id="toc-effective-dimension-reduction" class="nav-link" data-scroll-target="#effective-dimension-reduction">2. Effective Dimension Reduction</a></li>
+  <li><a href="#the-solution-effective-dimension-model" id="toc-the-solution-effective-dimension-model" class="nav-link" data-scroll-target="#the-solution-effective-dimension-model">The Solution: Effective Dimension Model</a></li>
+  </ul></li>
+  <li><a href="#entropy-with-collapse-time-comparison" id="toc-entropy-with-collapse-time-comparison" class="nav-link" data-scroll-target="#entropy-with-collapse-time-comparison">Entropy with Collapse Time Comparison</a></li>
+  <li><a href="#marginal-velocity-field-and-position-field" id="toc-marginal-velocity-field-and-position-field" class="nav-link" data-scroll-target="#marginal-velocity-field-and-position-field">Marginal Velocity Field and Position Field</a></li>
+  </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   </ul>
-</nav>
+<div class="quarto-alternate-notebooks"><h2>Notebooks</h2><ul><li><a href="notebooks/_cifar10_numerical_analysis-preview.html"><i class="bi bi-journal-code"></i>CIFAR-10: Numerical Analysis</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content quarto-banner-title-block" id="quarto-document-content">
@@ -314,15 +351,22 @@ window.Quarto = {
 
 
 
-<p>Flow matching has emerged as a powerful framework for training continuous normalizing flows. In this blog post, building on <span class="citation" data-cites="bertrand_closed-form_2025">Bertrand et al. (<a href="#ref-bertrand_closed-form_2025" role="doc-biblioref">2025</a>)</span>, we analyze the <strong>closed-form optimal velocity field</strong>: its connection to the conditional vector field and the challenges neural networks face in approximating it. We explore how, in high dimensions, the softmax weights collapse to near one-hot vectors surprisingly early in the interpolation path, and provide a formula to predict when this collapse occurs.</p>
-<p>We use <span class="citation" data-cites="biroli_dynamical_2024">Biroli et al. (<a href="#ref-biroli_dynamical_2024" role="doc-biblioref">2024</a>)</span> to understand the softmax collapse in flow matching, contrary to what is claimed in <span class="citation" data-cites="bertrand_closed-form_2025">Bertrand et al. (<a href="#ref-bertrand_closed-form_2025" role="doc-biblioref">2025</a>)</span>, the framework of <span class="citation" data-cites="biroli_dynamical_2024">Biroli et al. (<a href="#ref-biroli_dynamical_2024" role="doc-biblioref">2024</a>)</span> is able to predict the collapse time in flow matching. We adapt their arguments to the context of flow matching and provide a formula to predict the collapse time, in particular for CIFAR-10.</p>
-<p>In this blog post, we will present a rigorous analysis of the softmax collapse in flow matching, using tools from statistical physics, specifically the Random Energy Model (REM) and Large Deviation Principles (LDP).</p>
-<p>Contributions:</p>
+<p>Flow matching has emerged as a powerful framework for training continuous normalizing flows. In its Gaussian-OT instantiation, the <strong>marginal velocity field</strong> admits a closed form: it is a softmax-weighted average of per-example conditional velocities. In high dimension, a striking phenomenon occurs: the softmax weights become almost one-hot very early along the interpolation path. We refer to this as <strong>softmax collapse</strong>. It implies that the learned flow rapidly behaves like a nearest-neighbor map and tends to memorize the training set instead of sampling from the underlying data distribution.</p>
+<p>In this post, building on the closed-form analysis of <span class="citation" data-cites="bertrand_closed-form_2025">Bertrand et al. (<a href="#ref-bertrand_closed-form_2025" role="doc-biblioref">2025</a>)</span>, we study this collapse phenomenon through the lens of high-dimensional statistics and statistical physics. We view the softmax weights as a Gibbs measure over the training examples, with an energy that depends on the interpolation time <span class="math inline">\(t\)</span>. This connects the behavior of flow matching to classic models such as the Random Energy Model (REM) and to Large Deviation Principles (LDP).</p>
+<p>Our main goal is twofold:</p>
+<ol type="1">
+<li><strong>Mechanism.</strong> Explain why, in high dimension, the marginal velocity field very quickly aligns with the conditional velocity field even for small <span class="math inline">\(t\)</span>, and why neural networks find certain time regimes (around <span class="math inline">\(t \approx 0.1\)</span> and near <span class="math inline">\(t \approx 1\)</span>) particularly hard to learn.</li>
+<li><strong>Prediction.</strong> Derive a <strong>predictive formula for the collapse time</strong>—the value of <span class="math inline">\(t\)</span> at which the softmax weights become essentially one-hot in a CIFAR-10 proxy.</li>
+</ol>
+<p>We adapt the dynamical and statistical-physics framework of <span class="citation" data-cites="biroli_dynamical_2024">Biroli et al. (<a href="#ref-biroli_dynamical_2024" role="doc-biblioref">2024</a>)</span> to the flow-matching setting. Treating the softmax energies as REM-like random energies, we obtain an explicit asymptotic expression for the free energy, which in turn controls when the planted datapoint wins over all competing training samples. Specializing this analysis to a Gaussian proxy calibrated to CIFAR-10 yields a concrete collapse-time prediction.</p>
+<p><strong>Contributions</strong></p>
 <ul>
-<li>We do a connection between the observations on the training of the marginal velocity field (based on the conditional velocity field loss) and the collapse of the softmax weights and the probability distribution.</li>
-<li>We provide a self-contained proof of the LDP and REM perhaps better than the one in <span class="citation" data-cites="bertrand_closed-form_2025">Bertrand et al. (<a href="#ref-bertrand_closed-form_2025" role="doc-biblioref">2025</a>)</span> and useful for other readers.</li>
+<li>We interpret the closed-form marginal velocity field in flow matching as a Gibbs measure</li>
+<li>Within an i.i.d. Gaussian toy model calibrated to CIFAR-10, we derive an <strong>explicit high-dimensional formula for the collapse time</strong> as a function of the dataset dimension, sample size, and variance, and give its numerical specialization for CIFAR-10.</li>
+<li>We provide a <strong>self-contained, pedagogical derivation</strong> of the relevant LDP and REM results, aiming to be more accessible than <span class="citation" data-cites="bertrand_closed-form_2025">Bertrand et al. (<a href="#ref-bertrand_closed-form_2025" role="doc-biblioref">2025</a>)</span> and to serve as a reference for readers interested in using these tools in generative modeling.</li>
 </ul>
-<section id="setup-and-notation" class="level1">
+<p>In the section <a href="#sec-setup-and-notation" class="quarto-xref">Section&nbsp;1</a> we briefly recall the flow-matching and conditional flow-matching formulations and fix notation. In <a href="#sec-observations-on-the-marginal-velocity-field-conditional-velocity-field-and-training-difficulties" class="quarto-xref">Section&nbsp;2</a>, we summarize the empirical behavior reported in <span class="citation" data-cites="bertrand_closed-form_2025">Bertrand et al. (<a href="#ref-bertrand_closed-form_2025" role="doc-biblioref">2025</a>)</span>. The section <a href="#sec-cifar-10-preprocessing-and-statistics" class="quarto-xref">Section&nbsp;3</a> justifies the Gaussian toy model used in the theory. The core statistical-physics analysis appears in <a href="#sec-marginal-velocity-field-collapse-a-statistical-physics-perspective" class="quarto-xref">Section&nbsp;4</a>, and <a href="#sec-error-analysis-training-difficulties-across-time" class="quarto-xref">Section&nbsp;5</a> connects the collapse picture back to the observed error profile of learned velocity fields. We include an accompanying notebook that numerically analyzes the CIFAR-10 dataset, computing both the collapse times and the correlation between the marginal and conditional velocity fields.</p>
+<section id="sec-setup-and-notation" class="level1">
 <h1>Setup and Notation</h1>
 <p>We follow the notation and setup of<span class="citation" data-cites="lipman_flow_2024">(<a href="#ref-lipman_flow_2024" role="doc-biblioref">Lipman et al. 2024, sec. 2</a>)</span> to present Flow Matching (FM). Given a training dataset with samples from an unknown target distribution <span class="math inline">\(q\)</span> over <span class="math inline">\(\mathbb{R}^d\)</span>, the goal is to learn a model that can generate new samples from <span class="math inline">\(q\)</span>. Flow Matching (FM) does this by defining a <strong>continuous probability path</strong> <span class="math inline">\((p_t)_{0\le t\le 1}\)</span> that morphs a <strong>known source distribution</strong> <span class="math inline">\(p_0=p\)</span> (typically noise) into the <strong>data distribution</strong> <span class="math inline">\(p_1=q\)</span>. FM learns a <strong>time-dependent velocity field</strong> <span class="math inline">\(u_t\)</span> (a vector field) that describes how samples move along this path. After training, sampling from <span class="math inline">\(q\)</span> works by:</p>
 <ol type="1">
@@ -344,7 +388,7 @@ p_{t|1}(x|x_1)=\mathcal{N}\big(x\mid t x_1,\ (1-t)^2 I\big).
 <p>A simple way to sample from this <span class="math inline">\(p_t\)</span> is: <span class="math display">\[
 X_t = tX_1 + (1-t)X_0 \sim p_t,
 \]</span></p>
-<p>where <span class="math inline">\(X_0\sim p\)</span> and <span class="math inline">\(X_1\sim q\)</span>. Condition on a randomly chosen training sample <span class="math inline">\(X_1=x_1\)</span>. Define: <span class="math display">\[
+<p>where <span class="math inline">\(X_0\sim p\)</span> and <span class="math inline">\(X_1\sim q\)</span>. Condition on a randomly chosen training sample <span class="math inline">\(X_1=x_1\)</span> and define: <span class="math display">\[
 X_{t|1}=t x_1+(1-t)X_0 \sim p_{t|1}(\cdot|x_1).
 \]</span> For this conditional Gaussian path, the ODE gives a <strong>simple closed-form conditional velocity field</strong>: <span class="math display">\[
 u_t(x|x_1)=\frac{x_1-x}{1-t}.
@@ -393,8 +437,8 @@ u_t(X_t) = \mathbb{E}[X_1 - X_0 \mid X_t].
 </div>
 <p>The second term is the <strong>irreducible variance</strong> — it does not depend on <span class="math inline">\(\theta\)</span> and represents the inherent uncertainty in predicting the conditional velocity <span class="math inline">\(X_1 - X_0\)</span> from <span class="math inline">\(X_t\)</span> alone. This variance captures how much the target <span class="math inline">\(X_1 - X_0\)</span> fluctuates across different <span class="math inline">\((X_0, X_1)\)</span> pairs that pass through the same interpolant <span class="math inline">\(X_t\)</span>.</p>
 </section>
-<section id="observations-on-the-marginal-vector-field-conditional-vector-field-and-training-difficulties" class="level1">
-<h1>Observations on the marginal vector field, conditional vector field and training difficulties</h1>
+<section id="sec-observations-on-the-marginal-velocity-field-conditional-velocity-field-and-training-difficulties" class="level1">
+<h1>Observations on the Marginal Velocity Field, Conditional Velocity Field and Training Difficulties</h1>
 <p>In this section, we present some observations made in <span class="citation" data-cites="bertrand_closed-form_2025">Bertrand et al. (<a href="#ref-bertrand_closed-form_2025" role="doc-biblioref">2025</a>)</span>. We focus on the case where the source distribution <span class="math inline">\(p_0\)</span> is the standard normal distribution and the data distribution <span class="math inline">\(p_{\text{data}}\)</span> is the CIFAR-10 dataset. We observe <span class="math inline">\(n\)</span> datapoints from CIFAR-10: <span class="math display">\[
 x^{(1)},\dots,x^{(n)} \sim p_{\text{data}}, \qquad x^{(i)}\in\mathbb{R}^d.
 \]</span></p>
@@ -448,7 +492,7 @@ Figure&nbsp;3: Failure to learn the marginal velocity field on CIFAR-10: the lef
 </figure>
 </div>
 </section>
-<section id="cifar-10-preprocessing-and-statistics" class="level1">
+<section id="sec-cifar-10-preprocessing-and-statistics" class="level1">
 <h1>CIFAR-10 Preprocessing and Statistics</h1>
 <p>We use standard CIFAR-10 preprocessing following the <a href="https://github.com/atong01/conditional-flow-matching">conditional-flow-matching</a> repository:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>dataset <span class="op">=</span> datasets.CIFAR10(</span>
@@ -513,27 +557,50 @@ x = \frac{\text{pixel} - 0.5}{0.5} = 2 \cdot \text{pixel} - 1 \in [-1, 1]
 <li><span class="math inline">\(\mathrm{Var}(x_G) \approx 0.243^2 \approx 0.0590 \Rightarrow \mathrm{Var}(y_G)\approx 0.236\)</span></li>
 <li><span class="math inline">\(\mathrm{Var}(x_B) \approx 0.261^2 \approx 0.0681 \Rightarrow \mathrm{Var}(y_B)\approx 0.273\)</span></li>
 </ul>
-<p>So we use the variance <span class="math inline">\(\approx 0.24\)</span> for the CIFAR-10 dataset.</p>
-<p>Do a remark on channel =&gt; pixel statistics.</p>
-<p>Yes — they should be the same <strong>order of magnitude</strong>, and in fact they’re tightly linked by a simple identity.</p>
-<p>Let <span class="math inline">\(X_{u,v}\)</span> be the (say) red-channel pixel at location <span class="math inline">\((u,v)\)</span> when you sample a random CIFAR image. Let <span class="math inline">\((U,V)\)</span> be a uniform random pixel location independent of the image, and define the “global random pixel” <span class="math display">\[
+<p>These are all of the same order, and for simplicity we use a representative value <span class="math display">\[
+\sigma^2 \approx 0.24
+\]</span></p>
+<p>for the per-coordinate variance of the normalized dataset.</p>
+<section id="remark-channel-statistics-vs.-pixel-statistics" class="level2">
+<h2 class="anchored" data-anchor-id="remark-channel-statistics-vs.-pixel-statistics">Remark: Channel Statistics vs.&nbsp;Pixel Statistics</h2>
+<p>It is natural to ask how <strong>channel-wise statistics</strong> (mean and variance computed over all pixels in a given channel) relate to <strong>per-pixel statistics</strong> (mean and variance at a fixed spatial location).</p>
+<p>Fix a channel (say, red) and let <span class="math inline">\(X_{u,v}\)</span> denote the intensity at pixel location <span class="math inline">\((u,v)\)</span> for a random CIFAR-10 image. Let <span class="math inline">\((U,V)\)</span> be a pixel location drawn uniformly at random from the grid, independently of the image, and define the “global random pixel” <span class="math display">\[
 Y := X_{U,V}.
 \]</span></p>
-<p>Then you have the law of total variance: <span class="math display">\[
-\mathrm{Var}(Y) = \mathbb E_{U,V}\big[\mathrm{Var}(X_{u,v})\big] + \mathrm{Var}_{U,V}\big(\mathbb E[X_{u,v}]\big).
+<p>By the law of total variance, <span class="math display">\[
+\mathrm{Var}(Y)= \mathbb{E}_{U,V}\bigl[\mathrm{Var}(X_{u,v})\bigr] + \mathrm{Var}_{U,V}\bigl(\mathbb{E}[X_{u,v}]\bigr).
 \]</span></p>
-<p>So:</p>
+<p>Interpreting the terms:</p>
 <ul>
-<li><strong>Average per-pixel variance</strong> is <span class="math inline">\(\mathbb E_{u,v}[\mathrm{Var}(X_{u,v})]\)</span>.</li>
-<li><strong>Global variance over all pixels pooled</strong> is <span class="math inline">\(\mathrm{Var}(Y)\)</span>.</li>
+<li><span class="math inline">\(\mathbb{E}_{U,V}[\mathrm{Var}(X_{u,v})]\)</span> is the <strong>average per-pixel variance</strong> (variance across images, averaged over spatial locations).</li>
+<li><span class="math inline">\(\mathrm{Var}(Y)\)</span> is the <strong>global channel variance</strong> when pooling all pixels in that channel.</li>
+<li>The nonnegative term <span class="math inline">\(\mathrm{Var}_{U,V}(\mathbb{E}[X_{u,v}])\)</span> measures how much the <strong>mean image</strong> varies across spatial location.</li>
 </ul>
-<p>They differ by the extra nonnegative term <span class="math inline">\(\mathrm{Var}_{U,V}\big(\mathbb E[X_{u,v}]\big)\)</span>, i.e.&nbsp;how much the <em>mean image</em> varies across location. On CIFAR-10, that term exists (background/center bias etc.) but it’s not typically enormous relative to the pixel variance itself.</p>
-<p>They’re not only same order: <span class="math display">\[
-\mathbb E_{u,v}[\mathrm{Var}(X_{u,v})] \le \mathrm{Var}(Y)
-\]</span> and the gap is exactly “variance of the per-pixel means”. After your normalization by 0.5, everything’s scaled by 4 in variance, so the same relationship holds.</p>
-<p>So: <strong>yes, same magnitude; global is typically a bit larger</strong> than the average per-pixel variance because of spatial variation in the mean image.</p>
-<p>In the following, we assume that the <span class="math inline">\(n\)</span> datapoints from the CFAR-10 dataset are i.i.d. Gaussian vectors with variance <span class="math inline">\(\sigma^2 \approx 0.24\)</span>. Modeling images as random vectors with i.i.d.-ish coordinates of variance <span class="math inline">\(\sigma^2\)</span>.</p>
-<p>Of course, it is wrong. It is not i.i.d. Gaussian vectors, see <a href="#fig-eigenvalues-cifar10" class="quarto-xref">Figure&nbsp;4</a>.</p>
+<p>Therefore, <span class="math display">\[
+\mathbb{E_{U,V}}\bigl[\mathrm{Var}(X_{u,v})\bigr] \le \mathrm{Var}(Y),
+\]</span> and the gap is exactly the “variance of the per-pixel means.”</p>
+<p>On CIFAR-10, this spatial variation term is present (e.g., backgrounds vs.&nbsp;object centers) but is not typically huge compared to the intrinsic per-pixel variability. Hence:</p>
+<ul>
+<li>channel-level variances (like the CIFAR-10 stds above) and</li>
+<li>average per-pixel variances</li>
+</ul>
+<p>are of the <strong>same order of magnitude</strong>, with the global (pooled) variance usually slightly larger.</p>
+</section>
+<section id="sec-gaussian-toy-model" class="level2">
+<h2 class="anchored" data-anchor-id="sec-gaussian-toy-model">Gaussian Toy Model and Its Limitations</h2>
+<p>In the theoretical analysis below, we <strong>idealize</strong> the dataset as consisting of i.i.d. Gaussian vectors: <span class="math display">\[
+x_1, \dots, x_n \in \mathbb{R}^d,
+\qquad
+x_i \sim \mathcal{N}(0, \sigma^2 I_d),
+\]</span> with <span class="math display">\[
+d = 3072,
+\quad
+n = 50{,}000,
+\quad
+\sigma^2 \approx 0.24.
+\]</span></p>
+<p>This model should be understood as a <strong>toy approximation</strong>: it preserves only very coarse statistics (dimension, scale of per-coordinate variance, approximate centering) and treats coordinates as independent and identically distributed.</p>
+<p>Of course, real CIFAR-10 images are far from i.i.d. Gaussian vectors. The true covariance has a highly nontrivial structure, as illustrated by the empirical eigenvalue spectrum of the covariance matrix <a href="#fig-eigenvalues-cifar10" class="quarto-xref">Figure&nbsp;4</a>.</p>
 <div id="fig-eigenvalues-cifar10" class="quarto-float quarto-figure quarto-figure-center anchored" alt="The eigenvalues of the covariance matrix of the CIFAR-10 dataset.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-eigenvalues-cifar10-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -544,8 +611,10 @@ Figure&nbsp;4: The eigenvalues of the covariance matrix of the CIFAR-10 dataset.
 </figcaption>
 </figure>
 </div>
+<p>The pronounced decay and variability of eigenvalues in <a href="#fig-eigenvalues-cifar10" class="quarto-xref">Figure&nbsp;4</a> reflect strong dependencies across pixels and channels (e.g., spatial correlation, global color structure, object/background patterns). The i.i.d. Gaussian model thus serves only as a <strong>simplified reference</strong>, not as a realistic generative model for CIFAR-10.</p>
 </section>
-<section id="marginal-velocity-field-collapse-a-statistical-physics-perspective" class="level1">
+</section>
+<section id="sec-marginal-velocity-field-collapse-a-statistical-physics-perspective" class="level1">
 <h1>Marginal Velocity Field Collapse: A Statistical Physics Perspective</h1>
 <p>This section provides a rigorous analysis of the collapse phenomenon in the marginal velocity field using tools from statistical physics, specifically the Random Energy Model (REM) and Large Deviation Principles (LDP).</p>
 <section id="gibbs-measure-and-energy-formulation" class="level2">
@@ -567,7 +636,7 @@ Z(x,t) = \sum_{j=1}^n e^{-E_j(x,t)}.
 </section>
 <section id="assumptions-on-the-data" class="level3">
 <h3 class="anchored" data-anchor-id="assumptions-on-the-data">Assumptions on the Data</h3>
-<p>We consider a <strong>Gaussian proxy</strong> for the training data: <span class="math display">\[
+<p>From <a href="#sec-gaussian-toy-model" class="quarto-xref">Section&nbsp;3.2</a>, we consider a <strong>Gaussian proxy</strong> for the training data: <span class="math display">\[
 x^{(i)} \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma^2 I_d), \quad i = 1, \dots, n.
 \]</span></p>
 <p>This approximation captures the essential high-dimensional geometry while enabling analytical tractability. For CIFAR-10 after standard normalization, <span class="math inline">\(\sigma^2 \approx 0.24\)</span> provides a reasonable proxy.</p>
@@ -605,6 +674,13 @@ E_j(x_t, t) = \frac{\|x_t - tx^{(j)}\|^2}{2(1-t)^2} \approx \frac{s^2(t)}{2(1-t)
 c(t) = \frac{s^2(t)}{2(1-t)^2} = \frac{1}{2}\left(1 + \frac{2\sigma^2 t^2}{(1-t)^2}\right).
 \]</span></p>
 <p><strong>Key observation:</strong> The bulk energies are approximately i.i.d. across <span class="math inline">\(j \geq 2\)</span>, each extensive (order <span class="math inline">\(d\)</span>). This is the classic setup where <strong>Random Energy Model (REM)</strong> tools apply.</p>
+<p>We define the partition function associated with the bulk states as: <span class="math display">\[
+Z_{\text{bulk}}(x,t) := \sum_{j=2}^n e^{-E_j(x,t)}.
+\]</span></p>
+<p>Following the statistical-physics convention, we call the normalized log of the bulk partition function the (quenched) <strong>bulk free-energy density</strong> at inverse temperature <span class="math inline">\(\beta = 1\)</span>: <span class="math display">\[
+\Phi(1) := \lim_{d \to \infty} \frac{1}{d} \log Z_{\text{bulk}}(x_t,t),
+\]</span></p>
+<p>whenever the limit exists. When we want to keep the time dependence explicit we will also write <span class="math inline">\(\Phi(1,t)\)</span>.</p>
 </section>
 </section>
 <section id="collapsed-vs-uncollapsed-states-glass-vs-liquid" class="level2">
@@ -800,8 +876,8 @@ I_\chi(y) = \sup_{\lambda &lt; 1/2}\left(\lambda y + \frac{1}{2}\log(1 - 2\lambd
 <p>The bulk partition function is approximately: <span class="math display">\[
 Z_{\text{bulk}} = \sum_{j=2}^n e^{-E_j} \approx \int d\varepsilon \, \exp\{d(\Sigma(\varepsilon) - \varepsilon)\}.
 \]</span></p>
-<p>By the Laplace principle (large-<span class="math inline">\(d\)</span> saddle point): <span class="math display">\[
-\boxed{\Phi(1) = \lim_{d \to \infty} \frac{1}{d}\log Z_{\text{bulk}} = \sup_{\varepsilon &gt; 0}\left[\alpha - I(\varepsilon) - \varepsilon\right]}
+<p>Using the LDP for the bulk energies, the bulk free-energy density <span class="math inline">\(\Phi(1)\)</span> defined above can be computed via a Laplace (saddle-point) principle: <span class="math display">\[
+\boxed{\Phi(1) = \sup_{\varepsilon &gt; 0}\left[\alpha - I(\varepsilon) - \varepsilon\right]}
 \]</span></p>
 </section>
 </section>
@@ -998,10 +1074,10 @@ C_t = \frac{\Sigma_t}{(1-t)^2} = I_d + \frac{2t^2}{(1-t)^2} C.
 </section>
 <section id="ldp-for-weighted-chi-squared-gärtner-ellis-theorem" class="level3">
 <h3 class="anchored" data-anchor-id="ldp-for-weighted-chi-squared-gärtner-ellis-theorem">LDP for Weighted Chi-Squared: Gärtner-Ellis Theorem</h3>
-<p>The energy density is a <strong>weighted sum of chi-squared variables</strong>: <span class="math display">\[
-\frac{E_j}{d} = \frac{1}{2d} \sum_{k=1}^d \lambda_k^{(t)} Z_k^2.
+<p>In the general covariance case, the energy density is a weighted sum of chi-squared variables: <span class="math display">\[
+\frac{E_j}{d} = \frac{1}{2d}\sum_{k=1}^d \lambda_k^{(t)} Z_k^2,
 \]</span></p>
-<p>To find its LDP, we use the <strong>Gärtner-Ellis theorem</strong>, which generalizes Cramér’s theorem to non-i.i.d. settings.</p>
+<p>a sum of independent but <strong>non-identically distributed</strong> terms (the weights <span class="math inline">\(\lambda_k^{(t)}\)</span> vary with <span class="math inline">\(k\)</span>). To obtain an LDP in this heterogeneous setting, we use the <strong>Gärtner–Ellis theorem</strong>, which handles such triangular arrays via the limit of the log-moment generating function.</p>
 <p><strong>Step 1: Compute the scaled cumulant generating function</strong></p>
 <p>For a single term <span class="math inline">\(\lambda Z^2\)</span> with <span class="math inline">\(Z \sim \mathcal{N}(0,1)\)</span>: <span class="math display">\[
 \mathbb{E}[e^{\theta \lambda Z^2}] = \frac{1}{\sqrt{1 - 2\theta\lambda}}, \quad \theta &lt; \frac{1}{2\lambda}.
@@ -1014,31 +1090,12 @@ C_t = \frac{\Sigma_t}{(1-t)^2} = I_d + \frac{2t^2}{(1-t)^2} C.
 \]</span></p>
 <p>This limit exists if the <strong>empirical spectral distribution</strong> of <span class="math inline">\(C_t\)</span> converges: <span class="math display">\[
 \Lambda_t(\theta) = \int \left(-\frac{1}{2}\log(1 - \theta\lambda)\right) d\nu_t(\lambda)
-\]</span> where <span class="math inline">\(\nu_t\)</span> is the limiting spectral measure of <span class="math inline">\(\{lambda_k^{(t)}\}\)</span>.</p>
+\]</span> where <span class="math inline">\(\nu_t\)</span> is the limiting spectral measure of <span class="math inline">\(\{\lambda_k^{(t)}\}\)</span>.</p>
 <p><strong>Step 3: Legendre transform gives the rate function</strong></p>
 <p>By the Gärtner-Ellis theorem: <span class="math display">\[
 \boxed{I_t(\varepsilon) = \sup_{\theta &lt; 1/\lambda_{\max}^{(t)}} \left(\theta\varepsilon - \Lambda_t(\theta)\right)}
 \]</span></p>
 <p>This is the <strong>drop-in replacement</strong> for the isotropic rate function.</p>
-</section>
-<section id="verifying-the-isotropic-case" class="level3">
-<h3 class="anchored" data-anchor-id="verifying-the-isotropic-case">Verifying the Isotropic Case</h3>
-<p>For <span class="math inline">\(C = \sigma^2 I_d\)</span>, all eigenvalues are equal: <span class="math inline">\(\lambda_k^{(t)} = \lambda^{(t)} = 1 + \frac{2\sigma^2 t^2}{(1-t)^2}\)</span>.</p>
-<p>Then: <span class="math display">\[
-\Lambda_t(\theta) = -\frac{1}{2}\log(1 - \theta\lambda^{(t)}).
-\]</span></p>
-<p>The Legendre transform: <span class="math display">\[
-I_t(\varepsilon) = \sup_\theta \left(\theta\varepsilon + \frac{1}{2}\log(1 - \theta\lambda^{(t)})\right).
-\]</span></p>
-<p>Setting the derivative to zero: <span class="math display">\[
-\varepsilon - \frac{\lambda^{(t)}/2}{1 - \theta\lambda^{(t)}} = 0 \quad \Rightarrow \quad \theta^* = \frac{1}{\lambda^{(t)}} - \frac{1}{2\varepsilon}.
-\]</span></p>
-<p>Substituting back and simplifying: <span class="math display">\[
-I_t(\varepsilon) = \frac{1}{2}\left(\frac{2\varepsilon}{\lambda^{(t)}} - 1 - \log\frac{2\varepsilon}{\lambda^{(t)}}\right).
-\]</span></p>
-<p>With <span class="math inline">\(c(t) = \lambda^{(t)}/2\)</span>, this becomes: <span class="math display">\[
-I_t(\varepsilon) = \frac{1}{2}\left(\frac{\varepsilon}{c(t)} - 1 - \log\frac{\varepsilon}{c(t)}\right)
-\]</span> which matches our earlier isotropic formula exactly.</p>
 </section>
 <section id="the-full-pipeline-with-general-covariance" class="level3">
 <h3 class="anchored" data-anchor-id="the-full-pipeline-with-general-covariance">The Full Pipeline with General Covariance</h3>
@@ -1056,46 +1113,26 @@ I_t(\varepsilon) = \frac{1}{2}\left(\frac{\varepsilon}{c(t)} - 1 - \log\frac{\va
 </ol>
 <p>Only <span class="math inline">\(I_t(\varepsilon)\)</span> changes — the rest of the theory is identical.</p>
 </section>
-<section id="practical-implementation" class="level3">
-<h3 class="anchored" data-anchor-id="practical-implementation">Practical Implementation</h3>
-<p><strong>To compute <span class="math inline">\(t_C\)</span> and <span class="math inline">\(\lambda_1(t)\)</span> for real data:</strong></p>
-<ol type="1">
-<li><p><strong>Estimate the covariance spectrum:</strong> Compute the eigenvalues <span class="math inline">\(\{\mu_k\}\)</span> of the sample covariance of your training data.</p></li>
-<li><p><strong>Compute the effective spectrum at each <span class="math inline">\(t\)</span>:</strong> <span class="math display">\[
-\lambda_k^{(t)} = 1 + \frac{2t^2}{(1-t)^2} \mu_k
-\]</span></p></li>
-<li><p><strong>Evaluate the scaled log-MGF numerically:</strong> <span class="math display">\[
-\Lambda_t(\theta) = \frac{1}{d}\sum_{k=1}^d \left(-\frac{1}{2}\log(1 - \theta\lambda_k^{(t)})\right)
-\]</span></p></li>
-<li><p><strong>Compute the rate function via numerical Legendre transform:</strong> <span class="math display">\[
-I_t(\varepsilon) = \sup_{\theta} \left(\theta\varepsilon - \Lambda_t(\theta)\right)
-\]</span></p></li>
-<li><p><strong>Solve the variational problem:</strong> <span class="math display">\[
-\Phi(1,t) = \sup_\varepsilon\left[\alpha - I_t(\varepsilon) - \varepsilon\right]
-\]</span></p></li>
-<li><p><strong>Find <span class="math inline">\(t_C\)</span>:</strong> Solve <span class="math inline">\(\Phi(1,t_C) = -1/2\)</span>.</p></li>
-</ol>
 </section>
 </section>
-</section>
-<section id="error-analysis-training-difficulties-across-time" class="level1">
+<section id="sec-error-analysis-training-difficulties-across-time" class="level1">
 <h1>Error Analysis: Training Difficulties Across Time</h1>
 <p>As observed in <a href="#fig-article-fig-3" class="quarto-xref">Figure&nbsp;3</a>, the learned velocity field <span class="math inline">\(u^\theta_t\)</span> exhibits a characteristic error profile when approximating the marginal velocity field <span class="math inline">\(u_t\)</span>: low error near <span class="math inline">\(t = 0\)</span>, a peak around <span class="math inline">\(t \approx 0.1\)</span>, a decrease for intermediate <span class="math inline">\(t\)</span>, and a final spike near <span class="math inline">\(t = 1\)</span>. This section tries to explain these four regimes.</p>
 <section id="training-error-trajectory-four-regimes" class="level2">
 <h2 class="anchored" data-anchor-id="training-error-trajectory-four-regimes">Training Error Trajectory: Four Regimes</h2>
-<section id="regime-1-t-approx-0-easy-despite-high-variance" class="level3">
-<h3 class="anchored" data-anchor-id="regime-1-t-approx-0-easy-despite-high-variance">Regime 1: <span class="math inline">\(t \approx 0\)</span> — Easy Despite High Variance</h3>
-<p>Despite the high irreducible variance at small <span class="math inline">\(t\)</span>, the training error is <strong>low</strong> near <span class="math inline">\(t = 0\)</span>. This apparent paradox resolves when we examine what the neural network must predict.</p>
+<section id="regime-1-t-approx-0-trivial-learning-phase" class="level3">
+<h3 class="anchored" data-anchor-id="regime-1-t-approx-0-trivial-learning-phase">Regime 1: <span class="math inline">\(t \approx 0\)</span> — Trivial Learning Phase</h3>
 <p>For small <span class="math inline">\(t\)</span>, the interpolant is dominated by noise: <span class="math inline">\(X_t = (1-t)X_0 + tX_1 \approx X_0\)</span>. The marginal velocity field at <span class="math inline">\(X_t\)</span> is: <span class="math display">\[
 u_t(X_t) = \frac{\mathbb{E}[X_1 \mid X_t] - X_t}{1-t}.
 \]</span></p>
 <p>When <span class="math inline">\(t \approx 0\)</span>, the interpolant <span class="math inline">\(X_t \approx X_0\)</span> carries almost no information about <span class="math inline">\(X_1\)</span>. Under the empirical distribution, the posterior mean satisfies: <span class="math display">\[
 \mathbb{E}[X_1 \mid X_t] \approx \bar{x} \approx 0
-\]</span> where <span class="math inline">\(\bar{x}\)</span> is the mean of the training data (approximately zero after normalization).</p>
-<p>Therefore, the optimal velocity field simplifies to: <span class="math display">\[
-u_t(X_t) \approx \frac{0 - X_t}{1-t} \approx \frac{-X_0}{1} = -X_0.
 \]</span></p>
-<p>This is essentially a <strong>negation map</strong>: the neural network only needs to learn <span class="math inline">\(u^\theta_t(x) \approx -x\)</span>, which is trivial. The high variance in targets <span class="math inline">\(X_1 - X_0\)</span> averages out to a simple function of <span class="math inline">\(X_t\)</span> alone.</p>
+<p>where <span class="math inline">\(\bar{x}\)</span> is the mean of the training data (approximately zero after normalization).</p>
+<p>Therefore, the optimal velocity field simplifies to: <span class="math display">\[
+u_t(X_t) \approx \frac{0 - X_t}{1-t} \approx \frac{-X_t}{1} = -X_t.
+\]</span></p>
+<p>This is essentially a <strong>negation map</strong>: the neural network only needs to learn <span class="math inline">\(u^\theta_t(x) \approx -x\)</span>, which is trivial.</p>
 </section>
 <section id="regime-2-t-approx-t_c-peak-difficulty-collapse-transition" class="level3">
 <h3 class="anchored" data-anchor-id="regime-2-t-approx-t_c-peak-difficulty-collapse-transition">Regime 2: <span class="math inline">\(t \approx t_C\)</span> — Peak Difficulty (Collapse Transition)</h3>
@@ -1111,8 +1148,11 @@ u_t(X_t) \approx \frac{0 - X_t}{1-t} \approx \frac{-X_0}{1} = -X_0.
 <li><p><strong>Signal-to-noise transition:</strong> The interpolant <span class="math inline">\(X_t = (1-t)X_0 + tX_1\)</span> is transitioning from noise-dominated to signal-dominated. The network must extract <span class="math inline">\(X_1\)</span> from <span class="math inline">\(X_t\)</span>, but <span class="math inline">\(X_t\)</span> is still far from <span class="math inline">\(X_1\)</span>.</p></li>
 <li><p><strong>Sharp phase transition:</strong> The REM analysis shows that the energy gaps scale as: <span class="math display">\[
 E_j - E_1 \approx \frac{d \sigma^2 t^2}{(1-t)^2}.
-\]</span> Near <span class="math inline">\(t_C\)</span>, the system transitions from having exponentially many competing states to a single dominant state. This transition is sharp in high dimensions, creating rapid variation in the velocity field as a function of both <span class="math inline">\(x\)</span> and <span class="math inline">\(t\)</span>.</p></li>
-<li><p><strong>High sensitivity:</strong> Near the transition, the map <span class="math inline">\(x \mapsto \arg\max_i \lambda_i(x,t)\)</span> is extremely sensitive to perturbations. Small changes in <span class="math inline">\(X_t\)</span> can cause different training points to dominate the posterior.</p></li>
+\]</span></p></li>
+</ol>
+<p>Near <span class="math inline">\(t_C\)</span>, the system transitions from having exponentially many competing states to a single dominant state. This transition is sharp in high dimensions, creating rapid variation in the velocity field as a function of both <span class="math inline">\(x\)</span> and <span class="math inline">\(t\)</span>.</p>
+<ol start="4" type="1">
+<li><strong>High sensitivity:</strong> Near the transition, the map <span class="math inline">\(x \mapsto \arg\max_i \lambda_i(x,t)\)</span> is extremely sensitive to perturbations. Small changes in <span class="math inline">\(X_t\)</span> can cause different training points to dominate the posterior.</li>
 </ol>
 </section>
 <section id="regime-3-t-t_c-decreasing-error-concentration" class="level3">
@@ -1129,7 +1169,8 @@ u_t(X_t) \approx \frac{x^{(1)} - X_t}{1-t} = \frac{X_1 - X_t}{1-t} = X_1 - X_0.
 </ol>
 <p>Geometrically, the velocity field becomes piecewise-affine: within each Voronoi cell (determined by proximity to training points), the network must approximate <span class="math display">\[
 \frac{x^{(i)} - x}{1-t},
-\]</span> where <span class="math inline">\(i\)</span> indexes the training point whose cell contains <span class="math inline">\(x\)</span>. Although the coefficient <span class="math inline">\(1/(1-t)\)</span> grows as <span class="math inline">\(t\)</span> increases, the key simplification is that the posterior has collapsed—the network no longer faces the challenge of averaging over multiple competing directions.</p>
+\]</span></p>
+<p>where <span class="math inline">\(i\)</span> indexes the training point whose cell contains <span class="math inline">\(x\)</span>. Although the coefficient <span class="math inline">\(1/(1-t)\)</span> grows as <span class="math inline">\(t\)</span> increases, the key simplification is that the posterior has collapsed—the network no longer faces the challenge of averaging over multiple competing directions.</p>
 </section>
 <section id="regime-4-t-to-1-final-blow-up" class="level3">
 <h3 class="anchored" data-anchor-id="regime-4-t-to-1-final-blow-up">Regime 4: <span class="math inline">\(t \to 1\)</span> — Final Blow-Up</h3>
@@ -1142,7 +1183,7 @@ u_t(X_t) \approx \frac{x^{(1)} - X_t}{1-t} = \frac{X_1 - X_t}{1-t} = X_1 - X_0.
 <p>The marginal velocity field approaches: <span class="math display">\[
 u_t(x) \approx \frac{x^{(i^*)} - x}{1-t}, \quad \text{where } i^* = \arg\min_j \|x - x^{(j)}\|.
 \]</span></p>
-<p>This is a <strong>piecewise-affine vector field</strong> that switches abruptly across <strong>Voronoi cell boundaries</strong> in <span class="math inline">\(\mathbb{R}^d\)</span>. Such discontinuous fields are notoriously difficult to approximate with smooth neural networks, explaining the error spike near <span class="math inline">\(t \approx 1\)</span>. Besides, the <span class="math inline">\(x\)</span> coefficient is 1/(1-t), which blows up as <span class="math inline">\(t \to 1\)</span>.</p>
+<p>This is a <strong>piecewise-affine vector field</strong> that switches abruptly across <strong>Voronoi cell boundaries</strong> in <span class="math inline">\(\mathbb{R}^d\)</span>. Such discontinuous fields are notoriously difficult to approximate with smooth neural networks, explaining the error spike near <span class="math inline">\(t \approx 1\)</span>.</p>
 </section>
 </section>
 </section>
@@ -1190,10 +1231,409 @@ u_t(x) \approx \frac{x^{(i^*)} - x}{1-t}, \quad \text{where } i^* = \arg\min_j \
 </tr>
 </tbody>
 </table>
-
-
-
 </section>
+</section>
+<section id="cifar-10-numerical-analysis" class="level1 quarto-embed-nb-cell">
+<h1>CIFAR-10: Numerical Analysis</h1>
+<p>Let us briefly review the framework of flow matching. In flow matching, we aim to learn a velocity field <span class="math inline">\(u_t(x)\)</span> that transports samples from a noise distribution to the data distribution. A central phenomenon in this process is <strong>velocity field collapse</strong>: at a certain critical time <span class="math inline">\(t_C\)</span>, the marginal velocity field becomes dominated by a single training example, effectively making it singular.</p>
+<p><strong>Key question:</strong> When does this collapse happen?</p>
+<p>The timing of the collapse is determined by a fundamental parameter: <span class="math display">\[
+\alpha = \frac{\log n}{d}
+\]</span> where <span class="math inline">\(n\)</span> is the number of training samples and <span class="math inline">\(d\)</span> is the data dimension. For CIFAR-10, <span class="math inline">\(n = 50,\!000\)</span> and <span class="math inline">\(d = 3 \times 32 \times 32 = 3072\)</span>, yielding <span class="math inline">\(\alpha \approx 0.0035\)</span>.</p>
+<p><strong>Note:</strong> For computational efficiency, we use <span class="math inline">\(n = 1000\)</span> samples for most experiments instead of the full <span class="math inline">\(n = 50,\!000\)</span>. This brings <span class="math inline">\(\alpha\)</span> to approximately <span class="math inline">\(0.00225\)</span>, although the observed collapse times remain very similar.</p>
+<p><strong>This notebook investigates:</strong></p>
+<ol type="1">
+<li>The <strong>empirical entropy</strong> of the softmax weights, to observe when collapse occurs in practice</li>
+<li><strong>Isotropic models</strong> for computing <span class="math inline">\(t_C\)</span> analytically, under the assumption of uniform variance</li>
+<li><strong>Non-isotropic models</strong> making use of the full eigenvalue spectrum of the data covariance</li>
+<li>The <strong>discrepancy</strong> between theoretical predictions and empirical observations</li>
+<li><strong>Effective dimension corrections</strong> to reconcile theory and experiment</li>
+</ol>
+<p>Additionally, we explore the <a href="#marginal-velocity-field-and-position-field">relationship between the marginal velocity field and the position field</a>.</p>
+<section id="entropy-of-the-softmax-weights" class="level2">
+<h2 class="anchored" data-anchor-id="entropy-of-the-softmax-weights">Entropy of the Softmax Weights</h2>
+<p>The marginal velocity field can be written as a weighted sum over training points: <span class="math display">\[u_t(x) = \sum_{i=1}^{n} \lambda_i(x, t) \frac{x^{(i)} - x}{1 - t}\]</span></p>
+<p>where the <strong>softmax weights</strong> are defined as: <span class="math display">\[\lambda_i(x, t) = \frac{\exp\left(-\frac{\|x - t x^{(i)}\|^2}{2(1-t)^2}\right)}{\sum_{j=1}^{n} \exp\left(-\frac{\|x - t x^{(j)}\|^2}{2(1-t)^2}\right)}\]</span></p>
+<p>To measure the “spread” of these weights, we compute the <strong>Shannon entropy</strong>: <span class="math display">\[H(\lambda) = -\sum_{i=1}^{n} \lambda_i \log \lambda_i\]</span></p>
+<p><strong>Expected behavior:</strong></p>
+<ul>
+<li><strong>At <span class="math inline">\(t \approx 0\)</span>:</strong> All weights are approximately equal (<span class="math inline">\(\lambda_i \approx 1/n\)</span>), so <span class="math inline">\(H \approx \log(n)\)</span> (maximum entropy)</li>
+<li><strong>At <span class="math inline">\(t \approx t_C\)</span>:</strong> One weight dominates (<span class="math inline">\(\lambda_i \approx 1\)</span> for some <span class="math inline">\(i\)</span>), so <span class="math inline">\(H \approx 0\)</span> (minimum entropy)</li>
+</ul>
+<p>The entropy drop marks the <strong>collapse transition</strong> where the velocity field becomes dominated by a single training point.</p>
+<div id="34a1efc2" class="cell" data-execution_count="6">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="closed-form-fm_files/figure-html/notebooks-_cifar10_numerical_analysis-cell-7-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Observations:</strong></p>
+<p>The entropy drops sharply between <span class="math inline">\(t \approx 0.1\)</span> and <span class="math inline">\(t \approx 0.3\)</span>. This indicates that:</p>
+<ul>
+<li>The softmax weights transition from being spread across many training points to concentrating on a single point</li>
+<li>The <strong>empirical collapse time</strong> lies in the range <span class="math inline">\(t_C^{\text{empirical}} \in [0.1, 0.3]\)</span></li>
+</ul>
+<p>The theoretical collapse times we compute in the following sections should match this empirically observed transition.</p>
+</section>
+<section id="collapse-time-in-the-isotropic-case" class="level2">
+<h2 class="anchored" data-anchor-id="collapse-time-in-the-isotropic-case">Collapse Time in the Isotropic Case</h2>
+<p>In the <strong>isotropic case</strong>, we assume the data covariance is a scalar multiple of the identity matrix: <span class="math inline">\(C = \sigma^2 I_d\)</span>. For CIFAR-10, the per-coordinate variance is <span class="math inline">\(\sigma^2 \approx 0.24\)</span>.</p>
+<section id="key-quantities" class="level3">
+<h3 class="anchored" data-anchor-id="key-quantities">Key quantities</h3>
+<p>The <strong>time-dependent energy scale</strong> is: <span class="math display">\[c(t) = \frac{1}{2}\left(1 + 2\sigma^2 \frac{t^2}{(1-t)^2}\right)\]</span></p>
+<p>This controls the variance of the bulk energy distribution.</p>
+</section>
+<section id="two-methods-for-computing-t_c" class="level3">
+<h3 class="anchored" data-anchor-id="two-methods-for-computing-t_c">Two methods for computing <span class="math inline">\(t_C\)</span></h3>
+<p><strong>1. Simple heuristic formula:</strong> Based on comparing typical bulk energy to planted energy: <span class="math display">\[t_C^{\text{heuristic}} \approx \frac{\sqrt{\alpha/\sigma^2}}{1 + \sqrt{\alpha/\sigma^2}}\]</span></p>
+<p><strong>2. Full REM/LDP framework:</strong> The collapse criterion uses the rate function <span class="math inline">\(I(\varepsilon)\)</span> for the chi-squared distribution: <span class="math display">\[\alpha = I(\varepsilon_g) = \frac{1}{2}\left(\log(2c(t_C)) + \frac{1}{2c(t_C)} - 1\right)\]</span> where <span class="math inline">\(\varepsilon_g = 1/2\)</span> is the planted energy density.</p>
+<div id="fe76b8f4" class="cell" data-execution_count="9">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="closed-form-fm_files/figure-html/notebooks-_cifar10_numerical_analysis-cell-10-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Observations:</strong></p>
+<ul>
+<li>For CIFAR-10, we have <span class="math inline">\(\alpha \ll \alpha_c(c(t))\)</span> for all <span class="math inline">\(t \in [0, 1)\)</span></li>
+<li>This means the system is always in the <strong>glass phase</strong></li>
+</ul>
+<p><strong>What is the glass phase?</strong></p>
+<p>The Random Energy Model (REM) framework distinguishes two phases:</p>
+<ul>
+<li><strong>Liquid phase</strong> (<span class="math inline">\(\alpha &gt; \alpha_c\)</span>): Many bulk states have energies comparable to the planted state. The partition function is dominated by an extensive number of configurations.</li>
+<li><strong>Glass phase</strong> (<span class="math inline">\(\alpha &lt; \alpha_c\)</span>): The planted state has much lower energy than typical bulk states. Only one (or very few) configurations contribute to the partition function.</li>
+</ul>
+<p>For CIFAR-10, we are deep in the glass phase, which simplifies the collapse time computation. The critical threshold is: <span class="math display">\[\alpha_c(c) = \frac{1}{2}\left(\log(1 + 2c) - \frac{2c}{1 + 2c}\right)\]</span></p>
+<div id="94a5e305" class="cell" data-execution_count="10">
+<div class="cell-output cell-output-stdout">
+<pre><code>Collapse time (simple isotropic): 0.108052
+Collapse time (REM/LDP isotropic): 0.341177</code></pre>
+</div>
+</div>
+<p>Now, let us extend this to the non-isotropic case.</p>
+</section>
+</section>
+<section id="eigenvalues-of-the-data-covariance-matrix" class="level2">
+<h2 class="anchored" data-anchor-id="eigenvalues-of-the-data-covariance-matrix">Eigenvalues of the Data Covariance Matrix</h2>
+<p>To extend the analysis to the <strong>non-isotropic case</strong>, we need the eigenvalues <span class="math inline">\(\{\mu_k\}_{k=1}^d\)</span> of the empirical covariance matrix <span class="math inline">\(C\)</span> of the CIFAR-10 data.</p>
+<p><strong>Why eigenvalues matter:</strong></p>
+<ul>
+<li>In the isotropic model, all eigenvalues are equal: <span class="math inline">\(\mu_k = \sigma^2\)</span></li>
+<li>Real image data has a <strong>spiked spectrum</strong>: a few large eigenvalues capture most of the variance</li>
+<li>This changes the energy landscape and affects the collapse time prediction</li>
+</ul>
+<p><strong>What we expect for CIFAR-10:</strong></p>
+<ul>
+<li>Natural images are highly structured, so the covariance is far from isotropic</li>
+<li>Most variance should be captured by the top few principal components</li>
+<li>This leads to an <strong>effective dimension</strong> <span class="math inline">\(d_{\text{eff}} \ll d\)</span></li>
+</ul>
+<div id="e31cdc6b" class="cell" data-execution_count="12">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="closed-form-fm_files/figure-html/notebooks-_cifar10_numerical_analysis-cell-13-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Observations:</strong></p>
+<p>The empirical covariance matrix of CIFAR-10 has a highly <strong>spiked spectrum</strong>:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Statistic</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Mean eigenvalue <span class="math inline">\(\bar{\mu}\)</span></td>
+<td><span class="math inline">\(\approx 0.248\)</span></td>
+</tr>
+<tr class="even">
+<td>Eigenvalue range</td>
+<td><span class="math inline">\([6.3 \times 10^{-6}, 221]\)</span></td>
+</tr>
+<tr class="odd">
+<td>Ratio <span class="math inline">\(\mu_{\max}/\bar{\mu}\)</span></td>
+<td><span class="math inline">\(\approx 893\times\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Effective dimension at different variance thresholds:</strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Variance Captured</th>
+<th><span class="math inline">\(d_{\text{eff}}\)</span></th>
+<th>Fraction of <span class="math inline">\(d\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>90%</td>
+<td>99</td>
+<td>3.2%</td>
+</tr>
+<tr class="even">
+<td>95%</td>
+<td>217</td>
+<td>7.1%</td>
+</tr>
+<tr class="odd">
+<td>99%</td>
+<td>658</td>
+<td>21.4%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key insight:</strong> The mean eigenvalue <span class="math inline">\(\bar{\mu} \approx 0.248\)</span> is very close to the isotropic <span class="math inline">\(\sigma^2 = 0.24\)</span>, but the eigenvalue spectrum spans <strong>8 orders of magnitude</strong>. This extreme heterogeneity will significantly affect the non-isotropic collapse time prediction.</p>
+</section>
+<section id="collapse-time-in-the-non-isotropic-case" class="level2">
+<h2 class="anchored" data-anchor-id="collapse-time-in-the-non-isotropic-case">Collapse Time in the Non-Isotropic Case</h2>
+<p>When the data covariance <span class="math inline">\(C\)</span> has eigenvalues <span class="math inline">\(\{\mu_k\}\)</span> that are not all equal, we use the <strong>Gärtner-Ellis theorem</strong> (a generalization of large deviation principles) to compute the collapse time.</p>
+<section id="time-dependent-effective-eigenvalues" class="level3">
+<h3 class="anchored" data-anchor-id="time-dependent-effective-eigenvalues">Time-dependent effective eigenvalues</h3>
+<p>At time <span class="math inline">\(t\)</span>, the effective covariance of the bulk energy distribution has eigenvalues: <span class="math display">\[\lambda_k^{(t)} = 1 + \frac{2t^2}{(1-t)^2} \mu_k\]</span></p>
+</section>
+<section id="scaled-log-moment-generating-function" class="level3">
+<h3 class="anchored" data-anchor-id="scaled-log-moment-generating-function">Scaled log-moment generating function</h3>
+<p><span class="math display">\[\Lambda_t(\theta) = \frac{1}{d}\sum_{k=1}^{d} \left(-\frac{1}{2}\log(1 - \theta\lambda_k^{(t)})\right)\]</span></p>
+<p>This is well-defined only for <span class="math inline">\(\theta &lt; 1/\lambda_{\max}^{(t)}\)</span>, which becomes increasingly restrictive as <span class="math inline">\(t\)</span> increases.</p>
+</section>
+<section id="rate-function-via-legendre-transform" class="level3">
+<h3 class="anchored" data-anchor-id="rate-function-via-legendre-transform">Rate function via Legendre transform</h3>
+<p><span class="math display">\[I_t(\varepsilon) = \sup_{\theta &lt; 1/\lambda_{\max}^{(t)}} \left(\theta\varepsilon - \Lambda_t(\theta)\right)\]</span></p>
+</section>
+<section id="collapse-criterion-1" class="level3">
+<h3 class="anchored" data-anchor-id="collapse-criterion-1">Collapse criterion</h3>
+<p>The collapse occurs when the bulk quenched free energy satisfies: <span class="math display">\[\Phi(1, t_C) = \sup_{\varepsilon} \left(\alpha - I_{t_C}(\varepsilon) - \varepsilon\right) = -\frac{1}{2}\]</span></p>
+<div id="aafe8e9b" class="cell" data-execution_count="14">
+<div class="cell-output cell-output-stdout">
+<pre><code>Collapse time (REM/LDP non-isotropic): 0.797510</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="the-discrepancy-theory-vs-observation" class="level2">
+<h2 class="anchored" data-anchor-id="the-discrepancy-theory-vs-observation">The Discrepancy: Theory vs Observation</h2>
+<p>When computing the collapse time <span class="math inline">\(t_C\)</span> for CIFAR-10 using different methods, we observe a striking discrepancy:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Collapse Time <span class="math inline">\(t_C\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Simple heuristic (isotropic)</td>
+<td>0.108</td>
+</tr>
+<tr class="even">
+<td>Full REM/LDP (isotropic, <span class="math inline">\(\sigma^2 = 0.24\)</span>)</td>
+<td>0.341</td>
+</tr>
+<tr class="odd">
+<td><strong>Empirical eigenvalues (non-isotropic)</strong></td>
+<td><strong>0.798</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Actual entropy drop (empirical)</strong></td>
+<td><strong>~0.1 - 0.3</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The non-isotropic model with empirical eigenvalues predicts collapse much later than both the isotropic models and the actual observed entropy drop. Why?</p>
+<p><strong>Contributing Factors</strong></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Factor</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Gaussian assumption violated</td>
+<td>Theory assumes unbounded Gaussian data</td>
+</tr>
+<tr class="even">
+<td>Effective dimension reduction</td>
+<td>Spiked spectrum leads to smaller effective <span class="math inline">\(d\)</span></td>
+</tr>
+</tbody>
+</table>
+<section id="the-gaussian-assumption-is-violated" class="level3">
+<h3 class="anchored" data-anchor-id="the-gaussian-assumption-is-violated">1. The Gaussian Assumption is Violated</h3>
+<p><strong>The Problem:</strong></p>
+<p>The REM/LDP theory assumes training data follows: <span class="math display">\[x^{(i)} \sim \mathcal{N}(0, C)\]</span></p>
+<p>where <span class="math inline">\(C\)</span> is the covariance matrix with eigenvalues <span class="math inline">\(\{\mu_k\}\)</span>. But real CIFAR-10 images:</p>
+<ul>
+<li>Are <strong>bounded</strong> in <span class="math inline">\([-1, 1]^d\)</span> (after normalization)</li>
+<li>Have <strong>complex correlations</strong> beyond second-order statistics</li>
+<li>Cannot exploit high-variance directions as freely as Gaussians</li>
+</ul>
+<p><strong>The Consequence:</strong></p>
+<p>The large eigenvalues in the empirical spectrum (up to ~221) allow <em>theoretical</em> Gaussian samples to have extreme projections onto principal components. This makes bulk energies more variable in theory, allowing some bulk states to compete with the planted state longer. Real images don’t have this flexibility—they’re constrained, so the actual collapse happens earlier.</p>
+</section>
+<section id="effective-dimension-reduction" class="level3">
+<h3 class="anchored" data-anchor-id="effective-dimension-reduction">2. Effective Dimension Reduction</h3>
+<p><strong>The Problem:</strong></p>
+<p>CIFAR-10’s eigenvalue spectrum is highly <strong>spiked</strong>—most variance is captured by a small number of principal components.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Variance Captured</th>
+<th>Effective Dimension <span class="math inline">\(d_{\text{eff}}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>90%</td>
+<td><strong>99</strong></td>
+</tr>
+<tr class="even">
+<td>95%</td>
+<td><strong>217</strong></td>
+</tr>
+<tr class="odd">
+<td>99%</td>
+<td><strong>658</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The entropy parameter in the theory is: <span class="math display">\[\alpha = \frac{\log n}{d}\]</span></p>
+<p>But if the data effectively lives in <span class="math inline">\(d_{\text{eff}} \ll d\)</span> dimensions: <span class="math display">\[\alpha_{\text{eff}} = \frac{\log n}{d_{\text{eff}}} \gg \alpha\]</span></p>
+<p><strong>Actual calculation:</strong></p>
+<ul>
+<li>Full dimension: <span class="math inline">\(\alpha = \log(50000)/3072 \approx 0.0035\)</span></li>
+<li>With <span class="math inline">\(d_{\text{eff}} = 217\)</span> (95%): <span class="math inline">\(\alpha_{\text{eff}} = \log(50000)/217 \approx 0.050\)</span></li>
+</ul>
+</section>
+<section id="the-solution-effective-dimension-model" class="level3">
+<h3 class="anchored" data-anchor-id="the-solution-effective-dimension-model">The Solution: Effective Dimension Model</h3>
+<p>We can correct the prediction by using the <strong>effective dimension</strong> approach: apply the isotropic formula with <span class="math inline">\(\alpha_{\text{eff}}\)</span> and <span class="math inline">\(\sigma^2_{\text{eff}}\)</span> (the mean variance in the top <span class="math inline">\(d_{\text{eff}}\)</span> components).</p>
+<div id="61b352a8" class="cell" data-execution_count="17">
+<div class="cell-output cell-output-stdout">
+<pre><code>Effective dimension: d_eff = 217, alpha_eff = 0.049860729421245545, sigma2_eff = 3.335034586935549</code></pre>
+</div>
+</div>
+<div id="d34028e8" class="cell" data-execution_count="18">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="closed-form-fm_files/figure-html/notebooks-_cifar10_numerical_analysis-cell-19-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Observations:</strong></p>
+<ul>
+<li>The effective dimension is <span class="math inline">\(d_{\text{eff}} = 217\)</span> (at 95% variance), which is only <strong>7%</strong> of the full dimension <span class="math inline">\(d = 3072\)</span></li>
+<li>The effective parameters are: <span class="math inline">\(\alpha_{\text{eff}} \approx 0.050\)</span> and <span class="math inline">\(\sigma^2_{\text{eff}} \approx 3.34\)</span></li>
+<li>The system is still in the <strong>glass phase</strong> under the effective dimension model</li>
+</ul>
+<p><strong>Why this approach works:</strong></p>
+<ol type="1">
+<li><strong>Real images are bounded</strong>, so they cannot exploit the extreme variance directions that unbounded Gaussians could</li>
+<li>The <strong>effective dimension</strong> captures the subspace where most of the “action” happens</li>
+<li>Using <span class="math inline">\(\alpha_{\text{eff}}\)</span> accounts for the reduced complexity of the effective data space</li>
+<li>Using <span class="math inline">\(\sigma^2_{\text{eff}}\)</span> (mean variance in top components) captures the typical per-coordinate variance</li>
+</ol>
+<p>We can now apply the isotropic REM/LDP formula with <span class="math inline">\(\alpha_{\text{eff}}\)</span> and <span class="math inline">\(\sigma^2_{\text{eff}}\)</span>:</p>
+<div id="39eec3b6" class="cell" data-execution_count="19">
+<div class="cell-output cell-output-stdout">
+<pre><code>Collapse time (effective dimension): 0.233654</code></pre>
+</div>
+</div>
+<p>Now let us collect all the collapse times in a dictionary and plot the entropy plot again.</p>
+</section>
+</section>
+<section id="entropy-with-collapse-time-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="entropy-with-collapse-time-comparison">Entropy with Collapse Time Comparison</h2>
+<p>Now we plot the entropy curve again, overlaying all the predicted collapse times from our different methods:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Method</th>
+<th><span class="math inline">\(t_C\)</span></th>
+<th>Match to Observed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Simple heuristic</td>
+<td>0.108</td>
+<td>Early</td>
+</tr>
+<tr class="even">
+<td>REM/LDP isotropic</td>
+<td>0.341</td>
+<td>Slightly late</td>
+</tr>
+<tr class="odd">
+<td>Non-isotropic</td>
+<td>0.798</td>
+<td>Too late</td>
+</tr>
+<tr class="even">
+<td><strong>Effective dimension</strong></td>
+<td><strong>~0.23</strong></td>
+<td><strong>Good match</strong></td>
+</tr>
+</tbody>
+</table>
+<p>This visualization allows us to compare which theoretical prediction best matches the empirically observed entropy drop.</p>
+<div id="82ec5d5f" class="cell" data-execution_count="22">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="closed-form-fm_files/figure-html/notebooks-_cifar10_numerical_analysis-cell-23-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="marginal-velocity-field-and-position-field" class="level2">
+<h2 class="anchored" data-anchor-id="marginal-velocity-field-and-position-field">Marginal Velocity Field and Position Field</h2>
+<p>We investigate the relationship between the marginal velocity field and the position field by evaluating their correlation. Specifically, for small <span class="math inline">\(t\)</span>, we expect the marginal velocity field to be anti-correlated with the position field. The marginal velocity field is defined as: <span class="math display">\[
+u_t(X_t) = \frac{\mathbb{E}[X_1 \mid X_t] - X_t}{1-t}.
+\]</span> If the data is centered and <span class="math inline">\(t\)</span> is close to zero, we have: <span class="math display">\[
+u_t(X_t) \approx \frac{0 - X_t}{1-t} \approx -X_t.
+\]</span></p>
+<p>To quantify this, we compute the <strong>cosine similarity</strong> between the marginal velocity and the current position <span class="math inline">\(x_t\)</span>:</p>
+<div id="5e0a14e2" class="cell" data-execution_count="25">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="closed-form-fm_files/figure-html/notebooks-_cifar10_numerical_analysis-cell-26-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<a class="quarto-notebook-link" id="nblink-1" href="notebooks/_cifar10_numerical_analysis-preview.html#f3173a8b">Source: CIFAR-10: Numerical Analysis</a></section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>Flow matching with Gaussian-OT admits a closed-form expression for the marginal velocity field: a softmax over the training examples. In high dimensions, this softmax typically <strong>collapses</strong> early, assigning nearly all weight to a single training point. As a result, the flow effectively implements a nearest-neighbor mapping and tends to memorize the dataset.</p>
+<p>By representing CIFAR-10 data with a Gaussian proxy and leveraging techniques from the REM and LDP frameworks, we model the softmax weights as a Gibbs distribution and analyze the competition between the true (planted) data point and all others. This leads to an explicit, high-dimensional prediction of the <strong>collapse time</strong> (<span class="math inline">\(t_C\)</span>), which is found to be surprisingly small for realistically sized CIFAR-10 data.</p>
+<p>This analysis clarifies the characteristic error profile: neural networks struggle most at intermediate <span class="math inline">\(t\)</span> (near the collapse transition), and again as <span class="math inline">\(t \to 1\)</span> (where the velocity field develops Voronoi-type discontinuities), but not at small <span class="math inline">\(t\)</span>. Softmax collapse thus emerges as a fundamental, high-dimensional property of the Gaussian-OT path—rather than merely an artifact of optimization—and should be deliberately considered in the design and training of flow-matching models.</p>
+
+
+
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">

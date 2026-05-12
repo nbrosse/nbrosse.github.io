@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/intro-fm-diffusion/intro-fm-diffusion.html",
       "/posts/raman/raman.html",
       "/posts/llm-slides/llm-slides.html",
       "/posts/llm-observability/llm-observability.html",
