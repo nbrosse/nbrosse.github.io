@@ -20,7 +20,7 @@ about:
 
 **Why I Write**
 
-Welcome to my blog, a personal space where I share notes on my work and explorations in science, machine learning, and the broader tech landscape. These posts serve as a journal for my thoughts and discoveries, but I hope they also provide value and inspiration to anyone interested in these dynamic fields. Whether you're a fellow researcher, a tech enthusiast, or simply curious, I invite you to explore and engage with the ideas I present here. Feel free to reach out if you'd like to connect or collaborate on exciting projects !
+Welcome to my blog, a personal space where I share notes on my work and explorations in science, machine learning, and the broader tech landscape. These posts serve as a journal for my thoughts and discoveries, but I hope they also provide value and inspiration to anyone interested in these dynamic fields. Whether you're a fellow researcher, a tech enthusiast, or simply curious, I invite you to explore and engage with the ideas I present here. Feel free to reach out if you'd like to connect or collaborate on projects !
 
 If you find my work interesting, please consider citing it in your research.
 
@@ -30,4 +30,4 @@ I am an AI Research Scientist working at the intersection of academic research a
 
 My career spans both applied research and real-world deployment. I began at Thales, working on time series analysis, signal processing, object detection, and anomaly detection. I later joined Iktos, where I designed deep learning models for drug discovery, before contributing to foundational biological models at MBZUAI and GenBio AI.
 
-In parallel with research, I maintain strong ties to industry and entrepreneurship. In 2025, I explored venture creation by developing proofs of concept for AI-driven decision-making tools, while freelancing on projects ranging from LLM observability platforms (Rollstack) to improving Retrieval-Augmented Generation systems (Clarifeye). I am driven by the challenge of translating cutting-edge theory into impactful, scalable AI systems.
+In parallel with research, I maintain strong ties to industry and entrepreneurship. In 2025, I explored venture creation by developing proofs of concept for AI-driven decision-making tools, while freelancing on projects ranging from LLM observability platforms (Rollstack) to improving Retrieval-Augmented Generation systems (Clarifeye).
