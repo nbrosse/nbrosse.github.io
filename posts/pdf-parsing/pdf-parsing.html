@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.26">
+<meta name="generator" content="quarto-1.9.37">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -12,6 +12,9 @@
 
 <title>PDF Parsing for LLM Input – Nicolas’ Notebook</title>
 <style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -62,7 +65,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
-  margin-bottom: 0em;
 }
 .hanging-indent div.csl-entry {
   margin-left:2em;
@@ -90,15 +92,14 @@ div.csl-indent {
 <meta name="quarto:offset" content="../../">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-75c24fa0c77a874b0ab0aff8b6422dd8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-f9e226253bcd7e75ae14e3379ab40ce6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -784,21 +785,21 @@ Figure&nbsp;13: MinerU parsing results
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-auer2024doclingtechnicalreport" class="csl-entry" role="listitem">
-Auer, Christoph, Maksym Lysak, Ahmed Nassar, Michele Dolfi, Nikolaos Livathinos, Panos Vagenas, Cesar Berrospi Ramis, et al. 2024. <span>“Docling Technical Report.”</span> <a href="https://arxiv.org/abs/2408.09869">https://arxiv.org/abs/2408.09869</a>.
+Auer, Christoph, Maksym Lysak, Ahmed Nassar, et al. 2024. <em>Docling Technical Report</em>. <a href="https://arxiv.org/abs/2408.09869">https://arxiv.org/abs/2408.09869</a>.
 </div>
 <div id="ref-livathinos2025doclingefficientopensourcetoolkit" class="csl-entry" role="listitem">
-Livathinos, Nikolaos, Christoph Auer, Maksym Lysak, Ahmed Nassar, Michele Dolfi, Panos Vagenas, Cesar Berrospi Ramis, et al. 2025. <span>“Docling: An Efficient Open-Source Toolkit for AI-Driven Document Conversion.”</span> <a href="https://arxiv.org/abs/2501.17887">https://arxiv.org/abs/2501.17887</a>.
+Livathinos, Nikolaos, Christoph Auer, Maksym Lysak, et al. 2025. <em>Docling: An Efficient Open-Source Toolkit for AI-Driven Document Conversion</em>. <a href="https://arxiv.org/abs/2501.17887">https://arxiv.org/abs/2501.17887</a>.
 </div>
 <div id="ref-nassar2022tableformertablestructureunderstanding" class="csl-entry" role="listitem">
-Nassar, Ahmed, Nikolaos Livathinos, Maksym Lysak, and Peter Staar. 2022. <span>“TableFormer: Table Structure Understanding with Transformers.”</span> <a href="https://arxiv.org/abs/2203.01017">https://arxiv.org/abs/2203.01017</a>.
+Nassar, Ahmed, Nikolaos Livathinos, Maksym Lysak, and Peter Staar. 2022. <em>TableFormer: Table Structure Understanding with Transformers</em>. <a href="https://arxiv.org/abs/2203.01017">https://arxiv.org/abs/2203.01017</a>.
 </div>
 <div id="ref-Pfitzmann_2022" class="csl-entry" role="listitem">
-Pfitzmann, Birgit, Christoph Auer, Michele Dolfi, Ahmed S. Nassar, and Peter Staar. 2022. <span>“DocLayNet: A Large Human-Annotated Dataset for Document-Layout Segmentation.”</span> In <em>Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining</em>, 3743–51. KDD ’22. ACM. <a href="https://doi.org/10.1145/3534678.3539043">https://doi.org/10.1145/3534678.3539043</a>.
+Pfitzmann, Birgit, Christoph Auer, Michele Dolfi, Ahmed S. Nassar, and Peter Staar. 2022. <span>“DocLayNet: A Large Human-Annotated Dataset for Document-Layout Segmentation.”</span> <em>Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining</em>, KDD ’22, August, 3743–51. <a href="https://doi.org/10.1145/3534678.3539043">https://doi.org/10.1145/3534678.3539043</a>.
 </div>
 <div id="ref-wang2024mineruopensourcesolutionprecise" class="csl-entry" role="listitem">
-Wang, Bin, Chao Xu, Xiaomeng Zhao, Linke Ouyang, Fan Wu, Zhiyuan Zhao, Rui Xu, et al. 2024. <span>“MinerU: An Open-Source Solution for Precise Document Content Extraction.”</span> <a href="https://arxiv.org/abs/2409.18839">https://arxiv.org/abs/2409.18839</a>.
+Wang, Bin, Chao Xu, Xiaomeng Zhao, et al. 2024. <em>MinerU: An Open-Source Solution for Precise Document Content Extraction</em>. <a href="https://arxiv.org/abs/2409.18839">https://arxiv.org/abs/2409.18839</a>.
 </div>
 </div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2025,
   author = {Brosse, Nicolas},
@@ -809,7 +810,7 @@ Wang, Bin, Chao Xu, Xiaomeng Zhao, Linke Ouyang, Fan Wu, Zhiyuan Zhao, Rui Xu, e
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2025" class="csl-entry quarto-appendix-citeas" role="listitem">
 Brosse, Nicolas. 2025. <span>“PDF Parsing for LLM Input.”</span>
-February 18, 2025. <a href="https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html">https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html</a>.
+February 18. <a href="https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html">https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

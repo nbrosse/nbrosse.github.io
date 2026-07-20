@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.26">
+<meta name="generator" content="quarto-1.9.37">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -12,6 +12,9 @@
 
 <title>Flow Matching as Posterior Averaging – Nicolas’ Notebook</title>
 <style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -27,7 +30,6 @@ ul.task-list li input[type="checkbox"] {
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
-  margin-bottom: 0em;
 }
 .hanging-indent div.csl-entry {
   margin-left:2em;
@@ -55,15 +57,14 @@ div.csl-indent {
 <meta name="quarto:offset" content="../../">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-75c24fa0c77a874b0ab0aff8b6422dd8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-f9e226253bcd7e75ae14e3379ab40ce6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -96,7 +97,7 @@ div.csl-indent {
 }</script>
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <script type="text/javascript">
 const typesetMath = (el) => {
@@ -734,15 +735,15 @@ z+\frac{\varepsilon}{2}\nabla_z\log \pi_t(z;x)+\sqrt{\varepsilon}\,\xi,
 </section>
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-holderrieth_introduction_2025" class="csl-entry" role="listitem">
-Holderrieth, Peter, and Ezra Erives. 2025. <span>“An Introduction to Flow Matching and Diffusion Models,”</span> no. <span>arXiv</span>:2506.02070 (July). <a href="https://doi.org/10.48550/arXiv.2506.02070">https://doi.org/10.48550/arXiv.2506.02070</a>.
+Holderrieth, Peter, and Ezra Erives. 2025. <em>An Introduction to Flow Matching and Diffusion Models</em>. no. <span>arXiv</span>:2506.02070 (July). <a href="https://doi.org/10.48550/arXiv.2506.02070">https://doi.org/10.48550/arXiv.2506.02070</a>.
 </div>
 <div id="ref-flowsanddiffusions2026" class="csl-entry" role="listitem">
-———. 2026. <span>“Introduction to Flow Matching and Diffusion Models.”</span> <a href="https://diffusion.csail.mit.edu/">https://diffusion.csail.mit.edu/</a>.
+Holderrieth, Peter, and Ezra Erives. 2026. <em>Introduction to Flow Matching and Diffusion Models</em>. <a href="https://diffusion.csail.mit.edu/">https://diffusion.csail.mit.edu/</a>.
 </div>
 <div id="ref-lipman_flow_2024" class="csl-entry" role="listitem">
-Lipman, Yaron, Marton Havasi, Peter Holderrieth, Neta Shaul, Matt Le, Brian Karrer, Ricky T. Q. Chen, David Lopez-Paz, Heli Ben-Hamu, and Itai Gat. 2024. <span>“Flow Matching Guide and Code,”</span> no. <span>arXiv</span>:2412.06264 (December). <a href="https://doi.org/10.48550/arXiv.2412.06264">https://doi.org/10.48550/arXiv.2412.06264</a>.
+Lipman, Yaron, Marton Havasi, Peter Holderrieth, et al. 2024. <em>Flow Matching Guide and Code</em>. no. <span>arXiv</span>:2412.06264 (December). <a href="https://doi.org/10.48550/arXiv.2412.06264">https://doi.org/10.48550/arXiv.2412.06264</a>.
 </div>
 </div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2026,
   author = {Brosse, Nicolas},
@@ -753,7 +754,7 @@ Lipman, Yaron, Marton Havasi, Peter Holderrieth, Neta Shaul, Matt Le, Brian Karr
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Brosse, Nicolas. 2026. <span>“Flow Matching as Posterior
-Averaging.”</span> May 12, 2026. <a href="https://nbrosse.github.io/posts/intro-fm-diffusion/intro-fm-diffusion.html">https://nbrosse.github.io/posts/intro-fm-diffusion/intro-fm-diffusion.html</a>.
+Averaging.”</span> May 12. <a href="https://nbrosse.github.io/posts/intro-fm-diffusion/intro-fm-diffusion.html">https://nbrosse.github.io/posts/intro-fm-diffusion/intro-fm-diffusion.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

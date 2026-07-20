@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.26">
+<meta name="generator" content="quarto-1.9.37">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -12,6 +12,9 @@
 
 <title>Encoding Distances in Molecules and Pockets: A Comparison of GBFPT and DCEPT – Nicolas’ Notebook</title>
 <style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -62,7 +65,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
-  margin-bottom: 0em;
 }
 .hanging-indent div.csl-entry {
   margin-left:2em;
@@ -90,15 +92,14 @@ div.csl-indent {
 <meta name="quarto:offset" content="../../">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-75c24fa0c77a874b0ab0aff8b6422dd8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-f9e226253bcd7e75ae14e3379ab40ce6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -273,7 +274,7 @@ Figure&nbsp;2: Left: the overall pretraining architecture. Middle: the model inp
 <ul>
 <li><p>Gaussian kernel (GK), a simply Gaussian density function.</p></li>
 <li><p>Gaussian kernel with pair type (GKPT) <span class="citation" data-cites="shuaibi2021rotation">(<a href="#ref-shuaibi2021rotation" role="doc-biblioref">Shuaibi et al. 2021</a>)</span>. Based on GK, an affine transformation according to the pair type is applied on pair distances, before applying the Gaussian kernel.</p></li>
-<li><p>Radial Bessel basis (RBB) <span class="citation" data-cites="NEURIPS2021_82489c97">(<a href="#ref-NEURIPS2021_82489c97" role="doc-biblioref">Gasteiger, Yeshwanth, and Günnemann 2021</a>)</span>. A Bessel based radial function.</p></li>
+<li><p>Radial Bessel basis (RBB) <span class="citation" data-cites="NEURIPS2021_82489c97">(<a href="#ref-NEURIPS2021_82489c97" role="doc-biblioref">Gasteiger et al. 2021</a>)</span>. A Bessel based radial function.</p></li>
 <li><p>Discretization categorical embedding (DCE). They convert the continued distances to the discrete bins, by Discretization. With binned distances, embedding-based positional encoding is directly used.</p></li>
 <li><p>Delta coordinate (DC) <span class="citation" data-cites="9710703">(<a href="#ref-9710703" role="doc-biblioref">Zhao et al. 2021</a>)</span>. Following Point Transformer, the deltas of coordinates are directly used as pair-wise spatial relative positional encoding.</p></li>
 <li><p>Gaussian kernel with pair type and local graph (GKPTLG). Based on GKPT, they set up a model with locally connected graphs. In particular, the cutoff radius is set to 6 Å.</p></li>
@@ -584,21 +585,21 @@ Table&nbsp;2: Statistics of cos similarities errors for noisy pockets from 6v7a
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-NEURIPS2021_82489c97" class="csl-entry" role="listitem">
-Gasteiger, Johannes, Chandan Yeshwanth, and Stephan Günnemann. 2021. <span>“Directional Message Passing on Molecular Graphs via Synthetic Coordinates.”</span> In <em>Advances in Neural Information Processing Systems</em>, edited by M. Ranzato, A. Beygelzimer, Y. Dauphin, P. S. Liang, and J. Wortman Vaughan, 34:15421–33. Curran Associates, Inc. <a href="https://proceedings.neurips.cc/paper_files/paper/2021/file/82489c9737cc245530c7a6ebef3753ec-Paper.pdf">https://proceedings.neurips.cc/paper_files/paper/2021/file/82489c9737cc245530c7a6ebef3753ec-Paper.pdf</a>.
+Gasteiger, Johannes, Chandan Yeshwanth, and Stephan Günnemann. 2021. <span>“Directional Message Passing on Molecular Graphs via Synthetic Coordinates.”</span> In <em>Advances in Neural Information Processing Systems</em>, edited by M. Ranzato, A. Beygelzimer, Y. Dauphin, P. S. Liang, and J. Wortman Vaughan, vol. 34. Curran Associates, Inc. <a href="https://proceedings.neurips.cc/paper_files/paper/2021/file/82489c9737cc245530c7a6ebef3753ec-Paper.pdf">https://proceedings.neurips.cc/paper_files/paper/2021/file/82489c9737cc245530c7a6ebef3753ec-Paper.pdf</a>.
 </div>
 <div id="ref-Jumper2021" class="csl-entry" role="listitem">
-Jumper, John, Richard Evans, Alexander Pritzel, Tim Green, Michael Figurnov, Olaf Ronneberger, Kathryn Tunyasuvunakool, et al. 2021. <span>“Highly Accurate Protein Structure Prediction with AlphaFold.”</span> <em>Nature</em> 596 (7873): 583–89. <a href="https://doi.org/10.1038/s41586-021-03819-2">https://doi.org/10.1038/s41586-021-03819-2</a>.
+Jumper, John, Richard Evans, Alexander Pritzel, et al. 2021. <span>“Highly Accurate Protein Structure Prediction with AlphaFold.”</span> <em>Nature</em> 596 (7873): 583–89. <a href="https://doi.org/10.1038/s41586-021-03819-2">https://doi.org/10.1038/s41586-021-03819-2</a>.
 </div>
 <div id="ref-shuaibi2021rotation" class="csl-entry" role="listitem">
-Shuaibi, Muhammed, Adeesh Kolluru, Abhishek Das, Aditya Grover, Anuroop Sriram, Zachary Ulissi, and C. Lawrence Zitnick. 2021. <span>“Rotation Invariant Graph Neural Networks Using Spin Convolutions.”</span> <a href="https://arxiv.org/abs/2106.09575">https://arxiv.org/abs/2106.09575</a>.
+Shuaibi, Muhammed, Adeesh Kolluru, Abhishek Das, et al. 2021. <em>Rotation Invariant Graph Neural Networks Using Spin Convolutions</em>. <a href="https://arxiv.org/abs/2106.09575">https://arxiv.org/abs/2106.09575</a>.
 </div>
 <div id="ref-9710703" class="csl-entry" role="listitem">
-Zhao, Hengshuang, Li Jiang, Jiaya Jia, Philip Torr, and Vladlen Koltun. 2021. <span>“Point Transformer.”</span> In <em>2021 IEEE/CVF International Conference on Computer Vision (ICCV)</em>, 16239–48. <a href="https://doi.org/10.1109/ICCV48922.2021.01595">https://doi.org/10.1109/ICCV48922.2021.01595</a>.
+Zhao, Hengshuang, Li Jiang, Jiaya Jia, Philip Torr, and Vladlen Koltun. 2021. <span>“Point Transformer.”</span> <em>2021 IEEE/CVF International Conference on Computer Vision (ICCV)</em>, 16239–48. <a href="https://doi.org/10.1109/ICCV48922.2021.01595">https://doi.org/10.1109/ICCV48922.2021.01595</a>.
 </div>
 <div id="ref-zhou2023unimol" class="csl-entry" role="listitem">
-Zhou, Gengmo, Zhifeng Gao, Qiankun Ding, Hang Zheng, Hongteng Xu, Zhewei Wei, Linfeng Zhang, and Guolin Ke. 2023. <span>“Uni-Mol: A Universal 3D Molecular Representation Learning Framework.”</span> In <em>The Eleventh International Conference on Learning Representations</em>. <a href="https://openreview.net/forum?id=6K2RM6wVqKu">https://openreview.net/forum?id=6K2RM6wVqKu</a>.
+Zhou, Gengmo, Zhifeng Gao, Qiankun Ding, et al. 2023. <span>“Uni-Mol: A Universal 3D Molecular Representation Learning Framework.”</span> <em>The Eleventh International Conference on Learning Representations</em>. <a href="https://openreview.net/forum?id=6K2RM6wVqKu">https://openreview.net/forum?id=6K2RM6wVqKu</a>.
 </div>
 </div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2024,
   author = {Brosse, Nicolas},
@@ -610,7 +611,7 @@ Zhou, Gengmo, Zhifeng Gao, Qiankun Ding, Hang Zheng, Hongteng Xu, Zhewei Wei, Li
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2024" class="csl-entry quarto-appendix-citeas" role="listitem">
 Brosse, Nicolas. 2024. <span>“Encoding Distances in Molecules and
-Pockets: A Comparison of GBFPT and DCEPT.”</span> April 24, 2024. <a href="https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html">https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html</a>.
+Pockets: A Comparison of GBFPT and DCEPT.”</span> April 24. <a href="https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html">https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

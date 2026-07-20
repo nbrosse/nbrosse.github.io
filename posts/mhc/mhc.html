@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.26">
+<meta name="generator" content="quarto-1.9.37">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -12,6 +12,9 @@
 
 <title>Predicting MHC-Peptide Binding with Machine Learning – Nicolas’ Notebook</title>
 <style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -62,7 +65,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
-  margin-bottom: 0em;
 }
 .hanging-indent div.csl-entry {
   margin-left:2em;
@@ -90,15 +92,14 @@ div.csl-indent {
 <meta name="quarto:offset" content="../../">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-75c24fa0c77a874b0ab0aff8b6422dd8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-f9e226253bcd7e75ae14e3379ab40ce6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -402,7 +403,7 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Predicting MHC antigen presentation is a complex field. This project provides a simplified introduction to the problem. For a more in-depth understanding, we recommend exploring <em>NetMHCPan</em> <span class="citation" data-cites="10.1093/nar/gkaa379">(<a href="#ref-10.1093/nar/gkaa379" role="doc-biblioref">Reynisson et al. 2020</a>)</span> and <em>MHCflurry</em> <span class="citation" data-cites="2020mhcflurry">(<a href="#ref-2020mhcflurry" role="doc-biblioref">O’Donnell, Rubinsteyn, and Laserson 2020</a>)</span> and the references cited within those publications. Note that the specific data used in this project is derived from NetMHCPan4.1 but must remain private.</p>
+<p>Predicting MHC antigen presentation is a complex field. This project provides a simplified introduction to the problem. For a more in-depth understanding, we recommend exploring <em>NetMHCPan</em> <span class="citation" data-cites="10.1093/nar/gkaa379">(<a href="#ref-10.1093/nar/gkaa379" role="doc-biblioref">Reynisson et al. 2020</a>)</span> and <em>MHCflurry</em> <span class="citation" data-cites="2020mhcflurry">(<a href="#ref-2020mhcflurry" role="doc-biblioref">O’Donnell et al. 2020</a>)</span> and the references cited within those publications. Note that the specific data used in this project is derived from NetMHCPan4.1 but must remain private.</p>
 </div>
 </div>
 <p>We begin with Exploratory Data Analysis (EDA) to understand the characteristics of our data.</p>
@@ -662,7 +663,7 @@ Name: hit, dtype: int64</code></pre>
 <a class="quarto-notebook-link" id="nblink-1" href="notebooks/_EDA-preview.html#cell-0">Source: EDA</a></section>
 <section id="using-mhcflurry-pretrained-models-for-prediction" class="level3">
 <h3 class="anchored" data-anchor-id="using-mhcflurry-pretrained-models-for-prediction">Using MHCflurry Pretrained Models for Prediction</h3>
-<p>We leverage the <a href="https://github.com/openvax/mhcflurry">mhcflurry package</a> to build our classifier. MHCflurry is a tool specifically designed for MHC binding affinity prediction. See also the associated paper <span class="citation" data-cites="2020mhcflurry">(<a href="#ref-2020mhcflurry" role="doc-biblioref">O’Donnell, Rubinsteyn, and Laserson 2020</a>)</span>. MHCflurry is a software package focused on predicting how strongly peptides bind to MHC class I molecules. It’s based on machine learning models trained on a large dataset of experimentally measured peptide-MHC binding affinities. The current version uses neural networks trained with a mix of binding affinity and mass spectrometry data (ligand presentation).</p>
+<p>We leverage the <a href="https://github.com/openvax/mhcflurry">mhcflurry package</a> to build our classifier. MHCflurry is a tool specifically designed for MHC binding affinity prediction. See also the associated paper <span class="citation" data-cites="2020mhcflurry">(<a href="#ref-2020mhcflurry" role="doc-biblioref">O’Donnell et al. 2020</a>)</span>. MHCflurry is a software package focused on predicting how strongly peptides bind to MHC class I molecules. It’s based on machine learning models trained on a large dataset of experimentally measured peptide-MHC binding affinities. The current version uses neural networks trained with a mix of binding affinity and mass spectrometry data (ligand presentation).</p>
 <p>We use the Binding Affinity pretrained model from mhcflurry to predict the binding affinity of peptides to MHC class I molecules using <code>Class1AffinityPredictor</code>. The following code assumes you have installed <code>mhcflurry</code> and downloaded the required pretrained models.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mhcflurry-downloads</span> fetch models_class1_presentation</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/mhcflurry_benchmark.py</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1362,7 +1363,7 @@ weighted avg       0.97      0.97      0.97    946141
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-antunes2018" class="csl-entry" role="listitem">
 Antunes, Dinler A., Jayvee R. Abella, Didier Devaurs, Maurício M. Rigo, and Lydia E. Kavraki. 2018. <span>“Structure-based Methods for Binding Mode and Binding Affinity Prediction for Peptide-MHC Complexes.”</span> <em>Current Topics in Medicinal Chemistry</em> 18 (26): 2239–55. <a href="https://doi.org/10.2174/1568026619666181224101744">https://doi.org/10.2174/1568026619666181224101744</a>.
 </div>
@@ -1381,7 +1382,7 @@ Reynisson, Birkir, Bruno Alvarez, Sinu Paul, Bjoern Peters, and Morten Nielsen. 
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2025" class="csl-entry quarto-appendix-citeas" role="listitem">
 Brosse, Nicolas. 2025. <span>“Predicting MHC-Peptide Binding with
-Machine Learning.”</span> February 6, 2025. <a href="https://nbrosse.github.io/posts/mhc/mhc.html">https://nbrosse.github.io/posts/mhc/mhc.html</a>.
+Machine Learning.”</span> February 6. <a href="https://nbrosse.github.io/posts/mhc/mhc.html">https://nbrosse.github.io/posts/mhc/mhc.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/closed-form-flow-matching/closed-form-fm.html",
       "/posts/intro-fm-diffusion/intro-fm-diffusion.html",
       "/posts/raman/raman.html",
       "/posts/llm-slides/llm-slides.html",

@@ -2,13 +2,16 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.26">
+<meta name="generator" content="quarto-1.9.37">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
 <title>Nicolas’ Notebook</title>
 <style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -34,15 +37,14 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-listing/quarto-listing.js"></script>
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-75c24fa0c77a874b0ab0aff8b6422dd8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-f9e226253bcd7e75ae14e3379ab40ce6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -101,7 +103,7 @@ ul.task-list li input[type="checkbox"] {
   </script>
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <script type="text/javascript">
 const typesetMath = (el) => {
@@ -203,7 +205,7 @@ window.Quarto = {
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(9)</span></div><div class="category" data-category="YmlvbG9neQ==">biology <span class="quarto-category-count">(2)</span></div><div class="category" data-category="Y2hlbWlzdHJ5">chemistry <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ZGVlcCUyMGxlYXJuaW5n">deep learning <span class="quarto-category-count">(4)</span></div><div class="category" data-category="ZGlmZnVzaW9u">diffusion <span class="quarto-category-count">(1)</span></div><div class="category" data-category="TExN">LLM <span class="quarto-category-count">(4)</span></div><div class="category" data-category="bWFjaGluZSUyMGxlYXJuaW5n">machine learning <span class="quarto-category-count">(2)</span></div><div class="category" data-category="cHl0aG9u">python <span class="quarto-category-count">(2)</span></div><div class="category" data-category="UkFH">RAG <span class="quarto-category-count">(1)</span></div></div></div>
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(10)</span></div><div class="category" data-category="YmlvbG9neQ==">biology <span class="quarto-category-count">(2)</span></div><div class="category" data-category="Y2hlbWlzdHJ5">chemistry <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ZGVlcCUyMGxlYXJuaW5n">deep learning <span class="quarto-category-count">(5)</span></div><div class="category" data-category="ZGlmZnVzaW9u">diffusion <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ZmxvdyUyMG1hdGNoaW5n">flow matching <span class="quarto-category-count">(1)</span></div><div class="category" data-category="TExN">LLM <span class="quarto-category-count">(4)</span></div><div class="category" data-category="bWFjaGluZSUyMGxlYXJuaW5n">machine learning <span class="quarto-category-count">(2)</span></div><div class="category" data-category="cHl0aG9u">python <span class="quarto-category-count">(2)</span></div><div class="category" data-category="UkFH">RAG <span class="quarto-category-count">(1)</span></div></div></div>
 <!-- main -->
 <main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
 
@@ -262,7 +264,23 @@ Description
 </thead>
 <tbody class="list">
 
-<tr data-index="0" data-categories="bWFjaGluZSUyMGxlYXJuaW5nJTJDZGlmZnVzaW9u" data-listing-date-sort="1778536800000" data-listing-file-modified-sort="1778590055487" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2195" data-listing-title-sort="Flow Matching as Posterior Averaging" data-listing-filename-sort="intro-fm-diffusion.qmd">
+<tr data-index="0" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDZmxvdyUyMG1hdGNoaW5n" data-listing-date-sort="1784498400000" data-listing-file-modified-sort="1784525544723" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="20" data-listing-word-count-sort="3936" data-listing-title-sort="Closed-Form Flow Matching: Posterior Concentration and the Softmax Collapse" data-listing-filename-sort="closed-form-fm.qmd">
+<td>
+<span class="listing-date">Jul 20, 2026</span>
+</td>
+<td>
+<a href="./posts/closed-form-flow-matching/closed-form-fm.html" class="title listing-title">Closed-Form Flow Matching: Posterior Concentration and the Softmax Collapse</a>
+</td>
+<td>
+<span class="listing-categories">deep learning, flow matching</span>
+</td>
+<td>
+<span class="listing-description">A mathematical analysis of the closed-form optimal velocity field in flow matching, explaining softmax collapse as posterior concentration in a high-dimensional Gaussian channel.</span>
+</td>
+
+</tr>
+
+<tr data-index="1" data-categories="bWFjaGluZSUyMGxlYXJuaW5nJTJDZGlmZnVzaW9u" data-listing-date-sort="1778536800000" data-listing-file-modified-sort="1784525672751" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2195" data-listing-title-sort="Flow Matching as Posterior Averaging" data-listing-filename-sort="intro-fm-diffusion.qmd">
 <td>
 <span class="listing-date">May 12, 2026</span>
 </td>
@@ -278,7 +296,7 @@ Description
 
 </tr>
 
-<tr data-index="1" data-categories="bWFjaGluZSUyMGxlYXJuaW5nJTJDY2hlbWlzdHJ5" data-listing-date-sort="1768690800000" data-listing-file-modified-sort="1778587670343" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="25" data-listing-word-count-sort="4957" data-listing-title-sort="Analyzing Raman Spectra with Machine Learning" data-listing-filename-sort="raman.qmd">
+<tr data-index="2" data-categories="bWFjaGluZSUyMGxlYXJuaW5nJTJDY2hlbWlzdHJ5" data-listing-date-sort="1768690800000" data-listing-file-modified-sort="1778679758533" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="25" data-listing-word-count-sort="4957" data-listing-title-sort="Analyzing Raman Spectra with Machine Learning" data-listing-filename-sort="raman.qmd">
 <td>
 <span class="listing-date">Jan 18, 2026</span>
 </td>
@@ -294,7 +312,7 @@ Description
 
 </tr>
 
-<tr data-index="2" data-categories="TExN" data-listing-date-sort="1755208800000" data-listing-file-modified-sort="1755272172028" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="27" data-listing-word-count-sort="5229" data-listing-title-sort="LLM-Powered Slide Decks: A Comparison of Formats" data-listing-filename-sort="llm-slides.qmd">
+<tr data-index="3" data-categories="TExN" data-listing-date-sort="1755208800000" data-listing-file-modified-sort="1755272172028" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="27" data-listing-word-count-sort="5229" data-listing-title-sort="LLM-Powered Slide Decks: A Comparison of Formats" data-listing-filename-sort="llm-slides.qmd">
 <td>
 <span class="listing-date">Aug 15, 2025</span>
 </td>
@@ -310,7 +328,7 @@ Description
 
 </tr>
 
-<tr data-index="3" data-categories="TExNJTJDcHl0aG9u" data-listing-date-sort="1751234400000" data-listing-file-modified-sort="1755272172026" data-listing-date-modified-sort="1755208800000" data-listing-reading-time-sort="43" data-listing-word-count-sort="8501" data-listing-title-sort="LLM Observability with Langfuse and a FastHTML Chatbot" data-listing-filename-sort="llm-observability.qmd">
+<tr data-index="4" data-categories="TExNJTJDcHl0aG9u" data-listing-date-sort="1751234400000" data-listing-file-modified-sort="1755272172026" data-listing-date-modified-sort="1755208800000" data-listing-reading-time-sort="43" data-listing-word-count-sort="8501" data-listing-title-sort="LLM Observability with Langfuse and a FastHTML Chatbot" data-listing-filename-sort="llm-observability.qmd">
 <td>
 <span class="listing-date">Jun 30, 2025</span>
 </td>
@@ -326,7 +344,7 @@ Description
 
 </tr>
 
-<tr data-index="4" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDTExNJTJDUkFH" data-listing-date-sort="1742425200000" data-listing-file-modified-sort="1755272172028" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="45" data-listing-word-count-sort="8953" data-listing-title-sort="PDF RAG: Enhanced PDF Processing" data-listing-filename-sort="pdf-rag.qmd">
+<tr data-index="5" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDTExNJTJDUkFH" data-listing-date-sort="1742425200000" data-listing-file-modified-sort="1755272172028" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="45" data-listing-word-count-sort="8953" data-listing-title-sort="PDF RAG: Enhanced PDF Processing" data-listing-filename-sort="pdf-rag.qmd">
 <td>
 <span class="listing-date">Mar 20, 2025</span>
 </td>
@@ -342,7 +360,7 @@ Description
 
 </tr>
 
-<tr data-index="5" data-categories="cHl0aG9u" data-listing-date-sort="1740524400000" data-listing-file-modified-sort="1755272172028" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="34" data-listing-word-count-sort="6753" data-listing-title-sort="Python Concurrency" data-listing-filename-sort="py-concurrency.qmd">
+<tr data-index="6" data-categories="cHl0aG9u" data-listing-date-sort="1740524400000" data-listing-file-modified-sort="1755272172028" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="34" data-listing-word-count-sort="6753" data-listing-title-sort="Python Concurrency" data-listing-filename-sort="py-concurrency.qmd">
 <td>
 <span class="listing-date">Feb 26, 2025</span>
 </td>
@@ -358,7 +376,7 @@ Description
 
 </tr>
 
-<tr data-index="6" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDTExN" data-listing-date-sort="1739833200000" data-listing-file-modified-sort="1755272172028" data-listing-date-modified-sort="1741561200000" data-listing-reading-time-sort="19" data-listing-word-count-sort="3670" data-listing-title-sort="PDF Parsing for LLM Input" data-listing-filename-sort="pdf-parsing.qmd">
+<tr data-index="7" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDTExN" data-listing-date-sort="1739833200000" data-listing-file-modified-sort="1755272172028" data-listing-date-modified-sort="1741561200000" data-listing-reading-time-sort="19" data-listing-word-count-sort="3670" data-listing-title-sort="PDF Parsing for LLM Input" data-listing-filename-sort="pdf-parsing.qmd">
 <td>
 <span class="listing-date">Feb 18, 2025</span>
 </td>
@@ -374,7 +392,7 @@ Description
 
 </tr>
 
-<tr data-index="7" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDYmlvbG9neQ==" data-listing-date-sort="1738796400000" data-listing-file-modified-sort="1778590051302" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="24" data-listing-word-count-sort="4785" data-listing-title-sort="Predicting MHC-Peptide Binding with Machine Learning" data-listing-filename-sort="mhc.qmd">
+<tr data-index="8" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDYmlvbG9neQ==" data-listing-date-sort="1738796400000" data-listing-file-modified-sort="1778590051302" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="24" data-listing-word-count-sort="4785" data-listing-title-sort="Predicting MHC-Peptide Binding with Machine Learning" data-listing-filename-sort="mhc.qmd">
 <td>
 <span class="listing-date">Feb 6, 2025</span>
 </td>
@@ -390,7 +408,7 @@ Description
 
 </tr>
 
-<tr data-index="8" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDYmlvbG9neQ==" data-listing-date-sort="1713909600000" data-listing-file-modified-sort="1755272172025" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="18" data-listing-word-count-sort="3407" data-listing-title-sort="Encoding Distances in Molecules and Pockets: A Comparison of GBFPT and DCEPT" data-listing-filename-sort="unimol-gbf.qmd">
+<tr data-index="9" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDYmlvbG9neQ==" data-listing-date-sort="1713909600000" data-listing-file-modified-sort="1755272172025" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="18" data-listing-word-count-sort="3407" data-listing-title-sort="Encoding Distances in Molecules and Pockets: A Comparison of GBFPT and DCEPT" data-listing-filename-sort="unimol-gbf.qmd">
 <td>
 <span class="listing-date">Apr 24, 2024</span>
 </td>
