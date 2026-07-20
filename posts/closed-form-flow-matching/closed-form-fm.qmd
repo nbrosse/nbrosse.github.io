@@ -1,170 +1,759 @@
 ---
-title: "Closed-Form Flow Matching: High-Dimensional Statistics and the Softmax Collapse"
+title: "Closed-Form Flow Matching: Posterior Concentration and the Softmax Collapse"
 author: "Nicolas Brosse"
-date: "2025-12-10"
+date: "2026-07-20"
 bibliography: closed-form-fm-references.bib
 categories: [deep learning, flow matching]
-description: "An analysis of the closed-form optimal velocity field in flow matching, explaining why softmax collapse occurs early in high dimensions and how to predict the collapse time."
-toc: true
-toc-depth: 3
+description: "A mathematical analysis of the closed-form optimal velocity field in flow matching, explaining softmax collapse as posterior concentration in a high-dimensional Gaussian channel."
 citation:
   url: https://nbrosse.github.io/posts/closed-form-flow-matching/closed-form-fm.html
 ---
 
+Flow Matching (FM) learns a time-dependent velocity field transporting a simple source distribution to a target data distribution. In the Gaussian optimal-transport interpolation, and when the target distribution is replaced by the empirical training distribution, the exact marginal velocity field has a closed form: it is a softmax-weighted average over the training examples.
 
-Flow matching has emerged as a powerful framework for training continuous normalizing flows. In its Gaussian-OT instantiation, the **marginal velocity field** admits a closed form: it is a softmax-weighted average of per-example conditional velocities. In high dimension, a striking phenomenon occurs: the softmax weights become almost one-hot very early along the interpolation path. We refer to this as **softmax collapse**. It implies that the learned flow rapidly behaves like a nearest-neighbor map and tends to memorize the training set instead of sampling from the underlying data distribution.
+In high dimension, this softmax often becomes almost one-hot very early along the interpolation path. I will refer to this phenomenon as **softmax collapse**. Once collapse occurs along a trajectory generated from a training example, the marginal velocity field becomes nearly equal to the conditional velocity field associated with that example. In other words, the exact empirical FM vector field behaves like a nearest-neighbor decoder, which helps explain why the empirical flow tends to memorize the training set.
 
-In this post, building on the closed-form analysis of @bertrand_closed-form_2025, we study this collapse phenomenon through the lens of high-dimensional statistics and statistical physics. We view the softmax weights as a Gibbs measure over the training examples, with an energy that depends on the interpolation time $t$. This connects the behavior of flow matching to classic models such as the Random Energy Model (REM) and to Large Deviation Principles (LDP).
+The main point of this post is that this collapse has a simple mathematical interpretation. Along a planted trajectory, the closed-form softmax weights are exactly the posterior distribution over the training index in a finite Gaussian codebook model. The interpolant contains a noisy observation of the endpoint image, and the softmax answers the question:
 
-Our main goal is twofold:
+> Which training point most likely generated this interpolant?
 
-1. **Mechanism.** Explain why, in high dimension, the marginal velocity field very quickly aligns with the conditional velocity field even for small $t$, and why neural networks find certain time regimes (around $t \approx 0.1$ and near $t \approx 1$) particularly hard to learn.
-2. **Prediction.** Derive a **predictive formula for the collapse time**—the value of $t$ at which the softmax weights become essentially one-hot in a CIFAR-10 proxy.
+Thus softmax collapse is a **posterior concentration** or **decoding** phenomenon. In an isotropic Gaussian proxy for CIFAR-10, the critical time is obtained by comparing the information contained in the interpolant to the entropy of the training index:
 
-We adapt the dynamical and statistical-physics framework of @biroli_dynamical_2024 to the flow-matching setting. Treating the softmax energies as REM-like random energies, we obtain an explicit asymptotic expression for the free energy, which in turn controls when the planted datapoint wins over all competing training samples. Specializing this analysis to a Gaussian proxy calibrated to CIFAR-10 yields a concrete collapse-time prediction.
+$$
+\frac{\log n}{d}
+=
+\frac12 \log\left(1+\sigma^2\left(\frac{t_C}{1-t_C}\right)^2\right).
+$$
 
-**Contributions**
+Equivalently,
 
-- We interpret the closed-form marginal velocity field in flow matching as a Gibbs measure
-- Within an i.i.d. Gaussian toy model calibrated to CIFAR-10, we derive an **explicit high-dimensional formula for the collapse time** as a function of the dataset dimension, sample size, and variance, and give its numerical specialization for CIFAR-10.
-- We provide a **self-contained, pedagogical derivation** of the relevant LDP and REM results, aiming to be more accessible than @bertrand_closed-form_2025 and to serve as a reference for readers interested in using these tools in generative modeling.
+$$
+\boxed{
+ t_C
+ =
+ \frac{
+ \sqrt{(e^{2\alpha}-1)/\sigma^2}
+ }{
+ 1+\sqrt{(e^{2\alpha}-1)/\sigma^2}
+ },
+ \qquad
+ \alpha=\frac{\log n}{d}.
+}
+$$
 
-In the section @sec-setup-and-notation we briefly recall the flow-matching and conditional flow-matching formulations and fix notation. In @sec-observations-on-the-marginal-velocity-field-conditional-velocity-field-and-training-difficulties, we summarize the empirical behavior reported in @bertrand_closed-form_2025. The section @sec-cifar-10-preprocessing-and-statistics justifies the Gaussian toy model used in the theory. The core statistical-physics analysis appears in @sec-marginal-velocity-field-collapse-a-statistical-physics-perspective, and @sec-error-analysis-training-difficulties-across-time connects the collapse picture back to the observed error profile of learned velocity fields. We include an accompanying notebook that numerically analyzes the CIFAR-10 dataset, computing both the collapse times and the correlation between the marginal and conditional velocity fields.
+For the CIFAR-10 proxy
+
+$$
+d=3072,
+\qquad
+n=50{,}000,
+\qquad
+\sigma^2\approx 0.24,
+$$
+
+this gives $t_C\approx 0.146$.
+
+This value should not be read as a universal constant for CIFAR-10. It is the prediction of a simplified Gaussian model. But it has the right order of magnitude: it places the onset of posterior concentration around the same early-time regime in which empirical studies observe high correlation between the marginal and conditional velocity fields.
+
+This post is organized as follows. We first recall the closed-form marginal velocity field for empirical Gaussian-OT Flow Matching and rewrite its softmax weights as a posterior distribution over the training index. We then review the empirical observations that motivate the analysis, before deriving the collapse time in an isotropic Gaussian proxy and its log-determinant generalization for non-isotropic covariance. Finally, we connect this posterior concentration picture to the observed learning difficulties of neural velocity fields across time.
 
 # Setup and Notation {#sec-setup-and-notation}
 
-We follow the notation and setup of[ @lipman_flow_2024, Section 2] to present Flow Matching (FM). Given a training dataset with samples from an unknown target distribution $q$ over $\mathbb{R}^d$, the goal is to learn a model that can generate new samples from $q$. Flow Matching (FM) does this by defining a **continuous probability path** $(p_t)_{0\le t\le 1}$ that morphs a **known source distribution** $p_0=p$ (typically noise) into the **data distribution** $p_1=q$. FM learns a **time-dependent velocity field** $u_t$ (a vector field) that describes how samples move along this path. After training, sampling from $q$ works by:
+We follow the standard Flow Matching setup of [@lipman_flow_2024]. Let the source distribution be
 
-1.  Draw $X_0 \sim p$ (easy noise).
-2.  Solve an **ODE** driven by the learned velocity field to transport $X_0$ to $X_1$, which should follow $q$.
-
-FM uses a time-dependent vector field: $u : [0,1]\times \mathbb{R}^d \to \mathbb{R}^d$ and defines the associated **flow map** $\psi_t$ by the ODE: 
 $$
-\frac{d}{dt}\psi_t(x) = u_t(\psi_t(x)), \quad \psi_0(x)=x. 
+p_0 = \mathcal N(0,I_d),
 $$
 
-If $u_t$ generates the probability path $p_t$, then pushing forward the source sample $X_0\sim p_0$ through the flow gives: $X_t := \psi_t(X_0) \sim p_t$. In particular, integrating to $t=1$ yields: $X_1=\psi_1(X_0) \approx q$. So the core objective is: **learn a neural velocity field** $u^\theta_t$ whose flow maps $p_0$ to $p_1$. Ideally, FM would minimize the mean-squared error between the learned and true velocity fields: 
-$$
-\mathcal{L}_{\text{FM}}(\theta)=\mathbb{E}_{t,X_t}\Big[\ \|u^\theta_t(X_t)-u_t(X_t)\|^2\ \Big],
-\quad t\sim \mathcal{U}[0,1],\ X_t\sim p_t.
-$$ 
+and let the target distribution be an unknown data distribution $q$ on $\mathbb R^d$. Flow Matching defines a probability path $(p_t)_{0\leq t\leq 1}$ connecting $p_0$ to $q$ and learns a time-dependent velocity field
 
-But the marginal velocity field $u_t$ is usually hard to compute. Let the source be standard Gaussian: $p := p_0 = \mathcal{N}(0,I)$. A convenient path can be built by mixing **conditional paths** $p_{t|1}(x|x_1)$, each conditioned on a data example $X_1=x_1$. The resulting marginal path is: 
 $$
-p_t(x)=\int p_{t|1}(x|x_1) q(x_1) dx_1,
-\quad\text{where}\quad
-p_{t|1}(x|x_1)=\mathcal{N}\big(x\mid t x_1,\ (1-t)^2 I\big).
+u : [0,1]\times \mathbb R^d \to \mathbb R^d.
 $$
 
-A simple way to sample from this $p_t$ is: 
+The velocity field generates a flow map $\psi_t$ through the ODE
+
 $$
-X_t = tX_1 + (1-t)X_0 \sim p_t,
+\frac{d}{dt}\psi_t(x)=u_t(\psi_t(x)),
+\qquad
+\psi_0(x)=x.
 $$
 
-where $X_0\sim p$ and $X_1\sim q$. Condition on a randomly chosen training sample $X_1=x_1$ and define: 
+If $X_0\sim p_0$, then $X_t=\psi_t(X_0)$ should have law $p_t$. In particular, $X_1$ should have approximately the data distribution.
+
+## Gaussian-OT Conditional Paths
+
+A common Flow Matching path is obtained by interpolating linearly between noise and data:
+
 $$
-X_{t|1}=t x_1+(1-t)X_0 \sim p_{t|1}(\cdot|x_1).
-$$
-For this conditional Gaussian path, the ODE gives a **simple closed-form conditional velocity field**: 
-$$
-u_t(x|x_1)=\frac{x_1-x}{1-t}.
+X_t=(1-t)X_0+tX_1,
+\qquad
+X_0\sim \mathcal N(0,I_d),
+\qquad
+X_1\sim q.
 $$
 
-This yields a tractable loss: 
-$$
-\mathcal{L}_{\text{CFM}}(\theta)=
-\mathbb{E}_{t,X_t,X_1}\Big[\ \|u^\theta_t(X_t)-u_t(X_t|X_1)\|^2\ \Big],
-\quad t\sim\mathcal{U}[0,1],\ X_0\sim p,\ X_1\sim q,
-$$ 
+Conditioned on a fixed endpoint $X_1=x_1$, the conditional distribution of $X_t$ is
 
-with $X_t=(1-t)X_0+tX_1$. Crucially, this conditional objective provides the **same gradients** as the original FM loss: 
 $$
-\nabla_\theta \mathcal{L}_{\text{FM}}(\theta)=\nabla_\theta \mathcal{L}_{\text{CFM}}(\theta).
+p_{t\mid x_1}(x)
+=
+\mathcal N\bigl(x\mid t x_1,(1-t)^2I_d\bigr).
 $$
 
-Plugging the conditional velocity into the loss gives a common practical form: 
-$$
-\mathcal{L}^{\text{OT,Gauss}}_{\text{CFM}}(\theta)
-= \mathbb{E}_{t,X_0,X_1}\Big[\ \|u^\theta_t(X_t)-(X_1-X_0)\|^2\ \Big],
-\quad t\sim\mathcal{U}[0,1],\ X_0\sim\mathcal{N}(0,I),\ X_1\sim q,
-$$ 
+The associated conditional velocity field is
 
-where $X_t=(1-t)X_0+tX_1$.
-
-The CFM and FM losses are related by a bias-variance decomposition. The CFM loss can be written as:
 $$
-\mathcal{L}_{\text{CFM}}(\theta) = \mathcal{L}_{\text{FM}}(\theta) + \mathbb{E}_{t, X_t}\left[\mathrm{Var}(X_1 - X_0 \mid X_t)\right].
+u_t(x\mid x_1)=\frac{x_1-x}{1-t}.
+$$
+
+Evaluated along the interpolant $X_t=(1-t)X_0+tX_1$, this becomes
+
+$$
+u_t(X_t\mid X_1)
+=
+\frac{X_1-X_t}{1-t}
+=X_1-X_0.
+$$
+
+This is the target used in the usual conditional Flow Matching objective:
+
+$$
+\mathcal L_{\mathrm{CFM}}(\theta)
+=
+\mathbb E_{t,X_0,X_1}
+\left[
+\left\|u_t^\theta(X_t)-(X_1-X_0)\right\|^2
+\right],
+\qquad
+X_t=(1-t)X_0+tX_1.
+$$
+
+The marginal velocity field is the conditional expectation
+
+$$
+u_t(x)=\mathbb E[X_1-X_0\mid X_t=x].
+$$
+
+Thus the conditional objective trains against an unbiased target for the marginal velocity field, up to the usual irreducible conditional variance.
+
+::: {.callout-note collapse="true"}
+## Bias-variance decomposition
+
+Let
+
+$$
+Y=X_1-X_0,
+\qquad
+\bar Y(X_t)=\mathbb E[Y\mid X_t]=u_t(X_t).
+$$
+
+Then
+
+$$
+\begin{aligned}
+\mathbb E\left[\|u_t^\theta(X_t)-Y\|^2\right]
+&=
+\mathbb E\left[\|u_t^\theta(X_t)-\bar Y(X_t)\|^2\right]
+ +\mathbb E\left[\|Y-\bar Y(X_t)\|^2\right].
+\end{aligned}
+$$
+
+The second term is independent of $\theta$ and equals the conditional variance of the target. Hence minimizing the conditional Flow Matching loss has the same minimizers, and the same gradients, as minimizing the marginal Flow Matching loss.
+
+For a deeper exploration of the bias-variance decomposition in Flow Matching, see the blog post ["Flow Matching as Posterior Averaging"](https://nbrosse.github.io/posts/intro-fm-diffusion/intro-fm-diffusion.html).
+:::
+
+## The Closed-Form Empirical Marginal Velocity {#sec-closed-form-empirical-marginal-velocity}
+
+In practice, we observe a finite training set
+
+$$
+x^{(1)},\dots,x^{(n)}\in\mathbb R^d,
+$$
+
+and replace the target distribution $q$ by the empirical distribution
+
+$$
+\widehat q
+=
+\frac1n\sum_{i=1}^n\delta_{x^{(i)}}.
+$$
+
+For the Gaussian-OT path, the marginal density is then a Gaussian mixture:
+
+$$
+p_t(x)
+=
+\frac1n\sum_{i=1}^n
+\mathcal N\bigl(x\mid t x^{(i)},(1-t)^2I_d\bigr).
+$$
+
+The exact marginal velocity field is
+
+$$
+\boxed{
+ u_t(x)
+ =
+ \sum_{i=1}^n
+ \lambda_i(x,t)\frac{x^{(i)}-x}{1-t},
+ \qquad
+\lambda_i(x,t)
+=
+\frac{
+\exp\left(-\frac{\|x-tx^{(i)}\|^2}{2(1-t)^2}\right)
+}{
+\sum_{j=1}^n
+\exp\left(-\frac{\|x-tx^{(j)}\|^2}{2(1-t)^2}\right)
+}.
+}
+$$
+
+These weights are posterior probabilities under the empirical mixture model. They are also the source of the collapse phenomenon studied in [@bertrand_closed-form_2025].
+
+At $t=0$, all mixture components have the same mean $0$ and covariance $I_d$, so the weights are exactly uniform:
+
+$$
+\lambda_i(x,0)=\frac1n.
+$$
+
+As $t$ increases, the component means $t x^{(i)}$ separate. In high dimension, this separation can make the posterior over components concentrate very quickly.
+
+## The Softmax Weights Are a Posterior {#sec-softmax-as-posterior}
+
+The key change of variables is
+
+$$
+r=\frac{t}{1-t},
+\qquad
+ y=\frac{x}{1-t}.
+$$
+
+Then
+
+$$
+\frac{\|x-tx^{(i)}\|^2}{2(1-t)^2}
+=
+\frac12\left\|\frac{x}{1-t}-\frac{t}{1-t}x^{(i)}\right\|^2
+=
+\frac12\|y-rx^{(i)}\|^2.
+$$
+
+Therefore the softmax weights can be written as
+
+$$
+\lambda_i(y,r)
+=
+\frac{
+\exp\left(-\frac12\|y-rx^{(i)}\|^2\right)
+}{
+\sum_{j=1}^n
+\exp\left(-\frac12\|y-rx^{(j)}\|^2\right)
+}.
+$$
+
+Now consider a trajectory generated by a particular training point. Let $i_\star$ denote the planted index and write
+
+$$
+x_\star=x^{(i_\star)}.
+$$
+
+Let
+
+$$
+z\sim \mathcal N(0,I_d),
+\qquad
+x_t=(1-t)z+t x_\star.
+$$
+
+Then
+
+$$
+y=\frac{x_t}{1-t}=z+rx_\star.
+$$
+
+Thus the softmax weights are exactly the posterior probabilities in the following finite-codebook Gaussian observation model:
+
+$$
+I\sim \mathrm{Unif}\{1,\dots,n\},
+\qquad
+Y=r x^{(I)}+Z,
+\qquad
+Z\sim \mathcal N(0,I_d).
+$$
+
+Conditioned on the codebook $x^{(1)},\dots,x^{(n)}$, Bayes' rule gives
+
+$$
+\mathbb P(I=i\mid Y=y,x^{(1:n)})
+=
+\frac{\exp\left(-\frac12\|y-rx^{(i)}\|^2\right)}
+{\sum_{j=1}^n\exp\left(-\frac12\|y-rx^{(j)}\|^2\right)}.
+$$
+
+This is precisely $\lambda_i(y,r)$.
+
+The quantity of interest along such a trajectory is the **planted mass**
+
+$$
+\lambda_\star(t)=\lambda_{i_\star}(x_t,t),
+$$
+
+the posterior mass assigned to the training point that actually generated the trajectory. Collapse along the trajectory means $\lambda_\star(t)\approx 1$.
+
+The parameter $r=t/(1-t)$ is a signal-to-noise parameter. At $t=0$, $r=0$ and the observation is pure noise:
+
+$$
+Y=Z.
+$$
+
+No information about the training index is available, so the posterior is uniform. As $t$ increases, $Y$ contains a stronger signal $r x_\star$. Collapse occurs when this signal is strong enough to identify $x_\star$ among $n$ possible training points.
+
+This gives a more precise meaning to the phrase "the softmax collapses": along a planted trajectory, collapse is posterior concentration on the planted index.
+
+::: {.callout-note collapse="true"}
+## The global mean does not matter
+
+The construction so far uses the raw training points $x^{(i)}$, but nothing changes if the data is not centered. Suppose the points share a common mean,
+
+$$
+x^{(i)}=m+\widetilde x^{(i)}.
+$$
+
+Because the planted trajectory is generated from one of these points, the shift enters the observation as well:
+
+$$
+Y=r x^{(I)}+Z
+=
+rm+r\widetilde x^{(I)}+Z.
+$$
+
+Thus $rm$ is common to $Y$ and to every codeword $rx^{(i)}$, and in the softmax exponent it cancels:
+
+$$
+\|y-r x^{(i)}\|^2
+=
+\bigl\|(y-rm)-r\widetilde x^{(i)}\bigr\|^2,
+$$
+
+which is exactly the centered problem with $y$ replaced by $y-rm$. The posterior weights $\lambda_i$ — and hence the planted mass $\lambda_\star$ — are therefore identical whether or not the data is centered. Equivalently, the deterministic shift $rm$ leaves the mutual information $I(X;Y)$ unchanged.
+
+This is an exact identity for the empirical weights, not merely a property of a Gaussian model. Consequently every proxy below may take the data to be centered without loss of generality: the collapse threshold depends on the covariance structure of the data, not on its global mean.
+:::
+
+::: {.callout-note collapse="true"}
+## Relation to Gibbs measures and the statistical-physics picture
+
+The weights can also be written as a Gibbs measure
+
+$$
+\lambda_i(x,t)
+=
+\frac{e^{-E_i(x,t)}}{\sum_j e^{-E_j(x,t)}},
+\qquad
+E_i(x,t)=\frac{\|x-tx^{(i)}\|^2}{2(1-t)^2},
+$$
+
+whose normalizing constant is a partition function. In this language, softmax collapse is the condensation of a Gibbs measure onto a single training point.
+
+This is the transition studied by [@biroli_dynamical_2024] for diffusion models, under the same exact-empirical-score assumption used here. They analyze it with statistical-physics tools, call it the **collapse** transition, and independently identify $\alpha=\log n/d$ as the control parameter.
+
+The two routes agree quantitatively. Their noising process is Ornstein-Uhlenbeck,
+
+$$
+x(s)=e^{-s}x_\star+\sqrt{\Delta_s}\,z,
+\qquad
+\Delta_s=1-e^{-2s},
+$$
+
+with a time $s$ running opposite to ours: $s=0$ is data and $s\to\infty$ is noise. Rescaling by $\sqrt{\Delta_s}$ puts their weights in exactly the form of $\lambda_i(y,r)$ above, so the two models are the same Gaussian codebook posterior, written in different time variables but governed by the same per-coordinate signal-to-noise ratio:
+
+$$
+\rho(s)=\frac{\sigma^2e^{-2s}}{1-e^{-2s}}
+=
+\frac{\sigma^2}{e^{2s}-1}
+\qquad
+\text{versus}
+\qquad
+\rho(t)=\sigma^2r^2,
+\quad
+r=\frac{t}{1-t}.
+$$
+
+Their collapse time for the Gaussian model is
+
+$$
+s_C=\frac12\log\left(1+\frac{\sigma^2}{n^{2/d}-1}\right),
+$$
+
+which sits at signal-to-noise ratio
+
+$$
+\rho(s_C)=n^{2/d}-1=e^{2\alpha}-1,
+$$
+
+precisely the condition $\frac12\log(1+\rho)=\alpha$ obtained in @sec-random-coding-union-bound. The same threshold is therefore reached twice: there through a decoding argument, here through an excess-entropy computation. Their formula also depends on $\sigma^2$ alone and not on the separation between data clusters, consistent with the nonzero-mean remark in @sec-softmax-as-posterior.
+:::
+
+# Empirical Motivation {#sec-empirical-motivation}
+
+The empirical observations in [@bertrand_closed-form_2025] motivate this mathematical analysis.
+
+![Histograms of cosine similarities between the closed-form marginal velocity $u_t((1-t)x_0+tx_1)$ and the conditional velocity $u_t((1-t)x_0+tx_1\mid x_1)=x_1-x_0$, for two-moons and CIFAR-10. On CIFAR-10, the marginal field aligns with the conditional field much earlier than in the low-dimensional example. Adapted from [@bertrand_closed-form_2025, Figure 1].](figures/article-fig-1.png){#fig-article-fig-1 fig-alt="Histograms of cosine similarities between marginal and conditional velocity fields for two-moons and CIFAR-10."}
+
+@fig-article-fig-1 shows that, on CIFAR-10, the marginal velocity field becomes highly aligned with the conditional velocity field already for small values of $t$. This suggests that the empirical posterior over training samples becomes concentrated along typical data-generated trajectories.
+
+![Fraction of samples for which the cosine similarity between the marginal and conditional velocity fields exceeds $0.9$, as a function of $t$, for several image resolutions. The transition moves earlier as dimension increases. Adapted from [@bertrand_closed-form_2025, Figure 2].](figures/article-fig-2.png){#fig-article-fig-2 fig-alt="Fraction of samples with cosine similarity above 0.9 as a function of time and resolution."}
+
+@fig-article-fig-2 shows a strong dimension effect: increasing the ambient dimension moves the alignment transition toward earlier times. This is consistent with the formula derived later, where the relevant ratio is
+
+$$
+\alpha=\frac{\log n}{d}.
+$$
+
+For fixed dataset size $n$, increasing $d$ decreases $\alpha$, and therefore decreases the collapse time.
+
+![Failure to learn the marginal velocity field on CIFAR-10. The left panel shows the average error between the exact empirical marginal velocity field $u_t$ and a learned neural velocity field $u_t^\theta$, for several training-set sizes. The error is low near $t=0$, peaks at intermediate times, decreases, and then rises again near $t=1$. Adapted from [@bertrand_closed-form_2025, Figure 3].](figures/article-fig-3.png){#fig-article-fig-3 fig-alt="Average error between the closed-form marginal velocity field and a learned velocity field as a function of time."}
+
+@fig-article-fig-3 shows a non-monotone learning difficulty profile. The error is low near $t=0$, becomes large at intermediate times, decreases after the posterior starts concentrating, and rises again near $t=1$. The posterior concentration picture explains the intermediate-time difficulty; the final spike near $t=1$ has a different origin, namely nearest-neighbor discontinuities and the prefactor $1/(1-t)$. @sec-error-analysis returns to this profile once the threshold has been derived.
+
+# Isotropic Gaussian Proxy {#sec-isotropic-gaussian-proxy}
+
+The identity of @sec-softmax-as-posterior is exact: whatever the training set, the softmax weights are the posterior over the training index in a finite Gaussian codebook model. But an identity says nothing about *when* that posterior concentrates. For that we need a distribution for the codebook itself, and the simplest useful choice replaces CIFAR-10 by an i.i.d. Gaussian cloud $x^{(i)}\sim\mathcal N(0,\sigma^2I_d)$ with variance matched to the data. What this buys is a channel that is memoryless across coordinates, which is exactly the structure a law-of-large-numbers argument needs, and it turns the question *how much signal is required to identify one of $n$ codewords?* into a classical one with a closed-form answer. We locate the threshold, calibrate $\sigma^2$ against the normalized CIFAR-10 pixel statistics and evaluate it.
+
+## The information-rate threshold {#sec-random-coding-union-bound}
+
+The transition has a one-line information-theoretic reading. Along a planted trajectory the interpolant is a noisy observation of the planted image through a Gaussian channel, and that channel supplies $\frac12\log(1+\mathrm{SNR})$ nats per coordinate about the image. Identifying which of the $n$ training points was planted costs $\log n$ nats, or $\alpha=\log n/d$ nats per coordinate. Collapse occurs when supply exceeds demand.
+
+The rest of this section makes that comparison precise. The training set plays the role of a Gaussian codebook and the softmax weights are exactly the decoding posterior, so the classical random-coding union bound [@lomnitz_simpler_2012] applies verbatim. The main line is deliberately short; two collapsed callouts carry the underlying likelihood-ratio computations in full. The first derives the channel information rate rather than assuming it, and the second upgrades the conclusion from *the planted index is recoverable* to the quantitative statement $\lambda_\star\to 1$.
+
+**The model.** Draw the codebook i.i.d. from the input distribution,
+
+$$
+x^{(1)},\dots,x^{(n)}\overset{\mathrm{i.i.d.}}{\sim}P_X,
+\qquad
+P_X=\mathcal N(0,\sigma^2 I_d),
+\qquad
+n=e^{\alpha d},
+\qquad
+\alpha=\frac{\log n}{d},
+$$
+
+pick a planted index $I\sim\mathrm{Unif}\{1,\dots,n\}$, and observe
+
+$$
+Y=r\,x^{(I)}+Z,
+\qquad
+Z\sim\mathcal N(0,I_d).
+$$
+
+This is the observation model of @sec-softmax-as-posterior, after the change of variables $r=t/(1-t)$, $y=x/(1-t)$, with the isotropic Gaussian proxy substituted for the data. It is an additive Gaussian channel with signal-to-noise ratio
+
+$$
+\mathrm{SNR}=\sigma^2r^2.
+$$
+
+Let $p(y\mid x)$ be the Gaussian likelihood and let
+
+$$
+p_Y(y)=\int p(y\mid x)\,dP_X(x)
+$$
+
+be the marginal output density under the random-coding prior. Define the information density
+
+$$
+\imath(x;y)
+=
+\log\frac{p(y\mid x)}{p_Y(y)}.
+$$
+
+**Planted codeword.** The channel is memoryless across coordinates, so by the law of large numbers the planted pair concentrates at the mutual information per coordinate:
+
+$$
+\frac1d\,\imath\bigl(x^{(I)};Y\bigr)
+\longrightarrow
+\frac1d\,I(X;Y)
+=
+\mathcal I_{\mathrm{iso}}(r)
+=
+\frac12\log(1+\sigma^2 r^2).
+$$
+
+Thus, with high probability, the planted information density is $d\,\mathcal I_{\mathrm{iso}}(r)+o(d)$.
+
+::: {.callout-note collapse="true"}
+## Why the planted information density concentrates at $\frac12\log(1+\sigma^2r^2)$
+
+Write the likelihood ratio of a codeword $x^{(i)}$ as
+
+$$
+L_i(Y)
+=
+\frac{p(Y\mid x^{(i)})}{p_Y(Y)},
+\qquad
+p(y\mid x)
+=
+(2\pi)^{-d/2}
+\exp\left(-\frac12\|y-rx\|^2\right),
+$$
+
+so that $\log L_i(Y)=\imath(x^{(i)};Y)$. For the planted pair $(X_\star,Y)$ we must show that $\frac1d\log L_\star$ concentrates.
+
+**Step 1: the marginal output law.** Since $Y=rX+Z$ with $X\sim\mathcal N(0,\sigma^2I_d)$ independent of $Z\sim\mathcal N(0,I_d)$,
+
+$$
+Y\sim\mathcal N\bigl(0,(1+\sigma^2r^2)I_d\bigr).
+$$
+
+**Step 2: decomposition across coordinates.** The Gaussian channel acts independently on each coordinate, so both $p(y\mid x)$ and $p_Y(y)$ factorize and the information density is a sum of $d$ i.i.d. one-dimensional terms:
+
+$$
+\imath(X_\star;Y)
+=
+\sum_{k=1}^d
+\imath(X_{\star,k};Y_k),
+\qquad
+\mathbb E[\imath(X_{\star,k};Y_k)]
+=
+I(X_k;Y_k).
+$$
+
+By the law of large numbers,
+
+$$
+\frac1d\imath(X_\star;Y)
+\longrightarrow
+I(X_k;Y_k)
+\qquad
+\text{in probability}.
+$$
+
+In words: for a typical planted sample, the log-likelihood ratio is close to its mean.
+
+**Step 3: the scalar mutual information.** For the scalar Gaussian channel
+
+$$
+Y_k=rX_k+Z_k,
+\qquad
+X_k\sim\mathcal N(0,\sigma^2),
+\qquad
+Z_k\sim\mathcal N(0,1),
+$$
+
+we have $I(X_k;Y_k)=h(Y_k)-h(Y_k\mid X_k)$. Since
+
+$$
+Y_k\sim\mathcal N(0,1+\sigma^2r^2),
+\qquad
+Y_k\mid X_k\sim\mathcal N(rX_k,1),
+$$
+
+and a Gaussian of variance $v$ has differential entropy $\frac12\log(2\pi e v)$, the two entropies differ only through the variance ratio:
+
+$$
+I(X_k;Y_k)
+=
+\frac12\log\bigl(2\pi e(1+\sigma^2r^2)\bigr)
+-
+\frac12\log(2\pi e)
+=
+\frac12\log(1+\sigma^2r^2).
+$$
+
+**Conclusion.** Combining the three steps,
+
+$$
+\frac1d\log L_\star
+\longrightarrow
+\mathcal I_{\mathrm{iso}}(r)
+=
+\frac12\log(1+\sigma^2r^2),
+$$
+
+so for any $\varepsilon>0$, with high probability,
+
+$$
+L_\star
+\geq
+\exp\left\{
+d\left(\mathcal I_{\mathrm{iso}}(r)-\varepsilon\right)
+\right\}.
+$$
+:::
+
+**Wrong codewords.** Fix a threshold $\gamma$. A wrong codeword $x^{(j)}$, $j\neq I$, is independent of $Y$. Conditioned on $Y=y$, a change-of-measure (Markov) bound gives
+
+$$
+\begin{aligned}
+\mathbb P\bigl(\imath(x^{(j)};y)\ge d\gamma\bigr)
+&=
+P_X\!\left(
+x:\frac{p(y\mid x)}{p_Y(y)}\ge e^{d\gamma}
+\right) \\
+&\le
+e^{-d\gamma}
+\int\frac{p(y\mid x)}{p_Y(y)}\,dP_X(x)
+=
+e^{-d\gamma}.
+\end{aligned}
+$$
+
+A union bound over the $n-1$ wrong codewords yields
+
+$$
+\mathbb P\bigl(
+\exists\, j\neq I:\imath(x^{(j)};Y)\ge d\gamma
+\bigr)
+\le
+n\,e^{-d\gamma}
+=
+\exp\{d(\alpha-\gamma)\}.
+$$
+
+**Threshold.** Suppose we can pick $\gamma$ with
+
+$$
+\alpha<\gamma<\mathcal I_{\mathrm{iso}}(r).
+$$
+
+Then, with high probability, the planted codeword has information density above $d\gamma$ while no wrong codeword does, so the planted index is recoverable. Such a $\gamma$ exists exactly when
+
+$$
+\alpha<\mathcal I_{\mathrm{iso}}(r).
+$$
+
+This is Shannon's random-coding theorem specialized to a Gaussian codebook and an AWGN channel: a wrong codeword has probability at most $e^{-d\gamma}$ of exceeding information density $d\gamma$, the union bound over $n$ candidates contributes $\exp\{d(\alpha-\gamma)\}$, and the planted codeword sits at $d\,\mathcal I_{\mathrm{iso}}(r)+o(d)$. The recovery boundary is therefore
+
+$$
+\mathcal I_{\mathrm{iso}}(r_C)=\alpha,
+\qquad\text{i.e.}\qquad
+\frac12\log(1+\sigma^2 r_C^2)=\frac{\log n}{d}.
 $$
 
 ::: {.callout-note collapse="true"}
-## Proof of the loss decomposition
+## From recoverability to posterior mass: $\lambda_\star\to1$
 
-At the interpolant $X_t = (1-t)X_0 + tX_1$, the conditional velocity field evaluates to:
-$$
-u_t(X_t \mid X_1) = \frac{X_1 - X_t}{1-t} = X_1 - X_0.
-$$
+The union bound shows that the planted index is *recoverable*. Since the object of interest here is the softmax weight itself, it is worth showing directly that the planted posterior mass tends to $1$. The argument compares the planted likelihood ratio to the total wrong mass.
 
-The marginal velocity field at $X_t$ is the conditional expectation of this:
-$$
-u_t(X_t) = \mathbb{E}[X_1 - X_0 \mid X_t].
-$$
+Multiplying every likelihood by the common factor $1/p_Y(Y)$ leaves the softmax weights unchanged, so with $L_i(Y)=p(Y\mid x^{(i)})/p_Y(Y)$ the planted mass is
 
-Let $Y = X_1 - X_0$ denote the target and $\bar{Y} = \mathbb{E}[Y \mid X_t] = u_t(X_t)$ the optimal predictor. We decompose:
 $$
-\|u^\theta_t(X_t) - Y\|^2 = \|(u^\theta_t(X_t) - \bar{Y}) + (\bar{Y} - Y)\|^2.
+\lambda_\star
+=
+\frac{L_\star}
+{L_\star+W},
+\qquad
+W=\sum_{j\neq \star}L_j(Y).
 $$
 
-Expanding and taking the conditional expectation, the cross-term vanishes and we obtain the desired decomposition.
+**The planted term.** By the previous callout, with high probability
+
+$$
+L_\star
+\geq
+\exp\left\{
+d\left(\mathcal I_{\mathrm{iso}}(r)-\varepsilon\right)
+\right\}.
+$$
+
+**The wrong mass.** A wrong codeword $x^{(j)}$, $j\neq\star$, is independent of $Y$ and distributed according to the prior $P_X$. A change of measure gives
+
+$$
+\begin{aligned}
+\mathbb E[L_j(Y)\mid Y]
+&=
+\int
+\frac{p(Y\mid x)}{p_Y(Y)}
+\,dP_X(x) \\
+&=
+\frac{1}{p_Y(Y)}
+\int p(Y\mid x)\,dP_X(x) \\
+&=
+\frac{p_Y(Y)}{p_Y(Y)}
+=
+1.
+\end{aligned}
+$$
+
+Each wrong codeword therefore contributes a likelihood ratio of order $1$ on average, and since there are $n-1$ of them,
+
+$$
+\mathbb E[W\mid Y]=n-1.
+$$
+
+By Markov's inequality, for any $\varepsilon>0$,
+
+$$
+\mathbb P\left(
+W\geq e^{d(\alpha+\varepsilon)}
+\mid Y
+\right)
+\leq
+\frac{n-1}{e^{d(\alpha+\varepsilon)}}
+\leq
+e^{-d\varepsilon},
+$$
+
+so with high probability $W\leq\exp\{d(\alpha+\varepsilon)\}$.
+
+**Combining.** With high probability both estimates hold, and
+
+$$
+\frac{W}{L_\star}
+\leq
+\exp\left\{
+d(\alpha+\varepsilon)
+-
+d(\mathcal I_{\mathrm{iso}}(r)-\varepsilon)
+\right\}
+=
+\exp\left\{
+-d\left(
+\mathcal I_{\mathrm{iso}}(r)-\alpha-2\varepsilon
+\right)
+\right\}.
+$$
+
+If $\mathcal I_{\mathrm{iso}}(r)>\alpha$, choose $\varepsilon>0$ small enough that $\mathcal I_{\mathrm{iso}}(r)-\alpha-2\varepsilon>0$. Then $W/L_\star\to0$ exponentially fast in $d$, and since
+
+$$
+\lambda_\star
+=
+\frac{1}{1+W/L_\star},
+$$
+
+we obtain $\lambda_\star\to1$. Above the threshold, the posterior concentrates on the planted training point, which is exactly softmax collapse along a planted trajectory.
 :::
 
-The second term is the **irreducible variance** — it does not depend on $\theta$ and represents the inherent uncertainty in predicting the conditional velocity $X_1 - X_0$ from $X_t$ alone. This variance captures how much the target $X_1 - X_0$ fluctuates across different $(X_0, X_1)$ pairs that pass through the same interpolant $X_t$.
+The matching converse is the standard channel-coding converse via Fano's inequality: if the index can be decoded with vanishing error, its entropy rate cannot exceed the channel mutual information [@cover_elements_2006; @polyanskiy_channel_2010]. Achievability and converse together pin the collapse boundary at $\mathcal I_{\mathrm{iso}}(r_C)=\alpha$, which solves to
 
-# Observations on the Marginal Velocity Field, Conditional Velocity Field and Training Difficulties {#sec-observations-on-the-marginal-velocity-field-conditional-velocity-field-and-training-difficulties}
-
-In this section, we present some observations made in @bertrand_closed-form_2025. We focus on the case where the source distribution $p_0$ is the standard normal distribution and the data distribution $p_{\text{data}}$ is the CIFAR-10 dataset. We observe $n$ datapoints from CIFAR-10: 
 $$
-x^{(1)},\dots,x^{(n)} \sim p_{\text{data}}, \qquad x^{(i)}\in\mathbb{R}^d.
-$$
-
-In that scenario, we do not have access to the data distribution $p_{\text{data}}$, but only to the empirical distribution: 
-$$
-\hat p_{\text{data}}:=\frac1n\sum_{i=1}^n \delta_{x^{(i)}}.
-$$ {#eq-empirical-distribution}
-
-The marginal velocity field becomes available in closed form:
-$$
-u_t(x) = \sum_{i=1}^n \lambda_i(x,t) \frac{x^{(i)} - x}{1-t},
-\quad
-\lambda_i(x,t)=\mathrm{softmax}\left(-\frac{\|x-t x^{(i)}\|^2}{2(1-t)^2}\right).
+r_C
+=
+\sqrt{\frac{e^{2\alpha}-1}{\sigma^2}}.
 $$
 
-where the softmax is taken over $i\in\{1, \dots, n\}$, i.e.
+Since $r=t/(1-t)$ and $t=r/(1+r)$, the predicted collapse time is
+
 $$
-\lambda_i(x,t)=\frac{\exp\left(-\frac{\|x-t x^{(i)}\|^2}{2(1-t)^2}\right)}{\sum_{j=1}^n \exp\left(-\frac{\|x-t x^{(j)}\|^2}{2(1-t)^2}\right)}.
+\boxed{
+ t_C
+ =
+ \frac{
+ \sqrt{(e^{2\alpha}-1)/\sigma^2}
+ }{
+ 1+\sqrt{(e^{2\alpha}-1)/\sigma^2}
+ }.
+}
 $$
 
-@bertrand_closed-form_2025 focuses on the memorization paradox, the fact that in that context with the empirical distribution @eq-empirical-distribution, if the learning procedure outputs the marginal vector field, we recovers exactly the $n$ datapoints and not random samples from $p_{\text{data}}$.
+This is the supply-exceeds-demand comparison of the opening paragraph, now with both directions established: above the threshold the posterior concentrates on the planted training point, and below it no decoder can identify that point.
 
-In their study, they study the relation between the marginal velocity field available in closed form, the conditional velocity field and the empirical velocity field learned by a neural network. We focus on this aspect of their work.
+## Numerical value for the CIFAR-10 proxy
 
-They have 2 main observations:
+**Calibration.** The numerical values below use the standard CIFAR-10 normalization often used in Flow Matching experiments:
 
-1. As the dimension grows, the marginal velocity field is rapidly correlated (even when t is very small) to the conditional velocity field.
-2. The neural network has difficulties to learn the marginal velocity field for $t$ close to 0.1 and close to 1.
-
-We will expand on these observations in the next sections. The objective of this blog post is to provide some orders of magnitude of the softmax weights of the marginal velocity field, in particular in high dimension for CIFAR-10.
-
-![The histograms of the cosine similarities between $u_t((1 − t)x_0 + tx_1)$ and $u_t((1 − t)x_0 + tx_1  \mid x_1) = x_1 − x_0$ are displayed for various time values $t$ and two datasets: 2-moons and CIFAR-10. [@bertrand_closed-form_2025, figure 1]](figures/article-fig-1.png){#fig-article-fig-1 fig-alt="Histograms of the cosine similarities between $u_t((1 − t)x_0 + tx_1)$ and $u_t((1 − t)x_0 + tx_1 \mid x_1) = x_1 − x_0$ for various time values $t$ and two datasets: 2-moons and CIFAR-10."}
-
-![Proportion of samples $x_t$ for which the cosine similarity between $u_t(x_t)$ and $u_t(x_t \mid x_1)$ exceeds 0.9, as a function of time $t$. This analysis is performed across multiple spatial resolutions of the Imagenette dataset, obtaining $d \times d$ images by spatial subsampling. [@bertrand_closed-form_2025, figure 2]](figures/article-fig-2.png){#fig-article-fig-2 fig-alt="Proportion of samples $x_t$ for which the cosine similarity between $u_t(x_t)$ and $u_t(x_t \mid x_1)$ exceeds 0.9, as a function of time $t$. This analysis is performed across multiple spatial resolutions of the Imagenette dataset, obtaining $d \times d$ images by spatial subsampling."}
-
-![Failure to learn the marginal velocity field on CIFAR-10: the leftmost figure represents the average error between the marginal empirical velocity field $u_t$ and the learned velocity $u^\theta_t$ for multiple values of time $t$. All the quantities are computed/learned on a varying number of training samples ($10$ to $10^4$) of the CIFAR-10 dataset. We are not interested in the other figures in this blog post. [@bertrand_closed-form_2025, figure 3]](figures/article-fig-3.png){#fig-article-fig-3 fig-alt="Failure to learn the marginal velocity field on CIFAR-10: the leftmost figure represents the average error between the marginal empirical velocity field $u_t$ and the learned velocity $u^\theta_t$ for multiple values of time $t$. All the quantities are computed/learned on a varying number of training samples ($10$ to $10^4$) of the CIFAR-10 dataset. We are not interested in the other figures in this blog post."}
-
-# CIFAR-10 Preprocessing and Statistics {#sec-cifar-10-preprocessing-and-statistics}
-
-We use standard CIFAR-10 preprocessing following the [conditional-flow-matching](https://github.com/atong01/conditional-flow-matching) repository:
-
-``` python
+```python
 dataset = datasets.CIFAR10(
     root="./data",
     train=True,
@@ -176,822 +765,317 @@ dataset = datasets.CIFAR10(
 )
 ```
 
-With `ToTensor()` (pixels in $[0,1]$) followed by normalization:
+The transformation maps pixel values $p\in[0,1]$ to
 
 $$
-x = \frac{\text{pixel} - 0.5}{0.5} = 2 \cdot \text{pixel} - 1 \in [-1, 1]
+x=\frac{p-0.5}{0.5}=2p-1\in[-1,1].
 $$
 
-Each coordinate is bounded and roughly centered near 0. In high dimension, the vector behaves like a collection of weakly dependent coordinates.
-
-**Key Parameters**
-
-| Parameter  | Value                          | Description                |
-|------------|--------------------------------|----------------------------|
-| $d$        | $3 \times 32 \times 32 = 3072$ | Dimension                  |
-| $\sigma^2$ | $\approx 0.24$                 | Per-coordinate variance    |
-| $n$        | $50{,}000$                     | Number of training samples |
-
-
-A [commonly cited computation](https://github.com/kuangliu/pytorch-cifar/issues/19) over the CIFAR-10 training set gives:
-
--   mean $\approx (0.4914, 0.4822, 0.4465)$
--   std $\approx (0.247, 0.243, 0.261)$
-
-(Those are for pixel values in $[0,1]$, i.e., after `ToTensor()`.)
-
-With normalization by Torchvision, the variance transforms as $y = \frac{x - \mu}{\sigma}$ with $\mu=0.5$ and $\sigma=0.5$, so:
+CIFAR-10 images have dimension $d=3\times 32\times 32=3072$, and the training set has $n=50{,}000$ images. The usual CIFAR-10 channel standard deviations in $[0,1]$ scale are approximately
 
 $$
-\mathrm{Var}(y) = \frac{\mathrm{Var}(x)}{\sigma^2} = \frac{\mathrm{Var}(x)}{0.25} = 4 \mathrm{Var}(x).
-$$
-
-Using the CIFAR-10 channel stds above:
-
--   $\mathrm{Var}(x_R) \approx 0.247^2 \approx 0.0610 \Rightarrow \mathrm{Var}(y_R)\approx 4\cdot 0.0610 \approx 0.244$
--   $\mathrm{Var}(x_G) \approx 0.243^2 \approx 0.0590 \Rightarrow \mathrm{Var}(y_G)\approx 0.236$
--   $\mathrm{Var}(x_B) \approx 0.261^2 \approx 0.0681 \Rightarrow \mathrm{Var}(y_B)\approx 0.273$
-
-These are all of the same order, and for simplicity we use a representative value
-$$
-\sigma^2 \approx 0.24
-$$
-
-for the per-coordinate variance of the normalized dataset.
-
-## Remark: Channel Statistics vs. Pixel Statistics
-
-It is natural to ask how **channel-wise statistics** (mean and variance computed over all pixels in a given channel) relate to **per-pixel statistics** (mean and variance at a fixed spatial location).
-
-Fix a channel (say, red) and let $X_{u,v}$ denote the intensity at pixel location $(u,v)$ for a random CIFAR-10 image. Let $(U,V)$ be a pixel location drawn uniformly at random from the grid, independently of the image, and define the “global random pixel”
-$$
-Y := X_{U,V}.
-$$
-
-By the law of total variance,
-$$
-\mathrm{Var}(Y)= \mathbb{E}_{U,V}\bigl[\mathrm{Var}(X_{u,v})\bigr] + \mathrm{Var}_{U,V}\bigl(\mathbb{E}[X_{u,v}]\bigr).
-$$
-
-Interpreting the terms:
-
-* $\mathbb{E}_{U,V}[\mathrm{Var}(X_{u,v})]$ is the **average per-pixel variance** (variance across images, averaged over spatial locations).
-* $\mathrm{Var}(Y)$ is the **global channel variance** when pooling all pixels in that channel.
-* The nonnegative term $\mathrm{Var}_{U,V}(\mathbb{E}[X_{u,v}])$ measures how much the **mean image** varies across spatial location.
-
-Therefore,
-$$
-\mathbb{E_{U,V}}\bigl[\mathrm{Var}(X_{u,v})\bigr] \le \mathrm{Var}(Y),
-$$
-and the gap is exactly the “variance of the per-pixel means.”
-
-On CIFAR-10, this spatial variation term is present (e.g., backgrounds vs. object centers) but is not typically huge compared to the intrinsic per-pixel variability. Hence:
-
-* channel-level variances (like the CIFAR-10 stds above) and
-* average per-pixel variances
-
-are of the **same order of magnitude**, with the global (pooled) variance usually slightly larger.
-
-## Gaussian Toy Model and Its Limitations {#sec-gaussian-toy-model}
-
-In the theoretical analysis below, we **idealize** the dataset as consisting of i.i.d. Gaussian vectors:
-$$
-x_1, \dots, x_n \in \mathbb{R}^d,
+0.247,
 \qquad
-x_i \sim \mathcal{N}(0, \sigma^2 I_d),
+0.243,
+\qquad
+0.261.
 $$
-with
-$$
-d = 3072,
-\quad
-n = 50{,}000,
-\quad
-\sigma^2 \approx 0.24.
-$$
-
-This model should be understood as a **toy approximation**: it preserves only very coarse statistics (dimension, scale of per-coordinate variance, approximate centering) and treats coordinates as independent and identically distributed.
-
-Of course, real CIFAR-10 images are far from i.i.d. Gaussian vectors. The true covariance has a highly nontrivial structure, as illustrated by the empirical eigenvalue spectrum of the covariance matrix @fig-eigenvalues-cifar10.
-
-![The eigenvalues of the covariance matrix of the CIFAR-10 dataset.](figures/eigenvalues-cifar10.png){#fig-eigenvalues-cifar10 fig-alt="The eigenvalues of the covariance matrix of the CIFAR-10 dataset."}
-
-The pronounced decay and variability of eigenvalues in @fig-eigenvalues-cifar10 reflect strong dependencies across pixels and channels (e.g., spatial correlation, global color structure, object/background patterns). The i.i.d. Gaussian model thus serves only as a **simplified reference**, not as a realistic generative model for CIFAR-10.
-
-# Marginal Velocity Field Collapse: A Statistical Physics Perspective {#sec-marginal-velocity-field-collapse-a-statistical-physics-perspective}
-
-This section provides a rigorous analysis of the collapse phenomenon in the marginal velocity field using tools from statistical physics, specifically the Random Energy Model (REM) and Large Deviation Principles (LDP).
-
-## Gibbs Measure and Energy Formulation
-
-### The Marginal Velocity Field as a Gibbs Measure
-
-The marginal velocity field in Flow Matching is given by:
-$$
-u_t(x) = \sum_{i=1}^n \lambda_i(x,t) \frac{x^{(i)} - x}{1-t}
-$$
-
-where the weights $\lambda_i(x,t)$ take the form:
-$$
-\lambda_i(x,t) = \frac{\exp\left(-\frac{\|x - tx^{(i)}\|^2}{2(1-t)^2}\right)}{\sum_{j=1}^n \exp\left(-\frac{\|x - tx^{(j)}\|^2}{2(1-t)^2}\right)}.
-$$
-
-This is precisely a **Boltzmann distribution** at inverse temperature $\beta = 1$ over "states" $i \in \{1, \dots, n\}$ with energy:
-$$
-E_i(x,t) = \frac{\|x - tx^{(i)}\|^2}{2(1-t)^2}.
-$$
-
-The denominator defines the **partition function**:
-$$
-Z(x,t) = \sum_{j=1}^n e^{-E_j(x,t)}.
-$$
-
-### Assumptions on the Data
-
-From @sec-gaussian-toy-model, we consider a **Gaussian proxy** for the training data:
-$$
-x^{(i)} \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma^2 I_d), \quad i = 1, \dots, n.
-$$
-
-This approximation captures the essential high-dimensional geometry while enabling analytical tractability. For CIFAR-10 after standard normalization, $\sigma^2 \approx 0.24$ provides a reasonable proxy.
-
-### The "Planted" Trajectory
-
-Consider a trajectory starting from noise and targeting a specific training image:
-$$
-x_t = (1-t)x_0 + tx_1, \quad x_0 \sim \mathcal{N}(0, I_d), \quad x_1 = x^{(1)}.
-$$
-
-We call $i = 1$ the **special (planted) index**. For this index:
-$$
-x_t - tx^{(1)} = (1-t)x_0
-$$
-
-which gives the **planted energy**:
-$$
-E_1(x_t, t) = \frac{\|(1-t)x_0\|^2}{2(1-t)^2} = \frac{\|x_0\|^2}{2}.
-$$
-
-By the law of large numbers for chi-squared random variables:
-$$
-\frac{E_1}{d} \xrightarrow{d \to \infty} \frac{1}{2} \quad \text{almost surely.}
-$$
-
-Hence the planted contribution to the partition function is:
-$$
-Z_1 = e^{-E_1} \approx e^{-d/2}.
-$$
-
-### The "Bulk" (REM-like) Energies
-
-For $j \neq 1$, we have:
-$$
-x_t - tx^{(j)} = (1-t)x_0 + t(x_1 - x^{(j)}).
-$$
-
-Under the Gaussian proxy, $x_1 - x^{(j)} \sim \mathcal{N}(0, 2\sigma^2 I_d)$ (independent of $x_0$). Therefore:
-$$
-x_t - tx^{(j)} \sim \mathcal{N}\left(0, s^2(t) I_d\right), \quad s^2(t) := (1-t)^2 + 2\sigma^2 t^2.
-$$
-
-The bulk energies become:
-$$
-E_j(x_t, t) = \frac{\|x_t - tx^{(j)}\|^2}{2(1-t)^2} \approx \frac{s^2(t)}{2(1-t)^2} \cdot \chi_d^2.
-$$
-
-Define the **time-dependent energy scale**:
-$$
-c(t) = \frac{s^2(t)}{2(1-t)^2} = \frac{1}{2}\left(1 + \frac{2\sigma^2 t^2}{(1-t)^2}\right).
-$$
-
-**Key observation:** The bulk energies are approximately i.i.d. across $j \geq 2$, each extensive (order $d$). This is the classic setup where **Random Energy Model (REM)** tools apply.
-
-We define the partition function associated with the bulk states as:
-$$
-Z_{\text{bulk}}(x,t) := \sum_{j=2}^n e^{-E_j(x,t)}.
-$$
-
-Following the statistical-physics convention, we call the normalized log of the bulk partition function the (quenched) **bulk free-energy density** at inverse temperature $\beta = 1$:
-$$
-\Phi(1) := \lim_{d \to \infty} \frac{1}{d} \log Z_{\text{bulk}}(x_t,t),
-$$
-
-whenever the limit exists. When we want to keep the time dependence explicit we will also write $\Phi(1,t)$.
-
-## Collapsed vs Uncollapsed States (Glass vs Liquid)
-
-### Definition of Collapse
-
-The central question is whether the partition function $Z(x_t, t)$ is dominated by:
-
-- **One special term** (the planted state), or
-- **Exponentially many comparable terms** (the bulk).
-
-This leads to two phases:
-
-| Phase | Statistical Physics | Flow Matching | Behavior |
-|-------|---------------------|---------------|----------|
-| **Collapsed** | Glass / Condensed | Memorization | $\lambda_1 \approx 1$ |
-| **Uncollapsed** | Liquid | Generalization | Mass spread over many $j$'s |
-
-### Glass Phase (Collapsed / Memorization)
-
-In the collapsed phase, $Z \approx Z_1 = e^{-E_1}$, meaning $\lambda_1 \approx 1$.
-
-The marginal velocity field then reduces to:
-$$
-u_t(x_t) \approx \frac{x^{(1)} - x_t}{1-t} = \frac{x_1 - x_t}{1-t} = x_1 - x_0.
-$$
-
-This is precisely the **conditional velocity field**. The marginal flow aligns perfectly with the teacher trajectory, leading to memorization of training data.
-
-### Liquid Phase (Uncollapsed / Generalization)
-
-In the liquid phase, $Z \approx Z_{\text{bulk}} = \sum_{j=2}^n e^{-E_j}$, with mass distributed across many states.
-
-The velocity field is a genuine mixture of directions toward different training points, enabling interpolation and generalization.
-
-### The Phase Transition
-
-The transition between phases depends on:
-
-- **Energy advantage** of the planted state (order $d$)
-- **Entropy** from having $n$ competitors (order $\log n$)
-
-The competition is controlled by the **dimensionless ratio**:
-$$
-\alpha = \frac{\log n}{d}.
-$$
-
-For typical datasets (e.g., CIFAR-10 with $d = 3072$, $n = 50{,}000$):
-$$
-\alpha = \frac{\log(50{,}000)}{3072} \approx 0.0035 \ll 1.
-$$
-
-This tiny $\alpha$ means the entropy budget is negligible compared to extensive energy gaps, placing the system deep in the collapsed regime for most values of $t$.
-
-## Simple Heuristic Analysis
-
-### Typical Energy Gap
-
-Compare a typical bulk energy to the planted energy. The **typical energy gap** is:
-$$
-E_j - E_1 \approx \frac{d}{2}\left(\frac{s^2(t)}{(1-t)^2} - 1\right) = \frac{d}{2} \cdot \frac{2\sigma^2 t^2}{(1-t)^2} = \frac{d \sigma^2 t^2}{(1-t)^2}.
-$$
-
-Therefore, the log-weight ratio is:
-$$
-\log \frac{\lambda_j}{\lambda_1} \approx -(E_j - E_1) \approx -\frac{d \sigma^2 t^2}{(1-t)^2}.
-$$
-
-This shows **exponential-in-$d$ suppression** of bulk weights relative to the planted weight.
-
-### Crude Annealed Entropy Estimate
-
-A naive estimate of the bulk partition function uses the **annealed approximation**:
-$$
-Z_{\text{bulk}} \approx (n-1) \cdot \mathbb{E}[e^{-E_j}].
-$$
-
-However, this is often wrong because $e^{-E_j}$ has exponentially broad fluctuations. The sum is dominated by **rare low-energy states**, not typical ones. This is precisely where REM physics becomes essential.
-
-### Energy vs Entropy Competition
-
-The competition can be summarized as:
-
-- **Planted contribution:** $Z_1 \sim e^{-d/2}$
-- **Bulk contribution (naive):** $Z_{\text{bulk}} \sim n \cdot e^{-d \cdot c(t)} = e^{\alpha d - d \cdot c(t)}$
-
-For the planted state to dominate, we need the energy advantage to exceed the entropy:
-$$
-\frac{d \sigma^2 t^2}{(1-t)^2} \gg \log n.
-$$
-
-Rearranging, collapse holds whenever:
-$$
-\frac{t}{1-t} \gg \sqrt{\frac{\log n}{d \sigma^2}}.
-$$
-
-For CIFAR-like numbers, the right-hand side is tiny ($\approx 0.12$), so collapse can occur at small $t$.
-
-### Simple Collapse Time Estimate
-
-Setting the two sides equal gives a heuristic collapse time:
-$$
-t_C^{\text{heuristic}} \approx \frac{\sqrt{\alpha/\sigma^2}}{1 + \sqrt{\alpha/\sigma^2}}.
-$$
-
-For CIFAR-10 ($\alpha \approx 0.0035$, $\sigma^2 \approx 0.24$):
-$$
-t_C^{\text{heuristic}} \approx 0.11.
-$$
-
-**Caveat:** This estimate compares typical bulk energy to planted energy. A rigorous analysis must consider the **best** competitor among $n-1$ states, not a typical one. This requires REM/LDP tools.
-
-## Rigorous REM/LDP Derivation
-
-### Large Deviation Principles: Foundations
-
-#### Why LDP?
-
-The Law of Large Numbers tells us *where* random variables concentrate, but not *how unlikely* deviations are. Large Deviation Theory provides **exponential decay rates** for rare events.
-
-#### Definition
-
-A sequence of random variables $X_d$ satisfies a **Large Deviation Principle (LDP)** with rate function $I(x)$ if:
-$$
-\mathbb{P}(X_d \approx x) \asymp e^{-d \, I(x)}
-$$
-
-where:
-
-- $d$ is the large parameter (dimension)
-- $I(x) \geq 0$ with $I(x) = 0$ at the typical value
-- Larger $I(x)$ means exponentially rarer events
 
-#### Cramér's Theorem
+After the normalization $x\mapsto 2x-1$, variances are multiplied by $4$, giving channel variances roughly
 
-For i.i.d. random variables $X_1, \dots, X_d$ with finite moment generating function, the empirical average $S_d = \frac{1}{d}\sum_{k=1}^d X_k$ satisfies an LDP:
 $$
-\mathbb{P}(S_d \approx x) \asymp e^{-d \, I(x)}
+0.244,
+\qquad
+0.236,
+\qquad
+0.273.
 $$
 
-where the **rate function** is the Legendre transform of the log-MGF:
-$$
-I(x) = \sup_{\lambda \in \mathbb{R}} \left( \lambda x - \log \mathbb{E}[e^{\lambda X_1}] \right).
-$$
-
-### LDP for Chi-Squared (Energy Density)
-
-#### Deriving the Rate Function
-
-Let $Z_k \sim \mathcal{N}(0,1)$ i.i.d., so $\chi_d^2 = \sum_{k=1}^d Z_k^2$. Define:
-$$
-Y_d = \frac{\chi_d^2}{d} = \frac{1}{d}\sum_{k=1}^d Z_k^2.
-$$
-
-For $X = Z^2$, the log-MGF is:
-$$
-\log \mathbb{E}[e^{\lambda Z^2}] = -\frac{1}{2}\log(1 - 2\lambda), \quad \lambda < \frac{1}{2}.
-$$
-
-Applying Cramér's theorem and computing the Legendre transform:
-$$
-I_\chi(y) = \sup_{\lambda < 1/2}\left(\lambda y + \frac{1}{2}\log(1 - 2\lambda)\right) = \frac{1}{2}(y - 1 - \log y), \quad y > 0.
-$$
-
-**Key properties:**
-
-- Minimum at $y = 1$ with $I_\chi(1) = 0$ (typical value)
-- Convex and non-negative
-- Deviations are exponentially unlikely in $d$
-
-#### Energy Density LDP
+As a simple isotropic proxy, we use
 
-For bulk energies with $E = c(t) \cdot \chi_d^2$, the energy density $e = E/d = c \cdot Y_d$ satisfies:
 $$
-\mathbb{P}(e \approx \varepsilon) \asymp e^{-d \, I(\varepsilon)}
+\sigma^2\approx 0.24.
 $$
 
-where:
-$$
-\boxed{I(\varepsilon) = \frac{1}{2}\left(\frac{\varepsilon}{c} - 1 - \log\frac{\varepsilon}{c}\right)}
-$$
-
-This is the **rigorous backbone** for all REM arguments.
-
-### Bulk Free Energy via Laplace Principle
+This model is deliberately crude. Real CIFAR-10 images are bounded, structured, and highly non-Gaussian, and their covariance is far from isotropic. The isotropic calculation should be read as a first-order scale prediction, not as an exact model of images; @sec-general-covariance gives the natural covariance-corrected formula.
 
-#### Complexity (Entropy of States)
+**Evaluation.** With $d=3072$, $n=50{,}000$ and $\sigma^2\approx 0.24$, the training index costs
 
-With $n = e^{\alpha d}$ bulk energies, the expected **number of states** with energy density near $\varepsilon$ is:
 $$
-\#(\varepsilon) \approx n \cdot \mathbb{P}(e \approx \varepsilon) \approx \exp\{d(\alpha - I(\varepsilon))\}.
+\alpha
+=
+\frac{\log(50{,}000)}{3072}
+\approx 0.003522
 $$
-
-The quantity:
-$$
-\Sigma(\varepsilon) = \alpha - I(\varepsilon)
-$$
-
-is the **complexity** (entropy density of states at energy $\varepsilon$).
 
-#### Laplace Principle
+nats per coordinate. Solving $\mathcal I_{\mathrm{iso}}(r_C)=\alpha$ gives
 
-The bulk partition function is approximately:
 $$
-Z_{\text{bulk}} = \sum_{j=2}^n e^{-E_j} \approx \int d\varepsilon \, \exp\{d(\Sigma(\varepsilon) - \varepsilon)\}.
+r_C
+=
+\sqrt{\frac{e^{2\alpha}-1}{0.24}}
+\approx 0.1716,
 $$
-
-Using the LDP for the bulk energies, the bulk free-energy density $\Phi(1)$ defined above can be computed via a Laplace (saddle-point) principle:
-$$
-\boxed{\Phi(1) = \sup_{\varepsilon > 0}\left[\alpha - I(\varepsilon) - \varepsilon\right]}
-$$
-
-### Glass vs Liquid Phase Transition
-
-#### The Variational Problem
-
-Define $F(\varepsilon) = \alpha - I(\varepsilon) - \varepsilon$. The maximizer determines the phase.
-
-#### Liquid Phase (Interior Solution)
-
-If the maximizer is interior, it satisfies $F'(\varepsilon) = 0$, i.e., $I'(\varepsilon) = -1$.
 
-Computing:
-$$
-I'(\varepsilon) = \frac{1}{2}\left(\frac{1}{c} - \frac{1}{\varepsilon}\right) = -1
-$$
+and therefore
 
-yields the **liquid saddle point**:
 $$
-\boxed{\varepsilon_* = \frac{c}{1 + 2c}}
+\boxed{
+ t_C=\frac{r_C}{1+r_C}\approx 0.146.
+}
 $$
 
-This solution is valid only if there are exponentially many states there: $\Sigma(\varepsilon_*) = \alpha - I(\varepsilon_*) \geq 0$.
+This is the asymptotic point where the exponent changes sign. In finite dimension, one may prefer to define collapse by a target planted mass, for example $\lambda_\star\geq 0.9$ or $\lambda_\star\geq 0.99$. A useful finite-$d$ approximation is
 
-#### Glass Phase (Boundary Solution)
-
-If $\alpha - I(\varepsilon_*) < 0$, there are too few states at the liquid saddle. The supremum hits the boundary where complexity vanishes:
 $$
-I(\varepsilon_g) = \alpha
+\lambda_\star(t)
+\approx
+\frac{1}{1+\exp\{d(\alpha-\mathcal I_{\mathrm{iso}}(r))\}},
+\qquad
+r=\frac{t}{1-t}.
 $$
-
-The partition sum is then dominated by the **lowest-energy extremes**: this is the glass/condensed phase.
 
-#### Freezing Threshold
+Using this approximation with the CIFAR-10 proxy gives:
 
-The critical entropy level separating phases is:
-$$
-\boxed{\alpha_c(c) = I(\varepsilon_*) = \frac{1}{2}\left(\log(1 + 2c) - \frac{2c}{1 + 2c}\right)}
-$$
+| Criterion | Approximate time |
+|---|---:|
+| exponent changes sign, $\lambda_\star\approx 1/2$ | $0.146$ |
+| $\lambda_\star\approx 0.9$ | $0.158$ |
+| $\lambda_\star\approx 0.99$ | $0.170$ |
+| $\lambda_\star\approx 0.999$ | $0.180$ |
 
-**Phase diagram:**
+The transition is sharp because $d=3072$ is large.
 
-- **Liquid phase:** $\alpha \geq \alpha_c(c)$, maximizer at $\varepsilon_*$, free energy $\Phi(1) = \alpha - I(\varepsilon_*) - \varepsilon_*$
-- **Glass phase:** $\alpha < \alpha_c(c)$, maximizer at $\varepsilon_g$ with $I(\varepsilon_g) = \alpha$, free energy $\Phi(1) = -\varepsilon_g$
+::: {.callout-note collapse="true"}
+## Why the finite-dimensional sigmoid appears
 
-### Collapse Criterion from Free Energy
+The sigmoid comes from the same two estimates used in @sec-random-coding-union-bound, read as approximations rather than as one-sided bounds.
 
-#### Full Partition Function
-
-The complete partition function is:
-$$
-Z = e^{-E_1} + Z_{\text{bulk}}, \quad \lambda_1 = \frac{e^{-E_1}}{Z}.
-$$
+Recall the likelihood ratios $L_i(Y)=p(Y\mid x^{(i)})/p_Y(Y)$ and the decomposition
 
-Since $E_1/d \to 1/2$, we have:
 $$
-\frac{1}{d}\log\frac{Z_{\text{bulk}}}{e^{-E_1}} \to \Phi(1) + \frac{1}{2}.
+\lambda_\star
+=
+\frac{L_\star}{L_\star+W},
+\qquad
+W=\sum_{j\neq \star}L_j(Y).
 $$
 
-#### Collapse Condition
+The planted term satisfies $\frac1d\log L_\star\to\mathcal I_{\mathrm{iso}}(r)$, so it sits at the exponential scale $e^{d\mathcal I_{\mathrm{iso}}(r)}$. Each wrong term has $\mathbb E[L_j\mid Y]=1$, so the wrong mass sits at the scale $n=e^{\alpha d}$. Replacing both by their typical exponential scale,
 
 $$
-\boxed{\lambda_1 \to 1 \iff \Phi(1) < -\frac{1}{2}}
+\lambda_\star
+\approx
+\frac{e^{d\mathcal I_{\mathrm{iso}}(r)}}
+{e^{d\mathcal I_{\mathrm{iso}}(r)}+e^{\alpha d}}
+=
+\frac1{1+e^{d(\alpha-\mathcal I_{\mathrm{iso}}(r))}},
 $$
 
-More precisely, for large $d$:
-$$
-\lambda_1 \approx \frac{1}{1 + \exp\{d(\Phi(1) + 1/2)\}}.
-$$
+whose exponent changes sign exactly at $\mathcal I_{\mathrm{iso}}(r)=\alpha$, recovering the threshold.
 
-#### Glass Phase Collapse Criterion
+This is a heuristic sharpening, not a theorem. The rigorous argument bounds $W/L_\star$ from one side only, which yields $\lambda_\star\to1$ above the threshold but not the exact sigmoid profile at finite $d$; the fluctuations of $\log L_\star$ and of $W$ around their typical scales are $O(\sqrt d)$ and are what smooth the transition in practice. The table above should be read in that spirit.
+:::
 
-In the glass phase, $\Phi(1) = -\varepsilon_g$, so collapse requires:
-$$
-\boxed{-\varepsilon_g < -\frac{1}{2} \iff \varepsilon_g > \frac{1}{2}}
-$$
+# General Covariance Gaussian Proxy {#sec-general-covariance}
 
-where $\varepsilon_g$ is defined implicitly by $I(\varepsilon_g) = \alpha$.
+The isotropic proxy is mathematically transparent, but real image data is strongly anisotropic.
 
-**Interpretation:** Collapse occurs when even the *best* spurious competitor (with energy density $\varepsilon_g$) has higher energy than the planted state (energy density $1/2$).
+![Eigenvalues of the empirical covariance matrix of CIFAR-10 after standard normalization. The spectrum is highly anisotropic, with a small number of large directions and many low-variance directions.](figures/eigenvalues-cifar10.png){#fig-eigenvalues-cifar10 fig-alt="Eigenvalue spectrum of the CIFAR-10 covariance matrix."}
 
-#### Liquid Phase Collapse Criterion
+The covariance spectrum in @fig-eigenvalues-cifar10 shows that CIFAR-10 is not close to an i.i.d. Gaussian cloud. The natural Gaussian refinement is
 
-In the liquid phase, collapse requires:
 $$
-\alpha - I(\varepsilon_*) - \varepsilon_* < -\frac{1}{2}.
+x^{(i)}\sim\mathcal N(0,C),
 $$
-
-This gives an explicit inequality in $c$ and $\alpha$.
-
-### Explicit Collapse Time
-
-#### Collapse Time Equation
 
-The collapse time $t_C$ is defined by $\varepsilon_g(t_C) = 1/2$. Setting $\varepsilon_g = 1/2$ in $I(\varepsilon_g) = \alpha$:
-$$
-\alpha = I(1/2) = \frac{1}{2}\left(\frac{1/2}{c} - 1 - \log\frac{1/2}{c}\right) = \frac{1}{2}\left(\frac{1}{2c} - 1 + \log(2c)\right).
-$$
+where $C$ is the empirical covariance matrix of the normalized data. The planted channel is
 
-This gives the **REM-rigorous collapse boundary**:
 $$
-\boxed{\alpha = \frac{1}{2}\left(\log(2c(t_C)) + \frac{1}{2c(t_C)} - 1\right)}
+Y=rX_\star+Z,
+\qquad
+X_\star\sim\mathcal N(0,C),
+\qquad
+Z\sim\mathcal N(0,I_d).
 $$
-
-with $c(t) = \frac{1}{2}\left(1 + \frac{2\sigma^2 t^2}{(1-t)^2}\right)$.
-
-#### CIFAR-10 Proxy Calculation
 
-For CIFAR-10: $d = 3072$, $n = 50{,}000$, $\sigma^2 = 0.24$.
+The mutual information of this Gaussian channel is
 
-Compute:
 $$
-\alpha = \frac{\log(50{,}000)}{3072} \approx 0.003522.
+I_C(r)
+=
+\frac12\log\det(I_d+r^2C).
 $$
-
-Solving the collapse equation yields:
-$$
-\boxed{t_C \approx 0.341}
-$$
-
-with corresponding $c(t_C) \approx 0.5644$.
 
-**Interpretation:** Under the i.i.d. Gaussian proxy + REM idealization, for $t \lesssim 0.34$, the planted datapoint is no longer guaranteed to dominate because among $n$ training points, one can typically find at least one spurious point whose energy matches or beats the planted energy. For $t \gtrsim 0.34$, collapse occurs and the planted state dominates.
+Per coordinate, define
 
-#### Why CIFAR is Always in the Glass Phase
-
-For CIFAR-like $\alpha \ll 1$, we have $\alpha \ll \alpha_c(c(t))$ for all $t \in [0,1)$. The system is **always in the glass phase**, meaning that the bulk partition function is dominated by a few extreme low-energy states.
-
-### Summary of Key Equations
-
-#### Bulk Energy LDP
-$$
-\mathbb{P}\left(\frac{E}{d} \approx \varepsilon\right) \asymp e^{-d \, I(\varepsilon)}, \quad I(\varepsilon) = \frac{1}{2}\left(\frac{\varepsilon}{c} - 1 - \log\frac{\varepsilon}{c}\right)
 $$
-
-#### Bulk Quenched Free Energy
-$$
-\Phi(1) = \sup_{\varepsilon > 0}\left[\alpha - I(\varepsilon) - \varepsilon\right], \quad \alpha = \frac{\log n}{d}
+\mathcal I_C(r)
+=
+\frac1d I_C(r)
+=
+\frac1{2d}\log\det(I_d+r^2C).
 $$
 
-#### Glass vs Liquid Threshold
-$$
-\alpha_c(c) = \frac{1}{2}\left(\log(1 + 2c) - \frac{2c}{1 + 2c}\right)
-$$
+If $\mu_1,\dots,\mu_d$ are the eigenvalues of $C$, then
 
-#### Collapse Criterion
 $$
-\lambda_1 \to 1 \iff \Phi(1) < -\frac{1}{2}
+\mathcal I_C(r)
+=
+\frac1{2d}\sum_{k=1}^d\log(1+r^2\mu_k).
 $$
 
-In the glass phase ($\alpha < \alpha_c$):
-$$
-\lambda_1 \to 1 \iff \varepsilon_g > \frac{1}{2}, \quad I(\varepsilon_g) = \alpha
-$$
+The covariance-corrected collapse threshold is therefore
 
-#### Collapse Time (Glass Phase)
 $$
-\alpha = \frac{1}{2}\left(\log(2c(t_C)) + \frac{1}{2c(t_C)} - 1\right)
+\boxed{
+\log n
+=
+\frac12\log\det(I_d+r_C^2C),
+\qquad
+ t_C=\frac{r_C}{1+r_C}.
+}
 $$
-
-## Extension to Non-Isotropic Covariance
-
-### Motivation
-
-The isotropic Gaussian proxy $x^{(i)} \sim \mathcal{N}(0, \sigma^2 I_d)$ is convenient but unrealistic. Real image datasets have structured covariance with varying eigenvalues (some directions have high variance, others low). The REM/LDP framework extends naturally to non-isotropic covariance. The structure of the theory remains identical — only the **rate function** $I(\varepsilon)$ changes.
 
-### Setup: General Covariance Model
+Equivalently, in per-coordinate form,
 
-Assume training images follow:
 $$
-x^{(i)} \sim \mathcal{N}(0, C), \quad i = 1, \dots, n
+\frac{\log n}{d}
+=
+\frac1{2d}\sum_{k=1}^d\log(1+r_C^2\mu_k).
 $$
 
-where $C$ is a $d \times d$ positive definite covariance matrix with eigendecomposition:
-$$
-C = U \text{diag}(\mu_1, \dots, \mu_d) U^\top.
-$$
+This formula is often the most useful one in practice: it uses the empirical covariance spectrum directly.
 
-### Deriving the Effective Covariance
-
-Recall the bulk energy for $j \geq 2$:
-$$
-E_j = \frac{\|x_t - tx^{(j)}\|^2}{2(1-t)^2}, \quad x_t = (1-t)x_0 + tx_1.
-$$
+**Interpretation.** The isotropic model replaces all eigenvalues by their average value $\sigma^2$. The general covariance formula instead sums the contribution of each principal direction:
 
-**Step 1: Decompose the displacement**
 $$
-x_t - tx^{(j)} = (1-t)x_0 + t(x_1 - x^{(j)}).
+\frac12\log(1+r^2\mu_k).
 $$
-
-**Step 2: Identify the distributions**
 
-- $x_0 \sim \mathcal{N}(0, I_d)$ (noise)
-- $x_1 - x^{(j)} \sim \mathcal{N}(0, 2C)$ (difference of two i.i.d. samples from $\mathcal{N}(0, C)$)
+Large-variance directions become informative early. Low-variance directions contribute later. Because $\log(1+r^2\mu)$ is concave in $\mu$, the full spectrum matters; the mean variance alone is not enough to determine the threshold.
 
-**Step 3: Compute the covariance of $x_t - tx^{(j)}$**
+Given the spiked CIFAR-10 spectrum of @fig-eigenvalues-cifar10, a covariance-aware numerical study should therefore compute
 
-Since $x_0$ and $(x_1 - x^{(j)})$ are independent:
 $$
-\text{Cov}(x_t - tx^{(j)}) = (1-t)^2 I_d + 2t^2 C =: \Sigma_t.
+t\mapsto
+\frac1{2d}\sum_{k=1}^d
+\log\left(1+\left(\frac{t}{1-t}\right)^2\mu_k\right)
 $$
 
-**Step 4: Define the effective covariance for the energy**
-
-The energy involves $\|x_t - tx^{(j)}\|^2 / (2(1-t)^2)$. Let $g \sim \mathcal{N}(0, I_d)$ be a standard Gaussian vector. Then:
-$$
-x_t - tx^{(j)} \stackrel{d}{=} \Sigma_t^{1/2} g
-$$
-and the energy becomes:
-$$
-E_j = \frac{g^\top \Sigma_t g}{2(1-t)^2} = \frac{1}{2} g^\top C_t g
-$$
-where the **effective covariance** is:
-$$
-C_t = \frac{\Sigma_t}{(1-t)^2} = I_d + \frac{2t^2}{(1-t)^2} C.
-$$
+and overlay the horizontal line $\alpha=\log n/d$. The crossing gives the covariance-corrected Gaussian prediction.
 
-### Eigenvalues of the Effective Covariance
+{{< embed notebooks/_cifar10_posterior_diagnostics.ipynb echo=false >}}
 
-If $C$ has eigenvalues $\{\mu_k\}_{k=1}^d$, then $C_t$ has eigenvalues:
-$$
-\lambda_k^{(t)} = 1 + \frac{2t^2}{(1-t)^2} \mu_k, \quad k = 1, \dots, d.
-$$
+# Consequences for Learning the Velocity Field {#sec-error-analysis}
 
-The bulk energy density is:
-$$
-\frac{E_j}{d} = \frac{1}{2d} \sum_{k=1}^d \lambda_k^{(t)} Z_k^2
-$$
-where $Z_k \sim \mathcal{N}(0,1)$ are i.i.d. (the components of $g$ in the eigenbasis of $C_t$).
+The threshold $t_C$ predicts a single event: the moment the posterior concentrates. Yet the measured error profile in @fig-article-fig-3 is non-monotone, with *two* difficult regions separated by an easy one. The posterior concentration picture resolves this apparent tension by splitting a typical trajectory into four regimes -- and, crucially, the two hard regions turn out to have unrelated causes. Only the first is governed by $\log n/d$; the second is a geometric artifact of the empirical field near $t=1$.
 
-**Recovery of isotropic case:** When $C = \sigma^2 I_d$, all $\mu_k = \sigma^2$, so:
-$$
-\lambda_k^{(t)} = 1 + \frac{2\sigma^2 t^2}{(1-t)^2} = 2c(t)
-$$
-which matches our earlier formula (the factor of 2 accounts for the $1/2$ in $E_j = \frac{1}{2}g^\top C_t g$).
+## Regime 1: $t\approx 0$ -- nearly linear and easy
 
-### LDP for Weighted Chi-Squared: Gärtner-Ellis Theorem
+At $t=0$ the interpolant is pure noise, $X_t=Z$, and the weights are uniform (@sec-closed-form-empirical-marginal-velocity), so the marginal velocity collapses to an affine field:
 
-In the general covariance case, the energy density is a weighted sum of chi-squared variables:
 $$
-\frac{E_j}{d} = \frac{1}{2d}\sum_{k=1}^d \lambda_k^{(t)} Z_k^2,
+u_0(x)
+=
+\bar x-x
+\approx
+-x,
+\qquad
+\bar x=\frac1n\sum_{i=1}^n x^{(i)},
 $$
-
-a sum of independent but **non-identically distributed** terms (the weights $\lambda_k^{(t)}$ vary with $k$). To obtain an LDP in this heterogeneous setting, we use the **Gärtner–Ellis theorem**, which handles such triangular arrays via the limit of the log-moment generating function.
 
-**Step 1: Compute the scaled cumulant generating function**
+the last step assuming approximately centered data. A near-linear target is trivial for a network, which is why the error is small near $t=0$.
 
-For a single term $\lambda Z^2$ with $Z \sim \mathcal{N}(0,1)$:
-$$
-\mathbb{E}[e^{\theta \lambda Z^2}] = \frac{1}{\sqrt{1 - 2\theta\lambda}}, \quad \theta < \frac{1}{2\lambda}.
-$$
-Thus:
-$$
-\log \mathbb{E}[e^{\theta \lambda Z^2}] = -\frac{1}{2}\log(1 - 2\theta\lambda).
-$$
+## Regime 2: $t\approx t_C$ -- posterior transition and peak difficulty
 
-**Step 2: Sum over all eigenvalues**
+As $t$ increases the rescaled observation $y=z+\tfrac{t}{1-t}x_\star$ begins to reveal the planted image, and the difficult regime is precisely the transition window
 
-The scaled log-MGF for the energy density $e = E_j/d$ is:
 $$
-\Lambda_t(\theta) = \lim_{d \to \infty} \frac{1}{d} \log \mathbb{E}\left[e^{d\theta \cdot \frac{1}{2d}\sum_k \lambda_k^{(t)} Z_k^2}\right] = \lim_{d \to \infty} \frac{1}{d} \sum_{k=1}^d \left(-\frac{1}{2}\log\left(1 - \theta\lambda_k^{(t)}\right)\right).
+\frac12\log\left(1+\sigma^2\left(\frac{t}{1-t}\right)^2\right)
+\approx
+\frac{\log n}{d}.
 $$
 
-This limit exists if the **empirical spectral distribution** of $C_t$ converges:
-$$
-\Lambda_t(\theta) = \int \left(-\frac{1}{2}\log(1 - \theta\lambda)\right) d\nu_t(\lambda)
-$$
-where $\nu_t$ is the limiting spectral measure of $\{\lambda_k^{(t)}\}$.
+Here the posterior is neither uniform nor concentrated: several training points carry comparable weight, and the identity of the dominant one can flip rapidly with small changes in $x_t$. The marginal velocity is then a delicate, fast-varying weighted average
 
-**Step 3: Legendre transform gives the rate function**
-
-By the Gärtner-Ellis theorem:
 $$
-\boxed{I_t(\varepsilon) = \sup_{\theta < 1/\lambda_{\max}^{(t)}} \left(\theta\varepsilon - \Lambda_t(\theta)\right)}
+u_t(x_t)
+=
+\sum_{i=1}^n
+\lambda_i(x_t,t)\frac{x^{(i)}-x_t}{1-t},
 $$
-
-This is the **drop-in replacement** for the isotropic rate function.
-
-### The Full Pipeline with General Covariance
 
-The REM framework carries through unchanged:
+harder to approximate than either the affine field before it or the near-conditional field after it. This is the first peak in @fig-article-fig-3, and the posterior concentration picture places it exactly where the information-rate threshold predicts.
 
-1. **Bulk free energy:**
-$$
-\Phi(1,t) = \sup_{\varepsilon > 0}\left[\alpha - I_t(\varepsilon) - \varepsilon\right]
-$$
+## Regime 3: $t>t_C$ -- concentration and alignment
 
-2. **Collapse criterion:**
-$$
-\lambda_1 \to 1 \iff \Phi(1,t) < -\frac{1}{2}
-$$
+Past the threshold the posterior concentrates on the planted point, $\lambda_\star(t)\to 1$ (@sec-random-coding-union-bound), so along typical trajectories the marginal field reduces to the conditional one:
 
-3. **Planted weight approximation:**
 $$
-\lambda_1(t) \approx \frac{1}{1 + \exp\{d(\Phi(1,t) + 1/2)\}}
+u_t(x_t)
+\approx
+\frac{x_\star-x_t}{1-t}
+=
+x_\star-z
+=
+u_t(x_t\mid x_\star).
 $$
-
-Only $I_t(\varepsilon)$ changes — the rest of the theory is identical.
-
-# Error Analysis: Training Difficulties Across Time {#sec-error-analysis-training-difficulties-across-time}
-
-As observed in @fig-article-fig-3, the learned velocity field $u^\theta_t$ exhibits a characteristic error profile when approximating the marginal velocity field $u_t$: low error near $t = 0$, a peak around $t \approx 0.1$, a decrease for intermediate $t$, and a final spike near $t = 1$. This section tries to explain these four regimes.
-
-## Training Error Trajectory: Four Regimes
 
-### Regime 1: $t \approx 0$ — Trivial Learning Phase
+The network is once again learning a simple, near-conditional target rather than a mixture over many training points, and the error falls.
 
-For small $t$, the interpolant is dominated by noise: $X_t = (1-t)X_0 + tX_1 \approx X_0$. The marginal velocity field at $X_t$ is:
-$$
-u_t(X_t) = \frac{\mathbb{E}[X_1 \mid X_t] - X_t}{1-t}.
-$$
-
-When $t \approx 0$, the interpolant $X_t \approx X_0$ carries almost no information about $X_1$. Under the empirical distribution, the posterior mean satisfies:
-$$
-\mathbb{E}[X_1 \mid X_t] \approx \bar{x} \approx 0
-$$
+## Regime 4: $t\uparrow 1$ -- nearest-neighbor discontinuities
 
-where $\bar{x}$ is the mean of the training data (approximately zero after normalization).
+The second rise near $t=1$ has nothing to do with the posterior threshold. For an *arbitrary* input $x$, as $t\uparrow 1$ the softmax temperature $(1-t)^2$ tends to zero and the weights harden into a nearest-neighbor assignment,
 
-Therefore, the optimal velocity field simplifies to:
 $$
-u_t(X_t) \approx \frac{0 - X_t}{1-t} \approx \frac{-X_t}{1} = -X_t.
+\lambda_i(x,t)
+\to
+\mathbf 1\left\{i=\arg\min_j\|x-x^{(j)}\|\right\},
 $$
-
-This is essentially a **negation map**: the neural network only needs to learn $u^\theta_t(x) \approx -x$, which is trivial.
-
-### Regime 2: $t \approx t_C$ — Peak Difficulty (Collapse Transition)
-
-The error peaks around $t \approx 0.1$--$0.2$, which corresponds to the approach toward the **collapse transition** at $t_C$.
 
-In this regime, the posterior $p(X_1 \mid X_t)$ is **neither uniform nor concentrated**:
+so the empirical field approaches a piecewise-affine nearest-neighbor decoder
 
-- The interpolant $X_t$ now contains some information about $X_1$, so the posterior is no longer uniform over training points.
-- But collapse has not yet occurred, so multiple training points still have significant posterior weight.
-
-This creates several sources of difficulty:
-
-1. **Complex posterior structure:** The neural network must learn to predict $\mathbb{E}[X_1 \mid X_t]$, which is a weighted average over multiple training points. The weights $\lambda_i(X_t, t)$ vary rapidly with $X_t$.
-
-2. **Signal-to-noise transition:** The interpolant $X_t = (1-t)X_0 + tX_1$ is transitioning from noise-dominated to signal-dominated. The network must extract $X_1$ from $X_t$, but $X_t$ is still far from $X_1$.
-
-3. **Sharp phase transition:** The REM analysis shows that the energy gaps scale as:
 $$
-E_j - E_1 \approx \frac{d \sigma^2 t^2}{(1-t)^2}.
+u_t(x)
+\approx
+\frac{x^{(i^*(x))}-x}{1-t},
+\qquad
+ i^*(x)=\arg\min_j\|x-x^{(j)}\|,
 $$
 
-Near $t_C$, the system transitions from having exponentially many competing states to a single dominant state. This transition is sharp in high dimensions, creating rapid variation in the velocity field as a function of both $x$ and $t$.
+with jump discontinuities across Voronoi cell boundaries that the prefactor $1/(1-t)$ amplifies without bound.
 
-4. **High sensitivity:** Near the transition, the map $x \mapsto \arg\max_i \lambda_i(x,t)$ is extremely sensitive to perturbations. Small changes in $X_t$ can cause different training points to dominate the posterior.
+This ambient-space singularity must not be confused with the behavior along a planted trajectory. Along $x_t=(1-t)z+t x_\star$ the conditional velocity stays
 
-### Regime 3: $t > t_C$ — Decreasing Error (Concentration)
-
-After the collapse transition ($t > t_C$), the error **decreases**. The posterior concentrates on the planted index with $\lambda_1(X_t, t) \approx 1$.
-
-In this regime:
 $$
-u_t(X_t) \approx \frac{x^{(1)} - X_t}{1-t} = \frac{X_1 - X_t}{1-t} = X_1 - X_0.
+\frac{x_\star-x_t}{1-t}=x_\star-z,
 $$
 
-The marginal velocity field becomes essentially equal to the **conditional velocity field**. The neural network's task simplifies: given $X_t$, it must predict $X_1 - X_0$, but now $X_t$ strongly determines which $X_1$ generated it.
+which is $O(\sqrt d)$, not divergent. The late-time difficulty is therefore about approximating the empirical field as a function of $x$ near Voronoi boundaries -- a geometry-driven mechanism, unrelated to the information-theoretic transition of Regimes 2--3. The two hard regions of @fig-article-fig-3 thus have two separate explanations, and only the first is set by $\log n/d$.
 
-The learning problem has two favorable properties:
+# Conclusion {#sec-conclusion}
 
-1. **Low posterior uncertainty:** With $\lambda_1 \approx 1$, there is little ambiguity about which training point generated $X_t$.
+The empirical Gaussian-OT marginal velocity field in Flow Matching has a closed form involving a softmax over training examples. In high dimension, this softmax can concentrate very early along the interpolation path.
 
-2. **Increasing signal:** As $t$ grows, $X_t$ becomes closer to $X_1$, making it easier to infer the target direction $X_1 - X_0$.
+The central message of this post is that the phenomenon is not mysterious: after the change of variables $r=t/(1-t)$, $y=x/(1-t)$, the softmax weights are exactly posterior probabilities in a Gaussian observation model. Along a trajectory planted at a training example, the interpolant is a noisy observation of that example, and collapse occurs when the observation contains enough information to identify the planted point among $n$ candidates. In the isotropic Gaussian proxy this gives the explicit threshold
 
-Geometrically, the velocity field becomes piecewise-affine: within each Voronoi cell (determined by proximity to training points), the network must approximate
 $$
-\frac{x^{(i)} - x}{1-t},
+\frac{\log n}{d}
+=
+\frac12\log\left(1+\sigma^2\left(\frac{t_C}{1-t_C}\right)^2\right),
 $$
-
-where $i$ indexes the training point whose cell contains $x$. Although the coefficient $1/(1-t)$ grows as $t$ increases, the key simplification is that the posterior has collapsed—the network no longer faces the challenge of averaging over multiple competing directions.
-
-### Regime 4: $t \to 1$ — Final Blow-Up
 
-Near $t = 1$, the error spikes again due to **Voronoi discontinuities**.
+predicting $t_C\approx 0.146$ for CIFAR-10-scale parameters, while the same argument yields the covariance-aware threshold
 
-#### Voronoi Discontinuities (Nearest-Neighbor Regime)
-
-As $t \to 1$, the softmax temperature $(1-t)^2 \to 0$ drives the weights toward a **one-hot distribution**:
-$$
-\lambda_i(x,t) \xrightarrow{t \to 1} \mathbf{1}\left[i = \arg\min_j \|x - x^{(j)}\|\right].
-$$
-
-The marginal velocity field approaches:
 $$
-u_t(x) \approx \frac{x^{(i^*)} - x}{1-t}, \quad \text{where } i^* = \arg\min_j \|x - x^{(j)}\|.
+\log n
+=
+\frac12\log\det\left(I_d+\left(\frac{t_C}{1-t_C}\right)^2C\right),
 $$
-
-This is a **piecewise-affine vector field** that switches abruptly across **Voronoi cell boundaries** in $\mathbb{R}^d$. Such discontinuous fields are notoriously difficult to approximate with smooth neural networks, explaining the error spike near $t \approx 1$.
-
-## Summary: Error Profile Across Time
-
-| Regime | Time | Error | Explanation |
-|--------|------|-------|-------------|
-| 1 | $t \approx 0$ | Low | Posterior mean $\approx 0$; target is $\approx -X_0$ (trivial) |
-| 2 | $t \approx t_C$ | **Peak** | Complex posterior; phase transition; high sensitivity |
-| 3 | $t > t_C$ | Decreasing | Posterior concentrates; clear signal; simpler target structure |
-| 4 | $t \to 1$ | **Spike** | Voronoi discontinuities; $1/(1-t)$ blow-up |
-
-{{< embed notebooks/_cifar10_numerical_analysis.ipynb echo=false >}}
-
-# Conclusion
 
-Flow matching with Gaussian-OT admits a closed-form expression for the marginal velocity field: a softmax over the training examples. In high dimensions, this softmax typically **collapses** early, assigning nearly all weight to a single training point. As a result, the flow effectively implements a nearest-neighbor mapping and tends to memorize the dataset.
+which is the natural way to incorporate the empirical covariance spectrum. This perspective also clarifies the training error profile observed empirically: the field is simple near $t=0$, difficult near the posterior transition, easier again once trajectories are decoded, and difficult near $t=1$ because the empirical field approaches a nearest-neighbor Voronoi field.
 
-By representing CIFAR-10 data with a Gaussian proxy and leveraging techniques from the REM and LDP frameworks, we model the softmax weights as a Gibbs distribution and analyze the competition between the true (planted) data point and all others. This leads to an explicit, high-dimensional prediction of the **collapse time** ($t_C$), which is found to be surprisingly small for realistically sized CIFAR-10 data.
+The analysis is deliberately simplified, and several limitations are worth restating. CIFAR-10 is not Gaussian: images are bounded in $[-1,1]^d$ after normalization and have strong higher-order structure, so a Gaussian proxy captures only a coarse scale and covariance structure. Even the covariance-corrected log-determinant formula remains a Gaussian approximation, since the empirical covariance does not fully describe the data distribution. Posterior concentration is moreover a property of the exact empirical marginal field, whereas neural network training introduces additional approximation, optimization, and finite-sample effects. Finally, velocity alignment and posterior collapse are related but distinct: a high cosine similarity can occur before the posterior is exactly one-hot, and a one-hot posterior can select the wrong neighbor before planted recovery is reliable.
 
-This analysis clarifies the characteristic error profile: neural networks struggle most at intermediate $t$ (near the collapse transition), and again as $t \to 1$ (where the velocity field develops Voronoi-type discontinuities), but not at small $t$. Softmax collapse thus emerges as a fundamental, high-dimensional property of the Gaussian-OT path—rather than merely an artifact of optimization—and should be deliberately considered in the design and training of flow-matching models.
+Despite these caveats, softmax collapse is best understood as a high-dimensional posterior concentration phenomenon, governed by the scale $\log n/d$. It is a structural property of the empirical Gaussian-OT path, not merely an artifact of optimization.
