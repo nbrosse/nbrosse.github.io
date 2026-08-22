@@ -1,92 +1,47 @@
 ---
-title: "PDF RAG: Enhanced PDF Processing"
+title: "PDF RAG: recovering document structure and querying a corpus"
 author: "Nicolas Brosse"
 date: "2025-03-20"
+date-modified: "2026-08-22"
 categories: [deep learning, LLM, RAG]
-description: "PDF RAG: Exploring techniques for processing PDF documents with Language Models, including raw conversion, reformatting, structure parsing and RAG."
+lightbox: true
+description: "Page-by-page parsing destroys the structure a reader relies on. This post rebuilds it for PDFs with a vision language model, extracts metadata and a document tree, and then queries a corpus of reports and slide decks with a two-level ReAct agent."
 notebook-links: true
 notebook-view:
   - notebook: notebooks/_query_multi_pdfs_example.ipynb
-    title: "ReActAgent: Querying Multiple PDFs Example"
+    title: "ReAct agent: querying multiple PDFs"
     url: https://github.com/nbrosse/pdf-rag/blob/main/notebooks/query_multi_pdfs_example.ipynb
 citation:
   url: https://nbrosse.github.io/posts/pdf-rag/pdf-rag.html
 ---
 
-In this blog post, we focus on RAG (Retrieval-Augmented Generation) specifically for PDF documents. We will study how PDFs can be processed for use with Language Models (LLMs). The code relies on [llama-index](https://docs.llamaindex.ai/en/stable/) package which is versatile but evolving rapidly and unstable.
+A PDF is parsed page by page, and that is where the trouble starts. Someone opening a two-hundred-page report looks at the table of contents first, forms a picture of how the document is organised, and only then jumps to the section that matters. A page-by-page parser never builds that picture. It returns a sequence of local views whose heading levels reflect the font sizes that happened to appear on each page rather than the hierarchy of the document, and the usual remedy — chunk the text, embed the chunks, retrieve by similarity — searches those fragments without ever knowing where they sit in the whole. The difficulty is that a machine has to be given, explicitly and at some cost, the overview a human gets for free from a contents page.
 
-PDFs are ubiquitous in businesses and throughout the human world. What's remarkable is the sheer diversity of PDF types we encounter. These range from reports of just a few pages to documents spanning hundreds of pages, generally including a table of contents. We also frequently deal with slide decks, or presentations, which are common in corporate settings. These can vary from just a few slides to dozens or even hundreds, often with their own unique tables of contents and organizational structures.
+The code accompanying this post attacks that gap in two stages. @sec-metadata-structure converts PDFs to Markdown with a vision language model, reformats the result to restore a usable heading hierarchy, extracts metadata and a table of contents, and parses all of it into a document tree. @sec-pdf-rag then builds a question-answering system over the same corpus: one ReAct agent per document, and a top-level agent that routes questions to them. The two stages are, for now, independent. The tree index of @sec-tree-index is an unfinished draft that cannot be queried, so the retrieval side falls back on ordinary vector search.
 
-It's fascinating to consider how differently humans and computers process this information. Humans, when facing lengthy documents, generally tend to look at the table of contents and assess the document's overall structure to identify areas of interest.
+Everything is built on [llama-index](https://docs.llamaindex.ai/en/stable/), which is versatile but moves fast and breaks often; the code is a snapshot of an API that has since changed.
 
-However, machines, especially with page-by-page parsing, often lose the document's overall structure. One way to address this is to use embeddings and chunking, attempting to find similarities through embeddings or semantic similarity to identify potentially relevant chunks of information.
+Some resources for this post:
 
-This highlights the core challenge of the method: the need to process data differently as a human than as a machine, particularly to gain a holistic view of the problem.
+-   [pdf-rag GitHub repo](https://github.com/nbrosse/pdf-rag): the complete code for the metadata extraction and the RAG system described here
+-   [HF space demo for PDF metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo): an interactive view of the extracted metadata and structure
+-   [llama-index](https://docs.llamaindex.ai/en/stable/): the framework used throughout
 
-In @sec-metadata-structure, we delve into PDF metadata and structure extraction. We explore the challenges and limitations of raw conversion and the necessity of reformatting to improve document structure. We also discuss the parsing of document structure to create a hierarchical index for efficient document retrieval.
-In @sec-pdf-rag, we implement a multi-document PDF RAG system based on LlamaIndex, focusing on query-based document retrieval and generation.
+All paths below are relative to the [pdf-rag repo](https://github.com/nbrosse/pdf-rag). The running corpus is the six PDFs shipped with it: three portrait reports of 2, 17 and 32 pages, and three landscape decks of 15, 17 and 62 slides.
 
-Some important resources for this blog post include:
+# PDF metadata and structure extraction {#sec-metadata-structure}
 
--   [pdf-rag GitHub Repo](https://github.com/nbrosse/pdf-rag): Contains the complete code for the PDF metadata extraction and RAG system described in this post
--   [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo): Interactive demo showcasing the metadata and structure extraction capabilities
--   [llama-index](https://docs.llamaindex.ai/en/stable/): Framework used for building the LLM application (note: actively evolving package with frequent updates)
+Four steps run in sequence, orchestrated by the ingestion pipeline of @sec-ingestion-pipeline. The PDF is converted to Markdown by a vision language model (@sec-pdf-markdown); that raw Markdown is reformatted to restore a coherent heading hierarchy (@sec-pdf-reformatting); metadata is extracted from the reformatted text — author, date, language, table of contents (@sec-pdf-metadata); and the result is parsed into a tree that can be traversed (@sec-parsing-structure).
 
-All code paths referenced in this post are relative to the [pdf-rag GitHub Repo](https://github.com/nbrosse/pdf-rag).
+## From PDF to Markdown {#sec-pdf-markdown}
 
-# PDF Metadata and Structure Extraction {#sec-metadata-structure}
+The companion post [PDF Parsing for LLM Input](https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html) compares the available conversion methods. For RAG the choice here is a vision language model: more expensive than text extraction, but it describes figures and reads tables, and unlike a hosted service such as [LlamaParse](https://docs.cloud.llamaindex.ai/llamaparse/getting_started) it leaves the model, the provider and the prompt under your control.
 
-The process of extracting textual content from PDF documents involves several key steps. 
-First, we convert PDF to markdown format as detailed in @sec-pdf-markdown. 
-Then, we apply reformatting techniques to improve the document structure in @sec-pdf-reformatting. 
-Metadata extraction in @sec-pdf-metadata focuses on capturing valuable information like author, date, and language. 
-Finally, we parse the document structure to create a hierarchical index for efficient document retrieval in @sec-parsing-structure.
-The overall execution of these steps is managed by the ingestion pipeline detailed in @sec-ingestion-pipeline.
-This systematic approach aims to create a more coherent and structured representation of the document content, through raw conversion, reformatting, and structural parsing.
+`VLMPDFReader` (`src/pdf_rag/readers.py`) implements it. Each page is split off into a one-page PDF with `pypdf` and sent as raw PDF bytes to Gemini 2.0 Flash along with the transcription prompt below. Pages are transcribed concurrently, four at a time by default, and the results are joined with `--- end page N` markers; those markers are the only trace of pagination that survives into the Markdown, and most of what follows depends on them. The transcription is written to `<cache_dir>/<relative_path>.md`, so re-running the pipeline over a corpus already processed costs nothing.
 
-## PDF to Markdown Conversion {#sec-pdf-markdown}
+Two details in the reader matter downstream. The first is the format flag: the reader compares the width and the height of the first page's media box and labels the document `landscape` or `portrait`. That single bit decides how the document will be reformatted, how its table of contents will be built, and how it will eventually be parsed into a tree. The second is the fallback to Mistral, which exists because of a specific Gemini failure mode.
 
-For PDF to Markdown conversion, we refer to the related blog post [PDF parsing for LLM Input](https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html) which describes different methods to parse PDFs for LLM input.
-
-For RAG applications with PDFs, we'll focus on using Vision Language Models (VLMs) for PDF-to-Markdown conversion. As discussed in the related blog post [PDF parsing for LLM Input](https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html), VLMs offer a straightforward and effective solution. While the approach is more expensive than basic text extraction, it provides valuable capabilities like image description integration. Similar to [LlamaParse](https://docs.cloud.llamaindex.ai/llamaparse/getting_started) but with more flexibility, our implementation allows:
-
--   Full control over model selection
--   Choice of different API providers
--   End-to-end process management
-
-The code implements a `VLMPDFReader` class (in `src/pdf_rag/readers.py`) that uses Vision Language Models (VLMs) to convert PDF documents to markdown format. Here's how it works.
-
-**Key Features**
-
--   Uses both Gemini and Mistral models for processing.
--   Supports both single PDFs and batch processing.
--   Includes a caching mechanism to avoid reprocessing.
--   Handles API rate limiting and retries.
--   Processes PDFs page by page with parallel execution.
-
-**Architecture**
-
-The conversion process follows these steps:
-
-1.  **Initialization**
-    -   Sets up API clients for Gemini and Mistral.
-    -   Validates API keys and cache directory.
-    -   Loads conversion template.
-2.  **PDF Processing**
-    -   Loads PDF file using `PdfReader`.
-    -   Processes each page individually.
-    -   Converts PDF pages to images for VLM processing.
-3.  **VLM Processing Pipeline**
-    -   First attempts conversion with Gemini.
-    -   Falls back to Mistral if Gemini returns "RECITATION".
-    -   Uses a template to guide the conversion.
-4.  **Output Generation**
-    -   Combines processed pages.
-    -   Adds page markers for reference.
-    -   Caches results to avoid reprocessing.
-    -   Returns document with metadata.
-
-**Usage Example**
+When Gemini ends a response with the finish reason `RECITATION`, it has detected that what it was generating reproduces its training data too closely — a guard against emitting copyrighted material verbatim. Faithful transcription of a published report is, by construction, exactly that, so the error fires unpredictably and truncates the page mid-stream. On that finish reason the reader renders the page to a PNG and sends it to `pixtral-large-latest` instead, whose transcription replaces Gemini's; any other unexpected finish reason raises. Server errors from either API are retried by `tenacity`, ten attempts spaced five seconds apart.
 
 ``` python
 reader = VLMPDFReader(
@@ -102,19 +57,7 @@ doc = reader.load_data("path/to/document.pdf")
 docs = reader.load_data(["doc1.pdf", "doc2.pdf"])
 ```
 
-Why do we use Gemini and Mistral models ?
-
-**The "RECITATION" Error in Gemini API**
-
-The RECITATION error in the Gemini API occurs when the model detects that it is generating content that closely resembles its training data, particularly copyrighted material. This error is designed to prevent the model from reproducing protected content verbatim. The issue arises unpredictably and can halt content generation mid-stream, leading to incomplete responses.
-
-In this case of failure, we fall back to the Mistral model to parse the problematic pdf page.
-
-Overall, the RECITATION error is a significant challenge for developers using the Gemini API, highlighting the tension between content safety and usability
-
-`VLMPDFReader` is designed to be robust and efficient, with built-in caching and parallel processing capabilities to handle large documents or multiple files efficiently.
-
-Here is the associated template prompt for the VLM.
+Here is the transcription prompt sent with every page.
 
 <details>
 <summary>Click to view template</summary>
@@ -172,28 +115,11 @@ Your primary goal is to create an accurate, complete, and well-structured Markdo
 </pre>
 </details>
 
-An example of raw conversion is shown in @fig-pdf-raw-conversion.
+@fig-pdf-raw-conversion shows what comes back.
 
-![Raw conversion from PDF to Markdown using VLM](figures/md_raw_conversion.png){#fig-pdf-raw-conversion fig-alt="Raw conversion from PDF to Markdown using VLM"}
+![Raw conversion from PDF to Markdown using a VLM](figures/md_raw_conversion.png){#fig-pdf-raw-conversion fig-alt="Raw conversion from PDF to Markdown using VLM"}
 
-We also have a `PDFDirectoryReader` class (in `src/pdf_rag/readers.py`) to provide batch processing capabilities for PDF files within a directory structure. It acts as a wrapper around the `VLMPDFReader`, adding directory handling and metadata extraction features.
-
-**Key Features**
-
--   Directory-based Processing: Handles both single PDF files and directories containing multiple PDFs
--   Metadata Extraction: Automatically extracts and includes file metadata like:
-    -   Creation date
-    -   Last modified date
-    -   File size
-    -   File type
-    -   Relative path information
--   Configuration Management:
-    -   Validates directory paths and creates cache directories
-    -   Manages API keys for both Gemini and Mistral models
-    -   Supports environment variable configuration
--   Parallel Processing: Configurable number of workers for concurrent processing
-
-**Usage Example**
+`PDFDirectoryReader`, in the same module, wraps the reader for whole directories. It walks a root directory for PDFs, refuses inputs that fall outside it, and attaches file metadata to each document — path, name, type, size, creation and modification dates, path relative to the root, and the cache directory. The last two are not bookkeeping: later stages read them off the node to locate their own cache files.
 
 ``` python
 reader = PDFDirectoryReader(
@@ -213,33 +139,11 @@ docs = reader.load_data("documents/reports/")
 docs = await reader.aload_data("documents/reports/")
 ```
 
-**Difficulties and Drawbacks of Raw VLM Conversion**
+What the raw conversion does not give is structure. Every page is transcribed in isolation, so its heading levels are chosen from the appearance of that page alone, and the resulting Markdown hierarchy rarely matches the document's own. Headings land at the wrong depth, a running title becomes an `#` on every page it appears, and splitting the file on headings therefore produces sections that do not correspond to sections of the report.
 
-The raw conversion process has several limitations and drawbacks that can affect the quality and accuracy of the output. One of the main difficulties in PDF parsing is that it is generally done page by page, causing the loss of the overall document structure. We lose the appropriate headings that help retrieve the general structure of the document, and we end up with a very local and focused view. For example, when converting PDF to markdown, the heading structure specified by the markdown is generally incorrect - the headers and their levels don't correspond to what is expected.
+## Reformatting the Markdown {#sec-pdf-reformatting}
 
-## PDF Reformatting {#sec-pdf-reformatting}
-
-The loss of document structure during raw conversion necessitates reformatting to improve the overall document organization and coherence. Reformatting involves restructuring the content to ensure proper hierarchy, headings, and formatting. This step is crucial for enhancing readability and navigation within the document.
-In practice, we use a Large Language Model (LLM) to reprocess the document chunk by chunk, given that some documents can be very long. The aim is to provide a more comprehensive overview. We're using Gemini, which has a very large context, which makes this approach quite helpful. We are observing an improvement in the markdown formatting, particularly with better title identification. It's not always perfect, but there's a more effective segmentation based on titles and markdown, resulting in better adherence to the overall document structure compared to what we had before. This makes it easier to have a structure a bit more coherent when you cut through markdowns, especially in reports.
-
-The `ReformatMarkdownComponent` class (in `src/pdf_rag/transforms.py`) reformats markdown content using the Gemini API. Here's a detailed breakdown of its functionalities:
-
-1.  Configuration Options
-    -   `max_iters`: Maximum iterations for reformatting (default: 50)
-    -   `in_place`: Whether to modify nodes directly or create copies (default: True)
-    -   `num_workers`: Number of concurrent workers (default: 4)
-    -   `show_progress`: Display progress during processing (default: True)
-2.  Caching Mechanism
-    -   Stores reformatted content in `.reformatted.md` files
-    -   Avoids reprocessing previously reformatted content
-    -   Uses file path and cache directory from node metadata
-3.  Processing Pipeline
-    -   Handles individual nodes asynchronously
-    -   Uses Jinja2 templates for content reformatting
-    -   Supports both landscape and portrait formats
-    -   Accumulates reformatted content iteratively
-
-**Usage Example**
+`ReformatMarkdownComponent` (`src/pdf_rag/transforms.py`) sends the raw transcription back to Gemini, this time as an editing task: keep every word, fix the hierarchy. Despite the appearance of a chunked process, the document is never split. Each round re-sends the whole document together with everything reformatted so far and asks the model to carry on from there; the loop ends when the model emits `<end>` and gives up with a `RuntimeError` after `max_iters` rounds, fifty by default. The constraint being worked around is the output limit, not the context window, which is why a model with a large context makes this practical at all. As with the reader, the result is cached, in a `.reformatted.md` file beside the raw transcription, and the node is marked as reformatted so a second pass is a no-op.
 
 ``` python
 component = ReformatMarkdownComponent(
@@ -255,15 +159,19 @@ processed_nodes = component(nodes)
 processed_nodes = await component.acall(nodes)
 ```
 
-The component is designed to improve document structure through:
+Slides and reports need different handling here. A deck is already page-structured — each slide is a self-contained unit, and the `--- end page N` markers are what preserves that — whereas a report's structure lives in its nested headings, where page breaks are noise. The prompt therefore carries a conditional:
 
--   Heading Hierarchies: Ensures proper nesting and levels (H1 -\> H2 -\> H3)
--   Consistent Formatting: Standardizes markdown syntax, lists, and spacing
--   Content Preservation: Maintains original language, technical details, and metadata
--   Format Handling: Supports both portrait (reports) and landscape (presentations) layouts
--   Quality Checks: Validates completeness and structure accuracy
+```
+{% if landscape %}
+- Preserve `--- end page N` markers
+{% endif %}
+```
 
-Here is the associated template prompt for Gemini.
+Whether the markers actually survive is worth checking, since the table of contents extraction and the landscape parser both depend on them. Across the six cached documents, the three landscape decks come back with exactly one marker per page: 15, 17 and 62. The portrait documents, where the prompt says nothing about markers, are erratic. The 17-page datasheet keeps all seventeen, the two-page report loses both, and the 32-page open-data report comes back with 84 — the model produced markers that were never in its input. Portrait documents are parsed by heading rather than by page, so none of this breaks the pipeline, but it is a useful reminder of how loosely an instruction like "preserve all original content" is honoured.
+
+@fig-markdown-reformatted shows the effect on the heading structure, which is the point of the exercise.
+
+![Markdown reformatting using an LLM](figures/md_raw_reformatted_conversion.png){#fig-markdown-reformatted fig-alt="Markdown reformatting using LLM"}
 
 <details>
 <summary>Click to view template prompt for Gemini</summary>
@@ -289,7 +197,7 @@ Your task is to transform the document into a well-structured markdown document 
     - Keep all original links, references, and citations
     - Preserve all numerical data and specifications
     {% if landscape %}
-    - Preserve `---end page ...` markers
+    - Preserve `--- end page N` markers
     {% endif %}
 
 2. Document Structure:
@@ -333,59 +241,13 @@ End your response with &ltend>.
 </pre>
 </details>
 
-PDFs can be either portrait-formatted reports or landscape-formatted slides. In both cases, the PDF is processed page by page, resulting in the loss of the overall document structure. However, the processing approach needs to differ depending on whether we're dealing with slides or reports.
+## Metadata extraction {#sec-pdf-metadata}
 
-For slides (landscape format):
+With a reformatted document in hand, the next step is to pull out what describes it: author, date and language, a table of contents, a page-by-page listing for decks, and finally a structure string that the parsers of @sec-parsing-structure turn into a tree. The extractors live in `src/pdf_rag/extractors.py` and share `GeminiBaseExtractor`, which validates the API key, holds the model name (`gemini-2.0-flash`) and a temperature of 0.1, and runs the per-document jobs concurrently. Each extractor writes its result into the node's metadata, and each one branches on the portrait/landscape flag set by the reader.
 
-- Have a clear page-by-page structure 
-- Each slide is a discrete unit
-- Page markers are essential for maintaining structure
+### `ContextExtractor`
 
-For reports (portrait format):
-
-- Do not rely on page breaks
-- Have a clear heading hierarchy
-- Structure comes from nested headers
-
-Note that the template prompt has a conditional part based on format:
-
-```
-{% if landscape %}
-- Preserve `---end page ...` markers
-{% endif %}
-```
-
-An example of Markdown reformatting is shown in @fig-markdown-reformatted.
-
-![Markdown reformatting using LLM](figures/md_raw_reformatted_conversion.png){#fig-markdown-reformatted fig-alt="Markdown reformatting using LLM"}
-
-## PDF Metadata Extraction {#sec-pdf-metadata}
-
-Once we've converted and reformatted the PDF content into markdown format using Vision Language Models (VLMs), the next step is extracting valuable metadata from the documents. This section explores a series of specialized extractors built on the LlamaIndex framework, each designed to capture specific aspects of PDF documents:
-
--   Document context (author, date, language)
--   Table of contents (both extraction and creation)
--   Page structure (especially for presentations)
--   Document hierarchy and relationships
-
-These extractors work together to create a comprehensive metadata layer that enhances document searchability and understanding.
-
-All the extractors are defined in the file `src/pdf_rag/extractors.py`. Note that as experienced with reformatting markdown in @sec-pdf-reformatting, landscape-based vs portrait-based PDFs require different processing approaches. The extractors are designed to handle these differences effectively.
-
-The `GeminiBaseExtractor` serves as the foundation for all extractors, providing:
-
--   Gemini API integration with configurable temperature and model selection
--   API key validation and management
--   Abstract interface for extraction operations
--   Parallel processing capabilities
-
-### 1. `ContextExtractor`
-
-Extracts contextual information from documents:
-
--   Processes document content using a specialized template
--   Returns structured JSON with document context
--   Handles parallel processing of multiple nodes
+The first extractor asks for one JSON object describing the document: author, publication date, language as an ISO 639-1 code, document type, themes, entities, time periods, keywords and a summary. The response is pulled out of its JSON code fence and parsed; anything else raises. On the two-page Deloitte report it returns `Deloitte`, `2023-01-01`, `en`, `Report`, nine keywords ("systemic risk", "banking", "BaaS", "stablecoins", "API"…) and a two-sentence summary of the risks the report covers — all of it surfaced later by the Shiny app of @sec-ingestion-pipeline.
 
 <details>
 <summary>Click to view template prompt for Gemini</summary>
@@ -434,14 +296,9 @@ Answer in the language of the document.
 </pre>
 </details>
 
-### 2. `TableOfContentsExtractor`
+### `TableOfContentsExtractor`
 
-Extracts existing tables of contents from documents:
-
--   Focuses on the first 10 pages by default
--   Supports both portrait and landscape formats
--   Returns an empty string if no TOC is found
--   Uses a templated approach for extraction
+This one looks for a table of contents that already exists in the document. It truncates the text at the `--- end page N` marker for page `head_pages` (ten by default) and asks Gemini to return the contents page it finds there, or exactly `<none>`, which is normalised to an empty string. For a deck the prompt also asks which slide the table of contents was found on. The truncation inherits the marker fragility described above, so when the marker is absent it falls back to a line budget — `head_pages` times an assumed hundred lines per page — rather than silently sending the whole document.
 
 <details>
 <summary>Click to view template prompt for Gemini</summary>
@@ -471,18 +328,11 @@ Output format:
 </pre>
 </details>
 
-### 3. `TableOfContentsCreator`
+### `TableOfContentsCreator`
 
-Creates new tables of contents:
+When there is no contents page, one has to be built, and the two formats are handled by completely different mechanisms. For a portrait report no model is involved at all: a regular expression collects every Markdown heading with the line at which it occurs, producing entries such as `## Pushing through undercurrents [line 2]`, and prepends a root entry named after the file if the first heading is not at line 0. Headings inside fenced code blocks are skipped, and the extractor refuses to run on a document that has not been reformatted — the line numbers are only meaningful against the reformatted text. For a landscape deck, Gemini drafts a table of contents from the page markers and a second call re-emits it in a normalised form, rejecting duplicate titles and duplicate or non-ascending page numbers.
 
--   **Portrait Mode**:
-    -   Analyzes markdown headers
-    -   Includes line numbers for reference
-    -   Requires reformatted content
--   **Landscape Mode**:
-    -   Generates TOC using Gemini
-    -   Includes a validation step
-    -   Two-phase process: draft and check
+That second pass is a formatting check rather than a semantic one, and on real decks the draft is often too fine-grained to survive as a table of contents: on the 15-slide life sciences deck it returns fifteen entries, one per slide, each slide title promoted to a top-level section. What recovers the seven actual sections is the grouping step below.
 
 <details>
 <summary>Click to view draft template prompt for Gemini</summary>
@@ -547,14 +397,9 @@ Example valid output:
 </pre>
 </details>
 
-### 4. `LandscapePagesExtractor`
+### `LandscapePagesExtractor`
 
-Specialized for landscape (presentation) documents:
-
--   Requires an existing TOC (extracted or created)
--   Processes document content page by page
--   Uses template-based extraction
--   Returns structured page information
+For decks only — it returns an empty string for portrait documents — this extractor lists every page as `Page N : title`, using the table of contents (the extracted one if there is one, the created one otherwise) as a reference and carrying the previous title forward for slides that have none of their own. Without a table of contents it raises rather than guessing.
 
 <details>
 <summary>Click to view template prompt for Gemini</summary>
@@ -583,17 +428,9 @@ Page 4 : Key Findings
 </pre>
 </details>
 
-### 5. `StructureExtractor`
+### `StructureExtractor`
 
-Handles document structure analysis:
-
--   **Portrait Mode**:
-    -   Uses the created TOC for structure
-    -   Simple structure representation
--   **Landscape Mode**:
-    -   Combines TOC and page information
-    -   Creates a comprehensive structure
-    -   Requires both TOC and page metadata
+The last extractor produces the `structure` string that the parsers consume. For a portrait report it is a pure pass-through: the created table of contents, headings with line numbers, is already the structure, and no model is called. A genuine contents page extracted from the document is kept in the metadata but plays no part here, even when it exists. For a landscape deck, Gemini is asked to group the page listing under the table of contents sections, which is where the one-entry-per-slide draft collapses back into real sections.
 
 <details>
 <summary>Click to view template prompt for Gemini</summary>
@@ -634,7 +471,7 @@ Example:
 </pre>
 </details>
 
-**Usage Example**
+Every extractor is asynchronous and processes documents concurrently.
 
 ``` python
 # Initialize extractor
@@ -648,34 +485,13 @@ extractor = TableOfContentsExtractor(
 results = await extractor.aextract(nodes)
 ```
 
-Each extractor is designed to work asynchronously and handle batch processing efficiently, with built-in error handling and progress reporting.
+## Parsing the structure {#sec-parsing-structure}
 
-To visualize the metadata and structure of processed documents, you can:
+The extractors leave a `structure` string on every document. This section turns it into a tree and describes the index built on top of it.
 
-1. Run the ingestion pipeline using the script in `src/scripts/metadata_structure.py` (detailed in @sec-ingestion-pipeline)
+### From structure string to tree {#sec-parsing-structures-extracted-metadata}
 
-2. View the results in the Python Shiny app at `src/app/app-metadata.py`
-
-A live demo is available on the [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo).
-The visualization interface is shown in @fig-hf-demo-metadata.
-
-![HF space demo for metadata and structure extraction from PDF](figures/hf-demo-metadata.png){#fig-hf-demo-metadata fig-alt="HF space demo for metadata and structure extraction from PDF"}
-
-## Parsing Structure {#sec-parsing-structure}
-
-In this section, we focus on parsing the structure of extracted metadata to create a hierarchical index for efficient document retrieval. We distinguish between portrait (report) and landscape (presentation) structures and describe the benefits of each.
-
-### Parsing Structures from Extracted Metadata {#sec-parsing-structures-extracted-metadata}
-
-At the end of the extraction, we have two types of parsed structure. The portrait (report) structure and the landscape (presentation) structure. We will describe the differences between the two and their benefits.
-
-**Portrait (Report) Structure**
-
--   Hierarchical Headers: Uses markdown heading levels (#, ##, ###, ####) to represent document hierarchy
--   Line Numbers: Each heading includes line numbers `[line X]` for precise content location
--   Linear Flow: Follows a traditional document structure with nested sections
--   Content Focus: Emphasizes content hierarchy and relationships
--   Example Use Case: Technical reports, research papers, documentation
+The string comes in two shapes. A portrait report is a hierarchy of Markdown headings, each carrying the line at which it starts, which is what makes it possible to jump from a node back to the text it covers.
 
 ```{#lst-portrait-structure-ex .markdown lst-cap="Portrait structure example"}
 # Deloitte. [line 0]
@@ -688,13 +504,7 @@ At the end of the extraction, we have two types of parsed structure. The portrai
 ### Contacts [line 63]
 ```
 
-**Landscape (Presentation) Structure**
-
--   Page-Based Organization: Groups content by pages under main sections
--   Explicit Page Numbers: Each entry shows "Page X : Title" format
--   Flat Section Hierarchy: Uses mainly top-level headings (#) for major sections
--   Sequential Listing: Lists pages sequentially within each section
--   Example Use Case: Slide decks, presentations, visual-heavy documents
+A landscape deck is a flat list of sections, each followed by the pages that belong to it. The hierarchy is shallow — sections and pages, essentially — and the addressing is by page number rather than by line.
 
 ```{#lst-landscape-structure-ex .markdown lst-cap="Landscape structure example"}
 # Everest Group® Life Sciences Smart Manufacturing Services PEAK Matrix® Assessment 2023
@@ -727,44 +537,11 @@ At the end of the extraction, we have two types of parsed structure. The portrai
 - Page 15 : Everest Group®
 ```
 
-**Benefits**
+The trade-off between the two is a trade-off between the documents themselves. A report gives fine-grained access to nested sections and, through line numbers, to the exact span of text under a heading; a deck gives direct access to a slide, which is the unit a reader of a deck actually wants.
 
-1.  Document Navigation
-    -   Portrait: Quick access to specific content sections via line numbers
-    -   Landscape: Easy location of specific slides via page numbers
-2.  Content Retrieval
-    -   Portrait: Granular access to nested content hierarchies
-    -   Landscape: Efficient slide/page-based content lookup
-3.  Structure Preservation
-    -   Portrait: Maintains detailed document hierarchy and relationships
-    -   Landscape: Preserves presentation flow and slide organization
+`parse_portrait_structure` and `parse_landscape_structure` (`src/pdf_rag/structure_parsers.py`) turn either shape into a `TreeNode` tree, walking the lines with a stack of open sections and popping back whenever a heading of equal or higher level appears. Each node carries a number: a line number for reports, a page number for slides, and a negative number for the abstract nodes that represent section headings, with `-1` reserved for the document root.
 
-We then use distinct parsers to process these structures into formal tree representations. Here's a detailed description of both parsing functions.
-The function `parse_portrait_structure` (in `src/pdf_rag/structure_parsers.py`) parses the structure of portrait-formatted documents (like reports) and creates a tree representation.
-
--   Takes a `BaseNode` document as input
--   Creates a hierarchical tree structure based on document headers
--   Headers must follow format: `#{level} {title} [line {number}]`
--   Validates line numbers are in ascending order
--   Returns a `TreeNode` representing the document structure
-
-The function `parse_landscape_structure` (in `src/pdf_rag/structure_parsers.py`) parses the structure of landscape-formatted documents (like presentations) and creates a tree representation.
-
--   Takes a `BaseNode` document as input
--   Handles both section headers and page entries
--   Creates a hierarchical structure with page numbers
--   Tracks missing or duplicate pages
--   Creates an "Uncategorized" section for orphaned pages
-
-Both functions return a `TreeNode` object that can be traversed using breadth-first search (bfs) and supports standard tree operations like adding/removing children and setting parents.
-
-Here are the parsed structures for both document formats, shown in @lst-landscape-structure-parsed and @lst-portrait-structure-parsed, which correspond to the raw structures in @lst-landscape-structure-ex and @lst-portrait-structure-ex respectively.
-These visualizations are also available in the [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo).
-
-Indentation shows parent/child relationships For landscape-oriented content, Numbers in \[\] represent: 
-
-- Positive numbers: page numbers 
-- Negative numbers: abstract nodes grouping related sections
+The two parsers differ in how much they distrust their input. The portrait parser asserts that the first heading sits at line 0 and that line numbers never decrease — a cheap check that the created table of contents is consistent with the text it was derived from. The landscape parser has more to guard against, because its input was written by a model rather than by a regular expression: a page listed twice is skipped with a warning, a page number beyond the document's page count is skipped as well, and any page the model never mentioned is collected under an `Uncategorized` node so that no slide silently disappears from the tree.
 
 ```{#lst-landscape-structure-parsed lst-cap="Landscape structure parsed"}         
 life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023 [-1]
@@ -792,10 +569,7 @@ life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023 [-1]
     Everest Group® [15]
 ```
 
-For portrait-oriented content, Numbers in \[\] represent: 
-
-- Positive numbers: line numbers 
-- Negative numbers: abstract nodes grouping related sections
+Indentation shows the parent/child relationships. For a deck, positive numbers are page numbers and negative numbers are the abstract nodes grouping related sections; for a report, positive numbers are line numbers. The same trees are browsable in the [HF space demo for PDF metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo).
 
 ```{#lst-portrait-structure-parsed lst-cap="Portrait structure parsed"}         
 deloitte-tech-risk-sector-banking [-1]
@@ -809,60 +583,21 @@ deloitte-tech-risk-sector-banking [-1]
       Contacts [63]
 ```
 
-### Tree Index {#sec-tree-index}
+### The tree index {#sec-tree-index}
 
-Given these parsed structures, we now have access to a structured representation of the document content, divided by line numbers (portrait) or page numbers (landscape). The next step is to create a hierarchical index of the processed documents to support efficient traversal and querying.
-We need several components to build this index. First, we need two types of node parsing
+To hang content on that skeleton, the document text has to be cut into nodes addressed the same way. Two parsers in `src/pdf_rag/markdown_parsers.py` do this. `MarkdownLineNodeParser` splits a report on its headings, recording for each node the path of enclosing headings and the line number where it starts, and ignores headings inside fenced code blocks. `MarkdownPageNodeParser` splits a deck on the `--- end page N` markers, recording the page number, and optionally cuts long pages further with a sentence splitter. One is header-addressed, the other page-addressed, matching the two structures above.
 
-- `MarkdownLineNodeParser`: For portrait-oriented content,
-- `MarkdownPageNodeParser`: For landscape-oriented content
+`TreeIndex` (`src/pdf_rag/tree_index.py`) assembles the two. For each document it builds a mapping from number to node — line numbers for reports, page numbers for decks, plus the document root — parses the structure into a tree, and creates a synthetic text node for every abstract node, since a section heading has a title but no text of its own. It then walks the tree, writes parent and child relationships onto the nodes, and records the same edges in an `IndexStructTree` that supports breadth-first and depth-first traversal. The whole thing can be exported to Neo4j, where each node becomes a `TreeNode` and each edge a `HAS_CHILD` relationship.
 
-Here's a description of the two Markdown node parser classes.
+`TreeIndex.as_retriever` raises `NotImplementedError`. The index can be built, traversed, persisted and exported, but not queried, which is why the RAG system of @sec-pdf-rag does not use it. That is a decision rather than an oversight, and the reason is the honest limit of this whole approach.
 
-**MarkdownLineNodeParser**
+Retrieving through the tree would mean selecting a section by its title: show the model the table of contents, ask which section answers the question, fetch the nodes underneath. That only works if the titles are stable enough to choose between, and across the six documents they are not. The tax report gives eight named sections that are exactly what one would want to route on — "Customizing Technology for Global Compliance", "Deciding How to Invest in Technology" — plus an "Other Pages" bucket for the leftovers. The life sciences deck gives seven sections that are not: two of them are the document's own title, one exactly and one with the vendor prefix stripped, and a third is the vendor's name on its own, so nothing in the list distinguishes one question from another. The granularity is unstable too. The same prompt returns eight entries for a 17-slide deck, but fifteen for a 15-slide deck and sixty-one for a 62-slide one — sometimes an outline, sometimes one entry per slide.
 
-- Parses portrait-oriented documents (like reports) by splitting on headers
-- Tracks header hierarchy and line numbers 
-- Preserves code blocks by avoiding header parsing within them
-- Builds text nodes with header path and line number metadata
-- Used for documents where structure comes from markdown headers
+The portrait side is deterministic, a regular expression over the reformatted headings, so it is exactly as good as the reformatting: 139 headings for a 32-page report, in the same document that came back with 84 page markers for 32 pages.
 
-**MarkdownPageNodeParser**
+None of this is broken, exactly. Every page of every document ends up placed somewhere in the tree, no page was dropped across the corpus, and the grouping step recovers genuine sections often enough to be useful. But a retriever built on it would stack a second layer of model judgement — choosing a section — on top of an artifact a model already wrote, at one extra call per document per query, and there is no labelled question set over these documents with which to check whether it retrieves better than embedding similarity does. It would be a bet, not a measurement. So the index stops at construction.
 
-- Parses landscape-oriented documents (like presentations) by splitting on page markers 
-- Splits on `--- end page N` markers
-- Optionally chunks content using a sentence splitter
-- Builds text nodes with page number metadata
-- Used for documents with clear page-based structure like slide decks
-
-The key difference is that `MarkdownLineNodeParser` focuses on header-based structure while `MarkdownPageNodeParser` focuses on page-based structure, matching the different needs of reports versus presentations.
-
-Using these parsers, we obtain document nodes that can be integrated into a hierarchical index. The `TreeIndex` class, located in `src/pdf_rag/tree_index.py`, extends `BaseIndex` to offer a hierarchical tree-based indexing structure for document nodes. It is specifically designed to manage both portrait (reports) and landscape (presentations) formatted documents. The `TreeIndex` class leverages the LlamaIndex framework, which provides a flexible and extensible indexing system for document nodes. Please note that this class is a work in progress; we have provided an initial draft of `TreeIndex`, but it is not yet fully implemented and should not be used in its current state.
-
-The key features of the `TreeIndex` class (in `src/pdf_rag/tree_index.py`) include:
-
-1. Data Structure
-
--   Uses `IndexStructTree` to maintain hierarchical relationships
--   Stores nodes in a tree structure with parent-child relationships
--   Supports both root-level and nested nodes
--   Maintains bidirectional references (parent-to-children and child-to-parent)
-
-2. Node Management
-
--   Node insertion with automatic relationship building
--   Node deletion with relationship cleanup
--   Reference document tracking
--   Support for abstract nodes (section headers) and content nodes (pages)
-
-3. Neo4j Integration
-
--   Export functionality to Neo4j graph database
--   Creates nodes and relationships in Neo4j
--   Maintains document structure and metadata
--   Supports constraints and cleanup operations
-
-**Usage Example**
+One practical note: `export_to_neo4j` wipes the target database only when called with `clear=True`, exposed as `neo4j_clear` in the configuration file.
 
 ``` python
 # Create index with nodes
@@ -881,74 +616,48 @@ config = Neo4jConfig(
 index.export_to_neo4j(config=config)
 ```
 
-For now, we provide a basic implementation of the `TreeIndex` class to demonstrate the concept of hierarchical indexing. A visual representation of the index is shown in @fig-neo4j-visualisation.
+@fig-neo4j-visualisation shows the exported tree for one document.
 
-![Neo4j visualisation of TreeIndex](figures/neo4j.png){#fig-neo4j-visualisation fig-alt="Neo4j visualisation of TreeIndex"}
+![Neo4j visualisation of a TreeIndex export](figures/neo4j.png){#fig-neo4j-visualisation fig-alt="Neo4j visualisation of TreeIndex"}
 
-## Script and Ingestion Pipeline {#sec-ingestion-pipeline}
+## The ingestion pipeline {#sec-ingestion-pipeline}
 
-The script `src/scripts/metadata_structure.py` executes all the extractors in sequence through an ingestion pipeline. This process enriches documents with comprehensive metadata including author information, document context, table of contents, and structural relationships. The resulting metadata provides a rich foundation for document analysis and retrieval. It stores the processed data in both a local storage and optionally in a Neo4j database.
+`scripts/metadata_structure.py` runs everything above in order. It reads a YAML configuration file — `configs/metadata_structure_example.yaml` is a template — holding the data directory, the API keys, the worker count and, optionally, Neo4j credentials, which must be given all together or not at all. Its `pipeline_step` selects what to run: `ingest` for the ingestion pipeline, `tree` for the index, `all` for both.
 
-To execute the script, you need to provide a configuration file in YAML format. An example configuration file is provided in `configs/metadata_structure_example.yaml`.
-The configuration file includes settings for the pipeline, API keys, and file paths. The script supports three main modes:
+Ingestion loads the PDFs with `PDFDirectoryReader` and pushes them through a llama-index `IngestionPipeline` whose transformations are exactly the components described above, in order:
 
--   `ingest`: Runs only the ingestion pipeline
--   `tree`: Creates the tree index
--   `all`: Runs both ingestion and indexing
+1.  `ReformatMarkdownComponent`
+2.  `ContextExtractor`
+3.  `TableOfContentsExtractor`
+4.  `TableOfContentsCreator`
+5.  `LandscapePagesExtractor`
+6.  `StructureExtractor`
 
-The pipeline first ingests the PDF documents using `PDFDirectoryReader` to read PDF files.
-Then it processes the documents through the ingestion pipeline, which includes several transformations:
+The order is not arbitrary: the table of contents creator needs reformatted text, the page extractor needs a table of contents, and the structure extractor needs both. The enriched documents are persisted to a `SimpleDocumentStore` on disk, along with the pipeline's own cache, so an interrupted run picks up where it stopped and an unchanged document is never reprocessed.
 
-1.  `ReformatMarkdownComponent`: Reformats content to markdown
-2.  `ContextExtractor`: Extracts contextual information
-3.  `TableOfContentsExtractor`: Extracts table of contents
-4.  `TableOfContentsCreator`: Creates structured TOC
-5.  `LandscapePagesExtractor`: Handles landscape-oriented pages
-6.  `StructureExtractor`: Extracts document structure
-
-It stores the results in a `SimpleDocumentStore` for persistence and loading of processed data.
-Then, the script creates a hierarchical index of the processed documents using the `TreeIndex` class. The index is stored in a local directory and optionally exported to a Neo4j database.
-
-**Usage**
+The `tree` step reloads that docstore, re-parses each document into nodes — by heading for reports, by page for decks, with chunking switched off so that a node is a whole page — builds the `TreeIndex`, writes its structure to `tree_index_struct.json`, and exports it to Neo4j if the configuration provides it.
 
 ``` bash
-python scripts/metadata_structure.py --config path/to/config.yaml
+uv run scripts/metadata_structure.py --config configs/metadata_structure.yaml
 ```
 
-This script is particularly useful to process large collections of PDF documents and create searchable, structured knowledge bases from them.
-A Shiny app is provided to visualize and explore the metadata and structure of processed documents. The app allows you to:
+A Shiny app, `app/app-metadata.py`, is provided to inspect the results: it lists the processed documents, shows each PDF page beside its Markdown, displays the extracted metadata and tables of contents, and prints the parsed structure tree.
 
-- Browse processed documents and their metadata
-- View extracted table of contents
-- Explore document structure trees
-- Compare raw and reformatted markdown content
-- Visualize document hierarchies
-
-You can run the app locally using:
-
-```bash
-python src/app/app-metadata.py
+``` bash
+uv run shiny run --reload --launch-browser app/app-metadata.py
 ```
 
-A live demo showcasing these capabilities is available on the [HF Space Demo for PDF Metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo). The visualization interface, shown in @fig-hf-demo-metadata, provides an interactive way to explore document metadata and structure.
+A standalone copy of it, bundled with the six sample documents and their extracted metadata, runs as a live demo on the [HF space demo for PDF metadata](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo), shown in @fig-hf-demo-metadata.
 
-# PDF RAG: Multi-Document Query System {#sec-pdf-rag}
+![HF space demo for metadata and structure extraction from PDF](figures/hf-demo-metadata.png){#fig-hf-demo-metadata fig-alt="HF space demo for metadata and structure extraction from PDF"}
 
-In this section, we describe a simple multi-document PDF RAG (Retrieval Augmented Generation) system using LlamaIndex. The system processes multiple PDF documents, creates specialized agents per document, and combines them into a top-level agent for cross-document queries. The system is designed to facilitate:
+# Querying a corpus of PDFs {#sec-pdf-rag}
 
-- Document comparison tasks
-- Cross-document information retrieval 
-- Summarization across multiple documents
-- Fact-checking across document sets
+The second half of the code answers questions over several PDFs at once: comparisons between documents, retrieval that spans them, summaries, fact-checking against a set. It is adapted from the [multi-document agents notebook](https://docs.llamaindex.ai/en/stable/examples/agent/multi_document_agents-v1/) of llama-index and lives in `src/pdf_rag/react_agent_multi_pdfs.py`.
 
-Note that the system operates independently of the metadata and structure extracted from PDF documents in @sec-metadata-structure, as the `TreeIndex` described in @sec-tree-index is not yet fully implemented.
-The code in `src/pdf_rag/react_agent_multi_pdfs.py` is adapted from the [Multi-Document Agents LlamaIndex Notebook](https://docs.llamaindex.ai/en/stable/examples/agent/multi_document_agents-v1/).
+It uses none of the structure extracted in @sec-metadata-structure. The tree index that would connect the two halves cannot be queried yet, so retrieval here is the conventional kind: embeddings over page-sized chunks, with the document boundaries — rather than the document hierarchy — providing the only structure the agent exploits.
 
-## Description {#sec-pdf-rag-description}
-
-The code `src/pdf_rag/react_agent_multi_pdfs.py` implements a `ReActAgentMultiPdfs` class designed for querying information from multiple PDF documents using a ReAct agent approach. The core idea is to build an agent for each PDF document, and then a "top-level" agent orchestrates the use of these individual agents to answer complex queries. It leverages LlamaIndex for indexing, querying, and agent creation, and uses Gemini for LLM and embeddings. It includes both synchronous and asynchronous methods for building agents and processing queries to utilize concurrency.
-
-**Class Definition:**
+## How the agent is built {#sec-pdf-rag-description}
 
 ```python
 class ReActAgentMultiPdfs:
@@ -970,93 +679,13 @@ class ReActAgentMultiPdfs:
 
 ```
 
-The `ReActAgentMultiPdfs` class is initialized with several parameters:
+`root_dir` and `pdfs_dir` locate the corpus, `cache_dir` holds the Markdown transcriptions and `storage_dir` the persisted indexes. Of the tuning parameters, `chunks_top_k` is how many chunks a document's vector engine retrieves, `nodes_top_k` how many document tools the top-level agent retrieves for a question, `max_iterations` bounds the top-level reasoning loop and `num_workers` the concurrency of the asynchronous build. The language model is Gemini 2.0 Flash and the embeddings are `text-embedding-004`, reached through a small wrapper in `src/pdf_rag/gemini_wrappers.py` that calls the current Google SDK directly rather than through the llama-index integration.
 
-*   `api_key_gemini`: API key for the Google Gemini model.
-*   `api_key_mistral`: API key for the Mistral AI model.
-*   `root_dir`: The root directory of the project.
-*   `pdfs_dir`: The directory containing the PDF files to process.
-*   `cache_dir`: The directory to store cached data.
-*   `storage_dir`: The directory to store the persisted indexes.
-*   `num_workers`: Number of workers to use for parallel processing.
-*   `chunks_top_k`: Number of top chunks to retrieve from the vector index for each document.
-*   `nodes_top_k`: Number of top nodes to retrieve from the object index.
-*   `max_iterations`: Maximum number of iterations for the ReAct agent.
-*   `verbose`: Whether to print verbose output.
+The system is built in two levels. At the bottom, `build_agent_per_doc` gives every PDF its own agent. The document is read, split into page-addressed nodes, and indexed twice: a `VectorStoreIndex` for retrieval by similarity and a `SummaryIndex` for questions about the document as a whole. Both are persisted, so the expensive part happens once. The vector query engine retrieves `chunks_top_k` chunks and then passes them through `FullPagePostprocessor` (`src/pdf_rag/node_postprocessors.py`), which replaces every retrieved chunk by the complete page it came from, deduplicating pages hit more than once — a retrieved fragment is rarely enough context, and a slide almost never is. The summary engine answers in `tree_summarize` mode, and is also used once, at build time, to produce a summary of the document that is cached next to the indexes. The two engines become two tools, `vector_tool_<name>` and `summary_tool_<name>`, wrapped in a ReAct agent whose system prompt forbids answering from prior knowledge. File names are sanitised on the way — spaces and parentheses become underscores — because tool names are parsed out of the model's output and punctuation there causes trouble.
 
-The constructor initializes various components including:
+At the top, `top_agent` wraps each per-document agent as a tool in turn, using that document's generated summary as the tool description. Those tools are placed in an `ObjectIndex` and retrieved by embedding similarity, `nodes_top_k` at a time, so that a question first selects the documents likely to answer it. This is the part that scales: with a large corpus the top-level agent never sees more than a handful of tool descriptions at once.
 
-*   `PDFDirectoryReader`: Used to load data from PDF files.
-*   `MarkdownPageNodeParser`: Used to parse documents into nodes.
-
-**Key Methods:**
-
-1.  **`_get_vector_summary_paths(self, pdf_file: Path) -> tuple[str, Path, Path, Path]`**:
-
-    *   This helper function takes a `pdf_file` path and returns paths for storing the vector index, summary index, and summary text file, respectively.
-    *   It ensures that the paths are unique based on the PDF filename and are stored within the specified `storage_dir`.
-    *   Critically it cleans the filenames, replacing spaces and parentheses with underscores, which is essential to avoid issues with LLM tool parsing.
-
-2.  **`build_agent_per_doc(self, pdf_file: Path) -> tuple[ReActAgent, str]`**:
-
-    *   This method is the heart of the per-document agent creation process.
-    *   It takes a `pdf_file` path as input.
-    *   It first checks if the vector and summary indexes already exist at the paths defined by `_get_vector_summary_paths`. If they do, it loads them from disk; otherwise, it creates them.
-    *   **Index Creation:**  Loads the PDF data using `self._pdf_reader`, parses it into nodes using `self._markdown_parser`, and then builds both a `VectorStoreIndex` (for semantic search) and a `SummaryIndex` (for generating summaries). These are persisted to disk using `storage_context.persist`.
-    *   **Query Engine Creation:** Creates two query engines: `vector_query_engine` using the vector index and `summary_query_engine` using the summary index. The `vector_query_engine` uses `FullPagePostprocessor` to retrieve the full page for context.
-    *   **Summary Extraction:** Extracts a summary of the document using the `summary_query_engine` and stores it in a text file.
-    *   **Tool Definition:** Defines two `QueryEngineTool`s: one for the vector query engine and one for the summary query engine. These tools are used by the ReAct agent to answer questions. Each tool has a descriptive name and description that informs the agent when to use it.
-    *   **Agent Creation:** Creates a `ReActAgent` from the defined tools and a system prompt that instructs the agent on how to use the tools. The system prompt emphasizes the need to use the tools and avoid relying on prior knowledge.
-    *   Returns the created `ReActAgent` and the document summary.
-
-3.  **`abuild_agent_per_doc(self, pdf_file: Path) -> tuple[ReActAgent, str]`**:
-
-    *   This is the asynchronous version of `build_agent_per_doc`.
-    *   It uses `async` and `await` keywords to perform asynchronous operations, particularly when loading data using `self._pdf_reader.aload_data` and querying the summary engine.
-    *   The rest of the logic is very similar to the synchronous version.
-
-4.  **`build_agents(self) -> tuple[dict[str, ReActAgent], dict[str, dict]]`**:
-
-    *   This method iterates through all PDF files in the `self._pdfs_dir` directory.
-    *   For each PDF file, it calls `self.build_agent_per_doc` to create an agent and extract a summary.
-    *   It stores the agents in a dictionary `agents_dict` and the summaries in a dictionary `extra_info_dict`.
-    *   Returns the dictionaries of agents and extra information.
-
-5.  **`abuild_agents(self) -> tuple[dict[str, ReActAgent], dict[str, dict]]`**:
-
-    *   This is the asynchronous version of `build_agents`.
-    *   It uses `asyncio.gather` (via `run_jobs` from LlamaIndex) to build the agents concurrently, improving performance.
-    *   The logic is otherwise similar to the synchronous version.
-
-6.  **`top_agent(self) -> ReActAgent`**:
-
-    *   This method creates the "top-level" ReAct agent that orchestrates the use of the per-document agents.
-    *   It first calls `self.build_agents` to create the per-document agents.
-    *   It then iterates through the agents and creates a `QueryEngineTool` for each agent, using the document summary as the tool description.
-    *   **Object Index:** Creates an `ObjectIndex` from the `QueryEngineTool`s, and then a `VectorStoreIndex` on these objects (tools).
-    *   **Custom Object Retriever:** Creates a `CustomObjectRetriever` that wraps the vector store retriever from the object index. This `CustomObjectRetriever` is critical: it *adds a query planning tool* to the retrieval process. This query planning tool is a `SubQuestionQueryEngine` which is specifically designed for comparing multiple documents.
-    *   **Top Agent Creation:** Creates the `ReActAgent` using the `CustomObjectRetriever` as the `tool_retriever`. The system prompt instructs the agent to always use the tools provided.
-    *   It is decorated with `@cached_property` so it's only built once.
-
-7.  **`abuild_top_agent(self) -> ReActAgent`**:
-
-    *   This is the asynchronous version of `top_agent`.
-    *   It uses `await self.abuild_agents()` to build the agents asynchronously.
-    *   The rest of the logic is similar to the synchronous version.
-
-8.  **`process_queries(self, queries: list[str]) -> list[Any]`**:
-
-    *   Processes a list of queries using the synchronous `top_agent`.
-
-9.  **`aprocess_queries(self, queries: list[str]) -> list[Any]`**:
-
-    *   Processes a list of queries using the asynchronous `top_agent`.
-
-**Custom Object Retriever (`CustomObjectRetriever`)**
-
-The `CustomObjectRetriever` class inherits from `ObjectRetriever` and overrides the `retrieve` method. The important modification here is the addition of a `SubQuestionQueryEngine` as a tool. This tool is specifically designed for comparison queries across multiple documents.
-
-Here's a breakdown of the critical part of `CustomObjectRetriever.retrieve`:
+`CustomObjectRetriever` adds the piece that makes comparison work. Every time tools are retrieved, it builds a `SubQuestionQueryEngine` over them and appends it as an extra tool called `compare_tool`, whose description tells the agent to use it for any question involving more than one document. The sub-question engine decomposes such a question into per-document sub-questions, dispatches each to the right tool and recombines the answers — something a single ReAct loop does poorly on its own.
 
 ```python
         sub_question_engine = SubQuestionQueryEngine.from_defaults(
@@ -1076,39 +705,17 @@ Here's a breakdown of the critical part of `CustomObjectRetriever.retrieve`:
         return retrieved_tools
 ```
 
-*   A `SubQuestionQueryEngine` is created, using all the per-document `tools`. The `LLMQuestionGenerator` helps break down complex questions into sub-questions that can be answered by the individual tools.
-*   A `QueryEngineTool` is created for the `SubQuestionQueryEngine`, with a description emphasizing its use for comparison queries.
-*   This `sub_question_tool` is added to the list of retrieved tools.
+Every stage exists in a synchronous and an asynchronous form; the asynchronous one builds the per-document agents concurrently, which is what makes a corpus of any size tractable. The top-level agent is a `cached_property`, so it is assembled once and reused across queries.
 
-**Key Concepts:**
+## An example query {#sec-pdf-rag-example}
 
-*   **ReAct Agent:** A type of agent that interleaves reasoning and acting. It uses a language model to generate thoughts, actions, and observations.
-*   **Vector Store Index:** An index that stores vector embeddings of text data. This allows for efficient semantic search.
-*   **Summary Index:** An index that stores summaries of text data. This allows for efficient summarization of documents.
-*   **Query Engine:** A component that allows you to query an index.
-*   **QueryEngineTool:** A tool that allows an agent to query a query engine.
-*   **ObjectIndex:** An index that stores objects (in this case, QueryEngineTools).
-*   **ObjectRetriever:** A component that allows you to retrieve objects from an object index.
-*   **SubQuestionQueryEngine**:  A query engine that breaks down complex questions into sub-questions and answers them using a set of tools. It excels at comparison queries.
-*   **Gemini:** The LLM and embedding model used for this agent.
+The notebook `notebooks/query_multi_pdfs_example.ipynb` runs the system over the six-document corpus and a list of queries from the configuration file.
 
-**Overall Functionality:**
-
-The `ReActAgentMultiPdfs` class provides a system for answering complex questions based on multiple PDF documents. It works by creating an agent for each document and then creating a top-level agent that can orchestrate the use of these individual agents. The `CustomObjectRetriever` plays a crucial role in enabling the top-level agent to handle comparison queries by including a sub-question query engine as a tool. The asynchronous methods offer a way to speed up processing when dealing with many documents. This architecture allows the system to answer questions that require information from multiple documents, such as "What are the key differences between document A and document B?"
-
-## Example Usage {#sec-pdf-rag-example}
-
-We provide an example usage in the notebook `notebooks/query_multi_pdfs_example.ipynb`. The notebook demonstrates how to use the `ReActAgentMultiPdfs` class to process multiple PDF documents and answer queries across them. It includes:
-
-- Setting up the ReActAgent with multiple PDF documents
-- Processing queries about documents
-- Analyzing the agent's reasoning process and tool selection
-
-The complete example code and sample outputs are shown below, and the full notebook is available at [ReActAgent: Querying Multiple PDFs Example](https://github.com/nbrosse/pdf-rag/blob/main/notebooks/query_multi_pdfs_example.ipynb).
-
+::: {.nb-scroll}
 {{< embed notebooks/_query_multi_pdfs_example.ipynb echo=true >}}
+:::
 
-Let's analyze the output of the ReAct Agent for a specific query: What are the vulnerabilities introduced by relying on application programming interfaces (APIs) in Banking as a Service (BaaS)?
+Here is the trace for one of them: *What are the vulnerabilities introduced by relying on application programming interfaces (APIs) in Banking as a Service (BaaS)?*
 
 ```
 > Running step 0dc45634-70c7-4656-9b12-fc2b086848ce. Step input: What are the vulnerabilities introduced by relying on application programming interfaces (APIs) in Banking as a Service (BaaS)?
@@ -1130,36 +737,18 @@ Thought: I can answer without using any more tools. I'll use the user's language
 Answer: Relying on application programming interfaces (APIs) in Banking as a Service (BaaS) introduces vulnerabilities that can put customer data and funds at risk from phishing and social engineering. Flawed APIs can also provide a backdoor for hackers. Furthermore, noncompliance with data privacy rules by BaaS providers can expose partner banks to reputational risks.
 ```
 
-Here's a step-by-step explanation:
+Read from the top, the trace shows the two levels at work. The top-level agent first retrieves its tools — with six documents and `nodes_top_k` at ten, all of them — then picks `tool_deloitte-tech-risk-sector-banking`, the one whose summary description matches the question, and calls it with a reformulated query. That call enters the per-document agent, which runs its own ReAct loop, chooses the vector tool over the summary tool since the question is about a specific fact, and gets back a passage on API risks in BaaS. It answers from that passage, and its answer is returned to the top-level agent as an observation, which then produces the final answer.
 
-**What are the vulnerabilities introduced by relying on application programming interfaces (APIs) in Banking as a Service (BaaS)?**
+That nesting explains the apparent repetition. The block that looks like the agent answering twice is in fact the inner agent's answer becoming the outer agent's observation, one level up; it is the price of the two-level architecture rather than a quirk of the reasoning loop.
 
-1.  **Initial Thought:** The agent recognizes the need for a tool to answer the question.
-2.  **Action (tool selection):** The agent selects the `tool_deloitte-tech-risk-sector-banking`. This indicates that the agent has identified the appropriate source document for answering the question. It has arrived at this decision by retrieving tools based on the tools metadata.
-3.  **Action Input:** The agent provides `{'input': 'vulnerabilities of APIs in Banking as a Service (BaaS)'}` as input to the chosen tool. This represents the refined query or search terms to be used within the selected document.
-4.  **Secondary Thought:**  The agent reiterates the need for a tool: either querying the Vector Index or the Summary Index.
-5.  **Secondary Action:** The agent selects `vector_tool_deloitte-tech-risk-sector-banking`. This is the vector query engine associated with the deloitte document, meaning it's going to use semantic search on the document's content.
-6.  **Observation:** The agent receives the following observation from the `vector_tool_deloitte-tech-risk-sector-banking`:
-
-    ```
-    BaaS increasingly relies on application programming interfaces, introducing vulnerabilities that can pose risks for banks, such as customers' sensitive data and funds being at risk from phishing and social engineering attacks, flawed APIs providing a back door for hackers to penetrate banks' systems and noncompliance with data privacy rules by BaaS providers exposing partner banks to reputational risks.
-    ```
-
-7.  **Thought:** The agent decides it has enough information to answer the question without further tool usage.
-8.  **Answer:** The agent provides a concise answer in English, summarizing the vulnerabilities: customer data/funds at risk, backdoor for hackers, and noncompliance with data privacy rules.
-9.  **Observation & Answer Redux:** The agent repeats its reasoning and repeats the final answer
-
-**Key Observations:**
-
-*   **ReAct Loop:** The agent follows the ReAct loop (Reason, Act, Observe). It reasons about the question, selects a tool (Action), observes the tool's output (Observation), and then decides on the next step.
-*   **Tool Selection:** The agent correctly identifies and uses the appropriate tool (document) for each question. This demonstrates the agent's ability to choose the right knowledge source.
-*   **Semantic Search:** The use of `vector_tool_deloitte-tech-risk-sector-banking` indicates the agent is leveraging semantic search to retrieve relevant information from the document's vector index.
-*   **Concise Answers:** The agent provides concise and relevant answers based on the retrieved information.
-*   **Redundancy:** There's a bit of redundancy in the steps, particularly the repeated "Thought" and "Observation" before the "Answer." This is due to the specific implementation of the ReAct loop in LlamaIndex.
-*   **Single Document Usage:** The agent doesn't seem to be using the "compare_tool" or querying multiple documents simultaneously in these examples. All the information is coming from the Deloitte Tech Risk Sector Banking document.
-
-Feel free to use this notebook as a starting point for building your own multi-document query system using ReAct agents. You can adapt the code to work with your own PDF documents and queries, and explore the capabilities of the ReAct framework for document analysis and retrieval.
+Two other things are worth noting. The routing works because the tool descriptions at the top level are the generated document summaries, which carry enough signal to match a question to a document; inside a document, by contrast, the tool descriptions are generic ("useful for questions related to specific facts"), and the choice between vector and summary tool rests entirely on the agent's reading of the question. And `compare_tool` never fires here: the question concerns a single document, so the sub-question engine is not needed. It earns its place only on questions that genuinely span the corpus.
 
 # Conclusion {#sec-conclusion}
 
-In this blog post, we have explored the process of extracting metadata and structure from PDF documents using Gemini and LlamaIndex. We have described the extractors used to process PDF documents, the parsers used to create hierarchical structures, and the ingestion pipeline to process multiple documents. We have also introduced a simple multi-document PDF RAG system using LlamaIndex. This system allows for querying information across multiple PDF documents and answering complex questions that require information from multiple sources. The system is designed to facilitate document comparison tasks, cross-document information retrieval, summarization across multiple documents, and fact-checking across document sets. By combining the capabilities of Gemini and LlamaIndex, we can create powerful tools for processing and analyzing PDF documents. The system provides a foundation for building more advanced document processing and retrieval systems that can handle a wide range of use cases. We hope this blog post has provided valuable insights into the process of working with PDF documents and extracting meaningful information from them.
+The structure extraction half of this works. A vision language model transcribes pages faithfully enough, a second pass rebuilds a heading hierarchy that page-by-page conversion cannot produce, and reports and decks end up with the two different representations they need: headings and line numbers for one, sections and page numbers for the other. The parsers turn those into trees that can be traversed or exported to a graph database, and the pipeline caches enough at each step that reprocessing a corpus is cheap.
+
+The retrieval half works too, but separately. A per-document agent with a vector tool and a summary tool, a top-level agent routing on document summaries, and a sub-question engine for comparisons is a reasonable architecture, and the trace above shows it selecting the right document and the right tool. The join between the two halves is what is missing: `TreeIndex` cannot be queried, so the extracted hierarchy never reaches retrieval, and a question that a reader would answer from the contents page is still answered by embedding similarity over chunks. @sec-tree-index gives the reason and the route forward is short — section labels stable enough to choose between, and a set of questions with known answers over these documents.
+
+What the exercise settles, and what I would carry into the next system, is the format split. A report and a slide deck are not the same kind of object, and processing them alike throws away whichever structure each one has: a deck's meaning is page-shaped, a report's is heading-shaped. Deciding which is which costs one comparison on the first page's media box, and that single bit pays for itself at every subsequent stage — reformatting, table of contents, parsing, retrieval.
+
+The other thing worth keeping is the measurements. That a model told to preserve page markers keeps 62 of 62 in one document and invents 52 in another, or that one prompt returns an eight-entry outline for one deck and one entry per slide for the next, is not a detail: it is what tells you which stages of a pipeline like this can be trusted with a downstream dependency and which need a deterministic fallback underneath them. None of it is visible from the code, and all of it is sitting in the cache directory once you go and look.
