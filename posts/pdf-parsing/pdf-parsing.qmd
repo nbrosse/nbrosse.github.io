@@ -1,190 +1,118 @@
 ---
-title: "PDF Parsing for LLM Input"
+title: "Parsing PDFs for LLM input"
 author: "Nicolas Brosse"
 date: "2025-02-18"
-date-modified: "2025-03-10"
+date-modified: "2026-08-22"
 categories: [deep learning, LLM]
 bibliography: pdf-parsing-references.bib
-description: "An exploration of current PDF parsing capabilities for Large Language Model (LLM) input."
+description: "How Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini, and Mistral OCR turn PDFs into Markdown: what the pipelines are made of, and where each one silently gets it wrong on six real documents."
+lightbox: true
 citation:
   url: https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html
 ---
 
-This blog post explores the current landscape of PDF parsing for use as input to Large Language Models (LLMs). Extracting meaningful information from PDFs can be challenging due to their complex structure. This article examines several approaches, their strengths, and limitations, with a focus on their suitability for LLM integration (markdown output).
+A PDF says where ink goes on a page. It does not say which glyphs form a paragraph, which paragraph comes first, or which of the numbers scattered across a page belong to the same table row. Feeding a PDF to a language model means reconstructing all of that, and the interesting question is not whether a parser succeeds — none of them fully does — but what its failures look like when it does not.
 
-We begin with a detailed presentation of some open-source PDF parsing libraries: Docling, Marker-PDF, and MinerU in @sec-detailed-presentation. In particular, we provide a comprehensive overview of the Docling pipeline, a modular and open-source PDF processing pipeline designed to transform PDFs into a structured representation (the `DoclingDocument`) in @sec-docling. We also discuss Marker-PDF and MinerU in @sec-marker-pdf and @sec-mineru. The objective is to gain an understanding of how modern PDF parsing libraries function, in particular the role of deep learning models in PDF parsing and extraction, focusing on layout analysis, table structure recognition, and Optical Character Recognition (OCR).
+@sec-detailed-presentation takes three open-source pipelines apart: Docling in @sec-docling, Marker in @sec-marker-pdf, and MinerU in @sec-mineru. They solve the same problem with the same three ingredients — layout analysis, table structure recognition, and OCR — and differ mostly in which model fills each slot. Docling gets the most space because its technical report [@auer2024doclingtechnicalreport; @livathinos2025doclingefficientopensourcetoolkit] documents the pipeline stage by stage, which makes it a good map of the whole problem.
 
-Following this, we compare and evaluate various PDF parsing libraries and tools in @sec-comparing-libraries, including open-source libraries (Docling, Marker, MinerU, PyMuPDF) and closed-source solutions (LlamaParse, Gemini, Mistral). We provide a detailed comparison based on a qualitative analysis using a diverse set of test PDFs (slides, reports, scanned documents, and documents with complex tables). The results of this analysis are available through an interactive demo that visualizes the differences between PDF input and Markdown output for each parsing solution.
+@sec-comparing-libraries runs seven tools over the same six PDFs and compares the Markdown they produce: the three above plus `pymupdf4llm`, LlamaParse, Gemini, and Mistral OCR. The code is in the [pdf-parsing repository](https://github.com/nbrosse/pdf-parsing), and the outputs can be browsed page by page against the source PDF in the [pdf-parsing-demo](https://huggingface.co/spaces/nicolasb92/pdf-parsing-demo) Hugging Face Space.
 
 ::: callout-note
-Update on 2025-03-10: Added Mistral OCR as a new parsing method. [Mistral OCR](https://mistral.ai/fr/news/mistral-ocr) is now available through the Mistral API and provides robust document processing capabilities.
+**Summary**
+
+- Every pipeline here is layout analysis, table structure recognition, and OCR wired together. What distinguishes them is which models occupy those slots and how the pieces are stitched back into a reading order.
+- One of the six test documents, a ConocoPhillips investor deck, has no embedded fonts at all: it is seven page images. `pymupdf4llm` returns 49 bytes for it. Anything without an OCR stage returns nothing.
+- Tables separate the open-source tools. MinerU's HTML output is the only one that reproduces the nested header of a two-page Deloitte brief with the right `rowspan` and `colspan`. Docling's collapses into a grid of fragments with stranded single letters below it.
+- Charts defeat all seven, and Gemini fails most dangerously. On a twelve-category grouped bar chart it returns a clean, plausible Markdown table in which 23 of 36 cells are wrong, including every zero-height bar. On a simpler chart two pages earlier, the same prompt is exact.
+- Small type breaks the OCR-first pipelines. Surya (Marker) and PaddleOCR (MinerU) both return paragraphs of invented text on a 4 pt legal disclaimer that LlamaParse and Gemini read correctly.
+- Choose on constraints, not on quality: Docling or MinerU when the pipeline must stay open-source and on your own hardware, Gemini or Mistral OCR when it need not. In every case, treat any number that came from a chart as unverified.
 :::
 
-# Detailed Presentations of PDF Parsing Libraries: Docling, Marker-pdf, MinerU {#sec-detailed-presentation}
+::: callout-note
+This post is a snapshot of February–March 2025, and the exact versions used are listed in @sec-how-run. The field moves quickly; the failure modes have proved more durable than the rankings.
+:::
 
-## Docling: A Modular PDF Processing Pipeline {#sec-docling}
+# How a modern PDF parser works {#sec-detailed-presentation}
 
-**Overview**
+## Docling {#sec-docling}
 
-Docling is a modular and extensible pipeline designed to ingest various document formats, primarily PDFs (but also DOCX, HTML, etc.), and transform them into a unified, structured representation: the `DoclingDocument`. The core aim is to create a standardized representation suitable for downstream tasks, such as feeding data into an LLM. Docling is in active development and is completely open-source. It provides a comprehensive technical documentation [@auer2024doclingtechnicalreport], [@livathinos2025doclingefficientopensourcetoolkit].
+Docling is a modular pipeline that ingests PDFs — and DOCX, HTML, and others — and converts them into a single structured representation, the `DoclingDocument`. It is open-source, under active development, and documented in two technical reports [@auer2024doclingtechnicalreport; @livathinos2025doclingefficientopensourcetoolkit].
 
-![Sketch of Docling’s default processing pipeline. Source: [@auer2024doclingtechnicalreport]](figures/docling-pipeline.png){#fig-docling-pipeline fig-alt="Docling's default processing pipeline."}
+![Docling's default processing pipeline. Source: [@auer2024doclingtechnicalreport]](figures/docling-pipeline.png){#fig-docling-pipeline fig-alt="Docling's default processing pipeline."}
 
-The Docling pipeline, as shown in @fig-docling-pipeline, consists of the following stages:
+As @fig-docling-pipeline shows, the pipeline has three stages: a PDF backend that recovers raw content, a set of AI models that infer structure from the page image, and an assembly stage that puts the results back together.
 
--   PDF Backend (for raw PDF document processing)
--   AI Models (Layout Analysis, Table Structure Recognition, OCR)
--   Assembly and Post-processing
+### The PDF backend
 
-**PDF Backend**
+The backend does two things: it retrieves every piece of text with its geometric coordinates on the page, and it renders the page as an image the way a viewer would.
 
-The PDF backend is responsible for:
-
-a)  Retrieving all text content and their geometric coordinates on each page.
-b)  Rendering the visual representation of each page as it appears in a PDF viewer.
-
-These capabilities are encapsulated in Docling's PDF backend interface. Docling provides multiple backend choices, including a custom-built PDF parser based on the low-level qpdf library. This parser is open-sourced as a separate package, [`docling-parse`](https://github.com/DS4SD/docling-parse), and powers Docling's default PDF backend. @fig-docling-parse illustrates the parsing process.
+Docling ships several backends. The default is a custom parser built on the low-level qpdf library, open-sourced separately as [`docling-parse`](https://github.com/docling-project/docling-parse). @fig-docling-parse shows what it recovers: not words or lines, but individual glyph cells with bounding boxes.
 
 ::: {#fig-docling-parse layout-ncol="2"}
 ![Original PDF page](figures/2305.14962v1.pdf_page=0.png){width="400"}
 
 ![Parsed PDF page](figures/2305.14962v1.pdf_page=0.v2.sanitized.png){width="400"}
 
-Illustration of docling parse from [source](https://github.com/DS4SD/docling-parse?tab=readme-ov-file).
+Illustration of `docling-parse`, from the [project README](https://github.com/docling-project/docling-parse?tab=readme-ov-file).
 :::
 
-The `docling-parse` package provides a Python interface to extract text content, images, and annotations from PDFs. It also supports rendering PDF pages as images. The extracted content is serialized to JSON @lst-json-docling-parse, which can be further processed by downstream components.
+The package exposes this through a Python interface and serializes it to JSON, as in @lst-json-docling-parse. Each entry in `cells.data` is one character: a bounding box repeated in several coordinate conventions, the glyph itself, a font size, an encoding, and the font it was drawn with. The word "Pushing" is seven such rows. Everything downstream exists to group these back into paragraphs.
 
-``` {#lst-json-docling-parse .json lst-cap="Example of docling-parse JSON output"}
+``` {#lst-json-docling-parse .json lst-cap="Abridged docling-parse JSON output"}
 {'annotations': [{'/A': {'/IsMap': False,
     '/S': '/URI',
-    '/URI': 'https://www.deloitte.com/global/en/Industries/financial-services/perspectives/pushing-through-undercurrents.html'},
-   '/BS': {'/S': '/S', '/Type': '/Border', '/W': 0},
-   '/Border': [0, 0, 0],
-   '/H': '/N',
+    '/URI': 'https://www.deloitte.com/global/en/Industries/financial-services/...'},
    '/Rect': [474.409, 580.322, 512.947, 569.083],
    '/Subtype': '/Link',
-   '/Type': '/Annot'},
-  {'/A': {'/IsMap': False,
-    '/S': '/URI',
-    '/URI': 'https://www.deloitte.com/global/en/Industries/financial-services/perspectives/pushing-through-undercurrents.html'},
-   '/BS': {'/S': '/S', '/Type': '/Border', '/W': 0},
-   '/Border': [0, 0, 0],
-   '/H': '/N',
-   '/Rect': [67.9417, 568.322, 286.919, 557.22],
-   '/Subtype': '/Link',
    '/Type': '/Annot'}],
- 'original': {'cells': {'data': [[36.142,
-     711.041,
-     54.862,
-     739.753,
-     36.142,
-     711.041,
-     54.862,
-     711.041,
-     54.862,
-     739.753,
-     36.142,
-     739.753,
-     'P',
-     -1,
-     8.32,
-     '/WinAnsiEncoding',
-     'WINANSI',
-     '/TT0',
-     '/FSUTKX+OpenSans-Light',
-     False,
-     True],
-    [54.542,
-     711.041,
-     73.422,
-     739.753,
-     54.542,
-     711.041,
-     73.422,
-     711.041,
-     73.422,
-     739.753,
-     54.542,
-     739.753,
-     'u',
-     -1,
+ 'original': {'cells': {'data': [[36.142, 711.041, 54.862, 739.753,
+     36.142, 711.041, 54.862, 711.041, 54.862, 739.753, 36.142, 739.753,
+     'P', -1, 8.32, '/WinAnsiEncoding', 'WINANSI',
+     '/TT0', '/FSUTKX+OpenSans-Light', False, True],
+    [54.542, 711.041, 73.422, 739.753,
+     54.542, 711.041, 73.422, 711.041, 73.422, 739.753, 54.542, 739.753,
+     'u', -1, 8.32, '/WinAnsiEncoding', 'WINANSI',
+     '/TT0', '/FSUTKX+OpenSans-Light', False, True],
+    ...
 ```
 
-**AI Models**
+### Layout analysis
 
-Docling integrates several AI models for layout analysis and table structure recognition (TableFormer [@nassar2022tableformertablestructureunderstanding]). Pre-trained weights (hosted on Hugging Face) and a separate package for inference code (`docling-ibm-models`) are available.
+The layout model detects and classifies elements on the page image by predicting bounding boxes. It is based on RT-DETR, a real-time detection transformer that uses a hybrid encoder over image features and IoU-aware query selection, and is retrained on DocLayNet [@Pfitzmann_2022] together with proprietary data. Docling feeds it page images at 72 dpi.
 
-**Layout Analysis Model**
+The raw proposals overlap, so they are post-processed: overlaps are resolved by confidence and size, and the surviving boxes are intersected with the text cells from the backend to group them into paragraphs, section titles, tables, and so on. This intersection is what keeps the text exact — the model decides the grouping, the backend supplies the characters.
 
-This model detects and classifies various elements on a page image by predicting bounding boxes. The architecture is based on RT-DETR and retrained on DocLayNet [@Pfitzmann_2022] and proprietary datasets. The Docling pipeline uses page images at 72 dpi resolution. Bounding box proposals are post-processed to remove overlaps based on confidence and size and then intersected with text tokens to group them into meaningful units (e.g., paragraphs, section titles, tables).
+### Table structure recognition
 
-RT-DETR (Real-Time DEtection TRansformer) is an object detection system using a hybrid encoder to process image features and IoU-aware query selection to focus on important parts of the image.
+![TableFormer architecture. Source: [docling-ibm-models](https://github.com/docling-project/docling-ibm-models)](figures/tbm04.png){#fig-tableformer fig-alt="TableFormer architecture."}
 
-**Table Structure Recognition**
+Tables get their own model, TableFormer [@nassar2022tableformertablestructureunderstanding], a vision transformer sketched in @fig-tableformer. From an image of a table it predicts the logical row and column structure, deciding which cells are column headers, row headers, or body — including tables with partial or absent borderlines, empty cells, and row or column spans.
 
-![TableFormer architecture. Source: [DS4SD/docling-ibm-models](https://github.com/DS4SD/docling-ibm-models)](figures/tbm04.png){#fig-tableformer fig-alt="TableFormer Architecture"}
+Docling feeds each table region found by the layout model to TableFormer, then matches the predicted structure back onto the PDF text cells rather than transcribing the image. Pre-trained weights live on Hugging Face and the inference code is packaged as `docling-ibm-models`.
 
-The TableFormer model (a vision transformer) recovers table structure @fig-tableformer. It predicts the logical row and column structure of a table based on an input image, determining which cells belong to column headers, row headers, or the table body. TableFormer handles tables with partial or no borderlines, empty cells, row or column spans, and other complexities.
+### OCR
 
-The Docling pipeline feeds table objects detected in the layout analysis to the TableFormer model. TableFormer structure predictions are matched back to the PDF cells to avoid re-transcription of text in the table image.
+OCR is optional and off the critical path for born-digital PDFs; it exists for scanned pages and text locked inside embedded bitmaps. Several engines are supported — EasyOCR, Tesseract, RapidOCR, OcrMac — and the page image handed to them is rendered at 216 dpi rather than 72, to keep small print legible.
 
-**OCR (Optical Character Recognition)**
+### Assembly and post-processing
 
-Docling optionally supports OCR for scanned PDFs or content in embedded bitmaps. Docling supports multiple OCR engines such as EasyOCR, Tesseract, RapidOCR, and OcrMac. By default, Docling feeds a high-resolution page image (216 dpi) to the OCR engine to capture small print details.
+The final stage assembles every prediction into a `DoclingDocument`, defined in `docling-core`. A post-processing model then augments it: detecting the document language, correcting the reading order, matching figures to their captions, and labelling metadata such as title, authors, and references. Further enrichments can classify figures, identify code blocks and formulas, or [describe pictures with a vision model](https://docling-project.github.io/docling/usage/enrichments/).
 
-**Assembly and Post-processing**
+![The `DoclingDocument` hierarchy. Source: [Docling documentation](https://docling-project.github.io/docling/concepts/docling_document/)](figures/docling_doc_hierarchy_1.png){#fig-docling-document fig-alt="DoclingDocument hierarchy."}
 
-In the final stage, Docling assembles all prediction results into a `DoclingDocument`, defined in the `docling-core` package. This document object is then passed through a post-processing model that augments features, such as:
+The `DoclingDocument` itself is a Pydantic model covering text, tables, and pictures, shown in @fig-docling-document. It separates content items from content structure, distinguishes the main body from auxiliary "furniture" such as headers and footers, and retains bounding boxes and provenance throughout. It serializes to JSON, or exports to Markdown.
 
--   Document language detection
--   Reading order correction
--   Matching figures with captions
--   Labeling metadata (title, authors, references)
+## Marker {#sec-marker-pdf}
 
-The final output can be serialized to JSON or transformed into Markdown.
+[Marker](https://github.com/datalab-to/marker) splits the same job across two projects. Raw extraction is handled by [pdftext](https://github.com/datalab-to/pdftext), built on pypdfium2; structure comes from [Surya](https://github.com/datalab-to/surya), a document OCR toolkit that does line-level text detection in any language, OCR in more than 90, layout analysis, reading order detection, table recognition, and LaTeX OCR.
 
-Additional post-processing steps can include:
+@lst-json-surya shows the shape of Surya's output. The unit here is the span rather than the glyph — a run of text with one bounding box, one font, and character offsets into the page — which is one level of grouping already done compared with `docling-parse`.
 
--   Classification of figures.
--   Identification of code blocks or formulas.
--   Annotation of pictures with LLMs ([example](https://ds4sd.github.io/docling/examples/pictures_description_api/)).
-
-The `DoclingDocument` is a unified representation designed to encapsulate document structure and content in a standardized way. It's a Pydantic datatype supporting text, tables, pictures, and more. It distinguishes between the main body and auxiliary elements ("furniture"). It retains layout information (bounding boxes) and provenance information. The `DoclingDocument` structure is organized into content items (texts, tables, pictures) and content structure (body, furniture, groups) @fig-docling-document.
-
-![DoclingDocument structure. Source: [DS4SD/docling documentation](https://ds4sd.github.io/docling/concepts/docling_document/)](figures/docling_doc_hierarchy_1.png){#fig-docling-document fig-alt="DoclingDocument Hierarchy"}
-
-## Marker-PDF: Accurate PDF Conversion {#sec-marker-pdf}
-
-[Marker-pdf](https://github.com/VikParuchuri/marker) pipeline is another interesting option for PDF parsing. Raw extraction is done by [pdftext](https://github.com/VikParuchuri/pdftext), which is based on pypdfium2. Then, it uses Surya [Surya GitHub](https://github.com/VikParuchuri/surya). Surya is a document OCR toolkit that performs:
-
--   OCR in 90+ languages.
--   Line-level text detection in any language.
--   Layout analysis (table, image, header, etc. detection).
--   Reading order detection.
--   Table recognition (detecting rows/columns).
--   LaTeX OCR.
-
-The JSON output format from Surya is illustrated in @lst-json-surya. This structured output includes detailed information about page dimensions, blocks of text, and individual spans with their corresponding bounding boxes, font information, and text content. Marker itself converts PDFs and images to markdown, JSON, and HTML. The key features of Marker include:
-
--   Supports a range of documents in all languages.
--   Formats tables, forms, equations, links, references, and code blocks.
--   Extracts and saves images along with the markdown.
--   Removes headers/footers/other artifacts.
--   Easily extensible with custom formatting and logic.
--   Optionally boosts accuracy with an LLM.
--   Works on GPU, CPU, or MPS.
-
-``` {#lst-json-surya .json lst-cap="Example of Surya JSON output"}
+``` {#lst-json-surya .json lst-cap="Abridged Surya JSON output"}
 [
   {
     "page": 0,
-    "bbox": [
-      0,
-      0,
-      595.2760009765625,
-      841.8900146484375
-    ],
+    "bbox": [0, 0, 595.276, 841.890],
     "width": 596,
     "height": 842,
     "rotation": 0,
@@ -194,12 +122,7 @@ The JSON output format from Surya is illustrated in @lst-json-surya. This struct
           {
             "spans": [
               {
-                "bbox": [
-                  36.14179992675781,
-                  99.6307373046875,
-                  481.22967529296875,
-                  131.6307373046875
-                ],
+                "bbox": [36.142, 99.631, 481.230, 131.631],
                 "text": "Pushing through undercurrents",
                 "rotation": 0,
                 "font": {
@@ -212,178 +135,248 @@ The JSON output format from Surya is illustrated in @lst-json-surya. This struct
                 "char_end_idx": 28,
                 "url": ""
               },
-              {
-                "bbox": [
-                  466.78369140625,
-                  125.09466552734375,
-                  466.78369140625,
-                  125.09466552734375
-                ],
-                "text": "\n",
-                "rotation": 0,
-                "font": {
-                  "name": "",
-                  "flags": 0,
-                  "size": 1,
-                  "weight": -1
-                },
-                "char_start_idx": 29,
-                "char_end_idx": 30,
-                "url": ""
-              }
-            ],
-            "bbox": [
-              36.14179992675781,
-              99.6307373046875,
-              481.22967529296875,
-              131.6307373046875
-            ]
-          }
-        ],
 ...
 ```
 
-## MinerU: Multi-Module Document Parsing {#sec-mineru}
+On top of this, Marker converts to Markdown, JSON, or HTML; formats tables, forms, equations, links, references, and code blocks; extracts images alongside the text; strips headers, footers, and other artifacts; and runs on GPU, CPU, or MPS. It also has an optional `--use_llm` mode that calls a vision model to improve accuracy and to describe figures, which is the mode used in @sec-comparing-libraries.
 
-![Overview of the MinerU framework processing workflow.](figures/minerU_pipeline.png){#fig-mineru-pipeline fig-alt="Overview of the MinerU framework processing workflow."}
+## MinerU {#sec-mineru}
 
-MinerU is a multi-module document parsing framework that uses a multi-stage approach, employing various document parsing models to process document images. The code repository is available at the [MinerU GitHub Repository](https://github.com/opendatalab/MinerU), and technical details can be found in the reference paper [@wang2024mineruopensourcesolutionprecise]. MinerU provides source code, models, and documentation for parsing various document formats efficiently.
+![The MinerU processing workflow. Source: [@wang2024mineruopensourcesolutionprecise]](figures/minerU_pipeline.png){#fig-mineru-pipeline fig-alt="Overview of the MinerU framework processing workflow."}
 
-The MinerU framework processing workflow (@fig-mineru-pipeline) consists of four stages:
+[MinerU](https://github.com/opendatalab/MinerU) [@wang2024mineruopensourcesolutionprecise] is organised as four sequential stages, shown in @fig-mineru-pipeline.
 
-1.  *Document Preprocessing*: Uses PyMuPDF to read PDF files, filters out unprocessable files, and extracts PDF metadata (parseability, language type, page dimensions).
-2.  *Document Content Parsing*: Employs the PDF-Extract-Kit library for layout analysis (layout and formula detection). Applies different recognizers to various regions: OCR for text and titles, formula recognition for formulas, and table recognition for tables.
-3.  *Document Content Post-Processing*: Removes invalid regions, stitches content according to regional positioning, and obtains positioning, content, and sorting information for different document regions.
-4.  *Format Conversion*: Generates user-required formats, such as Markdown, for subsequent use.
+**Preprocessing** reads the PDF with PyMuPDF and decides whether it can be handled at all: it identifies the language (Chinese and English at the time of writing), detects text-based PDFs whose text layer is garbled, distinguishes text-based from scanned documents, and extracts page count and dimensions.
 
-**Document Preprocessing**
+**Content parsing** applies the PDF-Extract-Kit model library region by region. Layout analysis identifies element types and their extents; formula detection finds inline and displayed formulas, which UniMERNet converts back to LaTeX; table regions go to TableMaster or StructEqTable; everything else goes to PaddleOCR.
 
-This stage focuses on filtering unprocessable PDFs and obtaining PDF metadata:
+**Post-processing** resolves the geometry. Formulas and text blocks contained inside image or table regions are removed, partially overlapping boxes are shrunk so that text overlapping a table or image stays intact, and a segmentation algorithm divides the page into regions ordered the way a person reads: top to bottom, left to right.
 
--   *Language Identification*: Currently processes Chinese and English documents.
--   *Content Garbled Detection*: Identifies text-based PDFs with garbled text.
--   *Scanned PDF Identification*: Distinguishes between text-based and scanned PDFs.
--   *Page Metadata Extraction*: Extracts document metadata such as total page count, page dimensions, and other attributes.
+**Format conversion** emits the result, in practice as Markdown with tables in HTML.
 
-**Document Content Parsing**
-
-MinerU uses the PDF-Extract-Kit model library to detect different types of regions and recognize their content:
-
--   *Layout Analysis*: Identifies different types of elements and their regions on a page.
--   *Formula Detection*: Detects inline and displayed formulas.
--   *Formula Recognition*: Recognizes formula images into LaTeX source code using the UniMERNet model.
--   *Table Recognition*: Extracts tabular data from visual table images using TableMaster and StructEqTable.
--   *OCR*: Applies Paddle-OCR to recognize text regions.
-
-**Document Content Post-Processing**
-
-This stage addresses content ordering by handling the relationships between Bounding Boxes (BBoxes):
-
--   *Containment Relationships*: Removes formulas and text blocks contained within image and table regions.
--   *Partial Overlap Relationships*: Shrinks partially overlapping text boxes and ensures the integrity of text when overlapping with tables/images.
--   *Segmentation Algorithm*: Divides the page into regions based on human reading order ("top to bottom, left to right").
-
-**Models Overview**
-
-| Task Type | Description | Models |
+| Task | Description | Models |
 |:-----------------|:----------------------------|:------------------------|
-| Layout Detection | Locate different elements in a document: including images, tables, text, titles, formulas | DocLayout-YOLO_ft, YOLO-v10_ft, LayoutLMv3_ft |
-| Formula Detection | Locate formulas in documents: including inline and block formulas | YOLOv8_ft |
-| Formula Recognition | Recognize formula images into LaTeX source code | UniMERNet |
-| OCR | Extract text content from images (including location and recognition) | PaddleOCR |
-| Table Recognition | Recognize table images into corresponding source code (LaTeX/HTML/Markdown) | PaddleOCR+TableMaster, StructEqTable |
+| Layout detection | Locate images, tables, text, titles, formulas | DocLayout-YOLO_ft, YOLO-v10_ft, LayoutLMv3_ft |
+| Formula detection | Locate inline and block formulas | YOLOv8_ft |
+| Formula recognition | Convert formula images to LaTeX | UniMERNet |
+| OCR | Detect and recognize text in images | PaddleOCR |
+| Table recognition | Convert table images to LaTeX, HTML, or Markdown | PaddleOCR + TableMaster, StructEqTable |
 
-: MinerU models overview {#tbl-mineru-models}
+: The models behind each MinerU stage {#tbl-mineru-models}
 
-# Comparing PDF Parsing Libraries {#sec-comparing-libraries}
+# Comparing the tools {#sec-comparing-libraries}
 
-Comparing PDF parsing libraries involves evaluating several factors: ease of use, functionality, performance. This section aims to provide an overview of the comparative performance of the parsing options in the context of different PDF types.
-
-This analysis provides a practical comparison of several PDF parsing libraries, with a unique focus on visualizing the differences between PDF input and Markdown output. The complete code and implementation details are available in the [pdf-parsing repository](https://github.com/nbrosse/pdf-parsing), and an interactive demo can be accessed through the [pdf-parsing-demo](https://huggingface.co/spaces/nbrosse/pdf-parsing-demo) Hugging Face Space.
-
-::: callout-note
-All code is available at the [pdf-parsing repository](https://github.com/nbrosse/pdf-parsing).
+::: callout-important
+What follows is a qualitative comparison on six documents. It is enough to expose failure modes and not nearly enough to rank the tools; read it as a set of worked examples, not as a benchmark.
 :::
 
-## PDF Sample Dataset
+All the code, the source PDFs, and every Markdown file quoted below are in the [pdf-parsing repository](https://github.com/nbrosse/pdf-parsing). The [pdf-parsing-demo](https://huggingface.co/spaces/nicolasb92/pdf-parsing-demo) Space shows each PDF page beside the Markdown each tool produced for it, which is the fastest way to check any of these claims.
 
-We test the different PDF parsing options on a small but diverse dataset of PDFs. These PDFs are available at the following link: [PDF Parsing Dataset](https://github.com/nbrosse/pdf-parsing/tree/main/pdfs). The dataset contains different types of PDFs to cover various difficulties faced by PDF parsers:
+## The test documents {#sec-dataset}
 
--   Slides
--   Image-only PDFs (requiring OCR)
--   Reports
--   Tables
+Six PDFs, chosen to break parsers in different ways. They are in the [`pdfs` directory](https://github.com/nbrosse/pdf-parsing/tree/main/pdfs) of the repository.
 
-The PDF files located in the `pdfs` directory were sourced from the following locations:
+| Document | Pages | What makes it hard |
+|:---------|------:|:-------------------|
+| `2023-conocophillips-aim-presentation-1-7.pdf` | 7 | **No embedded fonts.** Every page is a single 4000 × 2250 image, including a page of 4 pt legal text |
+| `deloitte-tech-risk-sector-banking.pdf` | 2 | Nested table headers spanning rows and columns, bulleted cells, icon fonts |
+| `dttl-tax-technology-report-2023.pdf` | 17 | Bar charts carrying data that appears nowhere in the text |
+| `gx-iif-open-data.pdf` | 32 | Long report, multi-column layout, sidebars |
+| `life-sciences-...-peak-matrix-assessment-2023.pdf` | 15 | Side-by-side boxes, a quadrant scatter plot |
+| `XC9500_CPLD_Family-1-4.pdf` | 4 | Datasheet: dense tables, block diagrams, tiny footnotes |
 
--   `XC9500_CPLD_Family-1-4.pdf`: Downloaded from <https://media.digikey.com/pdf/Data%20Sheets/AMD/XC9500_CPLD_Family.pdf>
--   `2023-conocophillips-aim-presentation-1-7.pdf`: Downloaded from <https://static.conocophillips.com/files/2023-conocophillips-aim-presentation.pdf>
+The first two came from public sources — [DigiKey](https://media.digikey.com/pdf/Data%20Sheets/AMD/XC9500_CPLD_Family.pdf) for the datasheet and [ConocoPhillips](https://static.conocophillips.com/files/2023-conocophillips-aim-presentation.pdf) for the deck. The remaining four are from the [RAG benchmark](https://www.eyelevel.ai/post/most-accurate-rag) published by EyeLevel and its associated [Google Drive folder](https://drive.google.com/drive/u/0/folders/1l45ljrGfOKsiNFh8QPji2eBAd2hOB51c).
 
-The following four PDF files are sourced from the [RAG blog benchmark](https://www.eyelevel.ai/post/most-accurate-rag), specifically from the associated [Google Drive folder](https://drive.google.com/drive/u/0/folders/1l45ljrGfOKsiNFh8QPji2eBAd2hOB51c):
+The ConocoPhillips deck deserves a note of its own, because it changes how every result below should be read. `pdffonts` reports zero fonts for it and `pdfimages` reports seven full-page bitmaps. There is no text layer. Every character any tool produces for that file was invented by an OCR model or a vision model, and a tool with neither returns nothing at all.
 
--   `gx-iif-open-data.pdf`
--   `deloitte-tech-risk-sector-banking.pdf`
--   `life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023.pdf`
--   `dttl-tax-technology-report-2023.pdf`
+## How each tool was run {#sec-how-run}
 
-## Qualitative Results
+Defaults everywhere, except where a flag was needed to get Markdown out at all. This matters for reading the results: several tools have premium or multimodal modes that were not used.
 
-**Note:** The following results are based on a limited set of tests and should be considered indicative rather than scientifically rigorous.
+| Tool | Version | Invocation |
+|:-----|:--------|:-----------|
+| [Docling](https://github.com/docling-project/docling) | `docling` 2.21 | `DocumentConverter()` with default options, exported per page with `image_mode=PLACEHOLDER` |
+| [Marker](https://github.com/datalab-to/marker) | `marker-pdf` 1.4 | CLI with `--use_llm` (Gemini), `--paginate_output`, `--disable_image_extraction` |
+| [MinerU](https://github.com/opendatalab/MinerU) | `magic-pdf` 1.1 | `magic-pdf -p ../pdfs/ -o md/` |
+| [PyMuPDF](https://pymupdf.readthedocs.io/en/latest/pymupdf4llm/) | `pymupdf4llm` 0.0.17 | `pymupdf4llm.to_markdown(path)` |
+| [LlamaParse](https://developers.llamaindex.ai/llamaparse/) | `llama-parse` 0.6.1 | Default mode, `result_type=MD`, `split_by_page=False` |
+| [Gemini](https://ai.google.dev/gemini-api/docs) | `google-genai` 1.2, `gemini-2.0-flash` | One request per page with a custom transcription prompt, four workers |
+| [Mistral OCR](https://docs.mistral.ai/studio/document-processing/basic_ocr) | `mistralai` 1.5.1, `mistral-ocr-latest` | `client.ocr.process` with `include_image_base64=True` |
 
-::: callout-info
-You can directly compare the output Markdown results at the Hugging Face Space demo: [pdf-parsing-demo](https://huggingface.co/spaces/nbrosse/pdf-parsing-demo).
-:::
+Two of these are worth spelling out. Marker was the only tool given a vision model for figures, through `--use_llm`; Docling's picture-description enrichment exists but was left off, so its output has placeholders where Marker has prose. And Gemini is not an off-the-shelf parser here at all — it is a page of PDF plus a [prompt](https://github.com/nbrosse/pdf-parsing/blob/main/gemini-folder/gemini_parser.py) that instructs the model to preserve the source language, use proper Markdown, transcribe every table cell, and turn charts into tables of data points. Its results are as much a property of that prompt as of the model.
 
-[Docling](https://github.com/DS4SD/docling) provides decent results for text extraction, layout analysis, and table recognition. The OCR support is also a valuable addition for scanned PDFs. Very recently, it provides support for image description [example](https://ds4sd.github.io/docling/examples/pictures_description_api/), which is a very promising feature.
+One artifact belongs to the demo rather than to any tool: Streamlit renders `$...$` as LaTeX, so a passage like "US\$1 billion to US\$5 billion" appears as mathematics in several screenshots below. That is the viewer, not the parser. Where a tool genuinely emits LaTeX — and one does — it is called out explicitly.
 
-![Docling parsing results](figures/docling_streamlit.png){#fig-docling-streamlit fig-alt="Docling parsing results"}
+## Text and reading order {#sec-text}
 
-[LlamaParse](https://docs.llamaindex.ai/en/stable/llama_cloud/llama_parse/) in default mode also provides good results. It provides descriptions of charts and images and is able to extract tables. However, the quality of the chart and image descriptions is not top-tier. It is also a closed-source solution.
+The ConocoPhillips deck sorts the tools immediately. `pymupdf4llm` produces a 49-byte file: seven page separators and nothing between them. There is no text layer to read and no OCR stage to fall back on, so the correct output is empty, and that is what it returns.
 
-![LlamaParse parsing results](figures/llamaparse_streamlit.png){#fig-llamaparse-streamlit fig-alt="LlamaParse parsing results"}
+```
+-----
 
-[Marker](https://github.com/VikParuchuri/marker) provides good results and a description of the images using Gemini.
+-----
 
-![Marker parsing results](figures/marker_streamlit.png){#fig-marker-streamlit fig-alt="Marker parsing results"}
+-----
+```
 
-[PyMuPDF](https://pymupdf.readthedocs.io/en/latest/) in default mode is a more raw extraction approach, parsing the raw content. The other libraries tend to build upon more fundamental extraction libraries such as PyMuPDF. The results generally require further refinement.
+The rest of the field OCRs the pages, with results that diverge sharply on the deck's third page, a wall of 4 pt legal disclaimer. Gemini and LlamaParse transcribe it accurately. Docling, using EasyOCR by default, gets the text but shuffles the bullet order — the Brent price bullet moves above the WTI one, and a trailing "price" is orphaned at the end of its line. Marker and MinerU do something worse. Surya returns:
 
-![Pymupdf parsing results](figures/pymupdf_streamlit.png){#fig-pymupdf-streamlit fig-alt="Pymupdf parsing results"}
+``` markdown
+The presention provides naragements corrent of the next beach the new contribution
+is subject on while assumptions, including, incultive, and estably rodet
+```
 
-[Gemini](https://ai.google.dev/aistudio) is very good at parsing the content and providing a description of the images. It is versatile and effective. However, it is closed source.
+and PaddleOCR, through MinerU, returns:
 
-![Gemini parsing results](figures/gemini_streamlit.png){#fig-gemini-streamlit fig-alt="Gemini parsing results"}
+``` markdown
+hipreseiatraerttatiodistiial an oil price of \$60/BL West Texas Intermediate in 2022
+dollars, escalating at $2.25\%$ annualy; a gas price of $\$3.75$ /MBTUHenry Hub in
+22dolas,escalaingat $2.25\%$ annualyia
+```
 
-![Gemini parsing results (suppl.)](figures/gemini_streamlit_2.png){#fig-gemini-streamlit-2 fig-alt="Gemini parsing results suppl."}
+Both continue for several hundred words in that register. The failure is not that the text is missing but that it is confidently present and entirely fabricated — nothing downstream can tell this apart from a legitimately obscure passage.
 
-[Mistral OCR](https://docs.mistral.ai/capabilities/document/) is a closed-source solution that provides good results. It is particularly effective at extracting text and tables. However, it does not support image description by default.
+Reading order fails more quietly on born-digital pages. On the first page of the Deloitte banking brief, `pymupdf4llm` hoists the "How can the industry mitigate it?" table above the heading it belongs under, and renders every bullet as bold body text. Mistral OCR truncates the paragraph that ends in a hyperlink mid-sentence, at "You can learn more in the full report" — it keeps "You " and drops the rest.
 
-![Mistral parsing results](figures/mistral-parsing.png){#fig-mistral-streamlit fig-alt="Mistral parsing results"}
+Hyperlinks show the difference between reading a PDF and looking at one. The same Deloitte paragraph ends in two links whose target — `deloitte.com/global/en/Industries/financial-services/perspectives/pushing-through-undercurrents.html` — is stored in the page's annotation objects and appears nowhere on the page. Marker and `pymupdf4llm` read it from the annotations and get it exactly right. Docling, MinerU, and LlamaParse return the link text as plain text; Mistral OCR, as noted above, drops the sentence altogether.
 
-[MinerU](https://github.com/opendatalab/MinerU) is not part of the app because it is not easy to split the output by page, and tables are under HTML format. However, the results are good, and the layout is very good. It doesn't support image description. MinerU is a very promising library.
+Gemini, which never sees the annotations, supplies two URLs anyway:
 
-![MinerU parsing results](figures/mineru_streamlit.png){#fig-mineru-streamlit fig-alt="MinerU parsing results"}
+``` markdown
+[full report from the Forum](https://www.weforum.org/reports/pushing-through-
+undercurrents-technology-driven-systemic-risk-in-financial-services)
+[executive summary from Deloitte](https://www2.deloitte.com/us/en/pages/
+financial-services/articles/pushing-through-undercurrents.html)
+```
 
-We tested [unstructured](https://docs.unstructured.io/welcome) (free version), which did not produce satisfying results.
+Neither exists: they return 403 and 404. They are well-formed guesses at what those URLs ought to look like, in the correct Markdown link syntax, and they are the kind of error that survives every downstream check short of fetching them.
 
-[Markitdown](https://github.com/microsoft/markitdown) is a very new library that we did not test. It seems to rely on ad-hoc solutions and is simply an aggregator of solutions.
+## Tables {#sec-tables}
 
-We also tested (not extensively) some cloud-based solutions for PDF parsing such as [Adobe PDF Extract API](https://developer.adobe.com/document-services/docs/overview/pdf-extract-api/), [AWS Textract](https://aws.amazon.com/textract/) and [Azure AI Document intelligence](https://azure.microsoft.com/en-us/products/ai-services/ai-document-intelligence) but we were not convinced by the first results. Apparently, they seem to be very good at extracting for large quantity of pdf following the same template.
+The first page of the Deloitte brief has one table with a two-level header: a left column spanning both header rows, and a "How can the industry mitigate it?" cell spanning two columns above "Goal" and "Mitigation opportunities". Reproducing it requires expressing spans, which Markdown cannot do.
 
-In terms of table extraction capabilities, we tested Camelot, a specialized library specifically designed for extracting tables from PDFs. Camelot excels at handling both lattice and stream type tables, making it particularly effective for complex table extraction tasks. The library is well-documented and maintained, with comprehensive documentation available on their [GitHub repository](https://github.com/camelot-dev/camelot). The results were good for table extraction. Camelot is a dedicated library for tables.
+MinerU sidesteps the problem by emitting HTML, and is the only tool that gets the structure right:
 
-**Conclusion**: The choice of PDF parsing library depends on the specific requirements of the task at hand. or general-purpose parsing with a strong emphasis on image understanding, consider Gemini. However, be aware that this is a closed-source solution. If an open-source solution is preferred, Docling, Marker and MinerU are strong contenders. For tasks requiring specialized table extraction, Camelot is a reliable choice.
+``` html
+<table><tr>
+  <td rowspan="2">What sectoral and regional forces could amplify the risk?</td>
+  <td colspan="2">How can the industry mitigate it?</td></tr>
+<tr><td>Goal</td><td>Mitigation opportunities</td></tr>
+...
+```
 
-# Conclusion
+Marker produces the best Markdown approximation, flattening the header into two rows and grouping the left-hand bullets into a single cell with `<br>` separators. On the second page it shifts a row and lands "Investor and customer protection" in the wrong column.
 
-This exploration of PDF parsing for Large Language Model (LLM) input has revealed a diverse landscape of tools and techniques, each with its strengths and limitations. We've examined open-source libraries like Docling, MinerU, Marker and PyMuPDF, as well as closed-source solutions such as LlamaParse and direct parsing with Gemini.
+Docling's attempt collapses. The header cell is duplicated across two columns with its first character shaved off ("ow can the industry mitigate it?"), text is dropped inside cells ("Apl y network segmentation", "Properly vetted BaS rtners"), and the missing characters reappear below the table as a column of stranded single letters:
 
-Our qualitative comparison, demonstrated through the [pdf-parsing-demo](https://huggingface.co/spaces/nbrosse/pdf-parsing-demo), highlights the trade-offs between accuracy, functionality, and ease of use. While closed-source solutions like Gemini and LlamaParse often provide superior out-of-the-box performance, especially in areas like image description and table extraction, they come with the constraints of licensing and limited customization. Open-source libraries like Docling and MinerU offer greater flexibility but may require more effort to achieve comparable results.
+``` markdown
+S
 
-The choice of PDF parsing approach ultimately hinges on the specific requirements of the LLM application. Factors to consider include:
+B
 
--   **Accuracy and Completeness:** How critical is it to extract all the text and data from the PDF accurately?
--   **Layout Fidelity:** Is preserving the original layout of the document important?
--   **Image and Table Understanding:** Are there significant images or tables that need to be extracted and understood?
--   **Open Source vs. Closed Source:** Does the project require an open-source solution for licensing or customization reasons?
--   **Complexity of PDFs:** Does the typical PDF being parsed have many images, tables, or just general text?
+a
+
+S
+
+p
+```
+
+Those letters are not random. Read in order they are `H`, `S`, `B`, `a`, `S`, `p`, `a`, `p`, `I` — exactly the characters shaved off "How can", "Strong security", "BaaS partners", "Apply", "access control", "providers", "Institutional". The text is all there; the matching between TableFormer's predicted cells and the backend's text cells broke, so the orphaned characters were emitted after the table instead of inside it. This page uses an embedded icon font, `deloitte-special-use-icon-font`, and Docling leaks one of its glyph names, `/public_building_pos`, into the body text on the same page.
+
+LlamaParse restructures rather than reproduces. It promotes the header cells to Markdown headings and emits a clean two-column table underneath — readable, and no longer the same table. `pymupdf4llm` flattens all three body rows into one.
+
+For tables specifically, [Camelot](https://github.com/camelot-dev/camelot) remains worth knowing about. It handles lattice and stream tables, it is well documented, and on the tabular pages of the datasheet it did as well as anything here. It does one thing, which is why it does it well.
+
+## Charts {#sec-charts}
+
+Charts are where every tool in this comparison fails, and where the failures are hardest to detect.
+
+Page 3 of the Deloitte tax report carries Figure 1, a paired bar chart: seven categories, two series, values printed next to every bar. Nothing in the surrounding text repeats those numbers, so a parser that drops the figure loses them permanently.
+
+Docling drops it. The chart becomes `<!-- image -->` — the placeholder mode this run used — and the fourteen values are gone.
+
+![Docling on page 3 of the tax report: the bar chart becomes `<!-- image -->` and its fourteen values are lost.](figures/docling_streamlit.png){#fig-docling-streamlit fig-alt="Docling output beside the source PDF page, showing an image placeholder where the chart was."}
+
+Marker, with `--use_llm`, describes it in prose, and the numbers it quotes are right: "41% of companies have fully implemented automation of tax compliance and reporting processes, while only 2% plan to implement them within 12 months" matches the chart exactly, as does its ERP figure of 37% against 24%.
+
+![Marker on the same page: a prose description of the chart whose quoted values check out against the source.](figures/marker_streamlit.png){#fig-marker-streamlit fig-alt="Marker output beside the source PDF page, showing an LLM-generated description of the bar chart."}
+
+Gemini, asked by its prompt to tabulate chart data, returns a seven-row table. All fourteen values are correct.
+
+![Gemini on the same page: the chart is converted to a table, and all fourteen values are right.](figures/gemini_streamlit_2.png){#fig-gemini-streamlit-2 fig-alt="Gemini output beside the source PDF page, showing a correctly transcribed table of chart values."}
+
+Three pages later the same model meets Figure 3: twelve categories, three series, thirty-six printed values. It returns an equally clean 3 × 12 table — correct headers, correct row labels, plausible percentages throughout.
+
+Thirteen of the thirty-six cells are right.
+
+| Series | Correct cells |
+|:-------|:--------------|
+| US\$5B+ | 5 of 12 |
+| US\$1B–\$5B | 1 of 12 |
+| US\$750M–\$1B | 7 of 12 |
+
+The errors are not noise. The first category, "Reducing headcount", has bars at 0%, 0%, and 2%; Gemini reports 46%, 45%, and 14%. Every zero-height bar becomes a double-digit number, because a table cell has to contain something and an absent bar looks like a missing reading rather than a measured zero. The rest are largely the right numbers attached to the wrong categories: 46% belongs to "ERP system customized for tax issues" but is reported against "Reducing headcount", and further along the row the values drift out of alignment with their labels. That is what reading a wide chart by association rather than by geometry looks like.
+
+![Gemini on page 6: a well-formed 3 × 12 table in which 23 of the 36 values are wrong.](figures/gemini_streamlit.png){#fig-gemini-streamlit fig-alt="Gemini output beside the source PDF page, showing a plausible but largely incorrect table of chart values."}
+
+Nothing in the output marks the difference between this table and the correct one two pages earlier. Both are well-formed Markdown, both look transcribed. That is the argument for treating chart-derived numbers as unverified regardless of how confident the formatting looks.
+
+LlamaParse attempts the same chart and fails visibly instead, which is at least honest. It emits a fifteen-column table whose first data row is the y-axis tick labels — `|75%|50%| | |25%|75%|50%|25%|...` — and scatters the values across columns that do not correspond to anything. The row for "Reducing headcount" reads 56%, 38%, 27% against true values of 0%, 0%, 2%.
+
+![LlamaParse on page 6: a fifteen-column table containing axis tick labels as data.](figures/llamaparse_streamlit.png){#fig-llamaparse-streamlit fig-alt="LlamaParse output beside the source PDF page, showing a malformed wide table."}
+
+`pymupdf4llm` drops the figure entirely, keeping only its bold caption.
+
+![`pymupdf4llm` on page 6: the caption survives, the chart does not.](figures/pymupdf_streamlit.png){#fig-pymupdf-streamlit fig-alt="pymupdf4llm output beside the source PDF page, showing only the figure caption."}
+
+Counted across all six documents, the tools' relationship to figures is: Marker emits 60 vision-model descriptions, Gemini 13 figure or graph captions, Docling 125 `<!-- image -->` placeholders, MinerU and Mistral OCR image references with no description, and LlamaParse in default mode nothing at all — the strings matching "Figure" in its output are captions belonging to the documents themselves.
+
+## Two more tools worth seeing {#sec-mineru-mistral-results}
+
+MinerU is not in the demo app, for a practical reason: its Markdown has no page separators, so it cannot be aligned page-by-page against the PDF the way the others can, and its tables are HTML rather than Markdown. Its layout reconstruction is nonetheless the strongest here — the ordering of regions on complex pages is consistently right, and the nested table above is proof of what HTML output buys.
+
+Its formula detector is a liability on prose. On the tax report it wraps percentages in maths mode, turning `24%` into `$24\%$`, and in one paragraph it converts the word "tax" into `$\tan\alpha$`:
+
+``` markdown
+Compliance is a top priority for the $\tan\alpha$ department (Figure 2)
+```
+
+![MinerU on page 3 of the tax report, with its layout annotations on the right.](figures/mineru_streamlit.png){#fig-mineru-streamlit fig-alt="MinerU markdown output beside the layout-annotated PDF page."}
+
+Mistral OCR is the tidiest output of the closed-source group. On a page of the PEAK Matrix report with two side-by-side case-study boxes it linearizes them in the right order, keeps the internal heading structure, and produces Markdown that needs no cleanup.
+
+![Mistral OCR on page 6 of the PEAK Matrix report: two side-by-side boxes correctly linearized.](figures/mistral-parsing.png){#fig-mistral-streamlit fig-alt="Mistral OCR output beside the source PDF page, showing two side-by-side case study boxes converted to sequential sections."}
+
+It has one specific and damaging habit: it emits LaTeX for text that resembles mathematics, and currency triggers it. On the ConocoPhillips deck, `$60/BBL West Texas Intermediate` comes back as
+
+``` markdown
+an oil price of $\$ \$ 5 / 8 \mathrm{~B} \$$, West Texas Intermediate
+```
+
+The price is not merely mis-typeset, it is gone. Anything downstream that needs the number will not find it. Mistral OCR also does not describe images; it extracts them as base64 references.
+
+## Tools I looked at and did not keep {#sec-others}
+
+[unstructured](https://docs.unstructured.io/welcome), in its free version, did not produce results worth including.
+
+[Markitdown](https://github.com/microsoft/markitdown) was too new to evaluate at the time and appears to be an aggregator of format-specific converters rather than a parser in the sense used here.
+
+The cloud document APIs — [Adobe PDF Extract](https://developer.adobe.com/document-services/docs/overview/pdf-extract-api/), [AWS Textract](https://aws.amazon.com/textract/), [Azure AI Document Intelligence](https://azure.microsoft.com/en-us/products/ai-services/ai-document-intelligence) — were tested briefly and not pursued. First impressions suggest they are built for a different problem: high volumes of documents sharing a known template, where a form can be defined once and applied to thousands of pages. On six heterogeneous documents that strength does not show.
+
+# Conclusion {#sec-conclusion}
+
+The seven tools fail in three distinct places, and knowing which one matters for a given corpus is more useful than a ranking.
+
+**Text is close to solved for born-digital pages.** All seven produce usable prose from a PDF with a text layer. Most differences here are cosmetic — footnote handling, hyphenation, bullet glyphs. The exception is hyperlinks, which live in the PDF's annotations rather than on the page: the tools that read them get them right, and the one that cannot see them invents them.
+
+**Structure is where the open-source tools separate.** Nested table headers cannot be expressed in Markdown, so a tool's ceiling depends on its output format: MinerU's HTML tables hold structure that Marker's Markdown can only approximate and that Docling's loses. Scanned pages compound this, since every stage downstream of OCR inherits its errors — and OCR fails first on small type, where Surya and PaddleOCR both hallucinate freely.
+
+**Charts are unsolved, and the good-looking failures are the dangerous ones.** The output that most deserves suspicion is the one that looks most like a successful transcription. If chart data matters, extract it separately and verify it; do not accept it from a general-purpose parser.
+
+Given that, the choice is mostly a constraint problem:
+
+- **Open-source, on your own hardware**: Docling or MinerU. Docling has the better-documented pipeline, the cleaner document model, and enrichments worth enabling; MinerU has better layout reconstruction and real table structure, at the cost of an output format that needs work before it can be paged or embedded.
+- **Open-source with a vision model available**: Marker with `--use_llm`. It was the only open-source configuration here that produced faithful figure descriptions.
+- **Closed-source, quality first**: Gemini or Mistral OCR. Gemini is the most versatile if you are willing to own the prompt; Mistral OCR is the cleanest out of the box, with the currency caveat above.
+- **Tables specifically**: Camelot.
+- **Raw text from born-digital PDFs, fast**: `pymupdf4llm`. It is the substrate several of the others build on, it will not OCR anything, and its output needs the most downstream cleanup.
