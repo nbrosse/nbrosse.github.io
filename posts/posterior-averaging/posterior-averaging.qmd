@@ -3,12 +3,12 @@ title: "Flow matching as posterior averaging"
 author: "Nicolas Brosse"
 date: "2026-05-12"
 date-modified: "2026-08-22"
-bibliography: intro-fm-diffusion-references.bib
+bibliography: posterior-averaging-references.bib
 description: "A velocity-based introduction to flow matching with Gaussian probability paths: the marginal velocity field is a posterior average of conditional targets, and the gap between the conditional and marginal losses is an irreducible posterior-variance term that can be computed in closed form."
 lightbox: true
 categories: [deep learning, flow matching]
 citation:
-  url: https://nbrosse.github.io/posts/intro-fm-diffusion/intro-fm-diffusion.html
+  url: https://nbrosse.github.io/posts/posterior-averaging/posterior-averaging.html
 ---
 
 This post follows and extends the perspective of [@holderrieth_introduction_2025; @lipman_flow_2024], and builds on the lab code of the accompanying course [@flowsanddiffusions2026], whose flow-matching setup is the starting point for the experiment below.
@@ -27,7 +27,7 @@ The setting is simple enough to visualize, and still rich enough to show the mai
 
 @sec-setup fixes notation and derives the posterior-averaging identity from the continuity equation. @sec-gaussian-paths specializes it to Gaussian probability paths, where the marginal velocity reduces to a posterior mean and therefore carries exactly the same information as the marginal score. @sec-exact-posterior gives the posterior in closed form for a Gaussian-mixture data distribution. @sec-irreducible-variance identifies the gap between the conditional and marginal losses as a posterior-variance term $V(t)$, computes it for this example, and shows that the schedule used here makes its time average infinite. @sec-experiment checks all of this numerically, and @sec-appendix collects the importance-sampling and MCMC machinery needed when the posterior is not available in closed form.
 
-A companion post, [Closed-form flow matching](../closed-form-flow-matching/closed-form-fm.html), pushes the same posterior reading in a different direction: it replaces $p_{\mathrm{data}}$ by the empirical distribution of a finite training set, where the posterior becomes a softmax over training examples that collapses onto a single one in high dimension.
+A companion post, [Closed-form flow matching](../posterior-concentration/posterior-concentration.html), pushes the same posterior reading in a different direction: it replaces $p_{\mathrm{data}}$ by the empirical distribution of a finite training set, where the posterior becomes a softmax over training examples that collapses onto a single one in high dimension.
 
 The [accompanying code](https://github.com/nbrosse/flow-matching-notes) is on GitHub, and the experiment lives in a single [notebook](https://github.com/nbrosse/flow-matching-notes/blob/main/notebooks/posterior_averaging.ipynb).
 
@@ -438,7 +438,7 @@ The practical lesson is about how to read a CFM training curve. The number the o
 
 The floor also has structure worth exploiting. It is large early because the posterior over endpoints is multimodal, and large late because of the $c_t^2$ weighting of the schedule, with a minimum in between. The first effect is intrinsic to the data distribution; the second is an artifact of a schedule choice, and is the one that makes the time-averaged objective infinite here.
 
-Both effects survive in high dimension, where the posterior is no longer available in closed form. The companion post [Closed-form flow matching](../closed-form-flow-matching/closed-form-fm.html) takes up the case where $p_{\mathrm{data}}$ is an empirical distribution over a training set, and where the same posterior collapses onto a single training example early along the path.
+Both effects survive in high dimension, where the posterior is no longer available in closed form. The companion post [Closed-form flow matching](../posterior-concentration/posterior-concentration.html) takes up the case where $p_{\mathrm{data}}$ is an empirical distribution over a training set, and where the same posterior collapses onto a single training example early along the path.
 
 # Appendix: posterior inference methods {#sec-appendix}
 
