@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Nicolas Brosse">
+<meta name="dcterms.date" content="2026-07-20">
+<meta name="description" content="The closed-form velocity field of empirical flow matching is a softmax over training examples. Reading that softmax as a Bayesian posterior turns its collapse into a decoding problem, with an information-theoretic threshold that can be evaluated on CIFAR-10.">
+
+<title>Closed-form flow matching: posterior concentration and softmax collapse – Nicolas’ Notebook</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-d0ae9245876894da5ac7e18953ecc5cc.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-7f1822a086a24169120327e3a5d340d0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Nicolas’ Notebook</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&amp;hl"> <i class="bi bi-google" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.researchgate.net/profile/Nicolas-Brosse-3"> <i class="bi bi-r-circle" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Closed-form flow matching: posterior concentration and softmax collapse</h1>
+                  <div>
+        <div class="description">
+          The closed-form velocity field of empirical flow matching is a softmax over training examples. Reading that softmax as a Bayesian posterior turns its collapse into a decoding problem, with an information-theoretic threshold that can be evaluated on CIFAR-10.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">deep learning</div>
+                <div class="quarto-category">flow matching</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Nicolas Brosse </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">July 20, 2026</p>
+      </div>
+    </div>
+    
+      <div>
+      <div class="quarto-title-meta-heading">Modified</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date-modified">August 22, 2026</p>
+      </div>
+    </div>
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sec-setup-and-notation" id="toc-sec-setup-and-notation" class="nav-link active" data-scroll-target="#sec-setup-and-notation">Setup and notation</a>
+  <ul class="collapse">
+  <li><a href="#gaussian-ot-conditional-paths" id="toc-gaussian-ot-conditional-paths" class="nav-link" data-scroll-target="#gaussian-ot-conditional-paths">Gaussian-OT conditional paths</a></li>
+  <li><a href="#sec-closed-form-empirical-marginal-velocity" id="toc-sec-closed-form-empirical-marginal-velocity" class="nav-link" data-scroll-target="#sec-closed-form-empirical-marginal-velocity">The closed-form empirical marginal velocity</a></li>
+  <li><a href="#sec-softmax-as-posterior" id="toc-sec-softmax-as-posterior" class="nav-link" data-scroll-target="#sec-softmax-as-posterior">The softmax weights are a posterior</a></li>
+  </ul></li>
+  <li><a href="#sec-empirical-motivation" id="toc-sec-empirical-motivation" class="nav-link" data-scroll-target="#sec-empirical-motivation">Empirical motivation</a></li>
+  <li><a href="#sec-isotropic-gaussian-proxy" id="toc-sec-isotropic-gaussian-proxy" class="nav-link" data-scroll-target="#sec-isotropic-gaussian-proxy">Isotropic Gaussian proxy</a>
+  <ul class="collapse">
+  <li><a href="#sec-random-coding-union-bound" id="toc-sec-random-coding-union-bound" class="nav-link" data-scroll-target="#sec-random-coding-union-bound">The information-rate threshold</a></li>
+  <li><a href="#numerical-value-for-the-cifar-10-proxy" id="toc-numerical-value-for-the-cifar-10-proxy" class="nav-link" data-scroll-target="#numerical-value-for-the-cifar-10-proxy">Numerical value for the CIFAR-10 proxy</a></li>
+  </ul></li>
+  <li><a href="#sec-general-covariance" id="toc-sec-general-covariance" class="nav-link" data-scroll-target="#sec-general-covariance">A general-covariance Gaussian proxy</a>
+  <ul class="collapse">
+  <li><a href="#cifar-10-posterior-concentration-diagnostics" id="toc-cifar-10-posterior-concentration-diagnostics" class="nav-link" data-scroll-target="#cifar-10-posterior-concentration-diagnostics">CIFAR-10 posterior-concentration diagnostics</a>
+  <ul class="collapse">
+  <li><a href="#posterior-decoding-theory" id="toc-posterior-decoding-theory" class="nav-link" data-scroll-target="#posterior-decoding-theory">Posterior-decoding theory</a></li>
+  <li><a href="#theory-plots" id="toc-theory-plots" class="nav-link" data-scroll-target="#theory-plots">Theory plots</a></li>
+  <li><a href="#softmax-and-velocity-diagnostics" id="toc-softmax-and-velocity-diagnostics" class="nav-link" data-scroll-target="#softmax-and-velocity-diagnostics">Softmax and velocity diagnostics</a></li>
+  <li><a href="#small-gaussian-sanity-check" id="toc-small-gaussian-sanity-check" class="nav-link" data-scroll-target="#small-gaussian-sanity-check">Small Gaussian sanity check</a></li>
+  <li><a href="#cifar-10-data-and-covariance-aware-threshold" id="toc-cifar-10-data-and-covariance-aware-threshold" class="nav-link" data-scroll-target="#cifar-10-data-and-covariance-aware-threshold">CIFAR-10 data and covariance-aware threshold</a></li>
+  <li><a href="#cifar-10-diagnostics" id="toc-cifar-10-diagnostics" class="nav-link" data-scroll-target="#cifar-10-diagnostics">CIFAR-10 diagnostics</a></li>
+  <li><a href="#summary-table" id="toc-summary-table" class="nav-link" data-scroll-target="#summary-table">Summary table</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#sec-error-analysis" id="toc-sec-error-analysis" class="nav-link" data-scroll-target="#sec-error-analysis">Consequences for learning the velocity field</a>
+  <ul class="collapse">
+  <li><a href="#regime-1-tapprox-0-nearly-linear-and-easy" id="toc-regime-1-tapprox-0-nearly-linear-and-easy" class="nav-link" data-scroll-target="#regime-1-tapprox-0-nearly-linear-and-easy">Regime 1: <span class="math inline">\(t\approx 0\)</span> — nearly linear and easy</a></li>
+  <li><a href="#regime-2-tapprox-t_c-posterior-transition-and-peak-difficulty" id="toc-regime-2-tapprox-t_c-posterior-transition-and-peak-difficulty" class="nav-link" data-scroll-target="#regime-2-tapprox-t_c-posterior-transition-and-peak-difficulty">Regime 2: <span class="math inline">\(t\approx t_C\)</span> — posterior transition and peak difficulty</a></li>
+  <li><a href="#regime-3-tt_c-concentration-and-alignment" id="toc-regime-3-tt_c-concentration-and-alignment" class="nav-link" data-scroll-target="#regime-3-tt_c-concentration-and-alignment">Regime 3: <span class="math inline">\(t&gt;t_C\)</span> — concentration and alignment</a></li>
+  <li><a href="#regime-4-tuparrow-1-nearest-neighbor-discontinuities" id="toc-regime-4-tuparrow-1-nearest-neighbor-discontinuities" class="nav-link" data-scroll-target="#regime-4-tuparrow-1-nearest-neighbor-discontinuities">Regime 4: <span class="math inline">\(t\uparrow 1\)</span> — nearest-neighbor discontinuities</a></li>
+  </ul></li>
+  <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion">Conclusion</a></li>
+  </ul>
+<div class="quarto-alternate-notebooks"><h2>Notebooks</h2><ul><li><a href="notebooks/_posterior_concentration-preview.html"><i class="bi bi-journal-code"></i>CIFAR-10 posterior-concentration diagnostics</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+
+<p>Flow matching learns a time-dependent velocity field that transports a simple source distribution to a target data distribution. When the interpolation is the Gaussian optimal-transport one and the target is replaced by the empirical distribution of a finite training set, the exact marginal velocity field has a closed form: a softmax-weighted average over the training examples.</p>
+<p>In high dimension that softmax often becomes almost one-hot very early along the interpolation path, a phenomenon referred to below as <strong>softmax collapse</strong>. Once it occurs along a trajectory generated from a training example, the marginal velocity field is nearly equal to the conditional velocity field attached to that example. The exact empirical field then behaves like a nearest-neighbor decoder, which is part of why the empirical flow memorizes its training set.</p>
+<p>The point of this post is that the collapse has a simple mathematical interpretation. Along a trajectory planted at a training point, the closed-form softmax weights are exactly the posterior distribution over the training index in a finite Gaussian codebook model. The interpolant is a noisy observation of the planted image, and the softmax answers the question:</p>
+<blockquote class="blockquote">
+<p>Which training point most likely generated this interpolant?</p>
+</blockquote>
+<p>Softmax collapse is therefore a <strong>posterior concentration</strong>, or decoding, phenomenon, and its onset can be located by comparing what the interpolant supplies against what identifying a training point costs. In an isotropic Gaussian proxy for CIFAR-10 that comparison reads</p>
+<p><span class="math display">\[
+\frac{\log n}{d}
+=
+\frac12 \log\left(1+\sigma^2\left(\frac{t_C}{1-t_C}\right)^2\right),
+\]</span></p>
+<p>with the information content of the interpolant on the right and the entropy of the training index on the left. For the CIFAR-10 proxy</p>
+<p><span class="math display">\[
+d=3072,
+\qquad
+n=50{,}000,
+\qquad
+\sigma^2\approx 0.24,
+\]</span></p>
+<p>it gives <span class="math inline">\(t_C\approx 0.146\)</span>.</p>
+<p>This value should not be read as a universal constant for CIFAR-10. It is the prediction of a simplified Gaussian model. But it has the right order of magnitude: it places the onset of posterior concentration around the same early-time regime in which empirical studies observe high correlation between the marginal and conditional velocity fields.</p>
+<p>The post is organized as follows. It first recalls the closed-form marginal velocity field for empirical Gaussian-OT flow matching and rewrites its softmax weights as a posterior distribution over the training index. It then reviews the empirical observations that motivate the analysis, before deriving the collapse time in an isotropic Gaussian proxy and its log-determinant generalization for non-isotropic covariance, and checking both against CIFAR-10 in a companion notebook. A last section connects this posterior concentration picture to the observed learning difficulties of neural velocity fields across time.</p>
+<p>The <a href="https://github.com/nbrosse/flow-matching-notes">accompanying code</a> is on GitHub, and the checks reproduced below live in a single <a href="https://github.com/nbrosse/flow-matching-notes/blob/main/notebooks/posterior_concentration.ipynb">notebook</a>. It shares a repository with the notebook behind the companion post <a href="../posterior-averaging/posterior-averaging.html">Flow matching as posterior averaging</a>.</p>
+<section id="sec-setup-and-notation" class="level1">
+<h1>Setup and notation</h1>
+<p>The setup is the standard flow matching one <span class="citation" data-cites="lipman_flow_2024">(<a href="#ref-lipman_flow_2024" role="doc-biblioref">Lipman et al. 2024</a>)</span>. Let the source distribution be</p>
+<p><span class="math display">\[
+p_0 = \mathcal N(0,I_d),
+\]</span></p>
+<p>and let the target distribution be an unknown data distribution <span class="math inline">\(q\)</span> on <span class="math inline">\(\mathbb R^d\)</span>. Flow matching defines a probability path <span class="math inline">\((p_t)_{0\leq t\leq 1}\)</span> connecting <span class="math inline">\(p_0\)</span> to <span class="math inline">\(q\)</span> and learns a time-dependent velocity field</p>
+<p><span class="math display">\[
+u : [0,1]\times \mathbb R^d \to \mathbb R^d.
+\]</span></p>
+<p>The velocity field generates a flow map <span class="math inline">\(\psi_t\)</span> through the ODE</p>
+<p><span class="math display">\[
+\frac{d}{dt}\psi_t(x)=u_t(\psi_t(x)),
+\qquad
+\psi_0(x)=x.
+\]</span></p>
+<p>If <span class="math inline">\(X_0\sim p_0\)</span>, then <span class="math inline">\(X_t=\psi_t(X_0)\)</span> should have law <span class="math inline">\(p_t\)</span>. In particular, <span class="math inline">\(X_1\)</span> should have approximately the data distribution.</p>
+<section id="gaussian-ot-conditional-paths" class="level2">
+<h2 class="anchored" data-anchor-id="gaussian-ot-conditional-paths">Gaussian-OT conditional paths</h2>
+<p>A common flow matching path is obtained by interpolating linearly between noise and data:</p>
+<p><span class="math display">\[
+X_t=(1-t)X_0+tX_1,
+\qquad
+X_0\sim \mathcal N(0,I_d),
+\qquad
+X_1\sim q.
+\]</span></p>
+<p>Conditioned on a fixed endpoint <span class="math inline">\(X_1=x_1\)</span>, the conditional distribution of <span class="math inline">\(X_t\)</span> is</p>
+<p><span class="math display">\[
+p_{t\mid x_1}(x)
+=
+\mathcal N\bigl(x\mid t x_1,(1-t)^2I_d\bigr).
+\]</span></p>
+<p>The associated conditional velocity field is</p>
+<p><span class="math display">\[
+u_t(x\mid x_1)=\frac{x_1-x}{1-t}.
+\]</span></p>
+<p>Evaluated along the interpolant <span class="math inline">\(X_t=(1-t)X_0+tX_1\)</span>, this becomes</p>
+<p><span class="math display">\[
+u_t(X_t\mid X_1)
+=
+\frac{X_1-X_t}{1-t}
+=X_1-X_0.
+\]</span></p>
+<p>This is the target used in the usual conditional flow matching objective:</p>
+<p><span class="math display">\[
+\mathcal L_{\mathrm{CFM}}(\theta)
+=
+\mathbb E_{t,X_0,X_1}
+\left[
+\left\|u_t^\theta(X_t)-(X_1-X_0)\right\|^2
+\right],
+\qquad
+X_t=(1-t)X_0+tX_1.
+\]</span></p>
+<p>The marginal velocity field is the conditional expectation</p>
+<p><span class="math display">\[
+u_t(x)=\mathbb E[X_1-X_0\mid X_t=x].
+\]</span></p>
+<p>Thus the conditional objective trains against an unbiased target for the marginal velocity field, up to the usual irreducible conditional variance.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Bias-variance decomposition
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Let</p>
+<p><span class="math display">\[
+Y=X_1-X_0,
+\qquad
+\bar Y(X_t)=\mathbb E[Y\mid X_t]=u_t(X_t).
+\]</span></p>
+<p>Then</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbb E\left[\|u_t^\theta(X_t)-Y\|^2\right]
+&amp;=
+\mathbb E\left[\|u_t^\theta(X_t)-\bar Y(X_t)\|^2\right]
++\mathbb E\left[\|Y-\bar Y(X_t)\|^2\right].
+\end{aligned}
+\]</span></p>
+<p>The second term is independent of <span class="math inline">\(\theta\)</span> and equals the conditional variance of the target. Hence minimizing the conditional flow matching loss has the same minimizers, and the same gradients, as minimizing the marginal flow matching loss.</p>
+<p>For a deeper exploration of the bias-variance decomposition in flow matching, see the blog post <a href="../posterior-averaging/posterior-averaging.html">“Flow matching as posterior averaging”</a>.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="sec-closed-form-empirical-marginal-velocity" class="level2">
+<h2 class="anchored" data-anchor-id="sec-closed-form-empirical-marginal-velocity">The closed-form empirical marginal velocity</h2>
+<p>In practice only a finite training set is available,</p>
+<p><span class="math display">\[
+x^{(1)},\dots,x^{(n)}\in\mathbb R^d,
+\]</span></p>
+<p>and the target distribution <span class="math inline">\(q\)</span> is replaced by the empirical distribution</p>
+<p><span class="math display">\[
+\widehat q
+=
+\frac1n\sum_{i=1}^n\delta_{x^{(i)}}.
+\]</span></p>
+<p>For the Gaussian-OT path, the marginal density is then a Gaussian mixture:</p>
+<p><span class="math display">\[
+p_t(x)
+=
+\frac1n\sum_{i=1}^n
+\mathcal N\bigl(x\mid t x^{(i)},(1-t)^2I_d\bigr).
+\]</span></p>
+<p>The exact marginal velocity field is</p>
+<p><span class="math display">\[
+\boxed{
+u_t(x)
+=
+\sum_{i=1}^n
+\lambda_i(x,t)\frac{x^{(i)}-x}{1-t},
+\qquad
+\lambda_i(x,t)
+=
+\frac{
+\exp\left(-\frac{\|x-tx^{(i)}\|^2}{2(1-t)^2}\right)
+}{
+\sum_{j=1}^n
+\exp\left(-\frac{\|x-tx^{(j)}\|^2}{2(1-t)^2}\right)
+}.
+}
+\]</span></p>
+<p>These weights are posterior probabilities under the empirical mixture model. They are also the source of the collapse phenomenon studied in <span class="citation" data-cites="bertrand_closed-form_2025">(<a href="#ref-bertrand_closed-form_2025" role="doc-biblioref">Bertrand et al. 2025</a>)</span>.</p>
+<p>At <span class="math inline">\(t=0\)</span>, all mixture components have the same mean <span class="math inline">\(0\)</span> and covariance <span class="math inline">\(I_d\)</span>, so the weights are exactly uniform:</p>
+<p><span class="math display">\[
+\lambda_i(x,0)=\frac1n.
+\]</span></p>
+<p>As <span class="math inline">\(t\)</span> increases, the component means <span class="math inline">\(t x^{(i)}\)</span> separate. In high dimension, this separation can make the posterior over components concentrate very quickly.</p>
+</section>
+<section id="sec-softmax-as-posterior" class="level2">
+<h2 class="anchored" data-anchor-id="sec-softmax-as-posterior">The softmax weights are a posterior</h2>
+<p>The key change of variables is</p>
+<p><span class="math display">\[
+r=\frac{t}{1-t},
+\qquad
+y=\frac{x}{1-t}.
+\]</span></p>
+<p>Then</p>
+<p><span class="math display">\[
+\frac{\|x-tx^{(i)}\|^2}{2(1-t)^2}
+=
+\frac12\left\|\frac{x}{1-t}-\frac{t}{1-t}x^{(i)}\right\|^2
+=
+\frac12\|y-rx^{(i)}\|^2.
+\]</span></p>
+<p>Therefore the softmax weights can be written as</p>
+<p><span class="math display">\[
+\lambda_i(y,r)
+=
+\frac{
+\exp\left(-\frac12\|y-rx^{(i)}\|^2\right)
+}{
+\sum_{j=1}^n
+\exp\left(-\frac12\|y-rx^{(j)}\|^2\right)
+}.
+\]</span></p>
+<p>Now consider a trajectory generated by a particular training point. Let <span class="math inline">\(i_\star\)</span> denote the planted index and write</p>
+<p><span class="math display">\[
+x_\star=x^{(i_\star)}.
+\]</span></p>
+<p>Let</p>
+<p><span class="math display">\[
+z\sim \mathcal N(0,I_d),
+\qquad
+x_t=(1-t)z+t x_\star.
+\]</span></p>
+<p>Then</p>
+<p><span class="math display">\[
+y=\frac{x_t}{1-t}=z+rx_\star.
+\]</span></p>
+<p>Thus the softmax weights are exactly the posterior probabilities in the following finite-codebook Gaussian observation model:</p>
+<p><span class="math display">\[
+I\sim \mathrm{Unif}\{1,\dots,n\},
+\qquad
+Y=r x^{(I)}+Z,
+\qquad
+Z\sim \mathcal N(0,I_d).
+\]</span></p>
+<p>Conditioned on the codebook <span class="math inline">\(x^{(1)},\dots,x^{(n)}\)</span>, Bayes’ rule gives</p>
+<p><span class="math display">\[
+\mathbb P(I=i\mid Y=y,x^{(1:n)})
+=
+\frac{\exp\left(-\frac12\|y-rx^{(i)}\|^2\right)}
+{\sum_{j=1}^n\exp\left(-\frac12\|y-rx^{(j)}\|^2\right)}.
+\]</span></p>
+<p>This is precisely <span class="math inline">\(\lambda_i(y,r)\)</span>.</p>
+<p>The quantity of interest along such a trajectory is the <strong>planted mass</strong></p>
+<p><span class="math display">\[
+\lambda_\star(t)=\lambda_{i_\star}(x_t,t),
+\]</span></p>
+<p>the posterior mass assigned to the training point that actually generated the trajectory. Collapse along the trajectory means <span class="math inline">\(\lambda_\star(t)\approx 1\)</span>.</p>
+<p>The parameter <span class="math inline">\(r=t/(1-t)\)</span> is a signal-to-noise parameter. At <span class="math inline">\(t=0\)</span>, <span class="math inline">\(r=0\)</span> and the observation is pure noise:</p>
+<p><span class="math display">\[
+Y=Z.
+\]</span></p>
+<p>No information about the training index is available, so the posterior is uniform. As <span class="math inline">\(t\)</span> increases, <span class="math inline">\(Y\)</span> contains a stronger signal <span class="math inline">\(r x_\star\)</span>. Collapse occurs when this signal is strong enough to identify <span class="math inline">\(x_\star\)</span> among <span class="math inline">\(n\)</span> possible training points.</p>
+<p>This gives a more precise meaning to the phrase “the softmax collapses”: along a planted trajectory, collapse is posterior concentration on the planted index.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>The global mean does not matter
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The construction so far uses the raw training points <span class="math inline">\(x^{(i)}\)</span>, but nothing changes if the data is not centered. Suppose the points share a common mean,</p>
+<p><span class="math display">\[
+x^{(i)}=m+\widetilde x^{(i)}.
+\]</span></p>
+<p>Because the planted trajectory is generated from one of these points, the shift enters the observation as well:</p>
+<p><span class="math display">\[
+Y=r x^{(I)}+Z
+=
+rm+r\widetilde x^{(I)}+Z.
+\]</span></p>
+<p>Thus <span class="math inline">\(rm\)</span> is common to <span class="math inline">\(Y\)</span> and to every codeword <span class="math inline">\(rx^{(i)}\)</span>, and in the softmax exponent it cancels:</p>
+<p><span class="math display">\[
+\|y-r x^{(i)}\|^2
+=
+\bigl\|(y-rm)-r\widetilde x^{(i)}\bigr\|^2,
+\]</span></p>
+<p>which is exactly the centered problem with <span class="math inline">\(y\)</span> replaced by <span class="math inline">\(y-rm\)</span>. The posterior weights <span class="math inline">\(\lambda_i\)</span> — and hence the planted mass <span class="math inline">\(\lambda_\star\)</span> — are therefore identical whether or not the data is centered. Equivalently, the deterministic shift <span class="math inline">\(rm\)</span> leaves the mutual information <span class="math inline">\(I(X;Y)\)</span> unchanged.</p>
+<p>This is an exact identity for the empirical weights, not merely a property of a Gaussian model. Consequently every proxy below may take the data to be centered without loss of generality: the collapse threshold depends on the covariance structure of the data, not on its global mean.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Relation to Gibbs measures and the statistical-physics picture
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The weights can also be written as a Gibbs measure</p>
+<p><span class="math display">\[
+\lambda_i(x,t)
+=
+\frac{e^{-E_i(x,t)}}{\sum_j e^{-E_j(x,t)}},
+\qquad
+E_i(x,t)=\frac{\|x-tx^{(i)}\|^2}{2(1-t)^2},
+\]</span></p>
+<p>whose normalizing constant is a partition function. In this language, softmax collapse is the condensation of a Gibbs measure onto a single training point.</p>
+<p>This is the transition studied by <span class="citation" data-cites="biroli_dynamical_2024">(<a href="#ref-biroli_dynamical_2024" role="doc-biblioref">Biroli et al. 2024</a>)</span> for diffusion models, under the same exact-empirical-score assumption used here. They analyze it with statistical-physics tools, call it the <strong>collapse</strong> transition, and independently identify <span class="math inline">\(\alpha=\log n/d\)</span> as the control parameter.</p>
+<p>The two routes agree quantitatively. Their noising process is Ornstein-Uhlenbeck,</p>
+<p><span class="math display">\[
+x(s)=e^{-s}x_\star+\sqrt{\Delta_s}\,z,
+\qquad
+\Delta_s=1-e^{-2s},
+\]</span></p>
+<p>with a time <span class="math inline">\(s\)</span> running opposite to ours: <span class="math inline">\(s=0\)</span> is data and <span class="math inline">\(s\to\infty\)</span> is noise. Rescaling by <span class="math inline">\(\sqrt{\Delta_s}\)</span> puts their weights in exactly the form of <span class="math inline">\(\lambda_i(y,r)\)</span> above, so the two models are the same Gaussian codebook posterior, written in different time variables but governed by the same per-coordinate signal-to-noise ratio:</p>
+<p><span class="math display">\[
+\rho(s)=\frac{\sigma^2e^{-2s}}{1-e^{-2s}}
+=
+\frac{\sigma^2}{e^{2s}-1}
+\qquad
+\text{versus}
+\qquad
+\rho(t)=\sigma^2r^2,
+\quad
+r=\frac{t}{1-t}.
+\]</span></p>
+<p>Their collapse time for the Gaussian model is</p>
+<p><span class="math display">\[
+s_C=\frac12\log\left(1+\frac{\sigma^2}{n^{2/d}-1}\right),
+\]</span></p>
+<p>which sits at signal-to-noise ratio</p>
+<p><span class="math display">\[
+\rho(s_C)=n^{2/d}-1=e^{2\alpha}-1,
+\]</span></p>
+<p>precisely the condition <span class="math inline">\(\frac12\log(1+\rho)=\alpha\)</span> obtained in <a href="#sec-random-coding-union-bound" class="quarto-xref">Section&nbsp;3.1</a>. The same threshold is therefore reached twice: there through a decoding argument, here through an excess-entropy computation. Their formula also depends on <span class="math inline">\(\sigma^2\)</span> alone and not on the separation between data clusters, consistent with the nonzero-mean remark in <a href="#sec-softmax-as-posterior" class="quarto-xref">Section&nbsp;1.3</a>.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="sec-empirical-motivation" class="level1">
+<h1>Empirical motivation</h1>
+<p>The empirical observations in <span class="citation" data-cites="bertrand_closed-form_2025">(<a href="#ref-bertrand_closed-form_2025" role="doc-biblioref">Bertrand et al. 2025</a>)</span> motivate this mathematical analysis.</p>
+<div id="fig-article-fig-1" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Histograms of cosine similarities between marginal and conditional velocity fields for two-moons and CIFAR-10.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-article-fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/article-fig-1.png" class="img-fluid figure-img" alt="Histograms of cosine similarities between marginal and conditional velocity fields for two-moons and CIFAR-10.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-article-fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Histograms of cosine similarities between the closed-form marginal velocity <span class="math inline">\(u_t((1-t)x_0+tx_1)\)</span> and the conditional velocity <span class="math inline">\(u_t((1-t)x_0+tx_1\mid x_1)=x_1-x_0\)</span>, for two-moons and CIFAR-10. On CIFAR-10, the marginal field aligns with the conditional field much earlier than in the low-dimensional example. Adapted from <span class="citation" data-cites="bertrand_closed-form_2025">(<a href="#ref-bertrand_closed-form_2025" role="doc-biblioref">Bertrand et al. 2025, fig. 1</a>)</span>.
+</figcaption>
+</figure>
+</div>
+<p><a href="#fig-article-fig-1" class="quarto-xref">Figure&nbsp;1</a> shows that, on CIFAR-10, the marginal velocity field becomes highly aligned with the conditional velocity field already for small values of <span class="math inline">\(t\)</span>. This suggests that the empirical posterior over training samples becomes concentrated along typical data-generated trajectories.</p>
+<div id="fig-article-fig-2" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Fraction of samples with cosine similarity above 0.9 as a function of time and resolution.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-article-fig-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/article-fig-2.png" class="img-fluid figure-img" alt="Fraction of samples with cosine similarity above 0.9 as a function of time and resolution.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-article-fig-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Fraction of samples for which the cosine similarity between the marginal and conditional velocity fields exceeds <span class="math inline">\(0.9\)</span>, as a function of <span class="math inline">\(t\)</span>, for several image resolutions. The transition moves earlier as dimension increases. Adapted from <span class="citation" data-cites="bertrand_closed-form_2025">(<a href="#ref-bertrand_closed-form_2025" role="doc-biblioref">Bertrand et al. 2025, fig. 2</a>)</span>.
+</figcaption>
+</figure>
+</div>
+<p><a href="#fig-article-fig-2" class="quarto-xref">Figure&nbsp;2</a> shows a strong dimension effect: increasing the ambient dimension moves the alignment transition toward earlier times. This is consistent with the formula derived later, where the relevant ratio is</p>
+<p><span class="math display">\[
+\alpha=\frac{\log n}{d}.
+\]</span></p>
+<p>For fixed dataset size <span class="math inline">\(n\)</span>, increasing <span class="math inline">\(d\)</span> decreases <span class="math inline">\(\alpha\)</span>, and therefore decreases the collapse time.</p>
+<div id="fig-article-fig-3" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Average error between the closed-form marginal velocity field and a learned velocity field as a function of time.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-article-fig-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/article-fig-3.png" class="img-fluid figure-img" alt="Average error between the closed-form marginal velocity field and a learned velocity field as a function of time.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-article-fig-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Failure to learn the marginal velocity field on CIFAR-10. The left panel shows the average error between the exact empirical marginal velocity field <span class="math inline">\(u_t\)</span> and a learned neural velocity field <span class="math inline">\(u_t^\theta\)</span>, for several training-set sizes. The error is low near <span class="math inline">\(t=0\)</span>, peaks at intermediate times, decreases, and then rises again near <span class="math inline">\(t=1\)</span>. Adapted from <span class="citation" data-cites="bertrand_closed-form_2025">(<a href="#ref-bertrand_closed-form_2025" role="doc-biblioref">Bertrand et al. 2025, fig. 3</a>)</span>.
+</figcaption>
+</figure>
+</div>
+<p><a href="#fig-article-fig-3" class="quarto-xref">Figure&nbsp;3</a> shows a non-monotone learning difficulty profile. The error is low near <span class="math inline">\(t=0\)</span>, becomes large at intermediate times, decreases after the posterior starts concentrating, and rises again near <span class="math inline">\(t=1\)</span>. The posterior concentration picture explains the intermediate-time difficulty; the final spike near <span class="math inline">\(t=1\)</span> has a different origin, namely nearest-neighbor discontinuities and the prefactor <span class="math inline">\(1/(1-t)\)</span>. <a href="#sec-error-analysis" class="quarto-xref">Section&nbsp;5</a> returns to this profile once the threshold has been derived.</p>
+</section>
+<section id="sec-isotropic-gaussian-proxy" class="level1">
+<h1>Isotropic Gaussian proxy</h1>
+<p>The identity of <a href="#sec-softmax-as-posterior" class="quarto-xref">Section&nbsp;1.3</a> is exact: whatever the training set, the softmax weights are the posterior over the training index in a finite Gaussian codebook model. But an identity says nothing about <em>when</em> that posterior concentrates. Answering that requires a distribution for the codebook itself, and the simplest useful choice replaces CIFAR-10 by an i.i.d. Gaussian cloud <span class="math inline">\(x^{(i)}\sim\mathcal N(0,\sigma^2I_d)\)</span> with variance matched to the data.</p>
+<p>What this buys is a channel that is memoryless across coordinates, exactly the structure a law-of-large-numbers argument needs. It also turns the question <em>how much signal is required to identify one of <span class="math inline">\(n\)</span> codewords?</em> into a classical one with a closed-form answer. The two subsections below locate the threshold, then calibrate <span class="math inline">\(\sigma^2\)</span> against the normalized CIFAR-10 pixel statistics and evaluate it.</p>
+<section id="sec-random-coding-union-bound" class="level2">
+<h2 class="anchored" data-anchor-id="sec-random-coding-union-bound">The information-rate threshold</h2>
+<p>The transition has a one-line information-theoretic reading. Along a planted trajectory the interpolant is a noisy observation of the planted image through a Gaussian channel, and that channel supplies <span class="math inline">\(\frac12\log(1+\mathrm{SNR})\)</span> nats per coordinate about the image. Identifying which of the <span class="math inline">\(n\)</span> training points was planted costs <span class="math inline">\(\log n\)</span> nats, or <span class="math inline">\(\alpha=\log n/d\)</span> nats per coordinate. Collapse occurs when supply exceeds demand.</p>
+<p>The rest of this section makes that comparison precise. The training set plays the role of a Gaussian codebook and the softmax weights are exactly the decoding posterior, so the classical random-coding union bound <span class="citation" data-cites="lomnitz_simpler_2012">(<a href="#ref-lomnitz_simpler_2012" role="doc-biblioref">Lomnitz and Feder 2012</a>)</span> applies verbatim. The main line is deliberately short; two collapsed callouts carry the underlying likelihood-ratio computations in full. The first derives the channel information rate rather than assuming it, and the second upgrades the conclusion from <em>the planted index is recoverable</em> to the quantitative statement <span class="math inline">\(\lambda_\star\to 1\)</span>.</p>
+<p><strong>The model.</strong> Draw the codebook i.i.d. from the input distribution,</p>
+<p><span class="math display">\[
+x^{(1)},\dots,x^{(n)}\overset{\mathrm{i.i.d.}}{\sim}P_X,
+\qquad
+P_X=\mathcal N(0,\sigma^2 I_d),
+\qquad
+n=e^{\alpha d},
+\qquad
+\alpha=\frac{\log n}{d},
+\]</span></p>
+<p>pick a planted index <span class="math inline">\(I\sim\mathrm{Unif}\{1,\dots,n\}\)</span>, and observe</p>
+<p><span class="math display">\[
+Y=r\,x^{(I)}+Z,
+\qquad
+Z\sim\mathcal N(0,I_d).
+\]</span></p>
+<p>This is the observation model of <a href="#sec-softmax-as-posterior" class="quarto-xref">Section&nbsp;1.3</a>, after the change of variables <span class="math inline">\(r=t/(1-t)\)</span>, <span class="math inline">\(y=x/(1-t)\)</span>, with the isotropic Gaussian proxy substituted for the data. It is an additive Gaussian channel with signal-to-noise ratio</p>
+<p><span class="math display">\[
+\mathrm{SNR}=\sigma^2r^2.
+\]</span></p>
+<p>Let <span class="math inline">\(p(y\mid x)\)</span> be the Gaussian likelihood and let</p>
+<p><span class="math display">\[
+p_Y(y)=\int p(y\mid x)\,dP_X(x)
+\]</span></p>
+<p>be the marginal output density under the random-coding prior. Define the information density</p>
+<p><span class="math display">\[
+\imath(x;y)
+=
+\log\frac{p(y\mid x)}{p_Y(y)}.
+\]</span></p>
+<p><strong>Planted codeword.</strong> The channel is memoryless across coordinates, so by the law of large numbers the planted pair concentrates at the mutual information per coordinate:</p>
+<p><span class="math display">\[
+\frac1d\,\imath\bigl(x^{(I)};Y\bigr)
+\longrightarrow
+\frac1d\,I(X;Y)
+=
+\mathcal I_{\mathrm{iso}}(r)
+=
+\frac12\log(1+\sigma^2 r^2).
+\]</span></p>
+<p>Thus, with high probability, the planted information density is <span class="math inline">\(d\,\mathcal I_{\mathrm{iso}}(r)+o(d)\)</span>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Why the planted information density concentrates at <span class="math inline">\(\frac12\log(1+\sigma^2r^2)\)</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Write the likelihood ratio of a codeword <span class="math inline">\(x^{(i)}\)</span> as</p>
+<p><span class="math display">\[
+L_i(Y)
+=
+\frac{p(Y\mid x^{(i)})}{p_Y(Y)},
+\qquad
+p(y\mid x)
+=
+(2\pi)^{-d/2}
+\exp\left(-\frac12\|y-rx\|^2\right),
+\]</span></p>
+<p>so that <span class="math inline">\(\log L_i(Y)=\imath(x^{(i)};Y)\)</span>. For the planted pair <span class="math inline">\((X_\star,Y)\)</span>, the claim is that <span class="math inline">\(\frac1d\log L_\star\)</span> concentrates.</p>
+<p><strong>Step 1: the marginal output law.</strong> Since <span class="math inline">\(Y=rX+Z\)</span> with <span class="math inline">\(X\sim\mathcal N(0,\sigma^2I_d)\)</span> independent of <span class="math inline">\(Z\sim\mathcal N(0,I_d)\)</span>,</p>
+<p><span class="math display">\[
+Y\sim\mathcal N\bigl(0,(1+\sigma^2r^2)I_d\bigr).
+\]</span></p>
+<p><strong>Step 2: decomposition across coordinates.</strong> The Gaussian channel acts independently on each coordinate, so both <span class="math inline">\(p(y\mid x)\)</span> and <span class="math inline">\(p_Y(y)\)</span> factorize and the information density is a sum of <span class="math inline">\(d\)</span> i.i.d. one-dimensional terms:</p>
+<p><span class="math display">\[
+\imath(X_\star;Y)
+=
+\sum_{k=1}^d
+\imath(X_{\star,k};Y_k),
+\qquad
+\mathbb E[\imath(X_{\star,k};Y_k)]
+=
+I(X_k;Y_k).
+\]</span></p>
+<p>By the law of large numbers,</p>
+<p><span class="math display">\[
+\frac1d\imath(X_\star;Y)
+\longrightarrow
+I(X_k;Y_k)
+\qquad
+\text{in probability}.
+\]</span></p>
+<p>In words: for a typical planted sample, the log-likelihood ratio is close to its mean.</p>
+<p><strong>Step 3: the scalar mutual information.</strong> For the scalar Gaussian channel</p>
+<p><span class="math display">\[
+Y_k=rX_k+Z_k,
+\qquad
+X_k\sim\mathcal N(0,\sigma^2),
+\qquad
+Z_k\sim\mathcal N(0,1),
+\]</span></p>
+<p>the mutual information is <span class="math inline">\(I(X_k;Y_k)=h(Y_k)-h(Y_k\mid X_k)\)</span>. Since</p>
+<p><span class="math display">\[
+Y_k\sim\mathcal N(0,1+\sigma^2r^2),
+\qquad
+Y_k\mid X_k\sim\mathcal N(rX_k,1),
+\]</span></p>
+<p>and a Gaussian of variance <span class="math inline">\(v\)</span> has differential entropy <span class="math inline">\(\frac12\log(2\pi e v)\)</span>, the two entropies differ only through the variance ratio:</p>
+<p><span class="math display">\[
+I(X_k;Y_k)
+=
+\frac12\log\bigl(2\pi e(1+\sigma^2r^2)\bigr)
+-
+\frac12\log(2\pi e)
+=
+\frac12\log(1+\sigma^2r^2).
+\]</span></p>
+<p><strong>Conclusion.</strong> Combining the three steps,</p>
+<p><span class="math display">\[
+\frac1d\log L_\star
+\longrightarrow
+\mathcal I_{\mathrm{iso}}(r)
+=
+\frac12\log(1+\sigma^2r^2),
+\]</span></p>
+<p>so for any <span class="math inline">\(\varepsilon&gt;0\)</span>, with high probability,</p>
+<p><span class="math display">\[
+L_\star
+\geq
+\exp\left\{
+d\left(\mathcal I_{\mathrm{iso}}(r)-\varepsilon\right)
+\right\}.
+\]</span></p>
+</div>
+</div>
+</div>
+<p><strong>Wrong codewords.</strong> Fix a threshold <span class="math inline">\(\gamma\)</span>. A wrong codeword <span class="math inline">\(x^{(j)}\)</span>, <span class="math inline">\(j\neq I\)</span>, is independent of <span class="math inline">\(Y\)</span>. Conditioned on <span class="math inline">\(Y=y\)</span>, a change-of-measure (Markov) bound gives</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbb P\bigl(\imath(x^{(j)};y)\ge d\gamma\bigr)
+&amp;=
+P_X\!\left(
+x:\frac{p(y\mid x)}{p_Y(y)}\ge e^{d\gamma}
+\right) \\
+&amp;\le
+e^{-d\gamma}
+\int\frac{p(y\mid x)}{p_Y(y)}\,dP_X(x)
+=
+e^{-d\gamma}.
+\end{aligned}
+\]</span></p>
+<p>A union bound over the <span class="math inline">\(n-1\)</span> wrong codewords yields</p>
+<p><span class="math display">\[
+\mathbb P\bigl(
+\exists\, j\neq I:\imath(x^{(j)};Y)\ge d\gamma
+\bigr)
+\le
+n\,e^{-d\gamma}
+=
+\exp\{d(\alpha-\gamma)\}.
+\]</span></p>
+<p><strong>Threshold.</strong> Suppose <span class="math inline">\(\gamma\)</span> can be picked with</p>
+<p><span class="math display">\[
+\alpha&lt;\gamma&lt;\mathcal I_{\mathrm{iso}}(r).
+\]</span></p>
+<p>Then, with high probability, the planted codeword has information density above <span class="math inline">\(d\gamma\)</span> while no wrong codeword does, so the planted index is recoverable. Such a <span class="math inline">\(\gamma\)</span> exists exactly when</p>
+<p><span class="math display">\[
+\alpha&lt;\mathcal I_{\mathrm{iso}}(r).
+\]</span></p>
+<p>This is Shannon’s random-coding theorem specialized to a Gaussian codebook and an AWGN channel: a wrong codeword has probability at most <span class="math inline">\(e^{-d\gamma}\)</span> of exceeding information density <span class="math inline">\(d\gamma\)</span>, the union bound over <span class="math inline">\(n\)</span> candidates contributes <span class="math inline">\(\exp\{d(\alpha-\gamma)\}\)</span>, and the planted codeword sits at <span class="math inline">\(d\,\mathcal I_{\mathrm{iso}}(r)+o(d)\)</span>. The recovery boundary is therefore</p>
+<p><span class="math display">\[
+\mathcal I_{\mathrm{iso}}(r_C)=\alpha,
+\qquad\text{i.e.}\qquad
+\frac12\log(1+\sigma^2 r_C^2)=\frac{\log n}{d}.
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>From recoverability to posterior mass: <span class="math inline">\(\lambda_\star\to1\)</span>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The union bound shows that the planted index is <em>recoverable</em>. Since the object of interest here is the softmax weight itself, it is worth showing directly that the planted posterior mass tends to <span class="math inline">\(1\)</span>. The argument compares the planted likelihood ratio to the total wrong mass.</p>
+<p>Multiplying every likelihood by the common factor <span class="math inline">\(1/p_Y(Y)\)</span> leaves the softmax weights unchanged, so with <span class="math inline">\(L_i(Y)=p(Y\mid x^{(i)})/p_Y(Y)\)</span> the planted mass is</p>
+<p><span class="math display">\[
+\lambda_\star
+=
+\frac{L_\star}
+{L_\star+W},
+\qquad
+W=\sum_{j\neq \star}L_j(Y).
+\]</span></p>
+<p><strong>The planted term.</strong> By the previous callout, with high probability</p>
+<p><span class="math display">\[
+L_\star
+\geq
+\exp\left\{
+d\left(\mathcal I_{\mathrm{iso}}(r)-\varepsilon\right)
+\right\}.
+\]</span></p>
+<p><strong>The wrong mass.</strong> A wrong codeword <span class="math inline">\(x^{(j)}\)</span>, <span class="math inline">\(j\neq\star\)</span>, is independent of <span class="math inline">\(Y\)</span> and distributed according to the prior <span class="math inline">\(P_X\)</span>. A change of measure gives</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbb E[L_j(Y)\mid Y]
+&amp;=
+\int
+\frac{p(Y\mid x)}{p_Y(Y)}
+\,dP_X(x) \\
+&amp;=
+\frac{1}{p_Y(Y)}
+\int p(Y\mid x)\,dP_X(x) \\
+&amp;=
+\frac{p_Y(Y)}{p_Y(Y)}
+=
+1.
+\end{aligned}
+\]</span></p>
+<p>Each wrong codeword therefore contributes a likelihood ratio of order <span class="math inline">\(1\)</span> on average, and since there are <span class="math inline">\(n-1\)</span> of them,</p>
+<p><span class="math display">\[
+\mathbb E[W\mid Y]=n-1.
+\]</span></p>
+<p>By Markov’s inequality, for any <span class="math inline">\(\varepsilon&gt;0\)</span>,</p>
+<p><span class="math display">\[
+\mathbb P\left(
+W\geq e^{d(\alpha+\varepsilon)}
+\mid Y
+\right)
+\leq
+\frac{n-1}{e^{d(\alpha+\varepsilon)}}
+\leq
+e^{-d\varepsilon},
+\]</span></p>
+<p>so with high probability <span class="math inline">\(W\leq\exp\{d(\alpha+\varepsilon)\}\)</span>.</p>
+<p><strong>Combining.</strong> With high probability both estimates hold, and</p>
+<p><span class="math display">\[
+\frac{W}{L_\star}
+\leq
+\exp\left\{
+d(\alpha+\varepsilon)
+-
+d(\mathcal I_{\mathrm{iso}}(r)-\varepsilon)
+\right\}
+=
+\exp\left\{
+-d\left(
+\mathcal I_{\mathrm{iso}}(r)-\alpha-2\varepsilon
+\right)
+\right\}.
+\]</span></p>
+<p>If <span class="math inline">\(\mathcal I_{\mathrm{iso}}(r)&gt;\alpha\)</span>, choose <span class="math inline">\(\varepsilon&gt;0\)</span> small enough that <span class="math inline">\(\mathcal I_{\mathrm{iso}}(r)-\alpha-2\varepsilon&gt;0\)</span>. Then <span class="math inline">\(W/L_\star\to0\)</span> exponentially fast in <span class="math inline">\(d\)</span>, and since</p>
+<p><span class="math display">\[
+\lambda_\star
+=
+\frac{1}{1+W/L_\star},
+\]</span></p>
+<p>the planted mass satisfies <span class="math inline">\(\lambda_\star\to1\)</span>. Above the threshold, the posterior concentrates on the planted training point, which is exactly softmax collapse along a planted trajectory.</p>
+</div>
+</div>
+</div>
+<p>The matching converse is the standard channel-coding converse via Fano’s inequality: if the index can be decoded with vanishing error, its entropy rate cannot exceed the channel mutual information <span class="citation" data-cites="cover_elements_2006 polyanskiy_channel_2010">(<a href="#ref-cover_elements_2006" role="doc-biblioref">Cover and Thomas 2006</a>; <a href="#ref-polyanskiy_channel_2010" role="doc-biblioref">Polyanskiy et al. 2010</a>)</span>. Achievability and converse together pin the collapse boundary at <span class="math inline">\(\mathcal I_{\mathrm{iso}}(r_C)=\alpha\)</span>, which solves to</p>
+<p><span class="math display">\[
+r_C
+=
+\sqrt{\frac{e^{2\alpha}-1}{\sigma^2}}.
+\]</span></p>
+<p>Since <span class="math inline">\(r=t/(1-t)\)</span> and <span class="math inline">\(t=r/(1+r)\)</span>, the predicted collapse time is</p>
+<p><span class="math display">\[
+\boxed{
+t_C
+=
+\frac{
+\sqrt{(e^{2\alpha}-1)/\sigma^2}
+}{
+1+\sqrt{(e^{2\alpha}-1)/\sigma^2}
+}.
+}
+\]</span></p>
+<p>This is the supply-exceeds-demand comparison of the opening paragraph, now with both directions established: above the threshold the posterior concentrates on the planted training point, and below it no decoder can identify that point.</p>
+</section>
+<section id="numerical-value-for-the-cifar-10-proxy" class="level2">
+<h2 class="anchored" data-anchor-id="numerical-value-for-the-cifar-10-proxy">Numerical value for the CIFAR-10 proxy</h2>
+<p><strong>Calibration.</strong> The numerical values below use the standard CIFAR-10 normalization often used in flow matching experiments:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>dataset <span class="op">=</span> datasets.CIFAR10(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    root<span class="op">=</span><span class="st">"./data"</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    train<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    download<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    transform<span class="op">=</span>transforms.Compose([</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        transforms.ToTensor(),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        transforms.Normalize((<span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>), (<span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>)),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    ]),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The transformation maps pixel values <span class="math inline">\(p\in[0,1]\)</span> to</p>
+<p><span class="math display">\[
+x=\frac{p-0.5}{0.5}=2p-1\in[-1,1].
+\]</span></p>
+<p>CIFAR-10 images have dimension <span class="math inline">\(d=3\times 32\times 32=3072\)</span>, and the training set has <span class="math inline">\(n=50{,}000\)</span> images. The usual CIFAR-10 channel standard deviations in <span class="math inline">\([0,1]\)</span> scale are approximately</p>
+<p><span class="math display">\[
+0.247,
+\qquad
+0.243,
+\qquad
+0.261.
+\]</span></p>
+<p>After the normalization <span class="math inline">\(x\mapsto 2x-1\)</span>, variances are multiplied by <span class="math inline">\(4\)</span>, giving channel variances roughly</p>
+<p><span class="math display">\[
+0.244,
+\qquad
+0.236,
+\qquad
+0.273.
+\]</span></p>
+<p>As a simple isotropic proxy, this post uses the round value</p>
+<p><span class="math display">\[
+\sigma^2\approx 0.24,
+\]</span></p>
+<p>slightly below the per-coordinate variance <span class="math inline">\(0.248\)</span> measured on the normalized training set in the notebook below. The difference is immaterial here: using <span class="math inline">\(0.248\)</span> instead would move the threshold derived next from <span class="math inline">\(0.146\)</span> to <span class="math inline">\(0.144\)</span>.</p>
+<p>This model is deliberately crude. Real CIFAR-10 images are bounded, structured, and highly non-Gaussian, and their covariance is far from isotropic. The isotropic calculation should be read as a first-order scale prediction, not as an exact model of images; <a href="#sec-general-covariance" class="quarto-xref">Section&nbsp;4</a> gives the natural covariance-corrected formula.</p>
+<p><strong>Evaluation.</strong> With <span class="math inline">\(d=3072\)</span>, <span class="math inline">\(n=50{,}000\)</span> and <span class="math inline">\(\sigma^2\approx 0.24\)</span>, the training index costs</p>
+<p><span class="math display">\[
+\alpha
+=
+\frac{\log(50{,}000)}{3072}
+\approx 0.003522
+\]</span></p>
+<p>nats per coordinate. Solving <span class="math inline">\(\mathcal I_{\mathrm{iso}}(r_C)=\alpha\)</span> gives</p>
+<p><span class="math display">\[
+r_C
+=
+\sqrt{\frac{e^{2\alpha}-1}{0.24}}
+\approx 0.1716,
+\]</span></p>
+<p>and therefore</p>
+<p><span class="math display">\[
+\boxed{
+t_C=\frac{r_C}{1+r_C}\approx 0.146.
+}
+\]</span></p>
+<p>This is the asymptotic point where the exponent changes sign. In finite dimension, one may prefer to define collapse by a target planted mass, for example <span class="math inline">\(\lambda_\star\geq 0.9\)</span> or <span class="math inline">\(\lambda_\star\geq 0.99\)</span>. A useful finite-<span class="math inline">\(d\)</span> approximation is</p>
+<p><span class="math display">\[
+\lambda_\star(t)
+\approx
+\frac{1}{1+\exp\{d(\alpha-\mathcal I_{\mathrm{iso}}(r))\}},
+\qquad
+r=\frac{t}{1-t}.
+\]</span></p>
+<p>Using this approximation with the CIFAR-10 proxy gives:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Criterion</th>
+<th style="text-align: right;">Approximate time</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>exponent changes sign, <span class="math inline">\(\lambda_\star\approx 1/2\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(0.146\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\lambda_\star\approx 0.9\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(0.158\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\lambda_\star\approx 0.99\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(0.170\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\lambda_\star\approx 0.999\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(0.180\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>The transition is sharp because <span class="math inline">\(d=3072\)</span> is large.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Why the finite-dimensional sigmoid appears
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The sigmoid comes from the same two estimates used in <a href="#sec-random-coding-union-bound" class="quarto-xref">Section&nbsp;3.1</a>, read as approximations rather than as one-sided bounds.</p>
+<p>Recall the likelihood ratios <span class="math inline">\(L_i(Y)=p(Y\mid x^{(i)})/p_Y(Y)\)</span> and the decomposition</p>
+<p><span class="math display">\[
+\lambda_\star
+=
+\frac{L_\star}{L_\star+W},
+\qquad
+W=\sum_{j\neq \star}L_j(Y).
+\]</span></p>
+<p>The planted term satisfies <span class="math inline">\(\frac1d\log L_\star\to\mathcal I_{\mathrm{iso}}(r)\)</span>, so it sits at the exponential scale <span class="math inline">\(e^{d\mathcal I_{\mathrm{iso}}(r)}\)</span>. Each wrong term has <span class="math inline">\(\mathbb E[L_j\mid Y]=1\)</span>, so the wrong mass sits at the scale <span class="math inline">\(n=e^{\alpha d}\)</span>. Replacing both by their typical exponential scale,</p>
+<p><span class="math display">\[
+\lambda_\star
+\approx
+\frac{e^{d\mathcal I_{\mathrm{iso}}(r)}}
+{e^{d\mathcal I_{\mathrm{iso}}(r)}+e^{\alpha d}}
+=
+\frac1{1+e^{d(\alpha-\mathcal I_{\mathrm{iso}}(r))}},
+\]</span></p>
+<p>whose exponent changes sign exactly at <span class="math inline">\(\mathcal I_{\mathrm{iso}}(r)=\alpha\)</span>, recovering the threshold.</p>
+<p>This is a heuristic sharpening, not a theorem. The rigorous argument bounds <span class="math inline">\(W/L_\star\)</span> from one side only, which yields <span class="math inline">\(\lambda_\star\to1\)</span> above the threshold but not the exact sigmoid profile at finite <span class="math inline">\(d\)</span>; the fluctuations of <span class="math inline">\(\log L_\star\)</span> and of <span class="math inline">\(W\)</span> around their typical scales are <span class="math inline">\(O(\sqrt d)\)</span> and are what smooth the transition in practice. The table above should be read in that spirit.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="sec-general-covariance" class="level1">
+<h1>A general-covariance Gaussian proxy</h1>
+<p>The isotropic proxy is mathematically transparent, but real image data is strongly anisotropic.</p>
+<div id="fig-eigenvalues-cifar10" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Eigenvalue spectrum of the CIFAR-10 covariance matrix.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-eigenvalues-cifar10-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/eigenvalues-cifar10.png" class="img-fluid figure-img" alt="Eigenvalue spectrum of the CIFAR-10 covariance matrix.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-eigenvalues-cifar10-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Eigenvalues of the empirical covariance matrix of CIFAR-10 after standard normalization. The spectrum is highly anisotropic, with a small number of large directions and many low-variance directions.
+</figcaption>
+</figure>
+</div>
+<p>The covariance spectrum in <a href="#fig-eigenvalues-cifar10" class="quarto-xref">Figure&nbsp;4</a> shows that CIFAR-10 is not close to an i.i.d. Gaussian cloud. The natural Gaussian refinement is</p>
+<p><span class="math display">\[
+x^{(i)}\sim\mathcal N(0,C),
+\]</span></p>
+<p>where <span class="math inline">\(C\)</span> is the empirical covariance matrix of the normalized data. The planted channel is</p>
+<p><span class="math display">\[
+Y=rX_\star+Z,
+\qquad
+X_\star\sim\mathcal N(0,C),
+\qquad
+Z\sim\mathcal N(0,I_d).
+\]</span></p>
+<p>The mutual information of this Gaussian channel is</p>
+<p><span class="math display">\[
+I_C(r)
+=
+\frac12\log\det(I_d+r^2C).
+\]</span></p>
+<p>Per coordinate, define</p>
+<p><span class="math display">\[
+\mathcal I_C(r)
+=
+\frac1d I_C(r)
+=
+\frac1{2d}\log\det(I_d+r^2C).
+\]</span></p>
+<p>If <span class="math inline">\(\mu_1,\dots,\mu_d\)</span> are the eigenvalues of <span class="math inline">\(C\)</span>, then</p>
+<p><span class="math display">\[
+\mathcal I_C(r)
+=
+\frac1{2d}\sum_{k=1}^d\log(1+r^2\mu_k).
+\]</span></p>
+<p>The covariance-corrected collapse threshold is therefore</p>
+<p><span class="math display">\[
+\boxed{
+\log n
+=
+\frac12\log\det(I_d+r_C^2C),
+\qquad
+t_C=\frac{r_C}{1+r_C}.
+}
+\]</span></p>
+<p>Equivalently, in per-coordinate form,</p>
+<p><span class="math display">\[
+\frac{\log n}{d}
+=
+\frac1{2d}\sum_{k=1}^d\log(1+r_C^2\mu_k).
+\]</span></p>
+<p>This formula is often the most useful one in practice: it uses the empirical covariance spectrum directly.</p>
+<p><strong>Interpretation.</strong> The isotropic model replaces all eigenvalues by their average value <span class="math inline">\(\sigma^2\)</span>. The general covariance formula instead sums the contribution of each principal direction:</p>
+<p><span class="math display">\[
+\frac12\log(1+r^2\mu_k).
+\]</span></p>
+<p>Large-variance directions become informative early. Low-variance directions contribute later. Because <span class="math inline">\(\log(1+r^2\mu)\)</span> is concave in <span class="math inline">\(\mu\)</span>, the full spectrum matters; the mean variance alone is not enough to determine the threshold.</p>
+<p>Given the spiked CIFAR-10 spectrum of <a href="#fig-eigenvalues-cifar10" class="quarto-xref">Figure&nbsp;4</a>, the covariance-corrected prediction is read off the curve</p>
+<p><span class="math display">\[
+t\mapsto
+\frac1{2d}\sum_{k=1}^d
+\log\left(1+\left(\frac{t}{1-t}\right)^2\mu_k\right)
+\]</span></p>
+<p>at its crossing with the horizontal line <span class="math inline">\(\alpha=\log n/d\)</span>.</p>
+<p>The notebook that follows does exactly that on the full training set, and then goes one step further: rather than stopping at the Gaussian proxies, it evaluates the <em>exact</em> empirical softmax along planted trajectories <span class="math inline">\(x_t=(1-t)z+tx_\star\)</span> and tracks how it concentrates. Five diagnostics are followed together — the planted mass <span class="math inline">\(\lambda_\star\)</span>, the largest weight <span class="math inline">\(\lambda_{\max}\)</span>, the normalized posterior entropy <span class="math inline">\(H(\lambda)/\log n\)</span>, the cosine alignment between the marginal and conditional velocities, and the planted recovery rate <span class="math inline">\(\mathbb P(\arg\max_i\lambda_i=i_\star)\)</span> — with both thresholds overlaid.</p>
+<section id="cifar-10-posterior-concentration-diagnostics" class="level2 quarto-embed-nb-cell">
+<h2 class="anchored" data-anchor-id="cifar-10-posterior-concentration-diagnostics">CIFAR-10 posterior-concentration diagnostics</h2>
+<p>This companion notebook checks the posterior-concentration picture directly on CIFAR-10. Along planted trajectories <span class="math inline">\(x_t=(1-t)z+t x_\star\)</span> it evaluates the exact empirical softmax and tracks five related-but-distinct collapse diagnostics — the planted mass <span class="math inline">\(\lambda_\star\)</span>, the maximum mass <span class="math inline">\(\lambda_{\max}\)</span>, the normalized posterior entropy <span class="math inline">\(H(\lambda)/\log n\)</span>, the velocity alignment <span class="math inline">\(\cos_t\)</span>, and the planted recovery rate <span class="math inline">\(\mathbb P(\arg\max_i\lambda_i=i_\star)\)</span> — overlaying the isotropic threshold <span class="math inline">\(t_C^{\mathrm{iso}}\)</span> and the covariance-corrected threshold <span class="math inline">\(t_C^{\mathrm{cov}}\)</span>. The notebook below defines each diagnostic, explains why they must be read together rather than in isolation, and reports what the empirical transition looks like against these thresholds.</p>
+<p>The CIFAR-10 proxy parameters are</p>
+<p><span class="math display">\[
+d = 3\times 32\times 32 = 3072,
+\qquad
+n = 50,000,
+\qquad
+\sigma^2 \approx 0.24.
+\]</span></p>
+<p>The value of <span class="math inline">\(\sigma^2\)</span> is the per-coordinate variance after the standard transformation from pixels in <span class="math inline">\([0,1]\)</span> to pixels in <span class="math inline">\([-1,1]\)</span>.</p>
+<div id="86617ffb" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:57.849421Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:57.849080Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:34:57.851821Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:34:57.851477Z&quot;}}" data-execution_count="2">
+<div class="cell-output cell-output-stdout">
+<pre><code>d = 3072
+n = 50000
+sigma^2 = 0.2400
+alpha = log(n)/d = 0.003522</code></pre>
+</div>
+</div>
+<section id="posterior-decoding-theory" class="level3">
+<h3 class="anchored" data-anchor-id="posterior-decoding-theory">Posterior-decoding theory</h3>
+<p>The helpers below implement the isotropic threshold derived in the post: the information rate <span class="math inline">\(\mathcal I_{\rm iso}(t)=\frac12\log(1+\sigma^2r(t)^2)\)</span> with <span class="math inline">\(r(t)=t/(1-t)\)</span>, the collapse time solving <span class="math inline">\(\mathcal I_{\rm iso}(t_C)=\log n/d\)</span>, and the finite-<span class="math inline">\(d\)</span> logistic approximation to the planted mass.</p>
+<div id="6c2d33c2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:57.858336Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:57.858253Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:34:57.860990Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:34:57.860540Z&quot;}}" data-execution_count="4">
+<div class="cell-output cell-output-stdout">
+<pre><code>Isotropic posterior-decoding t_C: 0.146482
+Approximate t for lambda_star ~=   0.5: 0.146482
+Approximate t for lambda_star ~=   0.9: 0.158469
+Approximate t for lambda_star ~=  0.99: 0.170126
+Approximate t for lambda_star ~= 0.999: 0.180274</code></pre>
+</div>
+</div>
+<p>The covariance-aware counterpart replaces <span class="math inline">\(\mathcal I_{\rm iso}\)</span> by <span class="math inline">\(\mathcal I_C(t)=\frac{1}{2d}\sum_k\log(1+r(t)^2\mu_k)\)</span>, evaluated on the empirical eigenvalues <span class="math inline">\(\mu_k\)</span>, and solves the same equation <span class="math inline">\(\mathcal I_C(t_C)=\log n/d\)</span>.</p>
+</section>
+<section id="theory-plots" class="level3">
+<h3 class="anchored" data-anchor-id="theory-plots">Theory plots</h3>
+<p>The next plot shows the isotropic information rate and the finite-dimensional planted-mass approximation for the CIFAR-10 proxy.</p>
+<div id="9fa63528" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:57.866332Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:57.866247Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:34:58.143740Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:34:58.143477Z&quot;}}" data-execution_count="6">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="posterior-concentration_files/figure-html/notebooks-_posterior_concentration-cell-7-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="posterior-concentration_files/figure-html/notebooks-_posterior_concentration-cell-7-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="softmax-and-velocity-diagnostics" class="level3">
+<h3 class="anchored" data-anchor-id="softmax-and-velocity-diagnostics">Softmax and velocity diagnostics</h3>
+<p>Along a planted trajectory we choose an index <span class="math inline">\(i_\star\)</span>, draw <span class="math inline">\(z\sim\mathcal N(0,I_d)\)</span>, and set</p>
+<p><span class="math display">\[
+x_t=(1-t)z+t x^{(i_\star)},
+\]</span></p>
+<p>so that the softmax <span class="math inline">\(\lambda_i(x_t,t)\)</span> is exactly the posterior over which training sample generated <span class="math inline">\(x_t\)</span>. Collapse can be read off several <em>related but non-identical</em> quantities, so we track all of them together.</p>
+<p>The first four are the concentration diagnostics named in the post:</p>
+<p><span class="math display">\[
+\lambda_\star(t)=\lambda_{i_\star}(x_t,t),
+\qquad
+\lambda_{\max}(t)=\max_i\lambda_i(x_t,t),
+\]</span></p>
+<p><span class="math display">\[
+\frac{H(\lambda(t))}{\log n},
+\qquad
+\cos_t
+=
+\cos\left(u_t(x_t),\,x^{(i_\star)}-z\right),
+\]</span></p>
+<p>where the marginal velocity is the posterior-weighted average</p>
+<p><span class="math display">\[
+u_t(x_t)=\sum_i\lambda_i(x_t,t)\frac{x^{(i)}-x_t}{1-t}
+=\frac{\sum_i\lambda_i(x_t,t)x^{(i)}-x_t}{1-t},
+\]</span></p>
+<p>and <span class="math inline">\(\cos_t\)</span> measures its alignment with the conditional velocity <span class="math inline">\(x^{(i_\star)}-z\)</span>.</p>
+<p>The fifth diagnostic is the <strong>planted recovery rate</strong></p>
+<p><span class="math display">\[
+\mathbb P\left(\arg\max_i\lambda_i(x_t,t)=i_\star\right),
+\]</span></p>
+<p>the probability that the <em>top</em> softmax weight lands on the training image that actually generated the trajectory. We estimate it by Monte Carlo, as the fraction of planted trajectories whose <span class="math inline">\(\arg\max_i\lambda_i\)</span> equals <span class="math inline">\(i_\star\)</span> (in code, <code>np.mean(np.argmax(weights, axis=1) == planted_indices)</code>).</p>
+<p>These five quantities are related but measure genuinely different events:</p>
+<ul>
+<li><span class="math inline">\(\lambda_\star\approx 1\)</span> means the posterior concentrates <strong>on the planted point</strong>: true collapse.</li>
+<li><span class="math inline">\(\lambda_{\max}\approx 1\)</span> means the posterior is one-hot, but possibly <strong>on the wrong</strong> nearest neighbour.</li>
+<li>low normalized entropy means the posterior is concentrated, but does not say <strong>which</strong> point wins.</li>
+<li>the planted recovery rate resolves exactly the ambiguity <span class="math inline">\(\lambda_{\max}\)</span> leaves open: it is high only when the one-hot mass sits on <span class="math inline">\(i_\star\)</span>.</li>
+<li>high <span class="math inline">\(\cos_t\)</span> can occur <strong>before</strong> the posterior is literally one-hot, because the weighted-average velocity may already point almost along the conditional velocity.</li>
+</ul>
+<p>This is why all five are plotted on the same axes below.</p>
+</section>
+<section id="small-gaussian-sanity-check" class="level3">
+<h3 class="anchored" data-anchor-id="small-gaussian-sanity-check">Small Gaussian sanity check</h3>
+<p>This section runs without CIFAR-10. It verifies the mechanics of the posterior diagnostics on a smaller Gaussian codebook. The dimension and sample size are intentionally small so that the notebook executes quickly.</p>
+<p>This plot is a computational sanity check, not a CIFAR-10 prediction.</p>
+<div id="a6dd99d8" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:58.158214Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:58.158099Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:34:58.478269Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:34:58.477869Z&quot;}}" data-execution_count="8">
+<div class="cell-output cell-output-stdout">
+<pre><code>Synthetic demo: n=800, d=128, sigma^2=0.24
+Synthetic isotropic threshold t_C=0.4038</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">lambda_star_mean</th>
+<th data-quarto-table-cell-role="th">lambda_star_std</th>
+<th data-quarto-table-cell-role="th">lambda_max_mean</th>
+<th data-quarto-table-cell-role="th">lambda_max_std</th>
+<th data-quarto-table-cell-role="th">entropy_norm_mean</th>
+<th data-quarto-table-cell-role="th">entropy_norm_std</th>
+<th data-quarto-table-cell-role="th">cosine_mean</th>
+<th data-quarto-table-cell-role="th">cosine_std</th>
+<th data-quarto-table-cell-role="th">argmax_is_star_mean</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>0.000</td>
+<td>0.001250</td>
+<td>0.000000</td>
+<td>0.001250</td>
+<td>0.000000</td>
+<td>1.000000</td>
+<td>0.000000</td>
+<td>0.895992</td>
+<td>0.018711</td>
+<td>0.00000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>0.025</td>
+<td>0.001312</td>
+<td>0.000189</td>
+<td>0.001940</td>
+<td>0.000098</td>
+<td>0.998459</td>
+<td>0.000137</td>
+<td>0.893258</td>
+<td>0.015023</td>
+<td>0.03125</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>0.050</td>
+<td>0.001333</td>
+<td>0.000351</td>
+<td>0.003030</td>
+<td>0.000272</td>
+<td>0.993773</td>
+<td>0.000721</td>
+<td>0.884116</td>
+<td>0.021570</td>
+<td>0.00000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>0.075</td>
+<td>0.001394</td>
+<td>0.000538</td>
+<td>0.004876</td>
+<td>0.001029</td>
+<td>0.984858</td>
+<td>0.001601</td>
+<td>0.881000</td>
+<td>0.014680</td>
+<td>0.00000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>0.100</td>
+<td>0.001679</td>
+<td>0.001042</td>
+<td>0.007469</td>
+<td>0.002044</td>
+<td>0.971488</td>
+<td>0.004881</td>
+<td>0.872208</td>
+<td>0.018751</td>
+<td>0.00000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="posterior-concentration_files/figure-html/notebooks-_posterior_concentration-cell-9-output-3.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="cifar-10-data-and-covariance-aware-threshold" class="level3">
+<h3 class="anchored" data-anchor-id="cifar-10-data-and-covariance-aware-threshold">CIFAR-10 data and covariance-aware threshold</h3>
+<p>The cell below computes the empirical covariance eigenvalues of all 50,000 images, then solves the log-determinant threshold</p>
+<p><span class="math display">\[
+\log n = \frac12\log\det\left(I_d+r_C^2 C\right).
+\]</span></p>
+<p>The eigenvalues are cached, so the eigendecomposition runs only once. They are computed before the diagnostics below so that both the isotropic and the covariance-aware thresholds can be overlaid on the empirical curves.</p>
+<div id="f41fde1d" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:58.487890Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:58.487766Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:35:07.818047Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:35:07.817492Z&quot;}}" data-execution_count="10">
+<div class="cell-output cell-output-stdout">
+<pre><code>Loaded CIFAR-10: n=50000, d=3072
+Empirical average per-coordinate variance: 0.247917
+Post proxy value for comparison:           0.24
+
+Covariance eigenvalues: 3072
+Mean eigenvalue: 0.247918
+Max eigenvalue:  221.448869
+Min eigenvalue:  6.348635e-06</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="posterior-concentration_files/figure-html/notebooks-_posterior_concentration-cell-11-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Covariance-aware t_C, full CIFAR-10 n=50,000: 0.178817
+Isotropic t_C for comparison:                 0.146482</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="posterior-concentration_files/figure-html/notebooks-_posterior_concentration-cell-11-output-4.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="cifar-10-diagnostics" class="level3">
+<h3 class="anchored" data-anchor-id="cifar-10-diagnostics">CIFAR-10 diagnostics</h3>
+<p>This cell computes the exact empirical softmax diagnostics on CIFAR-10. Both theory curves are overlaid: the isotropic proxy and the covariance-aware log-determinant threshold.</p>
+<div id="14b07c9f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:35:07.819172Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:35:07.819006Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:35:20.264414Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:35:20.263646Z&quot;}}" data-execution_count="11">
+<div class="cell-output cell-output-stdout">
+<pre><code>Softmax codebook: n=50000, d=3072
+Using alpha=log(50000)/3072=0.003522
+Isotropic threshold for this codebook: 0.144465</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">lambda_star_mean</th>
+<th data-quarto-table-cell-role="th">lambda_star_std</th>
+<th data-quarto-table-cell-role="th">lambda_max_mean</th>
+<th data-quarto-table-cell-role="th">lambda_max_std</th>
+<th data-quarto-table-cell-role="th">entropy_norm_mean</th>
+<th data-quarto-table-cell-role="th">entropy_norm_std</th>
+<th data-quarto-table-cell-role="th">cosine_mean</th>
+<th data-quarto-table-cell-role="th">cosine_std</th>
+<th data-quarto-table-cell-role="th">argmax_is_star_mean</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>0.0000</td>
+<td>0.000020</td>
+<td>0.000000</td>
+<td>0.000020</td>
+<td>0.000000</td>
+<td>1.000000</td>
+<td>0.000000</td>
+<td>0.900133</td>
+<td>0.045172</td>
+<td>0.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>0.0125</td>
+<td>0.000021</td>
+<td>0.000007</td>
+<td>0.000091</td>
+<td>0.000023</td>
+<td>0.993833</td>
+<td>0.003423</td>
+<td>0.901565</td>
+<td>0.045803</td>
+<td>0.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>0.0250</td>
+<td>0.000032</td>
+<td>0.000026</td>
+<td>0.000307</td>
+<td>0.000132</td>
+<td>0.978833</td>
+<td>0.007494</td>
+<td>0.897197</td>
+<td>0.042360</td>
+<td>0.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>0.0375</td>
+<td>0.000056</td>
+<td>0.000076</td>
+<td>0.001165</td>
+<td>0.000806</td>
+<td>0.949366</td>
+<td>0.017736</td>
+<td>0.905228</td>
+<td>0.039139</td>
+<td>0.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>0.0500</td>
+<td>0.000101</td>
+<td>0.000129</td>
+<td>0.003284</td>
+<td>0.002002</td>
+<td>0.906821</td>
+<td>0.026961</td>
+<td>0.906075</td>
+<td>0.036316</td>
+<td>0.0</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="posterior-concentration_files/figure-html/notebooks-_posterior_concentration-cell-12-output-3.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Observations.</strong></p>
+<p>The posterior transition is sharp and lands where the theory says it should. The normalized entropy falls from <span class="math inline">\(1\)</span> to nearly <span class="math inline">\(0\)</span> between <span class="math inline">\(t\approx 0.10\)</span> and <span class="math inline">\(t\approx 0.30\)</span>, and <span class="math inline">\(\mathbb E[\lambda_\star]\)</span> crosses <span class="math inline">\(1/2\)</span> at <span class="math inline">\(t\approx 0.18\)</span>. The isotropic proxy predicts <span class="math inline">\(t_C\approx 0.146\)</span> and the covariance-aware log-determinant threshold predicts <span class="math inline">\(t_C\approx 0.179\)</span>; the anisotropic formula is the more accurate of the two, which is expected given how spiked the CIFAR-10 spectrum is. The isotropic value is the cruder prediction, but it already recovers the right early-time scale from the single number <span class="math inline">\(\sigma^2\)</span>.</p>
+<p>The three concentration diagnostics separate exactly as the post anticipates. Around <span class="math inline">\(t\approx 0.15\)</span>, <span class="math inline">\(\mathbb E[\lambda_{\max}]\approx 0.39\)</span> while <span class="math inline">\(\mathbb E[\lambda_\star]\approx 0.27\)</span> and the planted recovery rate is only <span class="math inline">\(\approx 0.34\)</span>. The softmax is already concentrating there, but on the wrong training image about two thirds of the time. Reading <span class="math inline">\(\lambda_{\max}\)</span> alone would place the collapse earlier than genuine planted recovery occurs.</p>
+<p>The cosine alignment behaves differently from the other three, and is the weakest diagnostic at small <span class="math inline">\(t\)</span>. It does not start near zero: it sits at <span class="math inline">\(\approx 0.90\)</span> at <span class="math inline">\(t=0\)</span> and increases monotonically. The reason is structural rather than numerical. At small <span class="math inline">\(t\)</span> the interpolant is <span class="math inline">\(x_t\approx z\)</span>, so the marginal velocity is <span class="math inline">\(\approx\bar x-z\)</span> while the conditional velocity is <span class="math inline">\(x_\star-z\)</span>. Both are dominated by the same <span class="math inline">\(-z\)</span> term, and since <span class="math inline">\(\|z\|\approx\sqrt d\approx 55\)</span> is large compared with <span class="math inline">\(\|x_\star\|\approx\sqrt{d\sigma^2}\approx 28\)</span>, the two vectors are nearly parallel before any posterior concentration has taken place. This is the concrete version of the caveat in the post that high cosine similarity can precede a one-hot posterior, so <span class="math inline">\(\cos_t\)</span> should not be read as a collapse indicator on its own. It is also worth keeping in mind when reading the cosine-similarity histograms reproduced earlier in the post: part of the alignment they show at small <span class="math inline">\(t\)</span> is high-dimensional geometry rather than posterior concentration.</p>
+</section>
+<section id="summary-table" class="level3">
+<h3 class="anchored" data-anchor-id="summary-table">Summary table</h3>
+<p>The table collects the theoretical thresholds alongside the times actually measured on CIFAR-10, so the Gaussian-proxy prediction can be compared directly against the empirical transition.</p>
+<div id="6bcb0bbc" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:35:20.265851Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:35:20.265737Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:35:20.272988Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:35:20.272693Z&quot;}}" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="12">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">quantity</th>
+<th data-quarto-table-cell-role="th">value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>alpha = log(50000)/3072</td>
+<td>0.003522</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>isotropic t_C, sigma^2=0.24 (theory)</td>
+<td>0.146482</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>isotropic t for lambda_star approx 0.9 (theory)</td>
+<td>0.158469</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>isotropic t for lambda_star approx 0.99 (theory)</td>
+<td>0.170126</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>covariance t_C, empirical spectrum (theory)</td>
+<td>0.178817</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>CIFAR-10 t where E[lambda_star] reaches 0.5 (m...</td>
+<td>0.181172</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>CIFAR-10 t where planted recovery reaches 0.5 ...</td>
+<td>0.161364</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>CIFAR-10 t where E[H/log n] falls to 0.5 (meas...</td>
+<td>0.129633</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>CIFAR-10 E[cos_t] at t=0 (measured, floor)</td>
+<td>0.900133</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>CIFAR-10 t where E[cos_t] reaches 0.99 (measured)</td>
+<td>0.227669</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<a class="quarto-notebook-link" id="nblink-1" href="notebooks/_posterior_concentration-preview.html#ad2e89fb">Source: CIFAR-10 posterior-concentration diagnostics</a></section>
+</section>
+<section id="sec-error-analysis" class="level1">
+<h1>Consequences for learning the velocity field</h1>
+<p>The threshold <span class="math inline">\(t_C\)</span> predicts a single event: the moment the posterior concentrates. Yet the measured error profile in <a href="#fig-article-fig-3" class="quarto-xref">Figure&nbsp;3</a> is non-monotone, with <em>two</em> difficult regions separated by an easy one. The posterior concentration picture resolves this apparent tension by splitting a typical trajectory into four regimes — and, crucially, the two hard regions turn out to have unrelated causes. Only the first is governed by <span class="math inline">\(\log n/d\)</span>; the second is a geometric artifact of the empirical field near <span class="math inline">\(t=1\)</span>.</p>
+<section id="regime-1-tapprox-0-nearly-linear-and-easy" class="level2">
+<h2 class="anchored" data-anchor-id="regime-1-tapprox-0-nearly-linear-and-easy">Regime 1: <span class="math inline">\(t\approx 0\)</span> — nearly linear and easy</h2>
+<p>At <span class="math inline">\(t=0\)</span> the interpolant is pure noise, <span class="math inline">\(X_t=Z\)</span>, and the weights are uniform (<a href="#sec-closed-form-empirical-marginal-velocity" class="quarto-xref">Section&nbsp;1.2</a>), so the marginal velocity collapses to an affine field:</p>
+<p><span class="math display">\[
+u_0(x)
+=
+\bar x-x
+\approx
+-x,
+\qquad
+\bar x=\frac1n\sum_{i=1}^n x^{(i)},
+\]</span></p>
+<p>the last step assuming approximately centered data. A near-linear target is trivial for a network, which is why the error is small near <span class="math inline">\(t=0\)</span>.</p>
+</section>
+<section id="regime-2-tapprox-t_c-posterior-transition-and-peak-difficulty" class="level2">
+<h2 class="anchored" data-anchor-id="regime-2-tapprox-t_c-posterior-transition-and-peak-difficulty">Regime 2: <span class="math inline">\(t\approx t_C\)</span> — posterior transition and peak difficulty</h2>
+<p>As <span class="math inline">\(t\)</span> increases the rescaled observation <span class="math inline">\(y=z+\tfrac{t}{1-t}x_\star\)</span> begins to reveal the planted image, and the difficult regime is precisely the transition window</p>
+<p><span class="math display">\[
+\frac12\log\left(1+\sigma^2\left(\frac{t}{1-t}\right)^2\right)
+\approx
+\frac{\log n}{d}.
+\]</span></p>
+<p>Here the posterior is neither uniform nor concentrated: several training points carry comparable weight, and the identity of the dominant one can flip rapidly with small changes in <span class="math inline">\(x_t\)</span>. The marginal velocity is then a delicate, fast-varying weighted average</p>
+<p><span class="math display">\[
+u_t(x_t)
+=
+\sum_{i=1}^n
+\lambda_i(x_t,t)\frac{x^{(i)}-x_t}{1-t},
+\]</span></p>
+<p>harder to approximate than either the affine field before it or the near-conditional field after it. This is the first peak in <a href="#fig-article-fig-3" class="quarto-xref">Figure&nbsp;3</a>, and the posterior concentration picture places it exactly where the information-rate threshold predicts.</p>
+</section>
+<section id="regime-3-tt_c-concentration-and-alignment" class="level2">
+<h2 class="anchored" data-anchor-id="regime-3-tt_c-concentration-and-alignment">Regime 3: <span class="math inline">\(t&gt;t_C\)</span> — concentration and alignment</h2>
+<p>Past the threshold the posterior concentrates on the planted point, <span class="math inline">\(\lambda_\star(t)\to 1\)</span> (<a href="#sec-random-coding-union-bound" class="quarto-xref">Section&nbsp;3.1</a>), so along typical trajectories the marginal field reduces to the conditional one:</p>
+<p><span class="math display">\[
+u_t(x_t)
+\approx
+\frac{x_\star-x_t}{1-t}
+=
+x_\star-z
+=
+u_t(x_t\mid x_\star).
+\]</span></p>
+<p>The network is once again learning a simple, near-conditional target rather than a mixture over many training points, and the error falls.</p>
+</section>
+<section id="regime-4-tuparrow-1-nearest-neighbor-discontinuities" class="level2">
+<h2 class="anchored" data-anchor-id="regime-4-tuparrow-1-nearest-neighbor-discontinuities">Regime 4: <span class="math inline">\(t\uparrow 1\)</span> — nearest-neighbor discontinuities</h2>
+<p>The second rise near <span class="math inline">\(t=1\)</span> has nothing to do with the posterior threshold. For an <em>arbitrary</em> input <span class="math inline">\(x\)</span>, as <span class="math inline">\(t\uparrow 1\)</span> the softmax temperature <span class="math inline">\((1-t)^2\)</span> tends to zero and the weights harden into a nearest-neighbor assignment,</p>
+<p><span class="math display">\[
+\lambda_i(x,t)
+\to
+\mathbf 1\left\{i=\arg\min_j\|x-x^{(j)}\|\right\},
+\]</span></p>
+<p>so the empirical field approaches a piecewise-affine nearest-neighbor decoder</p>
+<p><span class="math display">\[
+u_t(x)
+\approx
+\frac{x^{(i^*(x))}-x}{1-t},
+\qquad
+i^*(x)=\arg\min_j\|x-x^{(j)}\|,
+\]</span></p>
+<p>with jump discontinuities across Voronoi cell boundaries that the prefactor <span class="math inline">\(1/(1-t)\)</span> amplifies without bound.</p>
+<p>This ambient-space singularity must not be confused with the behavior along a planted trajectory. Along <span class="math inline">\(x_t=(1-t)z+t x_\star\)</span> the conditional velocity stays</p>
+<p><span class="math display">\[
+\frac{x_\star-x_t}{1-t}=x_\star-z,
+\]</span></p>
+<p>which is <span class="math inline">\(O(\sqrt d)\)</span>, not divergent. The late-time difficulty is therefore about approximating the empirical field as a function of <span class="math inline">\(x\)</span> near Voronoi boundaries — a geometry-driven mechanism, unrelated to the information-theoretic transition of Regimes 2–3. The two hard regions of <a href="#fig-article-fig-3" class="quarto-xref">Figure&nbsp;3</a> thus have two separate explanations, and only the first is set by <span class="math inline">\(\log n/d\)</span>.</p>
+</section>
+</section>
+<section id="sec-conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>The empirical Gaussian-OT marginal velocity field in flow matching has a closed form involving a softmax over training examples. In high dimension, this softmax can concentrate very early along the interpolation path.</p>
+<p>The central message of this post is that the phenomenon is not mysterious: after the change of variables <span class="math inline">\(r=t/(1-t)\)</span>, <span class="math inline">\(y=x/(1-t)\)</span>, the softmax weights are exactly posterior probabilities in a Gaussian observation model. Along a trajectory planted at a training example, the interpolant is a noisy observation of that example, and collapse occurs when the observation contains enough information to identify the planted point among <span class="math inline">\(n\)</span> candidates. In the isotropic Gaussian proxy this gives the explicit threshold</p>
+<p><span class="math display">\[
+\frac{\log n}{d}
+=
+\frac12\log\left(1+\sigma^2\left(\frac{t_C}{1-t_C}\right)^2\right),
+\]</span></p>
+<p>predicting <span class="math inline">\(t_C\approx 0.146\)</span> for CIFAR-10-scale parameters, while the same argument yields the covariance-aware threshold</p>
+<p><span class="math display">\[
+\log n
+=
+\frac12\log\det\left(I_d+\left(\frac{t_C}{1-t_C}\right)^2C\right),
+\]</span></p>
+<p>which is the natural way to incorporate the empirical covariance spectrum and lands at <span class="math inline">\(t_C\approx 0.179\)</span> on CIFAR-10, against a measured transition at <span class="math inline">\(t\approx 0.181\)</span>. This perspective also clarifies the training error profile observed empirically: the field is simple near <span class="math inline">\(t=0\)</span>, difficult near the posterior transition, easier again once trajectories are decoded, and difficult near <span class="math inline">\(t=1\)</span> because the empirical field approaches a nearest-neighbor Voronoi field.</p>
+<p>The analysis is deliberately simplified, and several limitations are worth restating. CIFAR-10 is not Gaussian: images are bounded in <span class="math inline">\([-1,1]^d\)</span> after normalization and have strong higher-order structure, so a Gaussian proxy captures only a coarse scale and covariance structure. Even the covariance-corrected log-determinant formula remains a Gaussian approximation, since the empirical covariance does not fully describe the data distribution. Posterior concentration is moreover a property of the exact empirical marginal field, whereas neural network training introduces additional approximation, optimization, and finite-sample effects. Finally, velocity alignment and posterior collapse are related but distinct, and the notebook makes the gap concrete: a high cosine similarity occurs well before the posterior is one-hot, and a nearly one-hot posterior can still select the wrong neighbor.</p>
+<p>Despite these caveats, softmax collapse is best understood as a high-dimensional posterior concentration phenomenon, governed by the scale <span class="math inline">\(\log n/d\)</span>. It is a structural property of the empirical Gaussian-OT path, not merely an artifact of optimization.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-bertrand_closed-form_2025" class="csl-entry" role="listitem">
+Bertrand, Quentin, Anne Gagneux, Mathurin Massias, and Rémi Emonet. 2025. <em>On the Closed-Form of Flow Matching: Generalization Does Not Arise from Target Stochasticity</em>. no. <span>arXiv</span>:2506.03719 (June). <a href="https://doi.org/10.48550/arXiv.2506.03719">https://doi.org/10.48550/arXiv.2506.03719</a>.
+</div>
+<div id="ref-biroli_dynamical_2024" class="csl-entry" role="listitem">
+Biroli, Giulio, Tony Bonnaire, Valentin de Bortoli, and Marc Mézard. 2024. <span>“Dynamical Regimes of Diffusion Models.”</span> <em>Nature Communications</em> 15 (1): 9957. <a href="https://doi.org/10.1038/s41467-024-54281-3">https://doi.org/10.1038/s41467-024-54281-3</a>.
+</div>
+<div id="ref-cover_elements_2006" class="csl-entry" role="listitem">
+Cover, Thomas M., and Joy A. Thomas. 2006. <em>Elements of Information Theory</em>. 2nd ed. Wiley-Interscience.
+</div>
+<div id="ref-lipman_flow_2024" class="csl-entry" role="listitem">
+Lipman, Yaron, Marton Havasi, Peter Holderrieth, et al. 2024. <em>Flow Matching Guide and Code</em>. no. <span>arXiv</span>:2412.06264 (December). <a href="https://doi.org/10.48550/arXiv.2412.06264">https://doi.org/10.48550/arXiv.2412.06264</a>.
+</div>
+<div id="ref-lomnitz_simpler_2012" class="csl-entry" role="listitem">
+Lomnitz, Yuval, and Meir Feder. 2012. <em>A Simpler Derivation of the Coding Theorem</em>. <a href="http://arxiv.org/abs/1205.1389">http://arxiv.org/abs/1205.1389</a>.
+</div>
+<div id="ref-polyanskiy_channel_2010" class="csl-entry" role="listitem">
+Polyanskiy, Yury, H. Vincent Poor, and Sergio Verdú. 2010. <span>“Channel Coding Rate in the Finite Blocklength Regime.”</span> <em>IEEE Transactions on Information Theory</em> 56 (5): 2307–59.
+</div>
+</div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2026,
+  author = {Brosse, Nicolas},
+  title = {Closed-Form Flow Matching: Posterior Concentration and
+    Softmax Collapse},
+  date = {2026-07-20},
+  url = {https://nbrosse.github.io/posts/posterior-concentration/posterior-concentration.html},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Brosse, Nicolas. 2026. <span>“Closed-Form Flow Matching: Posterior
+Concentration and Softmax Collapse.”</span> July 20. <a href="https://nbrosse.github.io/posts/posterior-concentration/posterior-concentration.html">https://nbrosse.github.io/posts/posterior-concentration/posterior-concentration.html</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/nbrosse\.github\.io\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

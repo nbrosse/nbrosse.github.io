@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Nicolas Brosse">
+<meta name="dcterms.date" content="2026-05-12">
+<meta name="description" content="A velocity-based introduction to flow matching with Gaussian probability paths: the marginal velocity field is a posterior average of conditional targets, and the gap between the conditional and marginal losses is an irreducible posterior-variance term that can be computed in closed form.">
+
+<title>Flow matching as posterior averaging – Nicolas’ Notebook</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-d0ae9245876894da5ac7e18953ecc5cc.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-7f1822a086a24169120327e3a5d340d0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Nicolas’ Notebook</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&amp;hl"> <i class="bi bi-google" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.researchgate.net/profile/Nicolas-Brosse-3"> <i class="bi bi-r-circle" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Flow matching as posterior averaging</h1>
+                  <div>
+        <div class="description">
+          A velocity-based introduction to flow matching with Gaussian probability paths: the marginal velocity field is a posterior average of conditional targets, and the gap between the conditional and marginal losses is an irreducible posterior-variance term that can be computed in closed form.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">deep learning</div>
+                <div class="quarto-category">flow matching</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Nicolas Brosse </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">May 12, 2026</p>
+      </div>
+    </div>
+    
+      <div>
+      <div class="quarto-title-meta-heading">Modified</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date-modified">August 22, 2026</p>
+      </div>
+    </div>
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sec-setup" id="toc-sec-setup" class="nav-link active" data-scroll-target="#sec-setup">Setup and notation</a></li>
+  <li><a href="#sec-gaussian-paths" id="toc-sec-gaussian-paths" class="nav-link" data-scroll-target="#sec-gaussian-paths">Gaussian probability paths</a>
+  <ul class="collapse">
+  <li><a href="#the-schedule-used-here" id="toc-the-schedule-used-here" class="nav-link" data-scroll-target="#the-schedule-used-here">The schedule used here</a></li>
+  </ul></li>
+  <li><a href="#sec-exact-posterior" id="toc-sec-exact-posterior" class="nav-link" data-scroll-target="#sec-exact-posterior">Exact posterior for a Gaussian-mixture data distribution</a></li>
+  <li><a href="#sec-irreducible-variance" id="toc-sec-irreducible-variance" class="nav-link" data-scroll-target="#sec-irreducible-variance">The FM/CFM gap is an irreducible variance</a>
+  <ul class="collapse">
+  <li><a href="#sec-terminal-time" id="toc-sec-terminal-time" class="nav-link" data-scroll-target="#sec-terminal-time">The terminal time</a></li>
+  </ul></li>
+  <li><a href="#sec-experiment" id="toc-sec-experiment" class="nav-link" data-scroll-target="#sec-experiment">Numerical experiment</a>
+  <ul class="collapse">
+  <li><a href="#learned-versus-exact-marginal-velocity-fields" id="toc-learned-versus-exact-marginal-velocity-fields" class="nav-link" data-scroll-target="#learned-versus-exact-marginal-velocity-fields">Learned versus exact marginal velocity fields</a></li>
+  <li><a href="#loss-decomposition-along-time" id="toc-loss-decomposition-along-time" class="nav-link" data-scroll-target="#loss-decomposition-along-time">Loss decomposition along time</a></li>
+  <li><a href="#training-loss" id="toc-training-loss" class="nav-link" data-scroll-target="#training-loss">Training loss</a></li>
+  <li><a href="#posterior-samples-along-random-trajectories" id="toc-posterior-samples-along-random-trajectories" class="nav-link" data-scroll-target="#posterior-samples-along-random-trajectories">Posterior samples along random trajectories</a></li>
+  </ul></li>
+  <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion">Conclusion</a></li>
+  <li><a href="#sec-appendix" id="toc-sec-appendix" class="nav-link" data-scroll-target="#sec-appendix">Appendix: posterior inference methods</a>
+  <ul class="collapse">
+  <li><a href="#importance-sampling-for-posterior-averages" id="toc-importance-sampling-for-posterior-averages" class="nav-link" data-scroll-target="#importance-sampling-for-posterior-averages">Importance sampling for posterior averages</a></li>
+  <li><a href="#markov-chain-monte-carlo" id="toc-markov-chain-monte-carlo" class="nav-link" data-scroll-target="#markov-chain-monte-carlo">Markov chain Monte Carlo</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+
+<p>This post follows and extends the perspective of <span class="citation" data-cites="holderrieth_introduction_2025 lipman_flow_2024">(<a href="#ref-holderrieth_introduction_2025" role="doc-biblioref">Holderrieth and Erives 2025</a>; <a href="#ref-lipman_flow_2024" role="doc-biblioref">Lipman et al. 2024</a>)</span>, and builds on the lab code of the accompanying course <span class="citation" data-cites="flowsanddiffusions2026">(<a href="#ref-flowsanddiffusions2026" role="doc-biblioref">Holderrieth and Erives 2026</a>)</span>, whose flow-matching setup is the starting point for the experiment below.</p>
+<p>The central object in flow matching is the <strong>marginal velocity field</strong>. Conditional flow matching supplies a convenient training target, but the vector field the model should learn is not the conditional target itself. It is a posterior average of conditional targets, and the difference between the two is what the training loss cannot remove.</p>
+<p>The aim here is to make that statement concrete in an example small enough to compute exactly. The data distribution is a five-component Gaussian mixture in dimension two, the source distribution is standard Gaussian, and the conditional probability path is Gaussian, <span class="math display">\[
+X_t = \alpha_t Z + \beta_t \varepsilon,
+\qquad
+Z \sim p_{\mathrm{data}},
+\qquad
+\varepsilon \sim \mathcal{N}(0,I_d).
+\]</span> The setting is simple enough to visualize, and still rich enough to show the main difficulty: at intermediate times, the posterior distribution of the endpoint <span class="math inline">\(Z\)</span> given the current state <span class="math inline">\(X_t=x\)</span> is genuinely multimodal.</p>
+<p><a href="#sec-setup" class="quarto-xref">Section&nbsp;1</a> fixes notation and derives the posterior-averaging identity from the continuity equation. <a href="#sec-gaussian-paths" class="quarto-xref">Section&nbsp;2</a> specializes it to Gaussian probability paths, where the marginal velocity reduces to a posterior mean and therefore carries exactly the same information as the marginal score. <a href="#sec-exact-posterior" class="quarto-xref">Section&nbsp;3</a> gives the posterior in closed form for a Gaussian-mixture data distribution. <a href="#sec-irreducible-variance" class="quarto-xref">Section&nbsp;4</a> identifies the gap between the conditional and marginal losses as a posterior-variance term <span class="math inline">\(V(t)\)</span>, computes it for this example, and shows that the schedule used here makes its time average infinite. <a href="#sec-experiment" class="quarto-xref">Section&nbsp;5</a> checks all of this numerically, and <a href="#sec-appendix" class="quarto-xref">Section&nbsp;7</a> collects the importance-sampling and MCMC machinery needed when the posterior is not available in closed form.</p>
+<p>A companion post, <a href="../posterior-concentration/posterior-concentration.html">Closed-form flow matching</a>, pushes the same posterior reading in a different direction: it replaces <span class="math inline">\(p_{\mathrm{data}}\)</span> by the empirical distribution of a finite training set, where the posterior becomes a softmax over training examples that collapses onto a single one in high dimension.</p>
+<p>The <a href="https://github.com/nbrosse/flow-matching-notes">accompanying code</a> is on GitHub, and the experiment lives in a single <a href="https://github.com/nbrosse/flow-matching-notes/blob/main/notebooks/posterior_averaging.ipynb">notebook</a>.</p>
+<section id="sec-setup" class="level1">
+<h1>Setup and notation</h1>
+<p>We work in <span class="math inline">\(\mathbb{R}^d\)</span>, with <span class="math inline">\(d=2\)</span> in the experiment. Let <span class="math inline">\(Z\sim p_{\mathrm{data}}\)</span> denote a data point, and let the source distribution be <span class="math display">\[
+p_{\mathrm{simple}} = \mathcal{N}(0,I_d).
+\]</span></p>
+<p>A flow model is a time-dependent vector field <span class="math inline">\(u_\theta(x,t)\)</span> defining the ODE <span class="math display">\[
+\frac{dY_t}{dt}=u_\theta(Y_t,t),
+\qquad
+Y_0\sim p_{\mathrm{simple}},
+\]</span> and the goal is to learn <span class="math inline">\(u_\theta\)</span> so that the terminal law of the ODE is the data distribution, <span class="math inline">\(Y_1 \sim p_{\mathrm{data}}\)</span>.</p>
+<p>Flow matching constructs a probability path <span class="math inline">\((p_t)_{t\in[0,1]}\)</span> connecting <span class="math inline">\(p_{\mathrm{simple}}\)</span> to <span class="math inline">\(p_{\mathrm{data}}\)</span>. A convenient way to define such a path is through a conditional path <span class="math inline">\(p_t(x\mid z)\)</span> satisfying <span class="math display">\[
+p_0(\cdot\mid z)=p_{\mathrm{simple}},
+\qquad
+p_1(\cdot\mid z)=\delta_z.
+\]</span> If <span class="math inline">\(Z\sim p_{\mathrm{data}}\)</span> and <span class="math inline">\(X_t\sim p_t(\cdot\mid Z)\)</span>, the marginal law of <span class="math inline">\(X_t\)</span> is <span class="math display">\[
+p_t(x)=\int p_t(x\mid z)p_{\mathrm{data}}(z)\,dz,
+\]</span> so that <span class="math inline">\(p_0=p_{\mathrm{simple}}\)</span> and <span class="math inline">\(p_1=p_{\mathrm{data}}\)</span> as required.</p>
+<p>The conditional path comes with an explicit conditional velocity field <span class="math inline">\(u_t(x\mid z)\)</span>, which transports <span class="math inline">\(p_t(\cdot\mid z)\)</span> for fixed <span class="math inline">\(z\)</span>. The field that transports the marginal <span class="math inline">\(p_t\)</span>, however, is not <span class="math inline">\(u_t(x\mid z)\)</span>. It is <span id="eq-marginalization"><span class="math display">\[
+u_t(x)
+=
+\mathbb{E}\left[u_t(x\mid Z)\mid X_t=x\right]
+=
+\int u_t(x\mid z)p_t(z\mid x)\,dz,
+\tag{1}\]</span></span> where <span class="math display">\[
+p_t(z\mid x)
+=
+\frac{p_t(x\mid z)p_{\mathrm{data}}(z)}{p_t(x)}
+\]</span> is the posterior distribution of the endpoint <span class="math inline">\(Z\)</span> given the intermediate state <span class="math inline">\(X_t=x\)</span>.</p>
+<p><a href="#eq-marginalization" class="quarto-xref">Equation&nbsp;1</a> is the marginalization trick of <span class="citation" data-cites="lipman_flow_2024">(<a href="#ref-lipman_flow_2024" role="doc-biblioref">Lipman et al. 2024</a>)</span>, and it is worth seeing why it holds, since everything below rests on it. By construction the conditional field satisfies the continuity equation <span class="math display">\[
+\partial_t p_t(x\mid z)+\nabla_x\cdot\left(p_t(x\mid z)u_t(x\mid z)\right)=0 .
+\]</span> Integrating against <span class="math inline">\(p_{\mathrm{data}}(z)\,dz\)</span> and exchanging derivatives and integrals gives <span class="math display">\[
+\partial_t p_t(x)
+=
+-\nabla_x\cdot\int u_t(x\mid z)p_t(x\mid z)p_{\mathrm{data}}(z)\,dz
+=
+-\nabla_x\cdot\left(p_t(x)\int u_t(x\mid z)p_t(z\mid x)\,dz\right),
+\]</span> where the second equality is Bayes’ rule, <span class="math inline">\(p_t(x\mid z)p_{\mathrm{data}}(z)=p_t(x)p_t(z\mid x)\)</span>. So the posterior average, and not the conditional field, is the one satisfying the continuity equation for <span class="math inline">\(p_t\)</span>.</p>
+<p>This is the organizing principle of the post: flow matching learns a posterior average, and conditional flow matching provides noisy labels whose conditional expectation is that average.</p>
+</section>
+<section id="sec-gaussian-paths" class="level1">
+<h1>Gaussian probability paths</h1>
+<p>Consider Gaussian conditional paths <span class="math display">\[
+p_t(x\mid z)=\mathcal{N}(x;\alpha_t z,\beta_t^2 I_d),
+\]</span> where <span class="math inline">\(\alpha_t\)</span> and <span class="math inline">\(\beta_t\)</span> are continuously differentiable schedules with <span class="math display">\[
+\alpha_0=0,
+\qquad
+\alpha_1=1,
+\qquad
+\beta_0=1,
+\qquad
+\beta_1=0,
+\]</span> and <span class="math inline">\(\beta_t&gt;0\)</span> for <span class="math inline">\(t&lt;1\)</span>. Equivalently, for <span class="math inline">\(t&lt;1\)</span>, <span class="math display">\[
+X_t=\alpha_t Z+\beta_t\varepsilon,
+\qquad
+\varepsilon\sim\mathcal{N}(0,I_d).
+\]</span> At <span class="math inline">\(t=1\)</span> the density formula degenerates because <span class="math inline">\(\beta_1=0\)</span>; the endpoint condition is understood in the weak sense, <span class="math inline">\(p_1(\cdot\mid z)=\delta_z\)</span>.</p>
+<p>The conditional velocity follows by differentiating the path at fixed <span class="math inline">\(z\)</span> and fixed noise, <span class="math inline">\(\dot X_t=\dot\alpha_t z+\dot\beta_t\varepsilon\)</span>, and substituting <span class="math inline">\(\varepsilon=(x-\alpha_t z)/\beta_t\)</span>: <span class="math display">\[
+u_t(x\mid z)
+=
+\dot\alpha_t z+\frac{\dot\beta_t}{\beta_t}\left(x-\alpha_t z\right)
+=
+c_t z+b_t x,
+\qquad
+c_t
+=
+\dot\alpha_t-\frac{\dot\beta_t\alpha_t}{\beta_t},
+\qquad
+b_t
+=
+\frac{\dot\beta_t}{\beta_t}.
+\]</span> Since the conditional field is affine in <span class="math inline">\(z\)</span>, posterior averaging passes through it, and the marginal velocity is <span id="eq-marginal-velocity"><span class="math display">\[
+u_t(x)
+=
+c_t\,\mathbb{E}[Z\mid X_t=x]+b_tx.
+\tag{2}\]</span></span></p>
+<p>For Gaussian paths, then, computing the marginal velocity is exactly computing the posterior mean <span class="math inline">\(\mathbb{E}[Z\mid X_t=x]\)</span>.</p>
+<p>That same posterior mean also determines the marginal score. Fisher’s identity gives <span class="math display">\[
+\nabla_x\log p_t(x)
+=
+\mathbb{E}\left[\nabla_x\log p_t(x\mid Z)\mid X_t=x\right]
+=
+\frac{\alpha_t\mathbb{E}[Z\mid X_t=x]-x}{\beta_t^2},
+\]</span> and rearranging yields Tweedie’s formula: whenever <span class="math inline">\(\alpha_t&gt;0\)</span>, <span class="math display">\[
+\mathbb{E}[Z\mid X_t=x]
+=
+\frac{x+\beta_t^2\nabla_x\log p_t(x)}{\alpha_t}.
+\]</span> Velocity and score are therefore two encodings of one quantity, which is why flow matching and score-based modeling are interchangeable for these paths.</p>
+<section id="the-schedule-used-here" class="level2">
+<h2 class="anchored" data-anchor-id="the-schedule-used-here">The schedule used here</h2>
+<p>The experiment uses <span class="math display">\[
+\alpha_t=t,
+\qquad
+\beta_t=\sqrt{1-t},
+\]</span> so that <span class="math inline">\(\dot\alpha_t=1\)</span>, <span class="math inline">\(\dot\beta_t=-1/(2\sqrt{1-t})\)</span>, and <span class="math display">\[
+b_t=-\frac{1}{2(1-t)},
+\qquad
+c_t=\frac{2-t}{2(1-t)},
+\qquad
+u_t(x\mid z)=\frac{(2-t)z-x}{2(1-t)}.
+\]</span></p>
+<p>This schedule is convenient to visualize, but it is singular at <span class="math inline">\(t=1\)</span>. Evaluating the conditional target along the path itself, with <span class="math inline">\(X_t=tZ+\sqrt{1-t}\,\varepsilon\)</span>, the two contributions in <span class="math inline">\(Z\)</span> combine into a single unit coefficient and <span id="eq-conditional-target-along-path"><span class="math display">\[
+u_t(X_t\mid Z)
+=
+Z-\frac{\varepsilon}{2\sqrt{1-t}} .
+\tag{3}\]</span></span> The training label is thus the endpoint <span class="math inline">\(Z\)</span> corrupted by noise of standard deviation <span class="math inline">\((1-t)^{-1/2}/2\)</span>, which is unbounded as <span class="math inline">\(t\to1\)</span>. The code samples times uniformly, <code>t = torch.rand(batch_size, 1)</code>, with no truncation or clipping, so this tail is sampled. <a href="#sec-terminal-time" class="quarto-xref">Section&nbsp;4.1</a> quantifies what it costs.</p>
+</section>
+</section>
+<section id="sec-exact-posterior" class="level1">
+<h1>Exact posterior for a Gaussian-mixture data distribution</h1>
+<p>For a general data distribution, evaluating <a href="#eq-marginal-velocity" class="quarto-xref">Equation&nbsp;2</a> requires posterior inference in <span class="math inline">\(z\)</span>. The Gaussian mixture is the exception that makes everything explicit: the posterior stays a Gaussian mixture.</p>
+<p>Assume <span class="math display">\[
+p_{\mathrm{data}}(z)
+=
+\sum_{m=1}^M \pi_m\,\mathcal{N}(z;\mu_m,\Sigma_m),
+\qquad
+\sum_{m=1}^M \pi_m=1.
+\]</span> Convolving with the Gaussian kernel <span class="math inline">\(p_t(x\mid z)=\mathcal{N}(x;\alpha_tz,\beta_t^2I_d)\)</span> keeps the mixture form, <span class="math display">\[
+p_t(x)
+=
+\sum_{m=1}^M
+\pi_m\,
+\mathcal{N}\left(
+x;
+\alpha_t\mu_m,
+\alpha_t^2\Sigma_m+\beta_t^2I_d
+\right),
+\]</span> and Bayes’ rule gives the posterior mixture <span class="math display">\[
+p_t(z\mid x)
+=
+\sum_{m=1}^M
+\omega_m(x,t)\,
+\mathcal{N}\left(z;m_{m,t}(x),S_{m,t}\right),
+\]</span> with Gaussian-conjugate covariances and means <span class="math display">\[
+S_{m,t}^{-1}
+=
+\Sigma_m^{-1}+\frac{\alpha_t^2}{\beta_t^2}I_d,
+\qquad
+m_{m,t}(x)
+=
+S_{m,t}
+\left(
+\Sigma_m^{-1}\mu_m
++
+\frac{\alpha_t}{\beta_t^2}x
+\right),
+\]</span> and with posterior weights equal to the responsibilities <span class="math display">\[
+\omega_m(x,t)
+=
+\frac{
+\pi_m\,
+\mathcal{N}\left(
+x;
+\alpha_t\mu_m,
+\alpha_t^2\Sigma_m+\beta_t^2I_d
+\right)
+}{
+\sum_{\ell=1}^M
+\pi_\ell\,
+\mathcal{N}\left(
+x;
+\alpha_t\mu_\ell,
+\alpha_t^2\Sigma_\ell+\beta_t^2I_d
+\right)
+} .
+\]</span></p>
+<p>The posterior mean, and with it the exact marginal velocity, follow immediately: <span class="math display">\[
+\bar z_t(x)
+:=
+\mathbb{E}[Z\mid X_t=x]
+=
+\sum_{m=1}^M
+\omega_m(x,t)m_{m,t}(x),
+\qquad
+u_t(x)=c_t\bar z_t(x)+b_tx .
+\]</span></p>
+<p>The same formulas give the posterior covariance, which decomposes into a within-component and a between-component part, <span id="eq-posterior-covariance"><span class="math display">\[
+\operatorname{Cov}(Z\mid X_t=x)
+=
+\underbrace{\sum_{m=1}^M
+\omega_m(x,t)S_{m,t}}_{\text{within}}
++
+\underbrace{\sum_{m=1}^M
+\omega_m(x,t)
+\left(m_{m,t}(x)-\bar z_t(x)\right)
+\left(m_{m,t}(x)-\bar z_t(x)\right)^\top}_{\text{between}} .
+\tag{4}\]</span></span> The first term is the spread inside a component and never vanishes for <span class="math inline">\(t&lt;1\)</span>; the second is the spread between components, and it is large exactly when the responsibilities are ambiguous, that is, when several mixture components remain plausible endpoints for the same <span class="math inline">\(x\)</span>. <a href="#sec-irreducible-variance" class="quarto-xref">Section&nbsp;4</a> shows that this covariance is precisely what separates the two flow-matching losses.</p>
+<p>In the isotropic case used in the experiment, <span class="math inline">\(\Sigma_m=\sigma^2I_d\)</span>, the within-component term simplifies to a scalar, <span id="eq-within-isotropic"><span class="math display">\[
+S_{m,t}
+=
+\frac{\sigma^2\beta_t^2}{\beta_t^2+\alpha_t^2\sigma^2}\,I_d ,
+\tag{5}\]</span></span> which will make the terminal-time asymptotics explicit.</p>
+</section>
+<section id="sec-irreducible-variance" class="level1">
+<h1>The FM/CFM gap is an irreducible variance</h1>
+<p>It pays to separate fixed-time losses from their time averages; the distinction is what makes the loss-decomposition figure readable.</p>
+<p>For fixed <span class="math inline">\(t\)</span>, with <span class="math inline">\(X_t\sim p_t\)</span>, define the coordinate-wise losses <span class="math display">\[
+\ell_{\mathrm{FM}}(t;\theta)
+=
+\frac1d
+\mathbb{E}\left[
+\left\|u_\theta(X_t,t)-u_t(X_t)\right\|^2
+\right],
+\qquad
+\ell_{\mathrm{CFM}}(t;\theta)
+=
+\frac1d
+\mathbb{E}\left[
+\left\|u_\theta(X_t,t)-u_t(X_t\mid Z)\right\|^2
+\right],
+\]</span> the factor <span class="math inline">\(1/d\)</span> matching the coordinate-wise MSE normalization used in the code and in the figures.</p>
+<p>Because <span class="math inline">\(u_t(X_t)=\mathbb{E}[u_t(X_t\mid Z)\mid X_t]\)</span>, the conditional bias-variance decomposition applies pointwise in <span class="math inline">\(t\)</span> and gives <span id="eq-decomposition"><span class="math display">\[
+\ell_{\mathrm{CFM}}(t;\theta)
+=
+\ell_{\mathrm{FM}}(t;\theta)+V(t),
+\qquad
+V(t)
+=
+\frac1d
+\mathbb{E}\left[
+\operatorname{Tr}
+\operatorname{Cov}(u_t(X_t\mid Z)\mid X_t)
+\right] .
+\tag{6}\]</span></span> The cross term vanishes because the model output is <span class="math inline">\(X_t\)</span>-measurable. For Gaussian paths, <span class="math inline">\(u_t(x\mid z)=c_tz+b_tx\)</span> is affine in <span class="math inline">\(z\)</span>, so the conditional covariance is that of the endpoint itself: <span id="eq-V-gaussian"><span class="math display">\[
+V(t)
+=
+\frac{c_t^2}{d}
+\mathbb{E}\left[
+\operatorname{Tr}
+\operatorname{Cov}(Z\mid X_t)
+\right] .
+\tag{7}\]</span></span></p>
+<p>Two consequences follow. First, <span class="math inline">\(V(t)\)</span> does not depend on <span class="math inline">\(\theta\)</span>, so at every <span class="math inline">\(t\)</span> the two losses have the same minimizer, namely the marginal velocity field <span class="math inline">\(u_t\)</span>: conditional flow matching does not change the target. Second, the labels it uses are noisier by exactly <span class="math inline">\(V(t)\)</span>, and no model can do anything about it, because <span class="math inline">\(V(t)\)</span> measures posterior uncertainty about <span class="math inline">\(Z\)</span> once <span class="math inline">\(X_t\)</span> is known. It is a property of the probability path, not of the network.</p>
+<p>If <span class="math inline">\(T\)</span> is drawn from a time distribution <span class="math inline">\(\rho\)</span>, the global losses are the time averages <span class="math inline">\(\mathcal{L}_{\mathrm{FM}}(\theta)=\mathbb{E}_{T\sim\rho}[\ell_{\mathrm{FM}}(T;\theta)]\)</span> and <span class="math inline">\(\mathcal{L}_{\mathrm{CFM}}(\theta)=\mathbb{E}_{T\sim\rho}[\ell_{\mathrm{CFM}}(T;\theta)]\)</span>, and averaging <a href="#eq-decomposition" class="quarto-xref">Equation&nbsp;6</a> gives <span class="math display">\[
+\mathcal{L}_{\mathrm{CFM}}(\theta)
+=
+\mathcal{L}_{\mathrm{FM}}(\theta)
++
+\mathbb{E}_{T\sim\rho}[V(T)] .
+\]</span> Whether the time average exists at all is a separate question, and for the schedule used here the answer is no.</p>
+<section id="sec-terminal-time" class="level2">
+<h2 class="anchored" data-anchor-id="sec-terminal-time">The terminal time</h2>
+<p>Take the isotropic mixture of the experiment, <span class="math inline">\(\Sigma_m=I_d\)</span>, and let <span class="math inline">\(t\to1\)</span>. The responsibilities concentrate on the component nearest to <span class="math inline">\(x\)</span> at an exponential rate, so the between-component term of <a href="#eq-posterior-covariance" class="quarto-xref">Equation&nbsp;4</a> dies out and the within-component term <a href="#eq-within-isotropic" class="quarto-xref">Equation&nbsp;5</a> dominates. With <span class="math inline">\(\alpha_t=t\)</span> and <span class="math inline">\(\beta_t^2=1-t\)</span>, <span class="math display">\[
+\frac1d\operatorname{Tr}\operatorname{Cov}(Z\mid X_t=x)
+\;\longrightarrow\;
+\frac{1-t}{1-t+t^2},
+\qquad
+c_t^2=\frac{(2-t)^2}{4(1-t)^2},
+\]</span> so the two factors in <a href="#eq-V-gaussian" class="quarto-xref">Equation&nbsp;7</a> pull in opposite directions and <span id="eq-V-asymptotics"><span class="math display">\[
+V(t)
+\;\sim\;
+\frac{1}{4(1-t)}
+\qquad (t\to1).
+\tag{8}\]</span></span> Posterior uncertainty does shrink near the terminal time, but only like <span class="math inline">\(1-t\)</span>, while the coefficient <span class="math inline">\(c_t^2\)</span> grows like <span class="math inline">\((1-t)^{-2}\)</span>. The product diverges.</p>
+<p>The consequence is concrete. Each fixed-time quantity is finite, and so is the time-averaged FM loss: the marginal field, unlike the conditional one, stays bounded along the path, with <span class="math inline">\(\mathbb{E}\|u_t(X_t)\|^2/d\)</span> hovering around <span class="math inline">\(50\)</span> at every <span class="math inline">\(t\)</span> up to <span class="math inline">\(1-10^{-4}\)</span> in this example. But <span class="math inline">\(\int_0^1 V(t)\,dt\)</span> diverges logarithmically, so with the uniform time sampler that the code actually uses, the population CFM objective is infinite. Every empirical CFM loss reported below is a finite-sample average of a quantity with no finite mean, dominated by the rare draws with <span class="math inline">\(t\)</span> close to <span class="math inline">\(1\)</span>. That single fact explains the spikes in the training curve, the disagreement between two estimates of the same “global CFM loss”, and the choice to stop the decomposition figure at <span class="math inline">\(t=0.95\)</span>.</p>
+<p>Three remedies are standard, and this post uses none of them, in order to show the raw behavior: truncating the time sampler away from <span class="math inline">\(t=1\)</span>, reweighting the loss by <span class="math inline">\(c_t^{-2}\)</span>, or switching to the linear optimal-transport schedule <span class="math inline">\(\beta_t=1-t\)</span>. The last one is the cleanest, because its conditional target along the path is <span class="math inline">\(u_t(X_t\mid Z)=Z-\varepsilon\)</span>, with no <span class="math inline">\(t\)</span>-dependence at all, and its irreducible variance tends to a constant instead of diverging.</p>
+</section>
+</section>
+<section id="sec-experiment" class="level1">
+<h1>Numerical experiment</h1>
+<p>The <a href="https://github.com/nbrosse/flow-matching-notes/blob/main/notebooks/posterior_averaging.ipynb">notebook</a> fixes the following setup:</p>
+<ul>
+<li><span class="math inline">\(p_{\mathrm{data}}\)</span> is an equal-weight mixture of five isotropic Gaussians of unit covariance, with means equally spaced on the circle of radius <span class="math inline">\(10\)</span> in <span class="math inline">\(\mathbb{R}^2\)</span>;</li>
+<li><span class="math inline">\(p_{\mathrm{simple}}=\mathcal{N}(0,I_2)\)</span> and <span class="math inline">\(X_t=tZ+\sqrt{1-t}\,\varepsilon\)</span>;</li>
+<li><span class="math inline">\(u_\theta\)</span> is an MLP with four hidden layers of width <span class="math inline">\(64\)</span> and SiLU activations, trained for <span class="math inline">\(2000\)</span> steps of Adam at learning rate <span class="math inline">\(10^{-3}\)</span>, batch size <span class="math inline">\(1000\)</span>, seed <span class="math inline">\(42\)</span>, with <span class="math inline">\(t\sim\mathcal{U}[0,1)\)</span>;</li>
+<li>all plotted losses use the coordinate-wise MSE normalization of <a href="#sec-irreducible-variance" class="quarto-xref">Section&nbsp;4</a>.</li>
+</ul>
+<p>The radius-<span class="math inline">\(10\)</span> geometry is worth keeping in mind, because it fixes the scale of every figure: the modes are <span class="math inline">\(11.8\)</span> apart while each component has unit width, so the mixture is well separated, and <span class="math display">\[
+V(0)=c_0^2\,\frac{\operatorname{Tr}\operatorname{Cov}(p_{\mathrm{data}})}{d}=\frac{10^2+2}{2}=51 .
+\]</span> At <span class="math inline">\(t=0\)</span> the state carries no information about <span class="math inline">\(Z\)</span>, so the posterior is the prior and the irreducible variance is simply the variance of the data.</p>
+<p>The point of the experiment is not to train a good sampler. It is to compare the learned field against the exact marginal field, and to check <a href="#eq-decomposition" class="quarto-xref">Equation&nbsp;6</a> term by term.</p>
+<section id="learned-versus-exact-marginal-velocity-fields" class="level2">
+<h2 class="anchored" data-anchor-id="learned-versus-exact-marginal-velocity-fields">Learned versus exact marginal velocity fields</h2>
+<div id="fig-velocity-fields" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Two rows of six quiver plots showing the learned and exact velocity fields at times 0, 0.2, 0.4, 0.59, 0.79 and 0.99.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-velocity-fields-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/velocity_fields.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Learned velocity field (top row) and exact marginal velocity field (bottom row) at six times. The exact field is computed from the Gaussian-mixture posterior. Red shading is the source distribution, blue shading the five-component data distribution."><img src="figures/velocity_fields.png" class="img-fluid figure-img" style="width:100.0%" alt="Two rows of six quiver plots showing the learned and exact velocity fields at times 0, 0.2, 0.4, 0.59, 0.79 and 0.99."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-velocity-fields-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Learned velocity field (top row) and exact marginal velocity field (bottom row) at six times. The exact field is computed from the Gaussian-mixture posterior. Red shading is the source distribution, blue shading the five-component data distribution.
+</figcaption>
+</figure>
+</div>
+<p><a href="#fig-velocity-fields" class="quarto-xref">Figure&nbsp;1</a> compares <span class="math inline">\(u_\theta(x,t)\)</span> with the exact <span class="math inline">\(u_t(x)\)</span>. This is the comparison that matters: the model is trained on conditional labels, but the field it should reproduce is the posterior average.</p>
+<p>At <span class="math inline">\(t=0\)</span> the state is independent of <span class="math inline">\(Z\)</span>, so <span class="math inline">\(\mathbb{E}[Z\mid X_0=x]=\mathbb{E}[Z]=0\)</span> and <a href="#eq-marginal-velocity" class="quarto-xref">Equation&nbsp;2</a> collapses to <span class="math display">\[
+u_0(x)=-\tfrac12 x ,
+\]</span> a contraction toward the origin. That is what the bottom-left panel shows, arrows pointing inward everywhere. It is also a useful reminder that the marginal field starts out knowing nothing about the five modes.</p>
+<p>The top-left panel disagrees with it, pointing outward over much of the plane, and the disagreement is expected rather than alarming: the panels span <span class="math inline">\([-15,15]^2\)</span> while <span class="math inline">\(p_0=\mathcal{N}(0,I_2)\)</span> puts essentially all of its mass within radius <span class="math inline">\(3\)</span> of the origin. Almost the whole <span class="math inline">\(t=0\)</span> panel is extrapolation, in a region the training objective never visits. The losses below, which average against <span class="math inline">\(X_t\sim p_t\)</span>, see none of it.</p>
+<p>As <span class="math inline">\(t\)</span> increases the posterior sharpens, different regions of the plane become associated with different components, and the marginal field splits toward the five modes, with visible separatrices between their basins by <span class="math inline">\(t=0.4\)</span>. At late times the posterior is concentrated on the nearest component and the field is governed by local assignment. The learned field follows this transition closely wherever <span class="math inline">\(p_t\)</span> has mass.</p>
+</section>
+<section id="loss-decomposition-along-time" class="level2">
+<h2 class="anchored" data-anchor-id="loss-decomposition-along-time">Loss decomposition along time</h2>
+<div id="fig-loss-decomposition" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Four curves against time: CFM loss in red, FM loss in blue near zero, irreducible variance in green, and their sum in orange overlapping the red curve.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-loss-decomposition-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/loss_decomposition.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: The coordinate-wise fixed-time identity \ell_{\mathrm{CFM}}(t;\theta)=\ell_{\mathrm{FM}}(t;\theta)+V(t), checked on twenty time bins spanning [0,0.95]. The FM and CFM curves are averages over each bin; V(t) is evaluated at the bin centers."><img src="figures/loss_decomposition.png" class="img-fluid figure-img" style="width:90.0%" alt="Four curves against time: CFM loss in red, FM loss in blue near zero, irreducible variance in green, and their sum in orange overlapping the red curve."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-loss-decomposition-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: The coordinate-wise fixed-time identity <span class="math inline">\(\ell_{\mathrm{CFM}}(t;\theta)=\ell_{\mathrm{FM}}(t;\theta)+V(t)\)</span>, checked on twenty time bins spanning <span class="math inline">\([0,0.95]\)</span>. The FM and CFM curves are averages over each bin; <span class="math inline">\(V(t)\)</span> is evaluated at the bin centers.
+</figcaption>
+</figure>
+</div>
+<p><a href="#fig-loss-decomposition" class="quarto-xref">Figure&nbsp;2</a> confirms <a href="#eq-decomposition" class="quarto-xref">Equation&nbsp;6</a>: the orange sum tracks the red CFM curve across the whole range, while the blue FM error stays close to zero. Averaged over the plotted range, the CFM loss is <span class="math inline">\(9.74\)</span> and the FM error is <span class="math inline">\(0.10\)</span>, so about <span class="math inline">\(99\%\)</span> of what the training objective reports is irreducible label variance rather than model error.</p>
+<p>The shape of the green curve is the two terms of <a href="#eq-posterior-covariance" class="quarto-xref">Equation&nbsp;4</a> taking turns. Near <span class="math inline">\(t=0\)</span> it starts at the prior variance <span class="math inline">\(V(0)=51\)</span> derived above. It then falls steeply, because the between-component term collapses as <span class="math inline">\(X_t\)</span> starts identifying which mode generated it: this is the regime where the posterior is genuinely multimodal, and it is over by <span class="math inline">\(t\approx0.4\)</span>. From there the within-component floor takes over, and the curve turns around and climbs again under the <span class="math inline">\(c_t^2\)</span> weighting of <a href="#eq-V-gaussian" class="quarto-xref">Equation&nbsp;7</a>. The within-component prediction is already tight over the second half of the range: <span class="math inline">\(c_t^2(1-t)/(1-t+t^2)\)</span> evaluates to <span class="math inline">\(1.50\)</span> at <span class="math inline">\(t=0.5\)</span> and <span class="math inline">\(4.19\)</span> at <span class="math inline">\(t=0.93\)</span>, against measured values of <span class="math inline">\(1.53\)</span> and <span class="math inline">\(4.19\)</span>.</p>
+</section>
+<section id="training-loss" class="level2">
+<h2 class="anchored" data-anchor-id="training-loss">Training loss</h2>
+<div id="fig-training-loss" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Training loss over 2000 epochs, shown on linear and logarithmic scales, with a plateau around 12 and intermittent spikes.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-training-loss-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/training_loss.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Training loss of the CFM model, on a linear scale (left) and a log scale (right)."><img src="figures/training_loss.png" class="img-fluid figure-img" style="width:100.0%" alt="Training loss over 2000 epochs, shown on linear and logarithmic scales, with a plateau around 12 and intermittent spikes."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-training-loss-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Training loss of the CFM model, on a linear scale (left) and a log scale (right).
+</figcaption>
+</figure>
+</div>
+<p><a href="#fig-training-loss" class="quarto-xref">Figure&nbsp;3</a> shows the coarse transport geometry being learned in the first two hundred steps, after which the loss settles around <span class="math inline">\(12\)</span> and stops improving. What it does instead is spike: one minibatch near epoch <span class="math inline">\(750\)</span> reports a loss of <span class="math inline">\(790\)</span>, some sixty-five times the plateau.</p>
+<p>The spikes are <a href="#eq-conditional-target-along-path" class="quarto-xref">Equation&nbsp;3</a> in action. A single draw at <span class="math inline">\(1-t=10^{-6}\)</span> carries a label of norm about <span class="math inline">\(700\)</span>, and its square alone contributes some <span class="math inline">\(250\)</span> to the batch mean, swamping the thousand well-behaved terms it is averaged with. The log-scale panel is the honest diagnostic for the late phase, since it shows the plateau and the intermittent spikes on the same axes.</p>
+<div id="fig-training-loss-plateau" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Late training loss between epochs 1800 and 2000 with a running mean, a late-training mean line and a global CFM loss line.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-training-loss-plateau-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/training_loss_plateau.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Late-training loss, its running mean, the mean over the last two hundred steps, and the empirical global CFM loss estimated with the same uniform time sampler and the same coordinate-wise normalization."><img src="figures/training_loss_plateau.png" class="img-fluid figure-img" style="width:100.0%" alt="Late training loss between epochs 1800 and 2000 with a running mean, a late-training mean line and a global CFM loss line."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-training-loss-plateau-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Late-training loss, its running mean, the mean over the last two hundred steps, and the empirical global CFM loss estimated with the same uniform time sampler and the same coordinate-wise normalization.
+</figcaption>
+</figure>
+</div>
+<p><a href="#fig-training-loss-plateau" class="quarto-xref">Figure&nbsp;4</a> zooms into the last two hundred steps. The mean training loss there is <span class="math inline">\(11.9\)</span>, with a standard deviation of <span class="math inline">\(5.9\)</span> across minibatches, and the empirical global CFM loss estimated with the same uniform sampler is <span class="math inline">\(13.6\)</span>.</p>
+<p>These two numbers estimate the same thing and do not agree, which is the expected outcome given <a href="#sec-terminal-time" class="quarto-xref">Section&nbsp;4.1</a>. Restricting the same estimator to <span class="math inline">\(t\le0.95\)</span> gives <span class="math inline">\(9.78\)</span>, in agreement with the <span class="math inline">\(9.74\)</span> measured bin by bin in <a href="#fig-loss-decomposition" class="quarto-xref">Figure&nbsp;2</a>; the remaining <span class="math inline">\(5\%\)</span> of the time axis therefore accounts for roughly a third of the reported loss, and it is the part that never settles. The plateau is not a sign that optimization has stalled. It is <a href="#eq-decomposition" class="quarto-xref">Equation&nbsp;6</a> asserting itself: the objective bottoms out at <span class="math inline">\(\mathbb{E}[V(T)]\)</span>, not at zero.</p>
+</section>
+<section id="posterior-samples-along-random-trajectories" class="level2">
+<h2 class="anchored" data-anchor-id="posterior-samples-along-random-trajectories">Posterior samples along random trajectories</h2>
+<div id="fig-posterior-mcmc" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Six panels showing MCMC samples from the posterior over endpoints, multimodal at early times and concentrated on one mode at late times.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-posterior-mcmc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/posterior_mcmc.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;5: Posterior samples from p_t(z\mid x_t) along six random trajectories. Purple histograms are Metropolis samples; the red cross, green disc and orange disc mark the intermediate state x_t, the endpoint z and the source sample x_0."><img src="figures/posterior_mcmc.png" class="img-fluid figure-img" style="width:100.0%" alt="Six panels showing MCMC samples from the posterior over endpoints, multimodal at early times and concentrated on one mode at late times."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-posterior-mcmc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Posterior samples from <span class="math inline">\(p_t(z\mid x_t)\)</span> along six random trajectories. Purple histograms are Metropolis samples; the red cross, green disc and orange disc mark the intermediate state <span class="math inline">\(x_t\)</span>, the endpoint <span class="math inline">\(z\)</span> and the source sample <span class="math inline">\(x_0\)</span>.
+</figcaption>
+</figure>
+</div>
+<p><a href="#fig-posterior-mcmc" class="quarto-xref">Figure&nbsp;5</a> makes the multimodality geometric. At <span class="math inline">\(t=0.27\)</span> the sampler puts mass on three different mixture components, and at <span class="math inline">\(t=0.39\)</span> on two: several endpoints remain plausible for the same observed <span class="math inline">\(x_t\)</span>, and the marginal velocity there is a genuine average over incompatible directions, which is exactly when a conditional label is a poor proxy for its own expectation. By <span class="math inline">\(t\approx0.6\)</span> the ambiguity is gone and the posterior sits on the component containing <span class="math inline">\(z\)</span>.</p>
+<p>Endpoint ambiguity is therefore an early- and intermediate-time phenomenon, and it accounts for the left half of the green curve in <a href="#fig-loss-decomposition" class="quarto-xref">Figure&nbsp;2</a>. The right half has a different origin, the <span class="math inline">\(c_t^2\)</span> weighting, which is why the terminal region stays delicate even though the posterior there is as concentrated as it ever gets.</p>
+<p>One caveat on method: because the posterior is multimodal, MCMC is used here as a visualization tool, not as the estimator of record. The chains are initialized from <span class="math inline">\(p_{\mathrm{data}}\)</span> itself, which is what lets them cover several modes at all; a chain started at a single point and left to diffuse would likely have found only one. In this example the exact formulas of <a href="#sec-exact-posterior" class="quarto-xref">Section&nbsp;3</a> are the benchmark, and importance sampling from <span class="math inline">\(p_{\mathrm{data}}\)</span> is also effective, because the proposal already covers every component.</p>
+</section>
+</section>
+<section id="sec-conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>The marginal velocity field is a posterior average, and for Gaussian paths it is a posterior mean dressed up with two scalar coefficients. Everything else in this post follows from that: the equivalence with the score through Tweedie’s formula, the closed-form field for a Gaussian mixture, and the exact gap <span class="math inline">\(V(t)\)</span> between the conditional and marginal losses.</p>
+<p>The practical lesson is about how to read a CFM training curve. The number the optimizer reports is not an approximation error. It is a model error plus a variance floor set by the probability path, and in this example the floor accounts for about <span class="math inline">\(99\%\)</span> of it. A plateau at <span class="math inline">\(12\)</span> is compatible with an essentially exact velocity field, which is what <a href="#fig-velocity-fields" class="quarto-xref">Figure&nbsp;1</a> and the blue curve of <a href="#fig-loss-decomposition" class="quarto-xref">Figure&nbsp;2</a> show. Comparing training losses across schedules, or reading progress off their absolute value, compares floors as much as models.</p>
+<p>The floor also has structure worth exploiting. It is large early because the posterior over endpoints is multimodal, and large late because of the <span class="math inline">\(c_t^2\)</span> weighting of the schedule, with a minimum in between. The first effect is intrinsic to the data distribution; the second is an artifact of a schedule choice, and is the one that makes the time-averaged objective infinite here.</p>
+<p>Both effects survive in high dimension, where the posterior is no longer available in closed form. The companion post <a href="../posterior-concentration/posterior-concentration.html">Closed-form flow matching</a> takes up the case where <span class="math inline">\(p_{\mathrm{data}}\)</span> is an empirical distribution over a training set, and where the same posterior collapses onto a single training example early along the path.</p>
+</section>
+<section id="sec-appendix" class="level1">
+<h1>Appendix: posterior inference methods</h1>
+<p>The Gaussian-mixture formulas above make the marginal velocity exactly computable in this example. The methods collected here are the fallbacks when <span class="math inline">\(p_t(z\mid x)\)</span> is not analytically tractable, and the notebook implements both.</p>
+<section id="importance-sampling-for-posterior-averages" class="level2">
+<h2 class="anchored" data-anchor-id="importance-sampling-for-posterior-averages">Importance sampling for posterior averages</h2>
+<p>Fix <span class="math inline">\((x,t)\)</span> and write <span class="math inline">\(\pi_t(z;x)=p_t(z\mid x)\propto p_t(x\mid z)p_{\mathrm{data}}(z)\)</span>. For an integrable <span class="math inline">\(f_t(x,\cdot)\)</span>, the target is the posterior expectation <span class="math inline">\(I_t(x)=\mathbb{E}_{\pi_t(\cdot;x)}[f_t(x,Z)]\)</span>, with <span class="math inline">\(f_t(x,z)=u_t(x\mid z)\)</span> for the marginal velocity.</p>
+<p>Let <span class="math inline">\(q\)</span> be a proposal density whose support contains the posterior support, and draw <span class="math inline">\(z^{(1)},\ldots,z^{(K)}\)</span> i.i.d. from <span class="math inline">\(q\)</span>. The self-normalized weights and the estimator are <span class="math display">\[
+\tilde w_k(x,t)
+=
+\frac{p_t(x\mid z^{(k)})p_{\mathrm{data}}(z^{(k)})}{q(z^{(k)})},
+\qquad
+w_k=\frac{\tilde w_k}{\sum_{\ell}\tilde w_\ell},
+\qquad
+\widehat I_t(x)
+=
+\sum_{k=1}^K w_k(x,t)f_t(x,z^{(k)}) .
+\]</span> It is consistent as <span class="math inline">\(K\to\infty\)</span>, though biased at finite <span class="math inline">\(K\)</span> because of the random normalization.</p>
+<p>The natural proposal here is the prior, <span class="math inline">\(q=p_{\mathrm{data}}\)</span>, which cancels the prior terms and leaves <span class="math inline">\(\tilde w_k(x,t)=p_t(x\mid z^{(k)})\)</span>. For Gaussian paths, <span class="math display">\[
+\log \tilde w_k(x,t)
+=
+-\frac{1}{2\beta_t^2}\|x-\alpha_tz^{(k)}\|^2+C(x,t),
+\]</span> with <span class="math inline">\(C(x,t)\)</span> independent of <span class="math inline">\(k\)</span>, so the weights should be formed in log-space and normalized with a softmax. This is what the code does, and it is why sampling from <span class="math inline">\(p_{\mathrm{data}}\)</span> works well in this example: the proposal already allocates mass to every mode. The usual diagnostic is the effective sample size <span class="math display">\[
+\operatorname{ESS}(x,t)
+=
+\frac{1}{\sum_{k=1}^K w_k(x,t)^2},
+\]</span> which drops toward <span class="math inline">\(1\)</span> when a few weights dominate. Note that the prior proposal degrades as <span class="math inline">\(t\to1\)</span>: the likelihood becomes sharp on the scale <span class="math inline">\(\beta_t\)</span>, and the ESS falls with it.</p>
+</section>
+<section id="markov-chain-monte-carlo" class="level2">
+<h2 class="anchored" data-anchor-id="markov-chain-monte-carlo">Markov chain Monte Carlo</h2>
+<p>The alternative is to sample <span class="math inline">\(\pi_t(z;x)\propto p_t(x\mid z)p_{\mathrm{data}}(z)\)</span> with a Markov chain and average the conditional field over the samples, <span class="math display">\[
+\widehat u_t^{\mathrm{MCMC}}(x)
+=
+\frac1K\sum_{k=1}^K u_t(x\mid z^{(k)}) .
+\]</span></p>
+<p>The simplest option is random-walk Metropolis: propose <span class="math inline">\(z'\sim\mathcal{N}(z,\sigma_{\mathrm{prop}}^2I_d)\)</span> and accept with probability <span class="math inline">\(\min\{1,\pi_t(z';x)/\pi_t(z;x)\}\)</span>. It needs no gradients but mixes slowly when the posterior is multimodal, which is precisely the regime of interest here.</p>
+<p>When gradients are available, MALA is more efficient locally. The posterior score splits into likelihood and prior terms, <span class="math display">\[
+\nabla_z\log \pi_t(z;x)
+=
+\nabla_z\log p_t(x\mid z)+\nabla_z\log p_{\mathrm{data}}(z),
+\qquad
+\nabla_z\log p_t(x\mid z)
+=
+\frac{\alpha_t}{\beta_t^2}(x-\alpha_tz),
+\]</span> and MALA proposes <span class="math display">\[
+z'
+=
+z+\frac{h^2}{2}\nabla_z\log \pi_t(z;x)+h\,\xi,
+\qquad
+\xi\sim\mathcal{N}(0,I_d),
+\]</span> with the resulting asymmetric proposal corrected by a Metropolis-Hastings accept-reject step.</p>
+<p>MCMC only needs the posterior up to a normalizing constant, which is its appeal; mixing is its limitation. In multimodal problems a chain can stay in one mode indefinitely, so the notebook runs several chains, initializes them from <span class="math inline">\(p_{\mathrm{data}}\)</span> rather than from a single point, and compares against the exact formulas.</p>
+<p>For an approximately Gaussian posterior, the scale is set by <span class="math display">\[
+\sigma_{\mathrm{post}}(t)
+\approx
+\frac{1}{\sqrt{1+(\alpha_t/\beta_t)^2}},
+\]</span> which shrinks as <span class="math inline">\(t\to1\)</span> and suggests the starting values used in the code, <span class="math display">\[
+h\approx 0.3\,\sigma_{\mathrm{post}}(t),
+\qquad
+\sigma_{\mathrm{prop}}\approx\frac{2.4}{\sqrt d}\,\sigma_{\mathrm{post}}(t) .
+\]</span> These are starting points only. The code adapts them during burn-in toward an acceptance rate in <span class="math inline">\([0.45,0.65]\)</span> for MALA and <span class="math inline">\([0.20,0.40]\)</span> for random-walk Metropolis, and the final rates, along with trace plots and comparisons against exact formulas or importance sampling, are what should be checked in practice.</p>
+
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-holderrieth_introduction_2025" class="csl-entry" role="listitem">
+Holderrieth, Peter, and Ezra Erives. 2025. <em>An Introduction to Flow Matching and Diffusion Models</em>. no. <span>arXiv</span>:2506.02070 (July). <a href="https://doi.org/10.48550/arXiv.2506.02070">https://doi.org/10.48550/arXiv.2506.02070</a>.
+</div>
+<div id="ref-flowsanddiffusions2026" class="csl-entry" role="listitem">
+Holderrieth, Peter, and Ezra Erives. 2026. <em>Introduction to Flow Matching and Diffusion Models: Course Website and Labs</em>. <a href="https://diffusion.csail.mit.edu/">https://diffusion.csail.mit.edu/</a>.
+</div>
+<div id="ref-lipman_flow_2024" class="csl-entry" role="listitem">
+Lipman, Yaron, Marton Havasi, Peter Holderrieth, et al. 2024. <em>Flow Matching Guide and Code</em>. no. <span>arXiv</span>:2412.06264 (December). <a href="https://doi.org/10.48550/arXiv.2412.06264">https://doi.org/10.48550/arXiv.2412.06264</a>.
+</div>
+</div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2026,
+  author = {Brosse, Nicolas},
+  title = {Flow Matching as Posterior Averaging},
+  date = {2026-05-12},
+  url = {https://nbrosse.github.io/posts/posterior-averaging/posterior-averaging.html},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Brosse, Nicolas. 2026. <span>“Flow Matching as Posterior
+Averaging.”</span> May 12. <a href="https://nbrosse.github.io/posts/posterior-averaging/posterior-averaging.html">https://nbrosse.github.io/posts/posterior-averaging/posterior-averaging.html</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/nbrosse\.github\.io\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+</body></html>

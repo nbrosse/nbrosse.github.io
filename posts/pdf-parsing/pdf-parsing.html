@@ -8,9 +8,9 @@
 
 <meta name="author" content="Nicolas Brosse">
 <meta name="dcterms.date" content="2025-02-18">
-<meta name="description" content="An exploration of current PDF parsing capabilities for Large Language Model (LLM) input.">
+<meta name="description" content="How Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini, and Mistral OCR turn PDFs into Markdown: what the pipelines are made of, and where each one silently gets it wrong on six real documents.">
 
-<title>PDF Parsing for LLM Input – Nicolas’ Notebook</title>
+<title>Parsing PDFs for LLM input – Nicolas’ Notebook</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -96,10 +96,17 @@ div.csl-indent {
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-d0ae9245876894da5ac7e18953ecc5cc.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-f9e226253bcd7e75ae14e3379ab40ce6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-7f1822a086a24169120327e3a5d340d0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -132,7 +139,169 @@ div.csl-indent {
 <link rel="stylesheet" href="../../styles.css">
 </head>
 
-<body class="nav-fixed quarto-light">
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top quarto-banner">
@@ -176,6 +345,7 @@ div.csl-indent {
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
 </div>
       </div> <!-- /container-fluid -->
     </nav>
@@ -184,10 +354,10 @@ div.csl-indent {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">PDF Parsing for LLM Input</h1>
+      <h1 class="title">Parsing PDFs for LLM input</h1>
                   <div>
         <div class="description">
-          An exploration of current PDF parsing capabilities for Large Language Model (LLM) input.
+          How Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini, and Mistral OCR turn PDFs into Markdown: what the pipelines are made of, and where each one silently gets it wrong on six real documents.
         </div>
       </div>
                           <div class="quarto-categories">
@@ -217,7 +387,7 @@ div.csl-indent {
       <div>
       <div class="quarto-title-meta-heading">Modified</div>
       <div class="quarto-title-meta-contents">
-        <p class="date-modified">March 10, 2025</p>
+        <p class="date-modified">August 22, 2026</p>
       </div>
     </div>
       
@@ -232,18 +402,30 @@ div.csl-indent {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#sec-detailed-presentation" id="toc-sec-detailed-presentation" class="nav-link active" data-scroll-target="#sec-detailed-presentation">Detailed Presentations of PDF Parsing Libraries: Docling, Marker-pdf, MinerU</a>
+  <li><a href="#sec-detailed-presentation" id="toc-sec-detailed-presentation" class="nav-link active" data-scroll-target="#sec-detailed-presentation">How a modern PDF parser works</a>
   <ul class="collapse">
-  <li><a href="#sec-docling" id="toc-sec-docling" class="nav-link" data-scroll-target="#sec-docling">Docling: A Modular PDF Processing Pipeline</a></li>
-  <li><a href="#sec-marker-pdf" id="toc-sec-marker-pdf" class="nav-link" data-scroll-target="#sec-marker-pdf">Marker-PDF: Accurate PDF Conversion</a></li>
-  <li><a href="#sec-mineru" id="toc-sec-mineru" class="nav-link" data-scroll-target="#sec-mineru">MinerU: Multi-Module Document Parsing</a></li>
-  </ul></li>
-  <li><a href="#sec-comparing-libraries" id="toc-sec-comparing-libraries" class="nav-link" data-scroll-target="#sec-comparing-libraries">Comparing PDF Parsing Libraries</a>
+  <li><a href="#sec-docling" id="toc-sec-docling" class="nav-link" data-scroll-target="#sec-docling">Docling</a>
   <ul class="collapse">
-  <li><a href="#pdf-sample-dataset" id="toc-pdf-sample-dataset" class="nav-link" data-scroll-target="#pdf-sample-dataset">PDF Sample Dataset</a></li>
-  <li><a href="#qualitative-results" id="toc-qualitative-results" class="nav-link" data-scroll-target="#qualitative-results">Qualitative Results</a></li>
+  <li><a href="#the-pdf-backend" id="toc-the-pdf-backend" class="nav-link" data-scroll-target="#the-pdf-backend">The PDF backend</a></li>
+  <li><a href="#layout-analysis" id="toc-layout-analysis" class="nav-link" data-scroll-target="#layout-analysis">Layout analysis</a></li>
+  <li><a href="#table-structure-recognition" id="toc-table-structure-recognition" class="nav-link" data-scroll-target="#table-structure-recognition">Table structure recognition</a></li>
+  <li><a href="#ocr" id="toc-ocr" class="nav-link" data-scroll-target="#ocr">OCR</a></li>
+  <li><a href="#assembly-and-post-processing" id="toc-assembly-and-post-processing" class="nav-link" data-scroll-target="#assembly-and-post-processing">Assembly and post-processing</a></li>
   </ul></li>
-  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  <li><a href="#sec-marker-pdf" id="toc-sec-marker-pdf" class="nav-link" data-scroll-target="#sec-marker-pdf">Marker</a></li>
+  <li><a href="#sec-mineru" id="toc-sec-mineru" class="nav-link" data-scroll-target="#sec-mineru">MinerU</a></li>
+  </ul></li>
+  <li><a href="#sec-comparing-libraries" id="toc-sec-comparing-libraries" class="nav-link" data-scroll-target="#sec-comparing-libraries">Comparing the tools</a>
+  <ul class="collapse">
+  <li><a href="#sec-dataset" id="toc-sec-dataset" class="nav-link" data-scroll-target="#sec-dataset">The test documents</a></li>
+  <li><a href="#sec-how-run" id="toc-sec-how-run" class="nav-link" data-scroll-target="#sec-how-run">How each tool was run</a></li>
+  <li><a href="#sec-text" id="toc-sec-text" class="nav-link" data-scroll-target="#sec-text">Text and reading order</a></li>
+  <li><a href="#sec-tables" id="toc-sec-tables" class="nav-link" data-scroll-target="#sec-tables">Tables</a></li>
+  <li><a href="#sec-charts" id="toc-sec-charts" class="nav-link" data-scroll-target="#sec-charts">Charts</a></li>
+  <li><a href="#sec-mineru-mistral-results" id="toc-sec-mineru-mistral-results" class="nav-link" data-scroll-target="#sec-mineru-mistral-results">Two more tools worth seeing</a></li>
+  <li><a href="#sec-others" id="toc-sec-others" class="nav-link" data-scroll-target="#sec-others">Tools I looked at and did not keep</a></li>
+  </ul></li>
+  <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion">Conclusion</a></li>
   </ul>
 </nav>
     </div>
@@ -254,9 +436,10 @@ div.csl-indent {
 
 
 
-<p>This blog post explores the current landscape of PDF parsing for use as input to Large Language Models (LLMs). Extracting meaningful information from PDFs can be challenging due to their complex structure. This article examines several approaches, their strengths, and limitations, with a focus on their suitability for LLM integration (markdown output).</p>
-<p>We begin with a detailed presentation of some open-source PDF parsing libraries: Docling, Marker-PDF, and MinerU in <a href="#sec-detailed-presentation" class="quarto-xref">Section&nbsp;1</a>. In particular, we provide a comprehensive overview of the Docling pipeline, a modular and open-source PDF processing pipeline designed to transform PDFs into a structured representation (the <code>DoclingDocument</code>) in <a href="#sec-docling" class="quarto-xref">Section&nbsp;1.1</a>. We also discuss Marker-PDF and MinerU in <a href="#sec-marker-pdf" class="quarto-xref">Section&nbsp;1.2</a> and <a href="#sec-mineru" class="quarto-xref">Section&nbsp;1.3</a>. The objective is to gain an understanding of how modern PDF parsing libraries function, in particular the role of deep learning models in PDF parsing and extraction, focusing on layout analysis, table structure recognition, and Optical Character Recognition (OCR).</p>
-<p>Following this, we compare and evaluate various PDF parsing libraries and tools in <a href="#sec-comparing-libraries" class="quarto-xref">Section&nbsp;2</a>, including open-source libraries (Docling, Marker, MinerU, PyMuPDF) and closed-source solutions (LlamaParse, Gemini, Mistral). We provide a detailed comparison based on a qualitative analysis using a diverse set of test PDFs (slides, reports, scanned documents, and documents with complex tables). The results of this analysis are available through an interactive demo that visualizes the differences between PDF input and Markdown output for each parsing solution.</p>
+
+<p>A PDF says where ink goes on a page. It does not say which glyphs form a paragraph, which paragraph comes first, or which of the numbers scattered across a page belong to the same table row. Feeding a PDF to a language model means reconstructing all of that, and the interesting question is not whether a parser succeeds — none of them fully does — but what its failures look like when it does not.</p>
+<p><a href="#sec-detailed-presentation" class="quarto-xref">Section&nbsp;1</a> takes three open-source pipelines apart: Docling in <a href="#sec-docling" class="quarto-xref">Section&nbsp;1.1</a>, Marker in <a href="#sec-marker-pdf" class="quarto-xref">Section&nbsp;1.2</a>, and MinerU in <a href="#sec-mineru" class="quarto-xref">Section&nbsp;1.3</a>. They solve the same problem with the same three ingredients — layout analysis, table structure recognition, and OCR — and differ mostly in which model fills each slot. Docling gets the most space because its technical report <span class="citation" data-cites="auer2024doclingtechnicalreport livathinos2025doclingefficientopensourcetoolkit">(<a href="#ref-auer2024doclingtechnicalreport" role="doc-biblioref">Auer et al. 2024</a>; <a href="#ref-livathinos2025doclingefficientopensourcetoolkit" role="doc-biblioref">Livathinos et al. 2025</a>)</span> documents the pipeline stage by stage, which makes it a good map of the whole problem.</p>
+<p><a href="#sec-comparing-libraries" class="quarto-xref">Section&nbsp;2</a> runs seven tools over the same six PDFs and compares the Markdown they produce: the three above plus <code>pymupdf4llm</code>, LlamaParse, Gemini, and Mistral OCR. The code is in the <a href="https://github.com/nbrosse/pdf-parsing">pdf-parsing repository</a>, and the outputs can be browsed page by page against the source PDF in the <a href="https://huggingface.co/spaces/nicolasb92/pdf-parsing-demo">pdf-parsing-demo</a> Hugging Face Space.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -267,38 +450,50 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Update on 2025-03-10: Added Mistral OCR as a new parsing method. <a href="https://mistral.ai/fr/news/mistral-ocr">Mistral OCR</a> is now available through the Mistral API and provides robust document processing capabilities.</p>
+<p><strong>Summary</strong></p>
+<ul>
+<li>Every pipeline here is layout analysis, table structure recognition, and OCR wired together. What distinguishes them is which models occupy those slots and how the pieces are stitched back into a reading order.</li>
+<li>One of the six test documents, a ConocoPhillips investor deck, has no embedded fonts at all: it is seven page images. <code>pymupdf4llm</code> returns 49 bytes for it. Anything without an OCR stage returns nothing.</li>
+<li>Tables separate the open-source tools. MinerU’s HTML output is the only one that reproduces the nested header of a two-page Deloitte brief with the right <code>rowspan</code> and <code>colspan</code>. Docling’s collapses into a grid of fragments with stranded single letters below it.</li>
+<li>Charts defeat all seven, and Gemini fails most dangerously. On a twelve-category grouped bar chart it returns a clean, plausible Markdown table in which 23 of 36 cells are wrong, including every zero-height bar. On a simpler chart two pages earlier, the same prompt is exact.</li>
+<li>Small type breaks the OCR-first pipelines. Surya (Marker) and PaddleOCR (MinerU) both return paragraphs of invented text on a 4 pt legal disclaimer that LlamaParse and Gemini read correctly.</li>
+<li>Choose on constraints, not on quality: Docling or MinerU when the pipeline must stay open-source and on your own hardware, Gemini or Mistral OCR when it need not. In every case, treat any number that came from a chart as unverified.</li>
+</ul>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This post is a snapshot of February–March 2025, and the exact versions used are listed in <a href="#sec-how-run" class="quarto-xref">Section&nbsp;2.2</a>. The field moves quickly; the failure modes have proved more durable than the rankings.</p>
 </div>
 </div>
 <section id="sec-detailed-presentation" class="level1">
-<h1>Detailed Presentations of PDF Parsing Libraries: Docling, Marker-pdf, MinerU</h1>
+<h1>How a modern PDF parser works</h1>
 <section id="sec-docling" class="level2">
-<h2 class="anchored" data-anchor-id="sec-docling">Docling: A Modular PDF Processing Pipeline</h2>
-<p><strong>Overview</strong></p>
-<p>Docling is a modular and extensible pipeline designed to ingest various document formats, primarily PDFs (but also DOCX, HTML, etc.), and transform them into a unified, structured representation: the <code>DoclingDocument</code>. The core aim is to create a standardized representation suitable for downstream tasks, such as feeding data into an LLM. Docling is in active development and is completely open-source. It provides a comprehensive technical documentation <span class="citation" data-cites="auer2024doclingtechnicalreport">(<a href="#ref-auer2024doclingtechnicalreport" role="doc-biblioref">Auer et al. 2024</a>)</span>, <span class="citation" data-cites="livathinos2025doclingefficientopensourcetoolkit">(<a href="#ref-livathinos2025doclingefficientopensourcetoolkit" role="doc-biblioref">Livathinos et al. 2025</a>)</span>.</p>
+<h2 class="anchored" data-anchor-id="sec-docling">Docling</h2>
+<p>Docling is a modular pipeline that ingests PDFs — and DOCX, HTML, and others — and converts them into a single structured representation, the <code>DoclingDocument</code>. It is open-source, under active development, and documented in two technical reports <span class="citation" data-cites="auer2024doclingtechnicalreport livathinos2025doclingefficientopensourcetoolkit">(<a href="#ref-auer2024doclingtechnicalreport" role="doc-biblioref">Auer et al. 2024</a>; <a href="#ref-livathinos2025doclingefficientopensourcetoolkit" role="doc-biblioref">Livathinos et al. 2025</a>)</span>.</p>
 <div id="fig-docling-pipeline" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Docling's default processing pipeline.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-docling-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/docling-pipeline.png" class="img-fluid figure-img" alt="Docling's default processing pipeline.">
+<a href="figures/docling-pipeline.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Docling’s default processing pipeline. Source: [@auer2024doclingtechnicalreport]"><img src="figures/docling-pipeline.png" class="img-fluid figure-img" alt="Docling's default processing pipeline."></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-docling-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Sketch of Docling’s default processing pipeline. Source: <span class="citation" data-cites="auer2024doclingtechnicalreport">(<a href="#ref-auer2024doclingtechnicalreport" role="doc-biblioref">Auer et al. 2024</a>)</span>
+Figure&nbsp;1: Docling’s default processing pipeline. Source: <span class="citation" data-cites="auer2024doclingtechnicalreport">(<a href="#ref-auer2024doclingtechnicalreport" role="doc-biblioref">Auer et al. 2024</a>)</span>
 </figcaption>
 </figure>
 </div>
-<p>The Docling pipeline, as shown in <a href="#fig-docling-pipeline" class="quarto-xref">Figure&nbsp;1</a>, consists of the following stages:</p>
-<ul>
-<li>PDF Backend (for raw PDF document processing)</li>
-<li>AI Models (Layout Analysis, Table Structure Recognition, OCR)</li>
-<li>Assembly and Post-processing</li>
-</ul>
-<p><strong>PDF Backend</strong></p>
-<p>The PDF backend is responsible for:</p>
-<ol type="a">
-<li>Retrieving all text content and their geometric coordinates on each page.</li>
-<li>Rendering the visual representation of each page as it appears in a PDF viewer.</li>
-</ol>
-<p>These capabilities are encapsulated in Docling’s PDF backend interface. Docling provides multiple backend choices, including a custom-built PDF parser based on the low-level qpdf library. This parser is open-sourced as a separate package, <a href="https://github.com/DS4SD/docling-parse"><code>docling-parse</code></a>, and powers Docling’s default PDF backend. <a href="#fig-docling-parse" class="quarto-xref">Figure&nbsp;2</a> illustrates the parsing process.</p>
+<p>As <a href="#fig-docling-pipeline" class="quarto-xref">Figure&nbsp;1</a> shows, the pipeline has three stages: a PDF backend that recovers raw content, a set of AI models that infer structure from the page image, and an assembly stage that puts the results back together.</p>
+<section id="the-pdf-backend" class="level3">
+<h3 class="anchored" data-anchor-id="the-pdf-backend">The PDF backend</h3>
+<p>The backend does two things: it retrieves every piece of text with its geometric coordinates on the page, and it renders the page as an image the way a viewer would.</p>
+<p>Docling ships several backends. The default is a custom parser built on the low-level qpdf library, open-sourced separately as <a href="https://github.com/docling-project/docling-parse"><code>docling-parse</code></a>. <a href="#fig-docling-parse" class="quarto-xref">Figure&nbsp;2</a> shows what it recovers: not words or lines, but individual glyph cells with bounding boxes.</p>
 <div id="fig-docling-parse" class="quarto-layout-panel">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-docling-parse-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -306,7 +501,7 @@ Figure&nbsp;1: Sketch of Docling’s default processing pipeline. Source: <span 
 <div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/2305.14962v1.pdf_page=0.png" class="img-fluid figure-img" width="400"></p>
+<p><a href="figures/2305.14962v1.pdf_page=0.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Original PDF page"><img src="figures/2305.14962v1.pdf_page=0.png" class="img-fluid figure-img" width="400"></a></p>
 <figcaption>Original PDF page</figcaption>
 </figure>
 </div>
@@ -314,7 +509,7 @@ Figure&nbsp;1: Sketch of Docling’s default processing pipeline. Source: <span 
 <div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/2305.14962v1.pdf_page=0.v2.sanitized.png" class="img-fluid figure-img" width="400"></p>
+<p><a href="figures/2305.14962v1.pdf_page=0.v2.sanitized.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Parsed PDF page"><img src="figures/2305.14962v1.pdf_page=0.v2.sanitized.png" class="img-fluid figure-img" width="400"></a></p>
 <figcaption>Parsed PDF page</figcaption>
 </figure>
 </div>
@@ -322,265 +517,139 @@ Figure&nbsp;1: Sketch of Docling’s default processing pipeline. Source: <span 
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-docling-parse-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: Illustration of docling parse from <a href="https://github.com/DS4SD/docling-parse?tab=readme-ov-file">source</a>.
+Figure&nbsp;2: Illustration of <code>docling-parse</code>, from the <a href="https://github.com/docling-project/docling-parse?tab=readme-ov-file">project README</a>.
 </figcaption>
 </figure>
 </div>
-<p>The <code>docling-parse</code> package provides a Python interface to extract text content, images, and annotations from PDFs. It also supports rendering PDF pages as images. The extracted content is serialized to JSON <a href="#lst-json-docling-parse" class="quarto-xref">Listing&nbsp;1</a>, which can be further processed by downstream components.</p>
+<p>The package exposes this through a Python interface and serializes it to JSON, as in <a href="#lst-json-docling-parse" class="quarto-xref">Listing&nbsp;1</a>. Each entry in <code>cells.data</code> is one character: a bounding box repeated in several coordinate conventions, the glyph itself, a font size, an encoding, and the font it was drawn with. The word “Pushing” is seven such rows. Everything downstream exists to group these back into paragraphs.</p>
 <div id="lst-json-docling-parse" class="json listing quarto-float quarto-figure quarto-figure-left anchored">
 <figure class="quarto-float quarto-float-lst figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-json-docling-parse-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Listing&nbsp;1: Example of docling-parse JSON output
+Listing&nbsp;1: Abridged docling-parse JSON output
 </figcaption>
 <div aria-describedby="lst-json-docling-parse-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span><span class="er">'annotations'</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span><span class="er">'/A'</span><span class="fu">:</span> <span class="fu">{</span><span class="er">'/IsMap'</span><span class="fu">:</span> <span class="er">False</span><span class="fu">,</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="er">'/S'</span><span class="fu">:</span> <span class="er">'/URI'</span><span class="fu">,</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="er">'/URI'</span><span class="fu">:</span> <span class="er">'https://www.deloitte.com/global/en/Industries/financial-services/perspectives/pushing-through-undercurrents.html'</span><span class="fu">},</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/BS'</span><span class="fu">:</span> <span class="fu">{</span><span class="er">'/S'</span><span class="fu">:</span> <span class="er">'/S'</span><span class="fu">,</span> <span class="er">'/Type'</span><span class="fu">:</span> <span class="er">'/Border'</span><span class="fu">,</span> <span class="er">'/W'</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">},</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/Border'</span><span class="fu">:</span> <span class="ot">[</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/H'</span><span class="fu">:</span> <span class="er">'/N'</span><span class="fu">,</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/Rect'</span><span class="fu">:</span> <span class="ot">[</span><span class="fl">474.409</span><span class="ot">,</span> <span class="fl">580.322</span><span class="ot">,</span> <span class="fl">512.947</span><span class="ot">,</span> <span class="fl">569.083</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/Subtype'</span><span class="fu">:</span> <span class="er">'/Link'</span><span class="fu">,</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/Type'</span><span class="fu">:</span> <span class="er">'/Annot'</span><span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span><span class="er">'/A'</span><span class="fu">:</span> <span class="fu">{</span><span class="er">'/IsMap'</span><span class="fu">:</span> <span class="er">False</span><span class="fu">,</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="er">'/S'</span><span class="fu">:</span> <span class="er">'/URI'</span><span class="fu">,</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="er">'/URI'</span><span class="fu">:</span> <span class="er">'https://www.deloitte.com/global/en/Industries/financial-services/perspectives/pushing-through-undercurrents.html'</span><span class="fu">},</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/BS'</span><span class="fu">:</span> <span class="fu">{</span><span class="er">'/S'</span><span class="fu">:</span> <span class="er">'/S'</span><span class="fu">,</span> <span class="er">'/Type'</span><span class="fu">:</span> <span class="er">'/Border'</span><span class="fu">,</span> <span class="er">'/W'</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">},</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/Border'</span><span class="fu">:</span> <span class="ot">[</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/H'</span><span class="fu">:</span> <span class="er">'/N'</span><span class="fu">,</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/Rect'</span><span class="fu">:</span> <span class="ot">[</span><span class="fl">67.9417</span><span class="ot">,</span> <span class="fl">568.322</span><span class="ot">,</span> <span class="fl">286.919</span><span class="ot">,</span> <span class="fl">557.22</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/Subtype'</span><span class="fu">:</span> <span class="er">'/Link'</span><span class="fu">,</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/Type'</span><span class="fu">:</span> <span class="er">'/Annot'</span><span class="fu">}</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a> <span class="er">'original'</span><span class="fu">:</span> <span class="fu">{</span><span class="er">'cells'</span><span class="fu">:</span> <span class="fu">{</span><span class="er">'data'</span><span class="fu">:</span> <span class="ot">[[</span><span class="fl">36.142</span><span class="ot">,</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>     <span class="fl">711.041</span><span class="ot">,</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>     <span class="fl">54.862</span><span class="ot">,</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>     <span class="fl">739.753</span><span class="ot">,</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>     <span class="fl">36.142</span><span class="ot">,</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>     <span class="fl">711.041</span><span class="ot">,</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>     <span class="fl">54.862</span><span class="ot">,</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>     <span class="fl">711.041</span><span class="ot">,</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>     <span class="fl">54.862</span><span class="ot">,</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>     <span class="fl">739.753</span><span class="ot">,</span></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>     <span class="fl">36.142</span><span class="ot">,</span></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>     <span class="fl">739.753</span><span class="ot">,</span></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>     <span class="er">'P'</span><span class="ot">,</span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>     <span class="dv">-1</span><span class="ot">,</span></span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>     <span class="fl">8.32</span><span class="ot">,</span></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>     <span class="er">'/WinAnsiEncoding'</span><span class="ot">,</span></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>     <span class="er">'WINANSI'</span><span class="ot">,</span></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>     <span class="er">'/TT0'</span><span class="ot">,</span></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>     <span class="er">'/FSUTKX+OpenSans-Light'</span><span class="ot">,</span></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>     <span class="er">False</span><span class="ot">,</span></span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>     <span class="er">True</span><span class="ot">],</span></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="ot">[</span><span class="fl">54.542</span><span class="ot">,</span></span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>     <span class="fl">711.041</span><span class="ot">,</span></span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>     <span class="fl">73.422</span><span class="ot">,</span></span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>     <span class="fl">739.753</span><span class="ot">,</span></span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>     <span class="fl">54.542</span><span class="ot">,</span></span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>     <span class="fl">711.041</span><span class="ot">,</span></span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>     <span class="fl">73.422</span><span class="ot">,</span></span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>     <span class="fl">711.041</span><span class="ot">,</span></span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>     <span class="fl">73.422</span><span class="ot">,</span></span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>     <span class="fl">739.753</span><span class="ot">,</span></span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>     <span class="fl">54.542</span><span class="ot">,</span></span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>     <span class="fl">739.753</span><span class="ot">,</span></span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>     <span class="er">'u'</span><span class="ot">,</span></span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>     <span class="dv">-1</span><span class="ot">,</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="er">'/URI'</span><span class="fu">:</span> <span class="er">'https://www.deloitte.com/global/en/Industries/financial-services/...'</span><span class="fu">},</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/Rect'</span><span class="fu">:</span> <span class="ot">[</span><span class="fl">474.409</span><span class="ot">,</span> <span class="fl">580.322</span><span class="ot">,</span> <span class="fl">512.947</span><span class="ot">,</span> <span class="fl">569.083</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/Subtype'</span><span class="fu">:</span> <span class="er">'/Link'</span><span class="fu">,</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>   <span class="er">'/Type'</span><span class="fu">:</span> <span class="er">'/Annot'</span><span class="fu">}</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a> <span class="er">'original'</span><span class="fu">:</span> <span class="fu">{</span><span class="er">'cells'</span><span class="fu">:</span> <span class="fu">{</span><span class="er">'data'</span><span class="fu">:</span> <span class="ot">[[</span><span class="fl">36.142</span><span class="ot">,</span> <span class="fl">711.041</span><span class="ot">,</span> <span class="fl">54.862</span><span class="ot">,</span> <span class="fl">739.753</span><span class="ot">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>     <span class="fl">36.142</span><span class="ot">,</span> <span class="fl">711.041</span><span class="ot">,</span> <span class="fl">54.862</span><span class="ot">,</span> <span class="fl">711.041</span><span class="ot">,</span> <span class="fl">54.862</span><span class="ot">,</span> <span class="fl">739.753</span><span class="ot">,</span> <span class="fl">36.142</span><span class="ot">,</span> <span class="fl">739.753</span><span class="ot">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>     <span class="er">'P'</span><span class="ot">,</span> <span class="dv">-1</span><span class="ot">,</span> <span class="fl">8.32</span><span class="ot">,</span> <span class="er">'/WinAnsiEncoding'</span><span class="ot">,</span> <span class="er">'WINANSI'</span><span class="ot">,</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>     <span class="er">'/TT0'</span><span class="ot">,</span> <span class="er">'/FSUTKX+OpenSans-Light'</span><span class="ot">,</span> <span class="er">False</span><span class="ot">,</span> <span class="er">True</span><span class="ot">],</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="ot">[</span><span class="fl">54.542</span><span class="ot">,</span> <span class="fl">711.041</span><span class="ot">,</span> <span class="fl">73.422</span><span class="ot">,</span> <span class="fl">739.753</span><span class="ot">,</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>     <span class="fl">54.542</span><span class="ot">,</span> <span class="fl">711.041</span><span class="ot">,</span> <span class="fl">73.422</span><span class="ot">,</span> <span class="fl">711.041</span><span class="ot">,</span> <span class="fl">73.422</span><span class="ot">,</span> <span class="fl">739.753</span><span class="ot">,</span> <span class="fl">54.542</span><span class="ot">,</span> <span class="fl">739.753</span><span class="ot">,</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>     <span class="er">'u'</span><span class="ot">,</span> <span class="dv">-1</span><span class="ot">,</span> <span class="fl">8.32</span><span class="ot">,</span> <span class="er">'/WinAnsiEncoding'</span><span class="ot">,</span> <span class="er">'WINANSI'</span><span class="ot">,</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>     <span class="er">'/TT0'</span><span class="ot">,</span> <span class="er">'/FSUTKX+OpenSans-Light'</span><span class="ot">,</span> <span class="er">False</span><span class="ot">,</span> <span class="er">True</span><span class="ot">],</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="er">...</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</figure>
-</div>
-<p><strong>AI Models</strong></p>
-<p>Docling integrates several AI models for layout analysis and table structure recognition (TableFormer <span class="citation" data-cites="nassar2022tableformertablestructureunderstanding">(<a href="#ref-nassar2022tableformertablestructureunderstanding" role="doc-biblioref">Nassar et al. 2022</a>)</span>). Pre-trained weights (hosted on Hugging Face) and a separate package for inference code (<code>docling-ibm-models</code>) are available.</p>
-<p><strong>Layout Analysis Model</strong></p>
-<p>This model detects and classifies various elements on a page image by predicting bounding boxes. The architecture is based on RT-DETR and retrained on DocLayNet <span class="citation" data-cites="Pfitzmann_2022">(<a href="#ref-Pfitzmann_2022" role="doc-biblioref">Pfitzmann et al. 2022</a>)</span> and proprietary datasets. The Docling pipeline uses page images at 72 dpi resolution. Bounding box proposals are post-processed to remove overlaps based on confidence and size and then intersected with text tokens to group them into meaningful units (e.g., paragraphs, section titles, tables).</p>
-<p>RT-DETR (Real-Time DEtection TRansformer) is an object detection system using a hybrid encoder to process image features and IoU-aware query selection to focus on important parts of the image.</p>
-<p><strong>Table Structure Recognition</strong></p>
-<div id="fig-tableformer" class="quarto-float quarto-figure quarto-figure-center anchored" alt="TableFormer Architecture">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-tableformer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/tbm04.png" class="img-fluid figure-img" alt="TableFormer Architecture">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-tableformer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: TableFormer architecture. Source: <a href="https://github.com/DS4SD/docling-ibm-models">DS4SD/docling-ibm-models</a>
-</figcaption>
-</figure>
-</div>
-<p>The TableFormer model (a vision transformer) recovers table structure <a href="#fig-tableformer" class="quarto-xref">Figure&nbsp;3</a>. It predicts the logical row and column structure of a table based on an input image, determining which cells belong to column headers, row headers, or the table body. TableFormer handles tables with partial or no borderlines, empty cells, row or column spans, and other complexities.</p>
-<p>The Docling pipeline feeds table objects detected in the layout analysis to the TableFormer model. TableFormer structure predictions are matched back to the PDF cells to avoid re-transcription of text in the table image.</p>
-<p><strong>OCR (Optical Character Recognition)</strong></p>
-<p>Docling optionally supports OCR for scanned PDFs or content in embedded bitmaps. Docling supports multiple OCR engines such as EasyOCR, Tesseract, RapidOCR, and OcrMac. By default, Docling feeds a high-resolution page image (216 dpi) to the OCR engine to capture small print details.</p>
-<p><strong>Assembly and Post-processing</strong></p>
-<p>In the final stage, Docling assembles all prediction results into a <code>DoclingDocument</code>, defined in the <code>docling-core</code> package. This document object is then passed through a post-processing model that augments features, such as:</p>
-<ul>
-<li>Document language detection</li>
-<li>Reading order correction</li>
-<li>Matching figures with captions</li>
-<li>Labeling metadata (title, authors, references)</li>
-</ul>
-<p>The final output can be serialized to JSON or transformed into Markdown.</p>
-<p>Additional post-processing steps can include:</p>
-<ul>
-<li>Classification of figures.</li>
-<li>Identification of code blocks or formulas.</li>
-<li>Annotation of pictures with LLMs (<a href="https://ds4sd.github.io/docling/examples/pictures_description_api/">example</a>).</li>
-</ul>
-<p>The <code>DoclingDocument</code> is a unified representation designed to encapsulate document structure and content in a standardized way. It’s a Pydantic datatype supporting text, tables, pictures, and more. It distinguishes between the main body and auxiliary elements (“furniture”). It retains layout information (bounding boxes) and provenance information. The <code>DoclingDocument</code> structure is organized into content items (texts, tables, pictures) and content structure (body, furniture, groups) <a href="#fig-docling-document" class="quarto-xref">Figure&nbsp;4</a>.</p>
-<div id="fig-docling-document" class="quarto-float quarto-figure quarto-figure-center anchored" alt="DoclingDocument Hierarchy">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-docling-document-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/docling_doc_hierarchy_1.png" class="img-fluid figure-img" alt="DoclingDocument Hierarchy">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-docling-document-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: DoclingDocument structure. Source: <a href="https://ds4sd.github.io/docling/concepts/docling_document/">DS4SD/docling documentation</a>
-</figcaption>
 </figure>
 </div>
 </section>
+<section id="layout-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="layout-analysis">Layout analysis</h3>
+<p>The layout model detects and classifies elements on the page image by predicting bounding boxes. It is based on RT-DETR, a real-time detection transformer that uses a hybrid encoder over image features and IoU-aware query selection, and is retrained on DocLayNet <span class="citation" data-cites="Pfitzmann_2022">(<a href="#ref-Pfitzmann_2022" role="doc-biblioref">Pfitzmann et al. 2022</a>)</span> together with proprietary data. Docling feeds it page images at 72 dpi.</p>
+<p>The raw proposals overlap, so they are post-processed: overlaps are resolved by confidence and size, and the surviving boxes are intersected with the text cells from the backend to group them into paragraphs, section titles, tables, and so on. This intersection is what keeps the text exact — the model decides the grouping, the backend supplies the characters.</p>
+</section>
+<section id="table-structure-recognition" class="level3">
+<h3 class="anchored" data-anchor-id="table-structure-recognition">Table structure recognition</h3>
+<div id="fig-tableformer" class="quarto-float quarto-figure quarto-figure-center anchored" alt="TableFormer architecture.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-tableformer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/tbm04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;3: TableFormer architecture. Source: docling-ibm-models"><img src="figures/tbm04.png" class="img-fluid figure-img" alt="TableFormer architecture."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-tableformer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: TableFormer architecture. Source: <a href="https://github.com/docling-project/docling-ibm-models">docling-ibm-models</a>
+</figcaption>
+</figure>
+</div>
+<p>Tables get their own model, TableFormer <span class="citation" data-cites="nassar2022tableformertablestructureunderstanding">(<a href="#ref-nassar2022tableformertablestructureunderstanding" role="doc-biblioref">Nassar et al. 2022</a>)</span>, a vision transformer sketched in <a href="#fig-tableformer" class="quarto-xref">Figure&nbsp;3</a>. From an image of a table it predicts the logical row and column structure, deciding which cells are column headers, row headers, or body — including tables with partial or absent borderlines, empty cells, and row or column spans.</p>
+<p>Docling feeds each table region found by the layout model to TableFormer, then matches the predicted structure back onto the PDF text cells rather than transcribing the image. Pre-trained weights live on Hugging Face and the inference code is packaged as <code>docling-ibm-models</code>.</p>
+</section>
+<section id="ocr" class="level3">
+<h3 class="anchored" data-anchor-id="ocr">OCR</h3>
+<p>OCR is optional and off the critical path for born-digital PDFs; it exists for scanned pages and text locked inside embedded bitmaps. Several engines are supported — EasyOCR, Tesseract, RapidOCR, OcrMac — and the page image handed to them is rendered at 216 dpi rather than 72, to keep small print legible.</p>
+</section>
+<section id="assembly-and-post-processing" class="level3">
+<h3 class="anchored" data-anchor-id="assembly-and-post-processing">Assembly and post-processing</h3>
+<p>The final stage assembles every prediction into a <code>DoclingDocument</code>, defined in <code>docling-core</code>. A post-processing model then augments it: detecting the document language, correcting the reading order, matching figures to their captions, and labelling metadata such as title, authors, and references. Further enrichments can classify figures, identify code blocks and formulas, or <a href="https://docling-project.github.io/docling/usage/enrichments/">describe pictures with a vision model</a>.</p>
+<div id="fig-docling-document" class="quarto-float quarto-figure quarto-figure-center anchored" alt="DoclingDocument hierarchy.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-docling-document-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/docling_doc_hierarchy_1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure&nbsp;4: The DoclingDocument hierarchy. Source: Docling documentation"><img src="figures/docling_doc_hierarchy_1.png" class="img-fluid figure-img" alt="DoclingDocument hierarchy."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-docling-document-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: The <code>DoclingDocument</code> hierarchy. Source: <a href="https://docling-project.github.io/docling/concepts/docling_document/">Docling documentation</a>
+</figcaption>
+</figure>
+</div>
+<p>The <code>DoclingDocument</code> itself is a Pydantic model covering text, tables, and pictures, shown in <a href="#fig-docling-document" class="quarto-xref">Figure&nbsp;4</a>. It separates content items from content structure, distinguishes the main body from auxiliary “furniture” such as headers and footers, and retains bounding boxes and provenance throughout. It serializes to JSON, or exports to Markdown.</p>
+</section>
+</section>
 <section id="sec-marker-pdf" class="level2">
-<h2 class="anchored" data-anchor-id="sec-marker-pdf">Marker-PDF: Accurate PDF Conversion</h2>
-<p><a href="https://github.com/VikParuchuri/marker">Marker-pdf</a> pipeline is another interesting option for PDF parsing. Raw extraction is done by <a href="https://github.com/VikParuchuri/pdftext">pdftext</a>, which is based on pypdfium2. Then, it uses Surya <a href="https://github.com/VikParuchuri/surya">Surya GitHub</a>. Surya is a document OCR toolkit that performs:</p>
-<ul>
-<li>OCR in 90+ languages.</li>
-<li>Line-level text detection in any language.</li>
-<li>Layout analysis (table, image, header, etc. detection).</li>
-<li>Reading order detection.</li>
-<li>Table recognition (detecting rows/columns).</li>
-<li>LaTeX OCR.</li>
-</ul>
-<p>The JSON output format from Surya is illustrated in <a href="#lst-json-surya" class="quarto-xref">Listing&nbsp;2</a>. This structured output includes detailed information about page dimensions, blocks of text, and individual spans with their corresponding bounding boxes, font information, and text content. Marker itself converts PDFs and images to markdown, JSON, and HTML. The key features of Marker include:</p>
-<ul>
-<li>Supports a range of documents in all languages.</li>
-<li>Formats tables, forms, equations, links, references, and code blocks.</li>
-<li>Extracts and saves images along with the markdown.</li>
-<li>Removes headers/footers/other artifacts.</li>
-<li>Easily extensible with custom formatting and logic.</li>
-<li>Optionally boosts accuracy with an LLM.</li>
-<li>Works on GPU, CPU, or MPS.</li>
-</ul>
+<h2 class="anchored" data-anchor-id="sec-marker-pdf">Marker</h2>
+<p><a href="https://github.com/datalab-to/marker">Marker</a> splits the same job across two projects. Raw extraction is handled by <a href="https://github.com/datalab-to/pdftext">pdftext</a>, built on pypdfium2; structure comes from <a href="https://github.com/datalab-to/surya">Surya</a>, a document OCR toolkit that does line-level text detection in any language, OCR in more than 90, layout analysis, reading order detection, table recognition, and LaTeX OCR.</p>
+<p><a href="#lst-json-surya" class="quarto-xref">Listing&nbsp;2</a> shows the shape of Surya’s output. The unit here is the span rather than the glyph — a run of text with one bounding box, one font, and character offsets into the page — which is one level of grouping already done compared with <code>docling-parse</code>.</p>
 <div id="lst-json-surya" class="json listing quarto-float quarto-figure quarto-figure-left anchored">
 <figure class="quarto-float quarto-float-lst figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-json-surya-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Listing&nbsp;2: Example of Surya JSON output
+Listing&nbsp;2: Abridged Surya JSON output
 </figcaption>
 <div aria-describedby="lst-json-surya-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">[</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"page"</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"bbox"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>      <span class="dv">0</span><span class="ot">,</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>      <span class="dv">0</span><span class="ot">,</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>      <span class="fl">595.2760009765625</span><span class="ot">,</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>      <span class="fl">841.8900146484375</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"width"</span><span class="fu">:</span> <span class="dv">596</span><span class="fu">,</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"height"</span><span class="fu">:</span> <span class="dv">842</span><span class="fu">,</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"rotation"</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"blocks"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"lines"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>          <span class="fu">{</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"spans"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>              <span class="fu">{</span></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"bbox"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>                  <span class="fl">36.14179992675781</span><span class="ot">,</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>                  <span class="fl">99.6307373046875</span><span class="ot">,</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>                  <span class="fl">481.22967529296875</span><span class="ot">,</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>                  <span class="fl">131.6307373046875</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>                <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"text"</span><span class="fu">:</span> <span class="st">"Pushing through undercurrents"</span><span class="fu">,</span></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"rotation"</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"font"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">"name"</span><span class="fu">:</span> <span class="st">"OpenSans-Light"</span><span class="fu">,</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">"flags"</span><span class="fu">:</span> <span class="dv">524320</span><span class="fu">,</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">"size"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">"weight"</span><span class="fu">:</span> <span class="dv">240</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>                <span class="fu">},</span></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"char_start_idx"</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"char_end_idx"</span><span class="fu">:</span> <span class="dv">28</span><span class="fu">,</span></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"url"</span><span class="fu">:</span> <span class="st">""</span></span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>              <span class="fu">}</span><span class="ot">,</span></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>              <span class="fu">{</span></span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"bbox"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>                  <span class="fl">466.78369140625</span><span class="ot">,</span></span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>                  <span class="fl">125.09466552734375</span><span class="ot">,</span></span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>                  <span class="fl">466.78369140625</span><span class="ot">,</span></span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>                  <span class="fl">125.09466552734375</span></span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>                <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"text"</span><span class="fu">:</span> <span class="st">"</span><span class="ch">\n</span><span class="st">"</span><span class="fu">,</span></span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"rotation"</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"font"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">"name"</span><span class="fu">:</span> <span class="st">""</span><span class="fu">,</span></span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">"flags"</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
-<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">"size"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
-<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">"weight"</span><span class="fu">:</span> <span class="dv">-1</span></span>
-<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>                <span class="fu">},</span></span>
-<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"char_start_idx"</span><span class="fu">:</span> <span class="dv">29</span><span class="fu">,</span></span>
-<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"char_end_idx"</span><span class="fu">:</span> <span class="dv">30</span><span class="fu">,</span></span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"url"</span><span class="fu">:</span> <span class="st">""</span></span>
-<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>              <span class="fu">}</span></span>
-<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>            <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"bbox"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>              <span class="fl">36.14179992675781</span><span class="ot">,</span></span>
-<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>              <span class="fl">99.6307373046875</span><span class="ot">,</span></span>
-<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>              <span class="fl">481.22967529296875</span><span class="ot">,</span></span>
-<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>              <span class="fl">131.6307373046875</span></span>
-<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>            <span class="ot">]</span></span>
-<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>          <span class="fu">}</span></span>
-<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>        <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a><span class="er">...</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"bbox"</span><span class="fu">:</span> <span class="ot">[</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="fl">595.276</span><span class="ot">,</span> <span class="fl">841.890</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"width"</span><span class="fu">:</span> <span class="dv">596</span><span class="fu">,</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"height"</span><span class="fu">:</span> <span class="dv">842</span><span class="fu">,</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"rotation"</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"blocks"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">{</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">"lines"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>          <span class="fu">{</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>            <span class="dt">"spans"</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>              <span class="fu">{</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"bbox"</span><span class="fu">:</span> <span class="ot">[</span><span class="fl">36.142</span><span class="ot">,</span> <span class="fl">99.631</span><span class="ot">,</span> <span class="fl">481.230</span><span class="ot">,</span> <span class="fl">131.631</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"text"</span><span class="fu">:</span> <span class="st">"Pushing through undercurrents"</span><span class="fu">,</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"rotation"</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"font"</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">"name"</span><span class="fu">:</span> <span class="st">"OpenSans-Light"</span><span class="fu">,</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">"flags"</span><span class="fu">:</span> <span class="dv">524320</span><span class="fu">,</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">"size"</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>                  <span class="dt">"weight"</span><span class="fu">:</span> <span class="dv">240</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>                <span class="fu">},</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"char_start_idx"</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"char_end_idx"</span><span class="fu">:</span> <span class="dv">28</span><span class="fu">,</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>                <span class="dt">"url"</span><span class="fu">:</span> <span class="st">""</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>              <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="er">...</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </figure>
 </div>
+<p>On top of this, Marker converts to Markdown, JSON, or HTML; formats tables, forms, equations, links, references, and code blocks; extracts images alongside the text; strips headers, footers, and other artifacts; and runs on GPU, CPU, or MPS. It also has an optional <code>--use_llm</code> mode that calls a vision model to improve accuracy and to describe figures, which is the mode used in <a href="#sec-comparing-libraries" class="quarto-xref">Section&nbsp;2</a>.</p>
 </section>
 <section id="sec-mineru" class="level2">
-<h2 class="anchored" data-anchor-id="sec-mineru">MinerU: Multi-Module Document Parsing</h2>
+<h2 class="anchored" data-anchor-id="sec-mineru">MinerU</h2>
 <div id="fig-mineru-pipeline" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Overview of the MinerU framework processing workflow.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mineru-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/minerU_pipeline.png" class="img-fluid figure-img" alt="Overview of the MinerU framework processing workflow.">
+<a href="figures/minerU_pipeline.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure&nbsp;5: The MinerU processing workflow. Source: [@wang2024mineruopensourcesolutionprecise]"><img src="figures/minerU_pipeline.png" class="img-fluid figure-img" alt="Overview of the MinerU framework processing workflow."></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mineru-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Overview of the MinerU framework processing workflow.
+Figure&nbsp;5: The MinerU processing workflow. Source: <span class="citation" data-cites="wang2024mineruopensourcesolutionprecise">(<a href="#ref-wang2024mineruopensourcesolutionprecise" role="doc-biblioref">Wang et al. 2024</a>)</span>
 </figcaption>
 </figure>
 </div>
-<p>MinerU is a multi-module document parsing framework that uses a multi-stage approach, employing various document parsing models to process document images. The code repository is available at the <a href="https://github.com/opendatalab/MinerU">MinerU GitHub Repository</a>, and technical details can be found in the reference paper <span class="citation" data-cites="wang2024mineruopensourcesolutionprecise">(<a href="#ref-wang2024mineruopensourcesolutionprecise" role="doc-biblioref">Wang et al. 2024</a>)</span>. MinerU provides source code, models, and documentation for parsing various document formats efficiently.</p>
-<p>The MinerU framework processing workflow (<a href="#fig-mineru-pipeline" class="quarto-xref">Figure&nbsp;5</a>) consists of four stages:</p>
-<ol type="1">
-<li><em>Document Preprocessing</em>: Uses PyMuPDF to read PDF files, filters out unprocessable files, and extracts PDF metadata (parseability, language type, page dimensions).</li>
-<li><em>Document Content Parsing</em>: Employs the PDF-Extract-Kit library for layout analysis (layout and formula detection). Applies different recognizers to various regions: OCR for text and titles, formula recognition for formulas, and table recognition for tables.</li>
-<li><em>Document Content Post-Processing</em>: Removes invalid regions, stitches content according to regional positioning, and obtains positioning, content, and sorting information for different document regions.</li>
-<li><em>Format Conversion</em>: Generates user-required formats, such as Markdown, for subsequent use.</li>
-</ol>
-<p><strong>Document Preprocessing</strong></p>
-<p>This stage focuses on filtering unprocessable PDFs and obtaining PDF metadata:</p>
-<ul>
-<li><em>Language Identification</em>: Currently processes Chinese and English documents.</li>
-<li><em>Content Garbled Detection</em>: Identifies text-based PDFs with garbled text.</li>
-<li><em>Scanned PDF Identification</em>: Distinguishes between text-based and scanned PDFs.</li>
-<li><em>Page Metadata Extraction</em>: Extracts document metadata such as total page count, page dimensions, and other attributes.</li>
-</ul>
-<p><strong>Document Content Parsing</strong></p>
-<p>MinerU uses the PDF-Extract-Kit model library to detect different types of regions and recognize their content:</p>
-<ul>
-<li><em>Layout Analysis</em>: Identifies different types of elements and their regions on a page.</li>
-<li><em>Formula Detection</em>: Detects inline and displayed formulas.</li>
-<li><em>Formula Recognition</em>: Recognizes formula images into LaTeX source code using the UniMERNet model.</li>
-<li><em>Table Recognition</em>: Extracts tabular data from visual table images using TableMaster and StructEqTable.</li>
-<li><em>OCR</em>: Applies Paddle-OCR to recognize text regions.</li>
-</ul>
-<p><strong>Document Content Post-Processing</strong></p>
-<p>This stage addresses content ordering by handling the relationships between Bounding Boxes (BBoxes):</p>
-<ul>
-<li><em>Containment Relationships</em>: Removes formulas and text blocks contained within image and table regions.</li>
-<li><em>Partial Overlap Relationships</em>: Shrinks partially overlapping text boxes and ensures the integrity of text when overlapping with tables/images.</li>
-<li><em>Segmentation Algorithm</em>: Divides the page into regions based on human reading order (“top to bottom, left to right”).</li>
-</ul>
-<p><strong>Models Overview</strong></p>
+<p><a href="https://github.com/opendatalab/MinerU">MinerU</a> <span class="citation" data-cites="wang2024mineruopensourcesolutionprecise">(<a href="#ref-wang2024mineruopensourcesolutionprecise" role="doc-biblioref">Wang et al. 2024</a>)</span> is organised as four sequential stages, shown in <a href="#fig-mineru-pipeline" class="quarto-xref">Figure&nbsp;5</a>.</p>
+<p><strong>Preprocessing</strong> reads the PDF with PyMuPDF and decides whether it can be handled at all: it identifies the language (Chinese and English at the time of writing), detects text-based PDFs whose text layer is garbled, distinguishes text-based from scanned documents, and extracts page count and dimensions.</p>
+<p><strong>Content parsing</strong> applies the PDF-Extract-Kit model library region by region. Layout analysis identifies element types and their extents; formula detection finds inline and displayed formulas, which UniMERNet converts back to LaTeX; table regions go to TableMaster or StructEqTable; everything else goes to PaddleOCR.</p>
+<p><strong>Post-processing</strong> resolves the geometry. Formulas and text blocks contained inside image or table regions are removed, partially overlapping boxes are shrunk so that text overlapping a table or image stays intact, and a segmentation algorithm divides the page into regions ordered the way a person reads: top to bottom, left to right.</p>
+<p><strong>Format conversion</strong> emits the result, in practice as Markdown with tables in HTML.</p>
 <div id="tbl-mineru-models" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-mineru-models-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;1: MinerU models overview
+Table&nbsp;1: The models behind each MinerU stage
 </figcaption>
 <div aria-describedby="tbl-mineru-models-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -591,36 +660,36 @@ Table&nbsp;1: MinerU models overview
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Task Type</th>
+<th style="text-align: left;">Task</th>
 <th style="text-align: left;">Description</th>
 <th style="text-align: left;">Models</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Layout Detection</td>
-<td style="text-align: left;">Locate different elements in a document: including images, tables, text, titles, formulas</td>
+<td style="text-align: left;">Layout detection</td>
+<td style="text-align: left;">Locate images, tables, text, titles, formulas</td>
 <td style="text-align: left;">DocLayout-YOLO_ft, YOLO-v10_ft, LayoutLMv3_ft</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Formula Detection</td>
-<td style="text-align: left;">Locate formulas in documents: including inline and block formulas</td>
+<td style="text-align: left;">Formula detection</td>
+<td style="text-align: left;">Locate inline and block formulas</td>
 <td style="text-align: left;">YOLOv8_ft</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Formula Recognition</td>
-<td style="text-align: left;">Recognize formula images into LaTeX source code</td>
+<td style="text-align: left;">Formula recognition</td>
+<td style="text-align: left;">Convert formula images to LaTeX</td>
 <td style="text-align: left;">UniMERNet</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">OCR</td>
-<td style="text-align: left;">Extract text content from images (including location and recognition)</td>
+<td style="text-align: left;">Detect and recognize text in images</td>
 <td style="text-align: left;">PaddleOCR</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Table Recognition</td>
-<td style="text-align: left;">Recognize table images into corresponding source code (LaTeX/HTML/Markdown)</td>
-<td style="text-align: left;">PaddleOCR+TableMaster, StructEqTable</td>
+<td style="text-align: left;">Table recognition</td>
+<td style="text-align: left;">Convert table images to LaTeX, HTML, or Markdown</td>
+<td style="text-align: left;">PaddleOCR + TableMaster, StructEqTable</td>
 </tr>
 </tbody>
 </table>
@@ -630,155 +699,321 @@ Table&nbsp;1: MinerU models overview
 </section>
 </section>
 <section id="sec-comparing-libraries" class="level1">
-<h1>Comparing PDF Parsing Libraries</h1>
-<p>Comparing PDF parsing libraries involves evaluating several factors: ease of use, functionality, performance. This section aims to provide an overview of the comparative performance of the parsing options in the context of different PDF types.</p>
-<p>This analysis provides a practical comparison of several PDF parsing libraries, with a unique focus on visualizing the differences between PDF input and Markdown output. The complete code and implementation details are available in the <a href="https://github.com/nbrosse/pdf-parsing">pdf-parsing repository</a>, and an interactive demo can be accessed through the <a href="https://huggingface.co/spaces/nbrosse/pdf-parsing-demo">pdf-parsing-demo</a> Hugging Face Space.</p>
-<div class="callout callout-style-default callout-note callout-titled">
+<h1>Comparing the tools</h1>
+<div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Note
+Important
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>All code is available at the <a href="https://github.com/nbrosse/pdf-parsing">pdf-parsing repository</a>.</p>
+<p>What follows is a qualitative comparison on six documents. It is enough to expose failure modes and not nearly enough to rank the tools; read it as a set of worked examples, not as a benchmark.</p>
 </div>
 </div>
-<section id="pdf-sample-dataset" class="level2">
-<h2 class="anchored" data-anchor-id="pdf-sample-dataset">PDF Sample Dataset</h2>
-<p>We test the different PDF parsing options on a small but diverse dataset of PDFs. These PDFs are available at the following link: <a href="https://github.com/nbrosse/pdf-parsing/tree/main/pdfs">PDF Parsing Dataset</a>. The dataset contains different types of PDFs to cover various difficulties faced by PDF parsers:</p>
-<ul>
-<li>Slides</li>
-<li>Image-only PDFs (requiring OCR)</li>
-<li>Reports</li>
-<li>Tables</li>
-</ul>
-<p>The PDF files located in the <code>pdfs</code> directory were sourced from the following locations:</p>
-<ul>
-<li><code>XC9500_CPLD_Family-1-4.pdf</code>: Downloaded from <a href="https://media.digikey.com/pdf/Data%20Sheets/AMD/XC9500_CPLD_Family.pdf" class="uri">https://media.digikey.com/pdf/Data%20Sheets/AMD/XC9500_CPLD_Family.pdf</a></li>
-<li><code>2023-conocophillips-aim-presentation-1-7.pdf</code>: Downloaded from <a href="https://static.conocophillips.com/files/2023-conocophillips-aim-presentation.pdf" class="uri">https://static.conocophillips.com/files/2023-conocophillips-aim-presentation.pdf</a></li>
-</ul>
-<p>The following four PDF files are sourced from the <a href="https://www.eyelevel.ai/post/most-accurate-rag">RAG blog benchmark</a>, specifically from the associated <a href="https://drive.google.com/drive/u/0/folders/1l45ljrGfOKsiNFh8QPji2eBAd2hOB51c">Google Drive folder</a>:</p>
-<ul>
-<li><code>gx-iif-open-data.pdf</code></li>
-<li><code>deloitte-tech-risk-sector-banking.pdf</code></li>
-<li><code>life-sciences-smart-manufacturing-services-peak-matrix-assessment-2023.pdf</code></li>
-<li><code>dttl-tax-technology-report-2023.pdf</code></li>
-</ul>
+<p>All the code, the source PDFs, and every Markdown file quoted below are in the <a href="https://github.com/nbrosse/pdf-parsing">pdf-parsing repository</a>. The <a href="https://huggingface.co/spaces/nicolasb92/pdf-parsing-demo">pdf-parsing-demo</a> Space shows each PDF page beside the Markdown each tool produced for it, which is the fastest way to check any of these claims.</p>
+<section id="sec-dataset" class="level2">
+<h2 class="anchored" data-anchor-id="sec-dataset">The test documents</h2>
+<p>Six PDFs, chosen to break parsers in different ways. They are in the <a href="https://github.com/nbrosse/pdf-parsing/tree/main/pdfs"><code>pdfs</code> directory</a> of the repository.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 18%">
+<col style="width: 54%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Document</th>
+<th style="text-align: right;">Pages</th>
+<th style="text-align: left;">What makes it hard</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>2023-conocophillips-aim-presentation-1-7.pdf</code></td>
+<td style="text-align: right;">7</td>
+<td style="text-align: left;"><strong>No embedded fonts.</strong> Every page is a single 4000 × 2250 image, including a page of 4 pt legal text</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>deloitte-tech-risk-sector-banking.pdf</code></td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">Nested table headers spanning rows and columns, bulleted cells, icon fonts</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>dttl-tax-technology-report-2023.pdf</code></td>
+<td style="text-align: right;">17</td>
+<td style="text-align: left;">Bar charts carrying data that appears nowhere in the text</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>gx-iif-open-data.pdf</code></td>
+<td style="text-align: right;">32</td>
+<td style="text-align: left;">Long report, multi-column layout, sidebars</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>life-sciences-...-peak-matrix-assessment-2023.pdf</code></td>
+<td style="text-align: right;">15</td>
+<td style="text-align: left;">Side-by-side boxes, a quadrant scatter plot</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>XC9500_CPLD_Family-1-4.pdf</code></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">Datasheet: dense tables, block diagrams, tiny footnotes</td>
+</tr>
+</tbody>
+</table>
+<p>The first two came from public sources — <a href="https://media.digikey.com/pdf/Data%20Sheets/AMD/XC9500_CPLD_Family.pdf">DigiKey</a> for the datasheet and <a href="https://static.conocophillips.com/files/2023-conocophillips-aim-presentation.pdf">ConocoPhillips</a> for the deck. The remaining four are from the <a href="https://www.eyelevel.ai/post/most-accurate-rag">RAG benchmark</a> published by EyeLevel and its associated <a href="https://drive.google.com/drive/u/0/folders/1l45ljrGfOKsiNFh8QPji2eBAd2hOB51c">Google Drive folder</a>.</p>
+<p>The ConocoPhillips deck deserves a note of its own, because it changes how every result below should be read. <code>pdffonts</code> reports zero fonts for it and <code>pdfimages</code> reports seven full-page bitmaps. There is no text layer. Every character any tool produces for that file was invented by an OCR model or a vision model, and a tool with neither returns nothing at all.</p>
 </section>
-<section id="qualitative-results" class="level2">
-<h2 class="anchored" data-anchor-id="qualitative-results">Qualitative Results</h2>
-<p><strong>Note:</strong> The following results are based on a limited set of tests and should be considered indicative rather than scientifically rigorous.</p>
-<div class="callout-info">
-<p>You can directly compare the output Markdown results at the Hugging Face Space demo: <a href="https://huggingface.co/spaces/nbrosse/pdf-parsing-demo">pdf-parsing-demo</a>.</p>
-</div>
-<p><a href="https://github.com/DS4SD/docling">Docling</a> provides decent results for text extraction, layout analysis, and table recognition. The OCR support is also a valuable addition for scanned PDFs. Very recently, it provides support for image description <a href="https://ds4sd.github.io/docling/examples/pictures_description_api/">example</a>, which is a very promising feature.</p>
-<div id="fig-docling-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Docling parsing results">
+<section id="sec-how-run" class="level2">
+<h2 class="anchored" data-anchor-id="sec-how-run">How each tool was run</h2>
+<p>Defaults everywhere, except where a flag was needed to get Markdown out at all. This matters for reading the results: several tools have premium or multimodal modes that were not used.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Tool</th>
+<th style="text-align: left;">Version</th>
+<th style="text-align: left;">Invocation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><a href="https://github.com/docling-project/docling">Docling</a></td>
+<td style="text-align: left;"><code>docling</code> 2.21</td>
+<td style="text-align: left;"><code>DocumentConverter()</code> with default options, exported per page with <code>image_mode=PLACEHOLDER</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><a href="https://github.com/datalab-to/marker">Marker</a></td>
+<td style="text-align: left;"><code>marker-pdf</code> 1.4</td>
+<td style="text-align: left;">CLI with <code>--use_llm</code> (Gemini), <code>--paginate_output</code>, <code>--disable_image_extraction</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><a href="https://github.com/opendatalab/MinerU">MinerU</a></td>
+<td style="text-align: left;"><code>magic-pdf</code> 1.1</td>
+<td style="text-align: left;"><code>magic-pdf -p ../pdfs/ -o md/</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><a href="https://pymupdf.readthedocs.io/en/latest/pymupdf4llm/">PyMuPDF</a></td>
+<td style="text-align: left;"><code>pymupdf4llm</code> 0.0.17</td>
+<td style="text-align: left;"><code>pymupdf4llm.to_markdown(path)</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><a href="https://developers.llamaindex.ai/llamaparse/">LlamaParse</a></td>
+<td style="text-align: left;"><code>llama-parse</code> 0.6.1</td>
+<td style="text-align: left;">Default mode, <code>result_type=MD</code>, <code>split_by_page=False</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><a href="https://ai.google.dev/gemini-api/docs">Gemini</a></td>
+<td style="text-align: left;"><code>google-genai</code> 1.2, <code>gemini-2.0-flash</code></td>
+<td style="text-align: left;">One request per page with a custom transcription prompt, four workers</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><a href="https://docs.mistral.ai/studio/document-processing/basic_ocr">Mistral OCR</a></td>
+<td style="text-align: left;"><code>mistralai</code> 1.5.1, <code>mistral-ocr-latest</code></td>
+<td style="text-align: left;"><code>client.ocr.process</code> with <code>include_image_base64=True</code></td>
+</tr>
+</tbody>
+</table>
+<p>Two of these are worth spelling out. Marker was the only tool given a vision model for figures, through <code>--use_llm</code>; Docling’s picture-description enrichment exists but was left off, so its output has placeholders where Marker has prose. And Gemini is not an off-the-shelf parser here at all — it is a page of PDF plus a <a href="https://github.com/nbrosse/pdf-parsing/blob/main/gemini-folder/gemini_parser.py">prompt</a> that instructs the model to preserve the source language, use proper Markdown, transcribe every table cell, and turn charts into tables of data points. Its results are as much a property of that prompt as of the model.</p>
+<p>One artifact belongs to the demo rather than to any tool: Streamlit renders <code>$...$</code> as LaTeX, so a passage like “US$1 billion to US$5 billion” appears as mathematics in several screenshots below. That is the viewer, not the parser. Where a tool genuinely emits LaTeX — and one does — it is called out explicitly.</p>
+</section>
+<section id="sec-text" class="level2">
+<h2 class="anchored" data-anchor-id="sec-text">Text and reading order</h2>
+<p>The ConocoPhillips deck sorts the tools immediately. <code>pymupdf4llm</code> produces a 49-byte file: seven page separators and nothing between them. There is no text layer to read and no OCR stage to fall back on, so the correct output is empty, and that is what it returns.</p>
+<pre><code>-----
+
+-----
+
+-----</code></pre>
+<p>The rest of the field OCRs the pages, with results that diverge sharply on the deck’s third page, a wall of 4 pt legal disclaimer. Gemini and LlamaParse transcribe it accurately. Docling, using EasyOCR by default, gets the text but shuffles the bullet order — the Brent price bullet moves above the WTI one, and a trailing “price” is orphaned at the end of its line. Marker and MinerU do something worse. Surya returns:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>The presention provides naragements corrent of the next beach the new contribution</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>is subject on while assumptions, including, incultive, and estably rodet</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>and PaddleOCR, through MinerU, returns:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>hipreseiatraerttatiodistiial an oil price of \$60/BL West Texas Intermediate in 2022</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>dollars, escalating at $2.25\%$ annualy; a gas price of $\$3.75$ /MBTUHenry Hub in</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>22dolas,escalaingat $2.25\%$ annualyia</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Both continue for several hundred words in that register. The failure is not that the text is missing but that it is confidently present and entirely fabricated — nothing downstream can tell this apart from a legitimately obscure passage.</p>
+<p>Reading order fails more quietly on born-digital pages. On the first page of the Deloitte banking brief, <code>pymupdf4llm</code> hoists the “How can the industry mitigate it?” table above the heading it belongs under, and renders every bullet as bold body text. Mistral OCR truncates the paragraph that ends in a hyperlink mid-sentence, at “You can learn more in the full report” — it keeps “You” and drops the rest.</p>
+<p>Hyperlinks show the difference between reading a PDF and looking at one. The same Deloitte paragraph ends in two links whose target — <code>deloitte.com/global/en/Industries/financial-services/perspectives/pushing-through-undercurrents.html</code> — is stored in the page’s annotation objects and appears nowhere on the page. Marker and <code>pymupdf4llm</code> read it from the annotations and get it exactly right. Docling, MinerU, and LlamaParse return the link text as plain text; Mistral OCR, as noted above, drops the sentence altogether.</p>
+<p>Gemini, which never sees the annotations, supplies two URLs anyway:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">full report from the Forum</span><span class="co">]</span>(https://www.weforum.org/reports/pushing-through-</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>undercurrents-technology-driven-systemic-risk-in-financial-services)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">executive summary from Deloitte</span><span class="co">]</span>(https://www2.deloitte.com/us/en/pages/</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>financial-services/articles/pushing-through-undercurrents.html)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Neither exists: they return 403 and 404. They are well-formed guesses at what those URLs ought to look like, in the correct Markdown link syntax, and they are the kind of error that survives every downstream check short of fetching them.</p>
+</section>
+<section id="sec-tables" class="level2">
+<h2 class="anchored" data-anchor-id="sec-tables">Tables</h2>
+<p>The first page of the Deloitte brief has one table with a two-level header: a left column spanning both header rows, and a “How can the industry mitigate it?” cell spanning two columns above “Goal” and “Mitigation opportunities”. Reproducing it requires expressing spans, which Markdown cannot do.</p>
+<p>MinerU sidesteps the problem by emitting HTML, and is the only tool that gets the structure right:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode html code-with-copy"><code class="sourceCode html"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">table</span><span class="dt">&gt;&lt;</span><span class="kw">tr</span><span class="dt">&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">td</span><span class="ot"> rowspan</span><span class="op">=</span><span class="st">"2"</span><span class="dt">&gt;</span>What sectoral and regional forces could amplify the risk?<span class="dt">&lt;/</span><span class="kw">td</span><span class="dt">&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&lt;</span><span class="kw">td</span><span class="ot"> colspan</span><span class="op">=</span><span class="st">"2"</span><span class="dt">&gt;</span>How can the industry mitigate it?<span class="dt">&lt;/</span><span class="kw">td</span><span class="dt">&gt;&lt;/</span><span class="kw">tr</span><span class="dt">&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">tr</span><span class="dt">&gt;&lt;</span><span class="kw">td</span><span class="dt">&gt;</span>Goal<span class="dt">&lt;/</span><span class="kw">td</span><span class="dt">&gt;&lt;</span><span class="kw">td</span><span class="dt">&gt;</span>Mitigation opportunities<span class="dt">&lt;/</span><span class="kw">td</span><span class="dt">&gt;&lt;/</span><span class="kw">tr</span><span class="dt">&gt;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Marker produces the best Markdown approximation, flattening the header into two rows and grouping the left-hand bullets into a single cell with <code>&lt;br&gt;</code> separators. On the second page it shifts a row and lands “Investor and customer protection” in the wrong column.</p>
+<p>Docling’s attempt collapses. The header cell is duplicated across two columns with its first character shaved off (“ow can the industry mitigate it?”), text is dropped inside cells (“Apl y network segmentation”, “Properly vetted BaS rtners”), and the missing characters reappear below the table as a column of stranded single letters:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>S</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>B</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>a</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>S</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>p</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Those letters are not random. Read in order they are <code>H</code>, <code>S</code>, <code>B</code>, <code>a</code>, <code>S</code>, <code>p</code>, <code>a</code>, <code>p</code>, <code>I</code> — exactly the characters shaved off “How can”, “Strong security”, “BaaS partners”, “Apply”, “access control”, “providers”, “Institutional”. The text is all there; the matching between TableFormer’s predicted cells and the backend’s text cells broke, so the orphaned characters were emitted after the table instead of inside it. This page uses an embedded icon font, <code>deloitte-special-use-icon-font</code>, and Docling leaks one of its glyph names, <code>/public_building_pos</code>, into the body text on the same page.</p>
+<p>LlamaParse restructures rather than reproduces. It promotes the header cells to Markdown headings and emits a clean two-column table underneath — readable, and no longer the same table. <code>pymupdf4llm</code> flattens all three body rows into one.</p>
+<p>For tables specifically, <a href="https://github.com/camelot-dev/camelot">Camelot</a> remains worth knowing about. It handles lattice and stream tables, it is well documented, and on the tabular pages of the datasheet it did as well as anything here. It does one thing, which is why it does it well.</p>
+</section>
+<section id="sec-charts" class="level2">
+<h2 class="anchored" data-anchor-id="sec-charts">Charts</h2>
+<p>Charts are where every tool in this comparison fails, and where the failures are hardest to detect.</p>
+<p>Page 3 of the Deloitte tax report carries Figure 1, a paired bar chart: seven categories, two series, values printed next to every bar. Nothing in the surrounding text repeats those numbers, so a parser that drops the figure loses them permanently.</p>
+<p>Docling drops it. The chart becomes <code>&lt;!-- image --&gt;</code> — the placeholder mode this run used — and the fourteen values are gone.</p>
+<div id="fig-docling-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Docling output beside the source PDF page, showing an image placeholder where the chart was.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-docling-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/docling_streamlit.png" class="img-fluid figure-img" alt="Docling parsing results">
+<a href="figures/docling_streamlit.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure&nbsp;6: Docling on page 3 of the tax report: the bar chart becomes <!-- image --> and its fourteen values are lost."><img src="figures/docling_streamlit.png" class="img-fluid figure-img" alt="Docling output beside the source PDF page, showing an image placeholder where the chart was."></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-docling-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6: Docling parsing results
+Figure&nbsp;6: Docling on page 3 of the tax report: the bar chart becomes <code>&lt;!-- image --&gt;</code> and its fourteen values are lost.
 </figcaption>
 </figure>
 </div>
-<p><a href="https://docs.llamaindex.ai/en/stable/llama_cloud/llama_parse/">LlamaParse</a> in default mode also provides good results. It provides descriptions of charts and images and is able to extract tables. However, the quality of the chart and image descriptions is not top-tier. It is also a closed-source solution.</p>
-<div id="fig-llamaparse-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="LlamaParse parsing results">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-llamaparse-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/llamaparse_streamlit.png" class="img-fluid figure-img" alt="LlamaParse parsing results">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-llamaparse-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7: LlamaParse parsing results
-</figcaption>
-</figure>
-</div>
-<p><a href="https://github.com/VikParuchuri/marker">Marker</a> provides good results and a description of the images using Gemini.</p>
-<div id="fig-marker-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Marker parsing results">
+<p>Marker, with <code>--use_llm</code>, describes it in prose, and the numbers it quotes are right: “41% of companies have fully implemented automation of tax compliance and reporting processes, while only 2% plan to implement them within 12 months” matches the chart exactly, as does its ERP figure of 37% against 24%.</p>
+<div id="fig-marker-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Marker output beside the source PDF page, showing an LLM-generated description of the bar chart.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-marker-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/marker_streamlit.png" class="img-fluid figure-img" alt="Marker parsing results">
+<a href="figures/marker_streamlit.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure&nbsp;7: Marker on the same page: a prose description of the chart whose quoted values check out against the source."><img src="figures/marker_streamlit.png" class="img-fluid figure-img" alt="Marker output beside the source PDF page, showing an LLM-generated description of the bar chart."></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-marker-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;8: Marker parsing results
+Figure&nbsp;7: Marker on the same page: a prose description of the chart whose quoted values check out against the source.
 </figcaption>
 </figure>
 </div>
-<p><a href="https://pymupdf.readthedocs.io/en/latest/">PyMuPDF</a> in default mode is a more raw extraction approach, parsing the raw content. The other libraries tend to build upon more fundamental extraction libraries such as PyMuPDF. The results generally require further refinement.</p>
-<div id="fig-pymupdf-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Pymupdf parsing results">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-pymupdf-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/pymupdf_streamlit.png" class="img-fluid figure-img" alt="Pymupdf parsing results">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pymupdf-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9: Pymupdf parsing results
-</figcaption>
-</figure>
-</div>
-<p><a href="https://ai.google.dev/aistudio">Gemini</a> is very good at parsing the content and providing a description of the images. It is versatile and effective. However, it is closed source.</p>
-<div id="fig-gemini-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Gemini parsing results">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-gemini-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/gemini_streamlit.png" class="img-fluid figure-img" alt="Gemini parsing results">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gemini-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10: Gemini parsing results
-</figcaption>
-</figure>
-</div>
-<div id="fig-gemini-streamlit-2" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Gemini parsing results suppl.">
+<p>Gemini, asked by its prompt to tabulate chart data, returns a seven-row table. All fourteen values are correct.</p>
+<div id="fig-gemini-streamlit-2" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Gemini output beside the source PDF page, showing a correctly transcribed table of chart values.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-gemini-streamlit-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/gemini_streamlit_2.png" class="img-fluid figure-img" alt="Gemini parsing results suppl.">
+<a href="figures/gemini_streamlit_2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure&nbsp;8: Gemini on the same page: the chart is converted to a table, and all fourteen values are right."><img src="figures/gemini_streamlit_2.png" class="img-fluid figure-img" alt="Gemini output beside the source PDF page, showing a correctly transcribed table of chart values."></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gemini-streamlit-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;11: Gemini parsing results (suppl.)
+Figure&nbsp;8: Gemini on the same page: the chart is converted to a table, and all fourteen values are right.
 </figcaption>
 </figure>
 </div>
-<p><a href="https://docs.mistral.ai/capabilities/document/">Mistral OCR</a> is a closed-source solution that provides good results. It is particularly effective at extracting text and tables. However, it does not support image description by default.</p>
-<div id="fig-mistral-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Mistral parsing results">
+<p>Three pages later the same model meets Figure 3: twelve categories, three series, thirty-six printed values. It returns an equally clean 3 × 12 table — correct headers, correct row labels, plausible percentages throughout.</p>
+<p>Thirteen of the thirty-six cells are right.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Series</th>
+<th style="text-align: left;">Correct cells</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">US$5B+</td>
+<td style="text-align: left;">5 of 12</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">US$1B–$5B</td>
+<td style="text-align: left;">1 of 12</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">US$750M–$1B</td>
+<td style="text-align: left;">7 of 12</td>
+</tr>
+</tbody>
+</table>
+<p>The errors are not noise. The first category, “Reducing headcount”, has bars at 0%, 0%, and 2%; Gemini reports 46%, 45%, and 14%. Every zero-height bar becomes a double-digit number, because a table cell has to contain something and an absent bar looks like a missing reading rather than a measured zero. The rest are largely the right numbers attached to the wrong categories: 46% belongs to “ERP system customized for tax issues” but is reported against “Reducing headcount”, and further along the row the values drift out of alignment with their labels. That is what reading a wide chart by association rather than by geometry looks like.</p>
+<div id="fig-gemini-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Gemini output beside the source PDF page, showing a plausible but largely incorrect table of chart values.">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-mistral-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/mistral-parsing.png" class="img-fluid figure-img" alt="Mistral parsing results">
+<div aria-describedby="fig-gemini-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/gemini_streamlit.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Figure&nbsp;9: Gemini on page 6: a well-formed 3 × 12 table in which 23 of the 36 values are wrong."><img src="figures/gemini_streamlit.png" class="img-fluid figure-img" alt="Gemini output beside the source PDF page, showing a plausible but largely incorrect table of chart values."></a>
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mistral-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12: Mistral parsing results
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gemini-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: Gemini on page 6: a well-formed 3 × 12 table in which 23 of the 36 values are wrong.
 </figcaption>
 </figure>
 </div>
-<p><a href="https://github.com/opendatalab/MinerU">MinerU</a> is not part of the app because it is not easy to split the output by page, and tables are under HTML format. However, the results are good, and the layout is very good. It doesn’t support image description. MinerU is a very promising library.</p>
-<div id="fig-mineru-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="MinerU parsing results">
+<p>Nothing in the output marks the difference between this table and the correct one two pages earlier. Both are well-formed Markdown, both look transcribed. That is the argument for treating chart-derived numbers as unverified regardless of how confident the formatting looks.</p>
+<p>LlamaParse attempts the same chart and fails visibly instead, which is at least honest. It emits a fifteen-column table whose first data row is the y-axis tick labels — <code>|75%|50%| | |25%|75%|50%|25%|...</code> — and scatters the values across columns that do not correspond to anything. The row for “Reducing headcount” reads 56%, 38%, 27% against true values of 0%, 0%, 2%.</p>
+<div id="fig-llamaparse-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="LlamaParse output beside the source PDF page, showing a malformed wide table.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-llamaparse-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/llamaparse_streamlit.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11" title="Figure&nbsp;10: LlamaParse on page 6: a fifteen-column table containing axis tick labels as data."><img src="figures/llamaparse_streamlit.png" class="img-fluid figure-img" alt="LlamaParse output beside the source PDF page, showing a malformed wide table."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-llamaparse-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10: LlamaParse on page 6: a fifteen-column table containing axis tick labels as data.
+</figcaption>
+</figure>
+</div>
+<p><code>pymupdf4llm</code> drops the figure entirely, keeping only its bold caption.</p>
+<div id="fig-pymupdf-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="pymupdf4llm output beside the source PDF page, showing only the figure caption.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pymupdf-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/pymupdf_streamlit.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12" title="Figure&nbsp;11: pymupdf4llm on page 6: the caption survives, the chart does not."><img src="figures/pymupdf_streamlit.png" class="img-fluid figure-img" alt="pymupdf4llm output beside the source PDF page, showing only the figure caption."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pymupdf-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;11: <code>pymupdf4llm</code> on page 6: the caption survives, the chart does not.
+</figcaption>
+</figure>
+</div>
+<p>Counted across all six documents, the tools’ relationship to figures is: Marker emits 60 vision-model descriptions, Gemini 13 figure or graph captions, Docling 125 <code>&lt;!-- image --&gt;</code> placeholders, MinerU and Mistral OCR image references with no description, and LlamaParse in default mode nothing at all — the strings matching “Figure” in its output are captions belonging to the documents themselves.</p>
+</section>
+<section id="sec-mineru-mistral-results" class="level2">
+<h2 class="anchored" data-anchor-id="sec-mineru-mistral-results">Two more tools worth seeing</h2>
+<p>MinerU is not in the demo app, for a practical reason: its Markdown has no page separators, so it cannot be aligned page-by-page against the PDF the way the others can, and its tables are HTML rather than Markdown. Its layout reconstruction is nonetheless the strongest here — the ordering of regions on complex pages is consistently right, and the nested table above is proof of what HTML output buys.</p>
+<p>Its formula detector is a liability on prose. On the tax report it wraps percentages in maths mode, turning <code>24%</code> into <code>$24\%$</code>, and in one paragraph it converts the word “tax” into <code>$\tan\alpha$</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>Compliance is a top priority for the $\tan\alpha$ department (Figure 2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="fig-mineru-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="MinerU markdown output beside the layout-annotated PDF page.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-mineru-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/mineru_streamlit.png" class="img-fluid figure-img" alt="MinerU parsing results">
+<a href="figures/mineru_streamlit.png" class="lightbox" data-gallery="quarto-lightbox-gallery-13" title="Figure&nbsp;12: MinerU on page 3 of the tax report, with its layout annotations on the right."><img src="figures/mineru_streamlit.png" class="img-fluid figure-img" alt="MinerU markdown output beside the layout-annotated PDF page."></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mineru-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;13: MinerU parsing results
+Figure&nbsp;12: MinerU on page 3 of the tax report, with its layout annotations on the right.
 </figcaption>
 </figure>
 </div>
-<p>We tested <a href="https://docs.unstructured.io/welcome">unstructured</a> (free version), which did not produce satisfying results.</p>
-<p><a href="https://github.com/microsoft/markitdown">Markitdown</a> is a very new library that we did not test. It seems to rely on ad-hoc solutions and is simply an aggregator of solutions.</p>
-<p>We also tested (not extensively) some cloud-based solutions for PDF parsing such as <a href="https://developer.adobe.com/document-services/docs/overview/pdf-extract-api/">Adobe PDF Extract API</a>, <a href="https://aws.amazon.com/textract/">AWS Textract</a> and <a href="https://azure.microsoft.com/en-us/products/ai-services/ai-document-intelligence">Azure AI Document intelligence</a> but we were not convinced by the first results. Apparently, they seem to be very good at extracting for large quantity of pdf following the same template.</p>
-<p>In terms of table extraction capabilities, we tested Camelot, a specialized library specifically designed for extracting tables from PDFs. Camelot excels at handling both lattice and stream type tables, making it particularly effective for complex table extraction tasks. The library is well-documented and maintained, with comprehensive documentation available on their <a href="https://github.com/camelot-dev/camelot">GitHub repository</a>. The results were good for table extraction. Camelot is a dedicated library for tables.</p>
-<p><strong>Conclusion</strong>: The choice of PDF parsing library depends on the specific requirements of the task at hand. or general-purpose parsing with a strong emphasis on image understanding, consider Gemini. However, be aware that this is a closed-source solution. If an open-source solution is preferred, Docling, Marker and MinerU are strong contenders. For tasks requiring specialized table extraction, Camelot is a reliable choice.</p>
+<p>Mistral OCR is the tidiest output of the closed-source group. On a page of the PEAK Matrix report with two side-by-side case-study boxes it linearizes them in the right order, keeps the internal heading structure, and produces Markdown that needs no cleanup.</p>
+<div id="fig-mistral-streamlit" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Mistral OCR output beside the source PDF page, showing two side-by-side case study boxes converted to sequential sections.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mistral-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/mistral-parsing.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14" title="Figure&nbsp;13: Mistral OCR on page 6 of the PEAK Matrix report: two side-by-side boxes correctly linearized."><img src="figures/mistral-parsing.png" class="img-fluid figure-img" alt="Mistral OCR output beside the source PDF page, showing two side-by-side case study boxes converted to sequential sections."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mistral-streamlit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;13: Mistral OCR on page 6 of the PEAK Matrix report: two side-by-side boxes correctly linearized.
+</figcaption>
+</figure>
+</div>
+<p>It has one specific and damaging habit: it emits LaTeX for text that resembles mathematics, and currency triggers it. On the ConocoPhillips deck, <code>$60/BBL West Texas Intermediate</code> comes back as</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>an oil price of $\$ \$ 5 / 8 \mathrm{~B} \$$, West Texas Intermediate</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The price is not merely mis-typeset, it is gone. Anything downstream that needs the number will not find it. Mistral OCR also does not describe images; it extracts them as base64 references.</p>
+</section>
+<section id="sec-others" class="level2">
+<h2 class="anchored" data-anchor-id="sec-others">Tools I looked at and did not keep</h2>
+<p><a href="https://docs.unstructured.io/welcome">unstructured</a>, in its free version, did not produce results worth including.</p>
+<p><a href="https://github.com/microsoft/markitdown">Markitdown</a> was too new to evaluate at the time and appears to be an aggregator of format-specific converters rather than a parser in the sense used here.</p>
+<p>The cloud document APIs — <a href="https://developer.adobe.com/document-services/docs/overview/pdf-extract-api/">Adobe PDF Extract</a>, <a href="https://aws.amazon.com/textract/">AWS Textract</a>, <a href="https://azure.microsoft.com/en-us/products/ai-services/ai-document-intelligence">Azure AI Document Intelligence</a> — were tested briefly and not pursued. First impressions suggest they are built for a different problem: high volumes of documents sharing a known template, where a form can be defined once and applied to thousands of pages. On six heterogeneous documents that strength does not show.</p>
 </section>
 </section>
-<section id="conclusion" class="level1">
+<section id="sec-conclusion" class="level1">
 <h1>Conclusion</h1>
-<p>This exploration of PDF parsing for Large Language Model (LLM) input has revealed a diverse landscape of tools and techniques, each with its strengths and limitations. We’ve examined open-source libraries like Docling, MinerU, Marker and PyMuPDF, as well as closed-source solutions such as LlamaParse and direct parsing with Gemini.</p>
-<p>Our qualitative comparison, demonstrated through the <a href="https://huggingface.co/spaces/nbrosse/pdf-parsing-demo">pdf-parsing-demo</a>, highlights the trade-offs between accuracy, functionality, and ease of use. While closed-source solutions like Gemini and LlamaParse often provide superior out-of-the-box performance, especially in areas like image description and table extraction, they come with the constraints of licensing and limited customization. Open-source libraries like Docling and MinerU offer greater flexibility but may require more effort to achieve comparable results.</p>
-<p>The choice of PDF parsing approach ultimately hinges on the specific requirements of the LLM application. Factors to consider include:</p>
+<p>The seven tools fail in three distinct places, and knowing which one matters for a given corpus is more useful than a ranking.</p>
+<p><strong>Text is close to solved for born-digital pages.</strong> All seven produce usable prose from a PDF with a text layer. Most differences here are cosmetic — footnote handling, hyphenation, bullet glyphs. The exception is hyperlinks, which live in the PDF’s annotations rather than on the page: the tools that read them get them right, and the one that cannot see them invents them.</p>
+<p><strong>Structure is where the open-source tools separate.</strong> Nested table headers cannot be expressed in Markdown, so a tool’s ceiling depends on its output format: MinerU’s HTML tables hold structure that Marker’s Markdown can only approximate and that Docling’s loses. Scanned pages compound this, since every stage downstream of OCR inherits its errors — and OCR fails first on small type, where Surya and PaddleOCR both hallucinate freely.</p>
+<p><strong>Charts are unsolved, and the good-looking failures are the dangerous ones.</strong> The output that most deserves suspicion is the one that looks most like a successful transcription. If chart data matters, extract it separately and verify it; do not accept it from a general-purpose parser.</p>
+<p>Given that, the choice is mostly a constraint problem:</p>
 <ul>
-<li><strong>Accuracy and Completeness:</strong> How critical is it to extract all the text and data from the PDF accurately?</li>
-<li><strong>Layout Fidelity:</strong> Is preserving the original layout of the document important?</li>
-<li><strong>Image and Table Understanding:</strong> Are there significant images or tables that need to be extracted and understood?</li>
-<li><strong>Open Source vs.&nbsp;Closed Source:</strong> Does the project require an open-source solution for licensing or customization reasons?</li>
-<li><strong>Complexity of PDFs:</strong> Does the typical PDF being parsed have many images, tables, or just general text?</li>
+<li><strong>Open-source, on your own hardware</strong>: Docling or MinerU. Docling has the better-documented pipeline, the cleaner document model, and enrichments worth enabling; MinerU has better layout reconstruction and real table structure, at the cost of an output format that needs work before it can be paged or embedded.</li>
+<li><strong>Open-source with a vision model available</strong>: Marker with <code>--use_llm</code>. It was the only open-source configuration here that produced faithful figure descriptions.</li>
+<li><strong>Closed-source, quality first</strong>: Gemini or Mistral OCR. Gemini is the most versatile if you are willing to own the prompt; Mistral OCR is the cleanest out of the box, with the currency caveat above.</li>
+<li><strong>Tables specifically</strong>: Camelot.</li>
+<li><strong>Raw text from born-digital PDFs, fast</strong>: <code>pymupdf4llm</code>. It is the substrate several of the others build on, it will not OCR anything, and its output needs the most downstream cleanup.</li>
 </ul>
 
 
@@ -803,17 +1038,30 @@ Wang, Bin, Chao Xu, Xiaomeng Zhao, et al. 2024. <em>MinerU: An Open-Source Solut
 </div>
 </div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2025,
   author = {Brosse, Nicolas},
-  title = {PDF {Parsing} for {LLM} {Input}},
+  title = {Parsing {PDFs} for {LLM} Input},
   date = {2025-02-18},
   url = {https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2025" class="csl-entry quarto-appendix-citeas" role="listitem">
-Brosse, Nicolas. 2025. <span>“PDF Parsing for LLM Input.”</span>
+Brosse, Nicolas. 2025. <span>“Parsing PDFs for LLM Input.”</span>
 February 18. <a href="https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html">https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
     const icon = "";
     const anchorJS = new window.AnchorJS();
     anchorJS.options = {
@@ -1213,6 +1461,38 @@ February 18. <a href="https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.ht
   });
   </script>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 

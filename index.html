@@ -41,10 +41,14 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-d0ae9245876894da5ac7e18953ecc5cc.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-f9e226253bcd7e75ae14e3379ab40ce6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-7f1822a086a24169120327e3a5d340d0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -135,7 +139,169 @@ window.Quarto = {
 <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="nav-fixed quarto-light">
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top quarto-banner">
@@ -179,6 +345,7 @@ window.Quarto = {
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
 </div>
       </div> <!-- /container-fluid -->
     </nav>
@@ -205,9 +372,10 @@ window.Quarto = {
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(10)</span></div><div class="category" data-category="YmlvbG9neQ==">biology <span class="quarto-category-count">(2)</span></div><div class="category" data-category="Y2hlbWlzdHJ5">chemistry <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ZGVlcCUyMGxlYXJuaW5n">deep learning <span class="quarto-category-count">(5)</span></div><div class="category" data-category="ZGlmZnVzaW9u">diffusion <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ZmxvdyUyMG1hdGNoaW5n">flow matching <span class="quarto-category-count">(1)</span></div><div class="category" data-category="TExN">LLM <span class="quarto-category-count">(4)</span></div><div class="category" data-category="bWFjaGluZSUyMGxlYXJuaW5n">machine learning <span class="quarto-category-count">(2)</span></div><div class="category" data-category="cHl0aG9u">python <span class="quarto-category-count">(2)</span></div><div class="category" data-category="UkFH">RAG <span class="quarto-category-count">(1)</span></div></div></div>
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(9)</span></div><div class="category" data-category="YmlvbG9neQ==">biology <span class="quarto-category-count">(2)</span></div><div class="category" data-category="Y2hlbWlzdHJ5">chemistry <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ZGVlcCUyMGxlYXJuaW5n">deep learning <span class="quarto-category-count">(6)</span></div><div class="category" data-category="ZmxvdyUyMG1hdGNoaW5n">flow matching <span class="quarto-category-count">(2)</span></div><div class="category" data-category="TExN">LLM <span class="quarto-category-count">(4)</span></div><div class="category" data-category="bWFjaGluZSUyMGxlYXJuaW5n">machine learning <span class="quarto-category-count">(1)</span></div><div class="category" data-category="cHl0aG9u">python <span class="quarto-category-count">(1)</span></div><div class="category" data-category="UkFH">RAG <span class="quarto-category-count">(1)</span></div></div></div>
 <!-- main -->
 <main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+
 
 
 
@@ -264,162 +432,146 @@ Description
 </thead>
 <tbody class="list">
 
-<tr data-index="0" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDZmxvdyUyMG1hdGNoaW5n" data-listing-date-sort="1784498400000" data-listing-file-modified-sort="1784525544723" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="20" data-listing-word-count-sort="3936" data-listing-title-sort="Closed-Form Flow Matching: Posterior Concentration and the Softmax Collapse" data-listing-filename-sort="closed-form-fm.qmd">
+<tr data-index="0" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDZmxvdyUyMG1hdGNoaW5n" data-listing-date-sort="1784498400000" data-listing-file-modified-sort="1787482270074" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="21" data-listing-word-count-sort="4125" data-listing-title-sort="Closed-form flow matching: posterior concentration and softmax collapse" data-listing-filename-sort="posterior-concentration.qmd">
 <td>
 <span class="listing-date">Jul 20, 2026</span>
 </td>
 <td>
-<a href="./posts/closed-form-flow-matching/closed-form-fm.html" class="title listing-title">Closed-Form Flow Matching: Posterior Concentration and the Softmax Collapse</a>
+<a href="./posts/posterior-concentration/posterior-concentration.html" class="title listing-title">Closed-form flow matching: posterior concentration and softmax collapse</a>
 </td>
 <td>
 <span class="listing-categories">deep learning, flow matching</span>
 </td>
 <td>
-<span class="listing-description">A mathematical analysis of the closed-form optimal velocity field in flow matching, explaining softmax collapse as posterior concentration in a high-dimensional Gaussian channel.</span>
+<span class="listing-description">The closed-form velocity field of empirical flow matching is a softmax over training examples. Reading that softmax as a Bayesian posterior turns its collapse into a decoding problem, with an information-theoretic threshold that can be evaluated on CIFAR-10.</span>
 </td>
 
 </tr>
 
-<tr data-index="1" data-categories="bWFjaGluZSUyMGxlYXJuaW5nJTJDZGlmZnVzaW9u" data-listing-date-sort="1778536800000" data-listing-file-modified-sort="1784525672751" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2195" data-listing-title-sort="Flow Matching as Posterior Averaging" data-listing-filename-sort="intro-fm-diffusion.qmd">
+<tr data-index="1" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDZmxvdyUyMG1hdGNoaW5n" data-listing-date-sort="1778536800000" data-listing-file-modified-sort="1787482270070" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="18" data-listing-word-count-sort="3432" data-listing-title-sort="Flow matching as posterior averaging" data-listing-filename-sort="posterior-averaging.qmd">
 <td>
 <span class="listing-date">May 12, 2026</span>
 </td>
 <td>
-<a href="./posts/intro-fm-diffusion/intro-fm-diffusion.html" class="title listing-title">Flow Matching as Posterior Averaging</a>
+<a href="./posts/posterior-averaging/posterior-averaging.html" class="title listing-title">Flow matching as posterior averaging</a>
 </td>
 <td>
-<span class="listing-categories">machine learning, diffusion</span>
+<span class="listing-categories">deep learning, flow matching</span>
 </td>
 <td>
-<span class="listing-description">A velocity-based introduction to flow matching with Gaussian probability paths, showing how marginal velocity fields arise from posterior averaging and how the CFM/FM loss gap is an irreducible posterior-variance term.</span>
+<span class="listing-description">A velocity-based introduction to flow matching with Gaussian probability paths: the marginal velocity field is a posterior average of conditional targets, and the gap between the conditional and marginal losses is an irreducible posterior-variance term that can be computed in closed form.</span>
 </td>
 
 </tr>
 
-<tr data-index="2" data-categories="bWFjaGluZSUyMGxlYXJuaW5nJTJDY2hlbWlzdHJ5" data-listing-date-sort="1768690800000" data-listing-file-modified-sort="1778679758533" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="25" data-listing-word-count-sort="4957" data-listing-title-sort="Analyzing Raman Spectra with Machine Learning" data-listing-filename-sort="raman.qmd">
+<tr data-index="2" data-categories="bWFjaGluZSUyMGxlYXJuaW5nJTJDY2hlbWlzdHJ5" data-listing-date-sort="1768690800000" data-listing-file-modified-sort="1787482270086" data-listing-date-modified-sort="1787263200000" data-listing-reading-time-sort="27" data-listing-word-count-sort="5253" data-listing-title-sort="Analyzing Raman spectra with machine learning" data-listing-filename-sort="raman.qmd">
 <td>
 <span class="listing-date">Jan 18, 2026</span>
 </td>
 <td>
-<a href="./posts/raman/raman.html" class="title listing-title">Analyzing Raman Spectra with Machine Learning</a>
+<a href="./posts/raman/raman.html" class="title listing-title">Analyzing Raman spectra with machine learning</a>
 </td>
 <td>
 <span class="listing-categories">machine learning, chemistry</span>
 </td>
 <td>
-<span class="listing-description">Analyzing Raman spectra with machine learning approaches.</span>
+<span class="listing-description">From inelastic scattering to a calibrated regression model: the physics behind a Raman spectrum, the preprocessing pipeline that makes real spectra usable, and a PLS regression baseline for predicting analyte concentrations.</span>
 </td>
 
 </tr>
 
-<tr data-index="3" data-categories="TExN" data-listing-date-sort="1755208800000" data-listing-file-modified-sort="1755272172028" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="27" data-listing-word-count-sort="5229" data-listing-title-sort="LLM-Powered Slide Decks: A Comparison of Formats" data-listing-filename-sort="llm-slides.qmd">
+<tr data-index="3" data-categories="TExN" data-listing-date-sort="1755208800000" data-listing-file-modified-sort="1787482270053" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="13" data-listing-word-count-sort="2509" data-listing-title-sort="Generating slide decks with an LLM: a comparison of formats" data-listing-filename-sort="llm-slides.qmd">
 <td>
 <span class="listing-date">Aug 15, 2025</span>
 </td>
 <td>
-<a href="./posts/llm-slides/llm-slides.html" class="title listing-title">LLM-Powered Slide Decks: A Comparison of Formats</a>
+<a href="./posts/llm-slides/llm-slides.html" class="title listing-title">Generating slide decks with an LLM: a comparison of formats</a>
 </td>
 <td>
 <span class="listing-categories">LLM</span>
 </td>
 <td>
-<span class="listing-description">A comparison of formats for LLM-powered slide decks.</span>
+<span class="listing-description">One real presentation, four formats, one model: what Gemini 2.5 Pro actually produces when asked to rebuild an EDF producer booklet in HTML/CSS, Quarto/Reveal.js, the Google Slides API, and python-pptx — and why the failures in the API-driven formats are silent ones.</span>
 </td>
 
 </tr>
 
-<tr data-index="4" data-categories="TExNJTJDcHl0aG9u" data-listing-date-sort="1751234400000" data-listing-file-modified-sort="1755272172026" data-listing-date-modified-sort="1755208800000" data-listing-reading-time-sort="43" data-listing-word-count-sort="8501" data-listing-title-sort="LLM Observability with Langfuse and a FastHTML Chatbot" data-listing-filename-sort="llm-observability.qmd">
+<tr data-index="4" data-categories="TExNJTJDcHl0aG9u" data-listing-date-sort="1751234400000" data-listing-file-modified-sort="1787482270053" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="34" data-listing-word-count-sort="6714" data-listing-title-sort="LLM observability with Langfuse and a FastHTML chatbot" data-listing-filename-sort="llm-observability.qmd">
 <td>
 <span class="listing-date">Jun 30, 2025</span>
 </td>
 <td>
-<a href="./posts/llm-observability/llm-observability.html" class="title listing-title">LLM Observability with Langfuse and a FastHTML Chatbot</a>
+<a href="./posts/llm-observability/llm-observability.html" class="title listing-title">LLM observability with Langfuse and a FastHTML chatbot</a>
 </td>
 <td>
 <span class="listing-categories">LLM, python</span>
 </td>
 <td>
-<span class="listing-description">Integrating Langfuse for LLM observability in a FastHTML chatbot application.</span>
+<span class="listing-description">Instrumenting a chatbot end to end: Langfuse traces a conversation as a span, each model turn as a generation, and each thumbs-up as a score — wired into a FastHTML app that updates over a WebSocket instead of rerunning a script.</span>
 </td>
 
 </tr>
 
-<tr data-index="5" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDTExNJTJDUkFH" data-listing-date-sort="1742425200000" data-listing-file-modified-sort="1755272172028" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="45" data-listing-word-count-sort="8953" data-listing-title-sort="PDF RAG: Enhanced PDF Processing" data-listing-filename-sort="pdf-rag.qmd">
+<tr data-index="5" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDTExNJTJDUkFH" data-listing-date-sort="1742425200000" data-listing-file-modified-sort="1787482270055" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="38" data-listing-word-count-sort="7476" data-listing-title-sort="PDF RAG: recovering document structure and querying a corpus" data-listing-filename-sort="pdf-rag.qmd">
 <td>
 <span class="listing-date">Mar 20, 2025</span>
 </td>
 <td>
-<a href="./posts/pdf-rag/pdf-rag.html" class="title listing-title">PDF RAG: Enhanced PDF Processing</a>
+<a href="./posts/pdf-rag/pdf-rag.html" class="title listing-title">PDF RAG: recovering document structure and querying a corpus</a>
 </td>
 <td>
 <span class="listing-categories">deep learning, LLM, RAG</span>
 </td>
 <td>
-<span class="listing-description">PDF RAG: Exploring techniques for processing PDF documents with Language Models, including raw conversion, reformatting, structure parsing and RAG.</span>
+<span class="listing-description">Page-by-page parsing destroys the structure a reader relies on. This post rebuilds it for PDFs with a vision language model, extracts metadata and a document tree, and then queries a corpus of reports and slide decks with a two-level ReAct agent.</span>
 </td>
 
 </tr>
 
-<tr data-index="6" data-categories="cHl0aG9u" data-listing-date-sort="1740524400000" data-listing-file-modified-sort="1755272172028" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="34" data-listing-word-count-sort="6753" data-listing-title-sort="Python Concurrency" data-listing-filename-sort="py-concurrency.qmd">
-<td>
-<span class="listing-date">Feb 26, 2025</span>
-</td>
-<td>
-<a href="./posts/py-concurrency/py-concurrency.html" class="title listing-title">Python Concurrency</a>
-</td>
-<td>
-<span class="listing-categories">python</span>
-</td>
-<td>
-<span class="listing-description">An introduction to Python concurrency, covering core concepts, practical examples, and considerations for its use.</span>
-</td>
-
-</tr>
-
-<tr data-index="7" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDTExN" data-listing-date-sort="1739833200000" data-listing-file-modified-sort="1755272172028" data-listing-date-modified-sort="1741561200000" data-listing-reading-time-sort="19" data-listing-word-count-sort="3670" data-listing-title-sort="PDF Parsing for LLM Input" data-listing-filename-sort="pdf-parsing.qmd">
+<tr data-index="6" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDTExN" data-listing-date-sort="1739833200000" data-listing-file-modified-sort="1787482270054" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="24" data-listing-word-count-sort="4615" data-listing-title-sort="Parsing PDFs for LLM input" data-listing-filename-sort="pdf-parsing.qmd">
 <td>
 <span class="listing-date">Feb 18, 2025</span>
 </td>
 <td>
-<a href="./posts/pdf-parsing/pdf-parsing.html" class="title listing-title">PDF Parsing for LLM Input</a>
+<a href="./posts/pdf-parsing/pdf-parsing.html" class="title listing-title">Parsing PDFs for LLM input</a>
 </td>
 <td>
 <span class="listing-categories">deep learning, LLM</span>
 </td>
 <td>
-<span class="listing-description">An exploration of current PDF parsing capabilities for Large Language Model (LLM) input.</span>
+<span class="listing-description">How Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini, and Mistral OCR turn PDFs into Markdown: what the pipelines are made of, and where each one silently gets it wrong on six real documents.</span>
 </td>
 
 </tr>
 
-<tr data-index="8" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDYmlvbG9neQ==" data-listing-date-sort="1738796400000" data-listing-file-modified-sort="1778590051302" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="24" data-listing-word-count-sort="4785" data-listing-title-sort="Predicting MHC-Peptide Binding with Machine Learning" data-listing-filename-sort="mhc.qmd">
+<tr data-index="7" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDYmlvbG9neQ==" data-listing-date-sort="1738796400000" data-listing-file-modified-sort="1787482270053" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="23" data-listing-word-count-sort="4593" data-listing-title-sort="Predicting MHC-peptide presentation with machine learning" data-listing-filename-sort="mhc.qmd">
 <td>
 <span class="listing-date">Feb 6, 2025</span>
 </td>
 <td>
-<a href="./posts/mhc/mhc.html" class="title listing-title">Predicting MHC-Peptide Binding with Machine Learning</a>
+<a href="./posts/mhc/mhc.html" class="title listing-title">Predicting MHC-peptide presentation with machine learning</a>
 </td>
 <td>
 <span class="listing-categories">deep learning, biology</span>
 </td>
 <td>
-<span class="listing-description">Using machine learning to predict peptide binding affinity to Major Histocompatibility Complex (MHC) molecules.</span>
+<span class="listing-description">Training a neural network to predict which peptides a given MHC class I allele presents, and benchmarking it against MHCflurry.</span>
 </td>
 
 </tr>
 
-<tr data-index="9" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDYmlvbG9neQ==" data-listing-date-sort="1713909600000" data-listing-file-modified-sort="1755272172025" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="18" data-listing-word-count-sort="3407" data-listing-title-sort="Encoding Distances in Molecules and Pockets: A Comparison of GBFPT and DCEPT" data-listing-filename-sort="unimol-gbf.qmd">
+<tr data-index="8" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDYmlvbG9neQ==" data-listing-date-sort="1713909600000" data-listing-file-modified-sort="1787482270053" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="19" data-listing-word-count-sort="3740" data-listing-title-sort="Encoding distances in molecules and pockets: GBFPT versus DCEPT" data-listing-filename-sort="unimol-gbf.qmd">
 <td>
 <span class="listing-date">Apr 24, 2024</span>
 </td>
 <td>
-<a href="./posts/encoding-distances/unimol-gbf.html" class="title listing-title">Encoding Distances in Molecules and Pockets: A Comparison of GBFPT and DCEPT</a>
+<a href="./posts/encoding-distances/unimol-gbf.html" class="title listing-title">Encoding distances in molecules and pockets: GBFPT versus DCEPT</a>
 </td>
 <td>
 <span class="listing-categories">deep learning, biology</span>
 </td>
 <td>
-<span class="listing-description">A comparative analysis of Gaussian kernel with pair type (GBFPT) and Discretization categorical embedding with Pair Type (DCEPT) for encoding distances in 3D molecular representations, using the Uni-Mol framework.</span>
+<span class="listing-description">Uni-Mol encodes interatomic distances with a Gaussian basis whose parameters receive very large gradients. Replacing it with a discretized categorical embedding, in the spirit of AlphaFold, stabilizes pretraining but degrades the pocket embeddings used for retrieval.</span>
 </td>
 
 </tr>
@@ -430,6 +582,19 @@ Description
 </div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
     const icon = "";
     const anchorJS = new window.AnchorJS();
     anchorJS.options = {

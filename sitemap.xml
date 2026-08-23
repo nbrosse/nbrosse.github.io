@@ -2,50 +2,46 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://nbrosse.github.io/index.html</loc>
-    <lastmod>2025-02-09T11:04:11.198Z</lastmod>
+    <lastmod>2026-08-23T10:48:54.015Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/llm-observability/llm-observability.html</loc>
-    <lastmod>2025-08-15T15:36:12.026Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/closed-form-flow-matching/closed-form-fm.html</loc>
-    <lastmod>2026-07-20T05:32:24.723Z</lastmod>
+    <lastmod>2026-08-23T10:51:10.053Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/mhc/mhc.html</loc>
-    <lastmod>2026-05-12T12:47:31.302Z</lastmod>
+    <lastmod>2026-08-23T10:51:10.053Z</lastmod>
   </url>
   <url>
-    <loc>https://nbrosse.github.io/posts/pdf-rag/pdf-rag.html</loc>
-    <lastmod>2025-08-15T15:36:12.028Z</lastmod>
+    <loc>https://nbrosse.github.io/posts/posterior-averaging/posterior-averaging.html</loc>
+    <lastmod>2026-08-23T10:51:10.070Z</lastmod>
   </url>
   <url>
-    <loc>https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html</loc>
-    <lastmod>2025-08-15T15:36:12.028Z</lastmod>
+    <loc>https://nbrosse.github.io/posts/posterior-concentration/posterior-concentration.html</loc>
+    <lastmod>2026-08-23T10:51:10.074Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/about.html</loc>
-    <lastmod>2026-07-20T05:34:32.736Z</lastmod>
+    <lastmod>2026-08-23T10:48:48.726Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html</loc>
+    <lastmod>2026-08-23T10:51:10.054Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/raman/raman.html</loc>
-    <lastmod>2026-05-13T13:42:38.533Z</lastmod>
+    <lastmod>2026-08-23T10:51:10.086Z</lastmod>
   </url>
   <url>
-    <loc>https://nbrosse.github.io/posts/intro-fm-diffusion/intro-fm-diffusion.html</loc>
-    <lastmod>2026-07-20T05:34:32.751Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/py-concurrency/py-concurrency.html</loc>
-    <lastmod>2025-08-15T15:36:12.028Z</lastmod>
+    <loc>https://nbrosse.github.io/posts/pdf-rag/pdf-rag.html</loc>
+    <lastmod>2026-08-23T10:51:10.055Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html</loc>
-    <lastmod>2025-08-15T15:36:12.025Z</lastmod>
+    <lastmod>2026-08-23T10:51:10.053Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/llm-slides/llm-slides.html</loc>
-    <lastmod>2025-08-15T15:36:12.028Z</lastmod>
+    <lastmod>2026-08-23T10:51:10.053Z</lastmod>
   </url>
 </urlset>

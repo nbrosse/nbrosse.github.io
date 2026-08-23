@@ -8,9 +8,9 @@
 
 <meta name="author" content="Nicolas Brosse">
 <meta name="dcterms.date" content="2026-01-18">
-<meta name="description" content="Analyzing Raman spectra with machine learning approaches.">
+<meta name="description" content="From inelastic scattering to a calibrated regression model: the physics behind a Raman spectrum, the preprocessing pipeline that makes real spectra usable, and a PLS regression baseline for predicting analyte concentrations.">
 
-<title>Analyzing Raman Spectra with Machine Learning – Nicolas’ Notebook</title>
+<title>Analyzing Raman spectra with machine learning – Nicolas’ Notebook</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -96,10 +96,17 @@ div.csl-indent {
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-d0ae9245876894da5ac7e18953ecc5cc.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-f9e226253bcd7e75ae14e3379ab40ce6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-7f1822a086a24169120327e3a5d340d0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -164,7 +171,169 @@ window.Quarto = {
 <link rel="stylesheet" href="../../styles.css">
 </head>
 
-<body class="nav-fixed quarto-light">
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top quarto-banner">
@@ -208,6 +377,7 @@ window.Quarto = {
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
 </div>
       </div> <!-- /container-fluid -->
     </nav>
@@ -216,10 +386,10 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Analyzing Raman Spectra with Machine Learning</h1>
+      <h1 class="title">Analyzing Raman spectra with machine learning</h1>
                   <div>
         <div class="description">
-          Analyzing Raman spectra with machine learning approaches.
+          From inelastic scattering to a calibrated regression model: the physics behind a Raman spectrum, the preprocessing pipeline that makes real spectra usable, and a PLS regression baseline for predicting analyte concentrations.
         </div>
       </div>
                           <div class="quarto-categories">
@@ -246,6 +416,12 @@ window.Quarto = {
       </div>
     </div>
     
+      <div>
+      <div class="quarto-title-meta-heading">Modified</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date-modified">August 21, 2026</p>
+      </div>
+    </div>
       
     </div>
     
@@ -258,50 +434,51 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#sec-raman-overview" id="toc-sec-raman-overview" class="nav-link active" data-scroll-target="#sec-raman-overview">Raman Spectroscopy: An Overview</a>
+  <li><a href="#sec-raman-overview" id="toc-sec-raman-overview" class="nav-link active" data-scroll-target="#sec-raman-overview">Raman spectroscopy: an overview</a>
   <ul class="collapse">
-  <li><a href="#introduction-what-is-raman-spectroscopy" id="toc-introduction-what-is-raman-spectroscopy" class="nav-link" data-scroll-target="#introduction-what-is-raman-spectroscopy">Introduction: What is Raman Spectroscopy?</a></li>
-  <li><a href="#the-theoretical-principle-of-raman-spectroscopy" id="toc-the-theoretical-principle-of-raman-spectroscopy" class="nav-link" data-scroll-target="#the-theoretical-principle-of-raman-spectroscopy">The Theoretical Principle of Raman Spectroscopy</a>
+  <li><a href="#what-raman-spectroscopy-measures" id="toc-what-raman-spectroscopy-measures" class="nav-link" data-scroll-target="#what-raman-spectroscopy-measures">What Raman spectroscopy measures</a></li>
+  <li><a href="#the-physical-principle" id="toc-the-physical-principle" class="nav-link" data-scroll-target="#the-physical-principle">The physical principle</a>
   <ul class="collapse">
-  <li><a href="#molecular-vibrations-degrees-of-freedom" id="toc-molecular-vibrations-degrees-of-freedom" class="nav-link" data-scroll-target="#molecular-vibrations-degrees-of-freedom">Molecular Vibrations &amp; Degrees of Freedom</a></li>
-  <li><a href="#vibrational-energy" id="toc-vibrational-energy" class="nav-link" data-scroll-target="#vibrational-energy">Vibrational Energy</a></li>
-  <li><a href="#raman-scattering" id="toc-raman-scattering" class="nav-link" data-scroll-target="#raman-scattering">Raman Scattering</a></li>
-  <li><a href="#ir-and-raman-active-vibrations" id="toc-ir-and-raman-active-vibrations" class="nav-link" data-scroll-target="#ir-and-raman-active-vibrations">IR and Raman Active Vibrations</a></li>
-  <li><a href="#fluorescence-and-raman-scattering" id="toc-fluorescence-and-raman-scattering" class="nav-link" data-scroll-target="#fluorescence-and-raman-scattering">Fluorescence and Raman Scattering</a></li>
+  <li><a href="#molecular-vibrations-and-degrees-of-freedom" id="toc-molecular-vibrations-and-degrees-of-freedom" class="nav-link" data-scroll-target="#molecular-vibrations-and-degrees-of-freedom">Molecular vibrations and degrees of freedom</a></li>
+  <li><a href="#vibrational-energy" id="toc-vibrational-energy" class="nav-link" data-scroll-target="#vibrational-energy">Vibrational energy</a></li>
+  <li><a href="#raman-scattering" id="toc-raman-scattering" class="nav-link" data-scroll-target="#raman-scattering">Raman scattering</a></li>
+  <li><a href="#raman-active-and-ir-active-vibrations" id="toc-raman-active-and-ir-active-vibrations" class="nav-link" data-scroll-target="#raman-active-and-ir-active-vibrations">Raman-active and IR-active vibrations</a></li>
+  <li><a href="#fluorescence-and-raman-scattering" id="toc-fluorescence-and-raman-scattering" class="nav-link" data-scroll-target="#fluorescence-and-raman-scattering">Fluorescence and Raman scattering</a></li>
   </ul></li>
-  <li><a href="#instrumentation-a-raman-spectrometer" id="toc-instrumentation-a-raman-spectrometer" class="nav-link" data-scroll-target="#instrumentation-a-raman-spectrometer">Instrumentation: A Raman Spectrometer</a></li>
-  <li><a href="#the-raman-spectrum-interpretation" id="toc-the-raman-spectrum-interpretation" class="nav-link" data-scroll-target="#the-raman-spectrum-interpretation">The Raman Spectrum: Interpretation</a></li>
-  <li><a href="#advantages-and-limitations" id="toc-advantages-and-limitations" class="nav-link" data-scroll-target="#advantages-and-limitations">Advantages and Limitations</a>
+  <li><a href="#instrumentation" id="toc-instrumentation" class="nav-link" data-scroll-target="#instrumentation">Instrumentation</a></li>
+  <li><a href="#reading-a-raman-spectrum" id="toc-reading-a-raman-spectrum" class="nav-link" data-scroll-target="#reading-a-raman-spectrum">Reading a Raman spectrum</a></li>
+  <li><a href="#advantages-and-limitations" id="toc-advantages-and-limitations" class="nav-link" data-scroll-target="#advantages-and-limitations">Advantages and limitations</a>
   <ul class="collapse">
-  <li><a href="#advantages" id="toc-advantages" class="nav-link" data-scroll-target="#advantages">Advantages:</a></li>
-  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">Limitations:</a></li>
-  </ul></li>
-  </ul></li>
-  <li><a href="#sec-eda-raman" id="toc-sec-eda-raman" class="nav-link" data-scroll-target="#sec-eda-raman">Exploration and Preprocessing</a>
-  <ul class="collapse">
-  <li><a href="#sec-preprocessing-raman" id="toc-sec-preprocessing-raman" class="nav-link" data-scroll-target="#sec-preprocessing-raman">Preprocessing Algorithms</a>
-  <ul class="collapse">
-  <li><a href="#spectral-cropping" id="toc-spectral-cropping" class="nav-link" data-scroll-target="#spectral-cropping">Spectral Cropping</a></li>
-  <li><a href="#cosmic-ray-removal-whitaker-hayes" id="toc-cosmic-ray-removal-whitaker-hayes" class="nav-link" data-scroll-target="#cosmic-ray-removal-whitaker-hayes">Cosmic Ray Removal (Whitaker-Hayes)</a></li>
-  <li><a href="#denoising-savitzky-golay" id="toc-denoising-savitzky-golay" class="nav-link" data-scroll-target="#denoising-savitzky-golay">Denoising (Savitzky-Golay)</a></li>
-  <li><a href="#baseline-correction-aspls" id="toc-baseline-correction-aspls" class="nav-link" data-scroll-target="#baseline-correction-aspls">Baseline Correction (ASPLS)</a></li>
-  <li><a href="#complete-preprocessing-pipeline" id="toc-complete-preprocessing-pipeline" class="nav-link" data-scroll-target="#complete-preprocessing-pipeline">Complete Preprocessing Pipeline</a></li>
+  <li><a href="#advantages" id="toc-advantages" class="nav-link" data-scroll-target="#advantages">Advantages</a></li>
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">Limitations</a></li>
   </ul></li>
   </ul></li>
-  <li><a href="#sec-ml-raman" id="toc-sec-ml-raman" class="nav-link" data-scroll-target="#sec-ml-raman">Machine Learning Approaches</a>
+  <li><a href="#sec-eda-raman" id="toc-sec-eda-raman" class="nav-link" data-scroll-target="#sec-eda-raman">Exploration and preprocessing</a>
   <ul class="collapse">
-  <li><a href="#sec-pls-canonical" id="toc-sec-pls-canonical" class="nav-link" data-scroll-target="#sec-pls-canonical">PLS Canonical (PLSW2A) Algorithm</a>
+  <li><a href="#sec-preprocessing-raman" id="toc-sec-preprocessing-raman" class="nav-link" data-scroll-target="#sec-preprocessing-raman">Preprocessing algorithms</a>
   <ul class="collapse">
-  <li><a href="#overview" id="toc-overview" class="nav-link" data-scroll-target="#overview">Overview</a></li>
-  <li><a href="#algorithm" id="toc-algorithm" class="nav-link" data-scroll-target="#algorithm">Algorithm</a></li>
-  <li><a href="#matrix-decompositions" id="toc-matrix-decompositions" class="nav-link" data-scroll-target="#matrix-decompositions">Matrix Decompositions</a></li>
-  <li><a href="#rotation-matrices" id="toc-rotation-matrices" class="nav-link" data-scroll-target="#rotation-matrices">Rotation Matrices</a></li>
-  <li><a href="#prediction-mapping-x-to-y" id="toc-prediction-mapping-x-to-y" class="nav-link" data-scroll-target="#prediction-mapping-x-to-y">Prediction: Mapping <span class="math inline">\(X\)</span> to <span class="math inline">\(Y\)</span></a></li>
-  <li><a href="#summary-table-1" id="toc-summary-table-1" class="nav-link" data-scroll-target="#summary-table-1">Summary Table</a></li>
+  <li><a href="#spectral-cropping" id="toc-spectral-cropping" class="nav-link" data-scroll-target="#spectral-cropping">Spectral cropping</a></li>
+  <li><a href="#cosmic-ray-removal-whitakerhayes" id="toc-cosmic-ray-removal-whitakerhayes" class="nav-link" data-scroll-target="#cosmic-ray-removal-whitakerhayes">Cosmic-ray removal (Whitaker–Hayes)</a></li>
+  <li><a href="#denoising-savitzkygolay" id="toc-denoising-savitzkygolay" class="nav-link" data-scroll-target="#denoising-savitzkygolay">Denoising (Savitzky–Golay)</a></li>
+  <li><a href="#baseline-correction-aspls" id="toc-baseline-correction-aspls" class="nav-link" data-scroll-target="#baseline-correction-aspls">Baseline correction (asPLS)</a></li>
+  <li><a href="#the-complete-pipeline" id="toc-the-complete-pipeline" class="nav-link" data-scroll-target="#the-complete-pipeline">The complete pipeline</a></li>
   </ul></li>
   </ul></li>
+  <li><a href="#sec-ml-raman" id="toc-sec-ml-raman" class="nav-link" data-scroll-target="#sec-ml-raman">Machine learning approaches</a>
+  <ul class="collapse">
+  <li><a href="#sec-pls-regression" id="toc-sec-pls-regression" class="nav-link" data-scroll-target="#sec-pls-regression">PLS regression</a>
+  <ul class="collapse">
+  <li><a href="#the-problem" id="toc-the-problem" class="nav-link" data-scroll-target="#the-problem">The problem</a></li>
+  <li><a href="#the-algorithm" id="toc-the-algorithm" class="nav-link" data-scroll-target="#the-algorithm">The algorithm</a></li>
+  <li><a href="#matrix-decompositions" id="toc-matrix-decompositions" class="nav-link" data-scroll-target="#matrix-decompositions">Matrix decompositions</a></li>
+  <li><a href="#the-rotation-matrix" id="toc-the-rotation-matrix" class="nav-link" data-scroll-target="#the-rotation-matrix">The rotation matrix</a></li>
+  <li><a href="#prediction" id="toc-prediction" class="nav-link" data-scroll-target="#prediction">Prediction</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion">Conclusion</a></li>
   </ul>
-<div class="quarto-alternate-notebooks"><h2>Notebooks</h2><ul><li><a href="notebooks/_eda-preview.html"><i class="bi bi-journal-code"></i>Raman Challenge Dataset Analysis</a></li><li><a href="notebooks/_ml-preview.html"><i class="bi bi-journal-code"></i>Raman Challenge: Machine Learning Model for Concentration Prediction</a></li></ul></div></nav>
+<div class="quarto-alternate-notebooks"><h2>Notebooks</h2><ul><li><a href="notebooks/_eda-preview.html"><i class="bi bi-journal-code"></i>Raman challenge dataset analysis</a></li><li><a href="notebooks/_ml-preview.html"><i class="bi bi-journal-code"></i>Raman challenge: machine learning model for concentration prediction</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content quarto-banner-title-block" id="quarto-document-content">
@@ -310,24 +487,24 @@ window.Quarto = {
 
 
 
-<p>This blog post is inspired by an interview homework and a Kaggle competition. The objective is to provide an overview of Raman spectroscopy and provide some ML approaches to analyze Raman spectra. The associated code is available on GitHub at <a href="https://github.com/nbrosse/raman-spectra">raman-spectra</a>.</p>
-<p>In the first part, <a href="#sec-raman-overview" class="quarto-xref">Section&nbsp;1</a>, we review the physical principles underlying Raman scattering, the distinction between Stokes and anti-Stokes lines, the relationship between Raman and IR selection rules, and the main components of a Raman spectrometer.</p>
-<p>The second part, <a href="#sec-eda-raman" class="quarto-xref">Section&nbsp;2</a>, uses the Dig4Bio Raman Transfer Learning Challenge dataset as a concrete example. Through the accompanying notebook, we perform a brief exploratory data analysis and motivate the need for a robust preprocessing pipeline when working with real-world spectra from multiple instruments. The dedicated section <a href="#sec-preprocessing-raman" class="quarto-xref">Section&nbsp;2.3</a> then details the individual steps of this pipeline—spectral cropping, Whitaker–Hayes cosmic-ray removal, Savitzky–Golay denoising, and ASPLS baseline correction—both conceptually and mathematically, following their implementation in RamanSPy.</p>
-<p>The third part <a href="#sec-ml-raman" class="quarto-xref">Section&nbsp;3</a>, focuses on predicting analyte concentrations from preprocessed spectra. We start with a classical chemometrics baseline using PLS Canonical (PLSW2A), reviewing the underlying algorithm, the geometry of scores, loadings, and rotation matrices, and how these pieces assemble into a linear map from spectra to concentrations. The goal is to provide a transparent, end-to-end example of a supervised learning pipeline—from raw spectra, through preprocessing, to a calibrated regression model.</p>
-<p>Finally, the <a href="https://github.com/nbrosse/raman-spectra">accompanying codebase</a> extends beyond traditional PLS models and includes an experimental transformer-based toolkit, SpecBERT, for spectral analysis. SpecBERT adapts BERT/ViT-style encoders to 1D Raman spectra, using Masked Spectral Modeling (MSM) for self-supervised pretraining on large unlabeled spectral collections, followed by supervised fine-tuning for regression or classification. This implementation is intentionally labeled as experimental: it was largely generated with AI assistance as a proof of concept and should be treated as a starting point rather than production-ready software. Nevertheless, it illustrates how modern representation-learning techniques can complement classical chemometric methods when spectral data are abundant but accurate concentration labels are scarce.</p>
+
+<p>This post grew out of an interview homework and a Kaggle competition. It gives an overview of Raman spectroscopy and then works through a machine learning pipeline for analyzing Raman spectra. The accompanying code is on GitHub at <a href="https://github.com/nbrosse/raman-spectra">raman-spectra</a>.</p>
+<p><a href="#sec-raman-overview" class="quarto-xref">Section&nbsp;1</a> covers the physics: what inelastic scattering is, why Stokes lines dominate anti-Stokes lines, how Raman and infrared selection rules complement each other, and what a spectrometer is made of.</p>
+<p><a href="#sec-eda-raman" class="quarto-xref">Section&nbsp;2</a> turns to data. The Dig4Bio Raman Transfer Learning Challenge dataset serves as the running example, and an embedded notebook explores it well enough to show why raw spectra from eight different instruments cannot be fed to a model as they are. <a href="#sec-preprocessing-raman" class="quarto-xref">Section&nbsp;2.3</a> then works through the preprocessing pipeline one step at a time — cropping, Whitaker–Hayes cosmic-ray removal, Savitzky–Golay denoising, and asPLS baseline correction — following the implementations in RamanSPy.</p>
+<p><a href="#sec-ml-raman" class="quarto-xref">Section&nbsp;3</a> predicts analyte concentrations from the preprocessed spectra. The model is PLS regression, the standard chemometrics baseline: a linear map from spectra to concentrations built through a low-dimensional latent space. The section derives the algorithm as scikit-learn implements it, since the geometry of scores, loadings, and rotations is what makes the fitted model interpretable.</p>
+<p>The <a href="https://github.com/nbrosse/raman-spectra">codebase</a> also contains SpecBERT, an experimental transformer toolkit that adapts BERT/ViT-style encoders to 1D spectra, with masked spectral modeling for self-supervised pretraining and supervised fine-tuning for regression or classification. It was largely generated with AI assistance as a proof of concept and should be read as a sketch rather than as production software. It is included because it suggests how representation learning might complement classical chemometrics when unlabeled spectra are plentiful and concentration labels are scarce.</p>
 <section id="sec-raman-overview" class="level1">
-<h1>Raman Spectroscopy: An Overview</h1>
-<p>This section provides an overview of Raman spectroscopy, including the theoretical principle, instrumentation, and interpretation of the Raman spectrum. The main source is the Wikipedia article <span class="citation" data-cites="wikipedia-raman-spectroscopy">(<a href="#ref-wikipedia-raman-spectroscopy" role="doc-biblioref">Wikipedia contributors 2025</a>)</span>.</p>
-<section id="introduction-what-is-raman-spectroscopy" class="level2">
-<h2 class="anchored" data-anchor-id="introduction-what-is-raman-spectroscopy">Introduction: What is Raman Spectroscopy?</h2>
-<p>Raman Spectroscopy is a non-destructive analytical technique used to observe vibrational, rotational, and other low-frequency modes in a system. It provides a structural “fingerprint” by which molecules can be identified and characterized.</p>
-<p>The technique is named after Indian physicist Sir C. V. Raman, who, along with his student K. S. Krishnan, discovered the phenomenon in 1928, earning Raman the Nobel Prize in Physics in 1930.</p>
-<p>At its core, Raman spectroscopy relies on the <strong>inelastic scattering of monochromatic light</strong>, usually from a laser. When light interacts with a molecule, most of it is scattered at the same energy (and wavelength) as the incident light. This is called <strong>Rayleigh Scattering</strong>. However, a tiny fraction of the light (about 1 in 10 million photons) is scattered at a different energy. This inelastic scattering is the <strong>Raman Effect</strong>, and the energy difference provides the chemical and structural information.</p>
-<p>We illustrate a Raman spectrum in <a href="#fig-raman-spectrum-example" class="quarto-xref">Figure&nbsp;1</a>.</p>
+<h1>Raman spectroscopy: an overview</h1>
+<p>This section reviews the principle, the instrumentation, and the interpretation of a Raman spectrum. The main source is the Wikipedia article on Raman spectroscopy <span class="citation" data-cites="wikipedia-raman-spectroscopy">(<a href="#ref-wikipedia-raman-spectroscopy" role="doc-biblioref">Wikipedia contributors 2025</a>)</span>.</p>
+<section id="what-raman-spectroscopy-measures" class="level2">
+<h2 class="anchored" data-anchor-id="what-raman-spectroscopy-measures">What Raman spectroscopy measures</h2>
+<p>Raman spectroscopy is a non-destructive technique for observing vibrational, rotational, and other low-frequency modes in a system. What it returns is a structural fingerprint, precise enough to identify and characterize a molecule. The technique is named after the Indian physicist Sir C. V. Raman, who discovered the effect in 1928 with his student K. S. Krishnan and received the Nobel Prize in Physics in 1930.</p>
+<p>The underlying phenomenon is the inelastic scattering of monochromatic light, in practice a laser. When light interacts with a molecule, almost all of it scatters at the incident energy and wavelength; this is Rayleigh scattering, and it carries no chemical information. About one photon in ten million scatters at a different energy instead. That is the Raman effect, and the energy difference is where the chemistry is.</p>
+<p><a href="#fig-raman-spectrum-example" class="quarto-xref">Figure&nbsp;1</a> shows what the result looks like.</p>
 <div id="fig-raman-spectrum-example" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Raman spectrum plot showing intensity versus Raman shift, with labeled peaks corresponding to glucose, sodium acetate, and magnesium sulfate.">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-raman-spectrum-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/raman-spectrum-example.png" class="img-fluid figure-img" alt="Raman spectrum plot showing intensity versus Raman shift, with labeled peaks corresponding to glucose, sodium acetate, and magnesium sulfate.">
+<a href="figures/raman-spectrum-example.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Example Raman spectrum from the Kaiser dataset showing characteristic peaks for glucose, sodium acetate, and magnesium sulfate. Peak locations are based on literature values. Sample concentrations: glucose 10.59 g/L, sodium acetate 1.11 g/L, and magnesium sulfate 3.48 g/L. [@LANGE2025125861, Figure 1]"><img src="figures/raman-spectrum-example.png" class="img-fluid figure-img" alt="Raman spectrum plot showing intensity versus Raman shift, with labeled peaks corresponding to glucose, sodium acetate, and magnesium sulfate."></a>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-raman-spectrum-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;1: Example Raman spectrum from the Kaiser dataset showing characteristic peaks for glucose, sodium acetate, and magnesium sulfate. Peak locations are based on literature values. Sample concentrations: glucose 10.59 g/L, sodium acetate 1.11 g/L, and magnesium sulfate 3.48 g/L. <span class="citation" data-cites="LANGE2025125861">(<a href="#ref-LANGE2025125861" role="doc-biblioref">Lange et al. 2025, fig. 1</a>)</span>
@@ -335,210 +512,167 @@ Figure&nbsp;1: Example Raman spectrum from the Kaiser dataset showing characteri
 </figure>
 </div>
 </section>
-<section id="the-theoretical-principle-of-raman-spectroscopy" class="level2">
-<h2 class="anchored" data-anchor-id="the-theoretical-principle-of-raman-spectroscopy">The Theoretical Principle of Raman Spectroscopy</h2>
-<section id="molecular-vibrations-degrees-of-freedom" class="level3">
-<h3 class="anchored" data-anchor-id="molecular-vibrations-degrees-of-freedom">Molecular Vibrations &amp; Degrees of Freedom</h3>
-<p>Molecules are not static. Their atoms are constantly in motion, and these motions can be categorized. Raman spectroscopy is a tool to measure the energy of one specific type of motion: <strong>vibration</strong>.</p>
-<ul>
-<li><strong>Degrees of Freedom (<span class="math inline">\(3N\)</span>):</strong> For a molecule with <span class="math inline">\(N\)</span> atoms, each atom can move independently in three dimensions <span class="math inline">\((x, y, z)\)</span>. This gives a total of <span class="math inline">\(3N\)</span> possible movements for the entire molecule.</li>
-<li><strong>Partitioning the Motion:</strong> These <span class="math inline">\(3N\)</span> motions are not all vibrations. They are a combination of:
-<ol type="1">
-<li><strong>Translational Motion (3 degrees):</strong> The entire molecule moving as a single unit through space (up/down, left/right, forward/backward). This accounts for <span class="math inline">\(3\)</span> of the <span class="math inline">\(3N\)</span> motions.</li>
-<li><strong>Rotational Motion (2 or 3 degrees):</strong> The entire molecule spinning around its center of mass. For a <strong>non-linear molecule</strong> it accounts for another <span class="math inline">\(3\)</span> motions, and for a <strong>linear molecule</strong> it accounts for <span class="math inline">\(2\)</span> motions.</li>
-<li><strong>Vibrational Motion (The Remainder):</strong> Any motion that is left over is an internal vibration—the stretching, bending, twisting, or rocking of the chemical bonds themselves.
-<ul>
-<li><strong>Number of Vibrational Modes for a non-linear molecule = <span class="math inline">\(3N - 6\)</span></strong></li>
-<li><strong>Number of Vibrational Modes for a linear molecule = <span class="math inline">\(3N - 5\)</span></strong></li>
-</ul></li>
-</ol></li>
-</ul>
-<p>This simple calculation tells a scientist the theoretical number of fundamental vibrations a molecule has, which helps in interpreting a complex spectrum by knowing how many peaks to look for.</p>
+<section id="the-physical-principle" class="level2">
+<h2 class="anchored" data-anchor-id="the-physical-principle">The physical principle</h2>
+<section id="molecular-vibrations-and-degrees-of-freedom" class="level3">
+<h3 class="anchored" data-anchor-id="molecular-vibrations-and-degrees-of-freedom">Molecular vibrations and degrees of freedom</h3>
+<p>A molecule of <span class="math inline">\(N\)</span> atoms has <span class="math inline">\(3N\)</span> degrees of freedom, since each atom can move independently along <span class="math inline">\(x\)</span>, <span class="math inline">\(y\)</span>, and <span class="math inline">\(z\)</span>. Not all of these are vibrations. Three of them describe translation of the molecule as a rigid body through space. Another two or three describe rotation about its center of mass: two for a linear molecule, three for a non-linear one. Whatever remains is internal vibration, the stretching, bending, twisting, and rocking of the bonds themselves:</p>
+<p><span class="math display">\[
+\text{non-linear: } 3N - 6 \text{ modes}, \qquad \text{linear: } 3N - 5 \text{ modes}.
+\]</span></p>
+<p>This count is worth doing before looking at a spectrum, because it bounds the number of fundamental bands one can expect to find.</p>
 </section>
 <section id="vibrational-energy" class="level3">
-<h3 class="anchored" data-anchor-id="vibrational-energy">Vibrational Energy</h3>
-<p>The energy associated with molecular vibrations is <strong>quantized</strong>. A vibrating bond cannot have <em>any</em> arbitrary amount of energy. It can only exist at discrete energy levels, like the rungs of a ladder.</p>
-<ul>
-<li><strong>Quantum Harmonic Oscillator (QHO):</strong> This is a simplified physical model used to describe these energy levels. The formula <span class="math inline">\(E_n = h(n + 1/2)\nu\)</span> describes the energy of each level, where <span class="math inline">\(n\)</span> is the quantum number (0, 1, 2…), <span class="math inline">\(h\)</span> is Planck’s constant, and <span class="math inline">\(\nu\)</span> is the natural frequency of the vibration. This frequency depends on the strength of the bond and the mass of the atoms.</li>
-<li><strong>Energy Change:</strong> Raman spectroscopy doesn’t measure the absolute energy of a level (<span class="math inline">\(E_n\)</span>), but rather the <strong>energy difference</strong> required to jump from one level to another (typically from <span class="math inline">\(n=0\)</span> to <span class="math inline">\(n=1\)</span>). This energy difference, <span class="math inline">\(\Delta E = h\nu\)</span>, is what we see as a peak in the spectrum, reported as a <strong>Raman Shift</strong> in wavenumbers (<span class="math inline">\(cm^{-1}\)</span>).</li>
-</ul>
+<h3 class="anchored" data-anchor-id="vibrational-energy">Vibrational energy</h3>
+<p>Vibrational energy is quantized. A bond cannot hold an arbitrary amount of it, only discrete levels, like the rungs of a ladder. The quantum harmonic oscillator is the standard first approximation, with levels</p>
+<p><span class="math display">\[
+E_n = h\left(n + \tfrac{1}{2}\right)\nu ,
+\]</span></p>
+<p>where <span class="math inline">\(n = 0, 1, 2, \dots\)</span> is the quantum number, <span class="math inline">\(h\)</span> is Planck’s constant, and <span class="math inline">\(\nu\)</span> is the natural frequency of the vibration, which depends on the stiffness of the bond and on the masses of the atoms it joins.</p>
+<p>Raman spectroscopy never measures <span class="math inline">\(E_n\)</span> itself. It measures the energy required to jump between levels, in practice the transition from <span class="math inline">\(n=0\)</span> to <span class="math inline">\(n=1\)</span>. That difference <span class="math inline">\(\Delta E = h\nu\)</span> is what appears as a peak, reported as a Raman shift in wavenumbers (<span class="math inline">\(\text{cm}^{-1}\)</span>).</p>
 </section>
 <section id="raman-scattering" class="level3">
-<h3 class="anchored" data-anchor-id="raman-scattering">Raman Scattering</h3>
-<p>This is the core of the Raman effect, explaining the interaction between light and the molecule that produces the signal. When a laser photon strikes a molecule, it pushes the molecule into an unstable, extremely short-lived “virtual state.” The molecule immediately relaxes from this state by emitting a new photon.</p>
-<p>Three things can happen:</p>
+<h3 class="anchored" data-anchor-id="raman-scattering">Raman scattering</h3>
+<p>A laser photon striking a molecule pushes it into an unstable, extremely short-lived virtual state, from which it immediately relaxes by emitting a new photon. Three things can happen:</p>
 <ol type="1">
-<li><strong>Rayleigh Scattering (Elastic):</strong> The molecule relaxes back to the <em>exact same</em> vibrational energy level it started from. The emitted photon has the <strong>exact same energy</strong> as the incident laser photon. This is the most common event by far and contains no chemical information.</li>
-<li><strong>Stokes Raman Scattering (Inelastic):</strong> The molecule starts in the ground state (<span class="math inline">\(n=0\)</span>), is excited to the virtual state, and then relaxes to a <em>higher</em> vibrational level (<span class="math inline">\(n=1\)</span>). Because the molecule has absorbed energy, the emitted photon must have <strong>less energy</strong> than the incident photon. The energy difference corresponds exactly to the vibrational energy <span class="math inline">\(h\nu\)</span>. This is the signal we typically measure as it is most intense.</li>
-<li><strong>Anti-Stokes Raman Scattering (Inelastic):</strong> The molecule starts in an already excited vibrational state (<span class="math inline">\(n=1\)</span>), is excited to the virtual state, and then relaxes down to the ground state (<span class="math inline">\(n=0\)</span>). The molecule has lost energy, so the emitted photon has <strong>more energy</strong> than the incident photon.</li>
+<li><strong>Rayleigh scattering</strong> (elastic). The molecule returns to the vibrational level it started from, and the emitted photon has exactly the energy of the incident one. This is by far the most common outcome and carries no chemical information.</li>
+<li><strong>Stokes scattering</strong> (inelastic). The molecule starts in the ground state <span class="math inline">\(n=0\)</span> and relaxes to a higher level <span class="math inline">\(n=1\)</span>. Having absorbed the vibrational quantum, the emitted photon comes out with <span class="math inline">\(h\nu\)</span> less energy than it went in with. This is the signal normally measured.</li>
+<li><strong>Anti-Stokes scattering</strong> (inelastic). The molecule starts in an already excited state <span class="math inline">\(n=1\)</span> and relaxes to the ground state, so the emitted photon leaves with <span class="math inline">\(h\nu\)</span> more energy than it arrived with.</li>
 </ol>
-<p>At room temperature, the vast majority of molecules are in the ground state, as described by the <strong>Boltzmann distribution</strong>. Therefore, <strong>Stokes peaks are always significantly more intense (stronger) than Anti-Stokes peaks.</strong></p>
+<p>At room temperature the Boltzmann distribution puts the vast majority of molecules in the ground state, which is why Stokes peaks are always considerably more intense than anti-Stokes peaks.</p>
 </section>
-<section id="ir-and-raman-active-vibrations" class="level3">
-<h3 class="anchored" data-anchor-id="ir-and-raman-active-vibrations">IR and Raman Active Vibrations</h3>
-<p>This section explains the “rules” that determine whether a specific vibration will produce a Raman signal. This is the critical difference between Raman and Infrared (IR) spectroscopy.</p>
-<ul>
-<li><strong>The Raman Rule - Change in Polarizability:</strong> A vibration is “Raman active” only if it causes a <strong>change in the molecule’s polarizability</strong>. Polarizability is a measure of how easily the electron cloud of a molecule can be distorted by an external electric field (like that of the laser).</li>
-<li><strong>The IR Rule - Change in Dipole Moment:</strong> A vibration is “IR active” only if it causes a <strong>change in the molecule’s dipole moment</strong>.</li>
-</ul>
-<p>This difference leads to complementarity:</p>
-<ul>
-<li>Symmetric vibrations (e.g., C-C, S-S) often cause large changes in polarizability. They are <strong>strong in Raman but weak or absent in IR.</strong></li>
-<li>Asymmetric vibrations involving polar bonds (e.g., C=O) cause large changes in dipole moment. They are <strong>strong in IR but may be weak in Raman.</strong></li>
-<li>For molecules with a center of symmetry (like CO₂), the <strong>Rule of Mutual Exclusion</strong> states that a vibration cannot be both IR and Raman active.</li>
-</ul>
-<p>To fully grasp this, we summarize the differences between dipole moment and polarizability in the table below.</p>
+<section id="raman-active-and-ir-active-vibrations" class="level3">
+<h3 class="anchored" data-anchor-id="raman-active-and-ir-active-vibrations">Raman-active and IR-active vibrations</h3>
+<p>Not every vibration produces a Raman signal, and the rule that decides is exactly what separates Raman from infrared spectroscopy. A vibration is Raman active only if it changes the polarizability of the molecule, that is, how readily the electron cloud deforms under an external electric field such as the laser’s. A vibration is IR active only if it changes the dipole moment.</p>
+<p>The two rules are largely complementary. Symmetric vibrations such as C–C or S–S stretches usually produce a large change in polarizability, so they are strong in Raman and weak or absent in IR. Asymmetric vibrations of polar bonds such as C=O produce a large change in dipole moment, so they are strong in IR and often weak in Raman. For a molecule with a center of symmetry, such as CO₂, the rule of mutual exclusion makes the separation strict: no vibration can be both IR and Raman active.</p>
+<p>The table below summarizes the difference between the two quantities.</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 14%">
-<col style="width: 41%">
-<col style="width: 43%">
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Feature</th>
-<th><strong>Dipole Moment (μ)</strong></th>
-<th><strong>Polarizability (α)</strong></th>
+<th>Dipole moment (<span class="math inline">\(\mu\)</span>)</th>
+<th>Polarizability (<span class="math inline">\(\alpha\)</span>)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Nature</strong></td>
+<td>Nature</td>
 <td>Intrinsic, permanent property</td>
 <td>Induced, response property</td>
 </tr>
 <tr class="even">
-<td><strong>Origin</strong></td>
-<td>Unequal sharing of electrons (electronegativity difference)</td>
-<td>Distortion of electron cloud by an external electric field</td>
+<td>Origin</td>
+<td>Unequal sharing of electrons between atoms of different electronegativity</td>
+<td>Deformation of the electron cloud by an external field</td>
 </tr>
 <tr class="odd">
-<td><strong>Existence</strong></td>
-<td>Exists even without an external field</td>
-<td>Describes the potential to be distorted; distortion occurs only in a field</td>
+<td>Existence</td>
+<td>Present even with no external field</td>
+<td>Describes only the potential to deform; the deformation itself requires a field</td>
 </tr>
 <tr class="even">
-<td><strong>Analogy</strong></td>
-<td>A permanent magnet</td>
-<td>The “squishiness” of a ball</td>
+<td>Example</td>
+<td>H₂O is polar and has a large dipole moment</td>
+<td>Benzene is non-polar but highly polarizable</td>
 </tr>
 <tr class="odd">
-<td><strong>Key Example</strong></td>
-<td><strong>H₂O</strong> is polar (large dipole moment).</td>
-<td><strong>Benzene</strong> is non-polar (zero dipole moment) but highly polarizable.</td>
-</tr>
-<tr class="even">
-<td><strong>Spectroscopy Rule</strong></td>
-<td><strong>Change in Dipole Moment</strong> during vibration -&gt; <strong>IR Active</strong></td>
-<td><strong>Change in Polarizability</strong> during vibration -&gt; <strong>Raman Active</strong></td>
+<td>Selection rule</td>
+<td>A change during the vibration makes it IR active</td>
+<td>A change during the vibration makes it Raman active</td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="fluorescence-and-raman-scattering" class="level3">
-<h3 class="anchored" data-anchor-id="fluorescence-and-raman-scattering">Fluorescence and Raman Scattering</h3>
-<p>Fluorescence and Raman scattering are both optical phenomena that involve the interaction of light with matter, but they differ fundamentally in their mechanisms and the information they provide.</p>
+<h3 class="anchored" data-anchor-id="fluorescence-and-raman-scattering">Fluorescence and Raman scattering</h3>
+<p>Fluorescence is the other thing that happens when light meets matter, and in practice it is the main obstacle to a clean Raman measurement. The two processes differ in mechanism and in everything that follows from it.</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 17%">
-<col style="width: 40%">
-<col style="width: 42%">
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Feature</th>
-<th><strong>Raman Scattering</strong></th>
-<th><strong>Fluorescence</strong></th>
+<th>Raman scattering</th>
+<th>Fluorescence</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Mechanism</strong></td>
-<td><strong>Scattering</strong> process involving a “virtual state.”</td>
-<td><strong>Absorption-Emission</strong> process involving real electronic states.</td>
+<td>Mechanism</td>
+<td>Scattering through a virtual state</td>
+<td>Absorption and re-emission through real electronic states</td>
 </tr>
 <tr class="even">
-<td><strong>Timescale</strong></td>
-<td>Virtually instantaneous (~femtoseconds)</td>
-<td>Delayed by nanoseconds (fluorescence lifetime)</td>
+<td>Timescale</td>
+<td>Essentially instantaneous (femtoseconds)</td>
+<td>Delayed by the fluorescence lifetime (nanoseconds)</td>
 </tr>
 <tr class="odd">
-<td><strong>Energy Shift</strong></td>
-<td><strong>Small, specific shifts</strong> (Raman Shifts) corresponding to <em>vibrational</em> energies.</td>
-<td><strong>Large, broad shift</strong> (Stokes Shift) corresponding to the energy gap between <em>electronic</em> states.</td>
+<td>Energy shift</td>
+<td>Small, discrete shifts set by <em>vibrational</em> energies</td>
+<td>One large, broad shift set by the gap between <em>electronic</em> states</td>
 </tr>
 <tr class="even">
-<td><strong>Information Provided</strong></td>
-<td>A sharp “fingerprint” of specific molecular vibrations.</td>
-<td>A broad signal indicating the presence of a fluorescent molecule.</td>
+<td>Information</td>
+<td>A sharp fingerprint of specific vibrations</td>
+<td>A broad band indicating that a fluorophore is present</td>
 </tr>
 <tr class="odd">
-<td><strong>Efficiency / Intensity</strong></td>
-<td><strong>Extremely Inefficient</strong> (1 in 10⁷ photons) -&gt; <strong>Very Weak Signal</strong></td>
-<td><strong>Very Efficient</strong> (can be &gt;90%) -&gt; <strong>Extremely Strong Signal</strong></td>
+<td>Efficiency</td>
+<td>About 1 photon in <span class="math inline">\(10^7\)</span>, hence a very weak signal</td>
+<td>Can exceed 90%, hence a very strong signal</td>
 </tr>
 </tbody>
 </table>
+<p>A weak, sharp signal sitting on top of a strong, broad one is the situation that the baseline correction of <a href="#sec-preprocessing-raman" class="quarto-xref">Section&nbsp;2.3</a> exists to handle.</p>
 </section>
 </section>
-<section id="instrumentation-a-raman-spectrometer" class="level2">
-<h2 class="anchored" data-anchor-id="instrumentation-a-raman-spectrometer">Instrumentation: A Raman Spectrometer</h2>
-<p>A Raman spectrometer is designed to isolate and detect the extremely weak Raman scattered light from the overwhelmingly strong Rayleigh scattered light.</p>
-<p>The essential components are:</p>
+<section id="instrumentation" class="level2">
+<h2 class="anchored" data-anchor-id="instrumentation">Instrumentation</h2>
+<p>A Raman spectrometer is built around one problem: isolating the extremely weak Raman signal from the overwhelming Rayleigh scattering that accompanies it. Its essential components are</p>
 <ol type="1">
-<li><strong>Light Source (Laser):</strong> A powerful, stable, monochromatic light source. Common lasers include Visible (e.g., 532 nm, 633 nm) and Near-Infrared (NIR) (e.g., 785 nm, 1064 nm) which reduces fluorescence.</li>
-<li><strong>Sample Illumination and Collection Optics:</strong> Lenses or microscope objectives focus the laser onto the sample and collect the scattered light. In <strong>micro-Raman spectroscopy</strong>, this allows analysis of areas down to ~1 micron.</li>
-<li><strong>Optical Filter (Notch or Edge Filter):</strong> The most critical component. It blocks the intense Rayleigh scattered light while allowing the Stokes and/or Anti-Stokes light to pass through.</li>
-<li><strong>Dispersive Element (Spectrograph):</strong> A <strong>diffraction grating</strong> separates the Raman signal into its constituent wavelengths.</li>
-<li><strong>Detector:</strong> A highly sensitive detector, almost universally a <strong>Charge-Coupled Device (CCD)</strong> camera, is used to detect the weak signal and capture the entire spectrum at once.</li>
+<li>a <strong>laser</strong>, providing a stable monochromatic source, typically visible (532 nm, 633 nm) or near-infrared (785 nm, 1064 nm), the latter chosen to reduce fluorescence;</li>
+<li><strong>illumination and collection optics</strong>, lenses or microscope objectives that focus the beam onto the sample and gather the scattered light, down to areas of about one micron in micro-Raman spectroscopy;</li>
+<li>an <strong>optical filter</strong>, notch or edge, the critical component, which rejects the Rayleigh line while passing the Stokes and anti-Stokes light;</li>
+<li>a <strong>dispersive element</strong>, a diffraction grating that separates the signal into its constituent wavelengths;</li>
+<li>a <strong>detector</strong>, almost always a charge-coupled device (CCD), sensitive enough to record the whole spectrum at once.</li>
 </ol>
+<p>The CCD is also the source of one of the artifacts treated below: a cosmic ray hitting the detector during acquisition leaves a spike that looks like a very narrow Raman peak.</p>
 </section>
-<section id="the-raman-spectrum-interpretation" class="level2">
-<h2 class="anchored" data-anchor-id="the-raman-spectrum-interpretation">The Raman Spectrum: Interpretation</h2>
-<p>The output from the spectrometer is a Raman spectrum, see for example the spectrum in <a href="#fig-raman-spectrum-example" class="quarto-xref">Figure&nbsp;1</a>.</p>
-<ul>
-<li><strong>X-axis:</strong> <strong>Raman Shift (<span class="math inline">\(cm^{-1}\)</span>)</strong>. This corresponds to the vibrational frequency (energy) of molecular bonds. A key advantage is that the Raman shift is independent of the laser wavelength used.</li>
-<li><strong>Y-axis:</strong> <strong>Intensity (Arbitrary Units)</strong>. This is proportional to the concentration of the molecule and how “Raman active” that particular vibration is.</li>
-</ul>
-<p>Each peak in the spectrum corresponds to a specific molecular vibration.</p>
-<ul>
-<li><strong>Fingerprint Region (approx. 400 - 1800 <span class="math inline">\(cm^{-1}\)</span>):</strong> This region is rich with peaks from various bending and stretching modes. The complex pattern is unique to each molecule, making it a “molecular fingerprint” for identification.</li>
-<li><strong>Functional Group Region (approx. 1800 - 4000 <span class="math inline">\(cm^{-1}\)</span>):</strong> This region contains peaks from specific functional groups, such as C-H stretches (~2800-3100 <span class="math inline">\(cm^{-1}\)</span>), C≡C triple bonds (~2100-2300 <span class="math inline">\(cm^{-1}\)</span>), and O-H stretches (~3200-3600 <span class="math inline">\(cm^{-1}\)</span>).</li>
-</ul>
+<section id="reading-a-raman-spectrum" class="level2">
+<h2 class="anchored" data-anchor-id="reading-a-raman-spectrum">Reading a Raman spectrum</h2>
+<p>The horizontal axis of a spectrum such as <a href="#fig-raman-spectrum-example" class="quarto-xref">Figure&nbsp;1</a> is the Raman shift in <span class="math inline">\(\text{cm}^{-1}\)</span>, which corresponds to the vibrational energy of the bonds. Because it is a shift rather than an absolute wavelength, it does not depend on the laser used, which is what makes spectra comparable across instruments. The vertical axis is intensity in arbitrary units, proportional both to the concentration of the molecule and to how Raman active the vibration in question is. That proportionality to concentration is the entire basis for the regression models of <a href="#sec-ml-raman" class="quarto-xref">Section&nbsp;3</a>.</p>
+<p>Each peak corresponds to a specific vibration, and the spectrum splits into two regions of different character. The fingerprint region, roughly 400–1800 <span class="math inline">\(\text{cm}^{-1}\)</span>, is dense with bending and stretching modes whose combined pattern is unique to each molecule. The functional group region, roughly 1800–4000 <span class="math inline">\(\text{cm}^{-1}\)</span>, is sparser and more directly interpretable, containing C–H stretches around 2800–3100 <span class="math inline">\(\text{cm}^{-1}\)</span>, C≡C triple bonds around 2100–2300 <span class="math inline">\(\text{cm}^{-1}\)</span>, and O–H stretches around 3200–3600 <span class="math inline">\(\text{cm}^{-1}\)</span>.</p>
 </section>
 <section id="advantages-and-limitations" class="level2">
-<h2 class="anchored" data-anchor-id="advantages-and-limitations">Advantages and Limitations</h2>
+<h2 class="anchored" data-anchor-id="advantages-and-limitations">Advantages and limitations</h2>
 <section id="advantages" class="level3">
-<h3 class="anchored" data-anchor-id="advantages">Advantages:</h3>
-<ul>
-<li><strong>Non-Destructive:</strong> Uses low-power light and typically does not damage the sample.</li>
-<li><strong>Minimal Sample Preparation:</strong> Can analyze solids, liquids, and gases directly, often through containers.</li>
-<li><strong>Water is a Weak Scatterer:</strong> Excellent for analyzing biological or aqueous samples, a major advantage over IR.</li>
-<li><strong>High Spatial Resolution:</strong> Micro-Raman can provide chemical information on a micron scale.</li>
-<li><strong>Specificity:</strong> Provides a sharp, well-resolved “fingerprint” spectrum for unambiguous identification.</li>
-<li><strong>Remote &amp; In-situ Analysis:</strong> Can be coupled with fiber optics for remote monitoring.</li>
-</ul>
+<h3 class="anchored" data-anchor-id="advantages">Advantages</h3>
+<p>Raman spectroscopy uses low-power light and generally leaves the sample intact. It needs almost no sample preparation and works on solids, liquids, and gases, often straight through a glass or plastic container. Water is a weak Raman scatterer, which makes the technique well suited to biological and aqueous samples and is a decisive advantage over infrared spectroscopy. Micro-Raman resolves chemical information at the micron scale, the fingerprint it produces is sharp enough for unambiguous identification, and coupling to fiber optics allows remote and in-situ monitoring.</p>
 </section>
 <section id="limitations" class="level3">
-<h3 class="anchored" data-anchor-id="limitations">Limitations:</h3>
-<ul>
-<li><strong>Weak Signal:</strong> The Raman effect is inherently inefficient, sometimes requiring long acquisition times.</li>
-<li><strong>Fluorescence Interference:</strong> The most significant challenge. Fluorescence from the sample can overwhelm the weak Raman signal. This is often mitigated by using NIR lasers (e.g., 785 nm).</li>
-<li><strong>Sample Heating:</strong> High-intensity lasers can heat or burn sensitive samples.</li>
-<li><strong>Not Ideal for Metals:</strong> Cannot be used for elemental analysis of metals as they lack molecular bonds.</li>
-</ul>
+<h3 class="anchored" data-anchor-id="limitations">Limitations</h3>
+<p>The effect is inherently inefficient, so acquisition can be slow. Fluorescence is the most serious difficulty: it is orders of magnitude stronger than the Raman signal and can bury it entirely, which is why near-infrared lasers around 785 nm are so common. High laser intensity can heat or burn a sensitive sample. And since the technique probes molecular bonds, it is not suited to elemental analysis of metals.</p>
 </section>
 </section>
 </section>
 <section id="sec-eda-raman" class="level1">
-<h1>Exploration and Preprocessing</h1>
-<p>Since the data of the interview homework is not publicly available, we will use the dataset from the Kaggle competition <span class="citation" data-cites="dig-4-bio-raman-transfer-learning-challenge">(<a href="#ref-dig-4-bio-raman-transfer-learning-challenge" role="doc-biblioref">Hassfurther 2025</a>)</span> to illustrate some machine learning approaches to Raman spectroscopy. This dataset and the Kaggle competition are inspired by the article <span class="citation" data-cites="LANGE2025125861">(<a href="#ref-LANGE2025125861" role="doc-biblioref">Lange et al. 2025</a>)</span> which compares machine learning methods on Raman spectra from eight different spectrometers.</p>
-<p>Note that we do not follow the extensive analysis of the article <span class="citation" data-cites="LANGE2025125861">(<a href="#ref-LANGE2025125861" role="doc-biblioref">Lange et al. 2025</a>)</span> but rather focus on some simple machine learning approaches to analyze the Raman spectra that we implemented for the interview homework. We use the Python package <span class="citation" data-cites="georgiev2024ramanspy">(<a href="#ref-georgiev2024ramanspy" role="doc-biblioref">Georgiev et al. 2024</a>)</span> to analyze the Raman spectra.</p>
-<p>We first present a notebook that contains an exploration of the dataset and some preprocessing algorithms. The preprocessing algorithms are presented and explained in <a href="#sec-preprocessing-raman" class="quarto-xref">Section&nbsp;2.3</a>.</p>
+<h1>Exploration and preprocessing</h1>
+<p>The data from the interview homework is not public, so the dataset from the Kaggle competition <span class="citation" data-cites="dig-4-bio-raman-transfer-learning-challenge">(<a href="#ref-dig-4-bio-raman-transfer-learning-challenge" role="doc-biblioref">Hassfurther 2025</a>)</span> takes its place here. Both the dataset and the competition come from the article <span class="citation" data-cites="LANGE2025125861">(<a href="#ref-LANGE2025125861" role="doc-biblioref">Lange et al. 2025</a>)</span>, which compares machine learning methods on Raman spectra collected on eight different spectrometers.</p>
+<p>The aim below is not to reproduce the extensive analysis of that article, but to work through the simpler approaches implemented for the homework. All spectral processing uses RamanSPy <span class="citation" data-cites="georgiev2024ramanspy">(<a href="#ref-georgiev2024ramanspy" role="doc-biblioref">Georgiev et al. 2024</a>)</span>.</p>
+<p>The notebook that follows explores the dataset, applies the preprocessing pipeline step by step, and compares it against a background-subtraction alternative. The algorithms it calls are derived afterwards in <a href="#sec-preprocessing-raman" class="quarto-xref">Section&nbsp;2.3</a>.</p>
 <div class="quarto-embed-nb-cell">
 <section id="raman-challenge-dataset-analysis" class="level2">
-<h2 class="anchored" data-anchor-id="raman-challenge-dataset-analysis">Raman Challenge Dataset Analysis</h2>
-<p>This notebook analyzes the dig-4-bio-raman transfer learning challenge dataset and demonstrates how to load and work with the multi-instrument Raman spectroscopy data.</p>
+<h2 class="anchored" data-anchor-id="raman-challenge-dataset-analysis">Raman challenge dataset analysis</h2>
+<p>This notebook explores the dig-4-bio-raman transfer learning challenge dataset: how the multi-instrument spectra are stored, what a raw spectrum looks like before any processing, and what each step of the preprocessing pipeline does to it.</p>
 <div id="c666486d9737ba2c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;ExecuteTime&quot;,&quot;value&quot;:{&quot;end_time&quot;:&quot;2025-06-30T09:12:39.062386Z&quot;,&quot;start_time&quot;:&quot;2025-06-30T09:12:38.236205Z&quot;}}" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -620,26 +754,11 @@ Figure&nbsp;1: Example Raman spectrum from the Kaiser dataset showing characteri
 <span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    ])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="dataset-description" class="level3">
-<h3 class="anchored" data-anchor-id="dataset-description">Dataset Description</h3>
-<p>This dataset contains Raman spectra from <strong>8 different instruments</strong> measuring samples with known concentrations of three analytes:</p>
-<ul>
-<li><strong>Glucose</strong> (g/L)</li>
-<li><strong>Sodium Acetate</strong> (Na_acetate, g/L)</li>
-<li><strong>Magnesium Sulfate</strong> (Mg_SO4, g/L)</li>
-</ul>
-<p>The instruments included are: Anton 532, Anton 785, Kaiser, Metrohm, Mettler Toledo, Tec 5, Timegate, and Tornado.</p>
-<p><strong>Measurement Protocol:</strong></p>
-<ul>
-<li>All samples were measured at room temperature with instrument-specific exposure times</li>
-<li>Most instruments acquired 5 replicate spectra per sample; Kaiser and Timegate recorded a single spectrum per sample</li>
-<li>Due to varying instrument availability, the sample sets differ across spectrometers</li>
-</ul>
-<p><strong>Instrument Characteristics:</strong> Each instrument exhibits unique properties that must be accounted for in analysis:</p>
-<ul>
-<li><strong>Wavenumber ranges</strong>: Vary from ~200 to ~3500 cm⁻¹ across instruments</li>
-<li><strong>Spectral resolution</strong>: Differs between instruments</li>
-</ul>
-<p>Let’s start by loading data from one instrument (anton_532) to understand the data structure and visualize a sample spectrum.</p>
+<h3 class="anchored" data-anchor-id="dataset-description">Dataset description</h3>
+<p>The dataset holds Raman spectra recorded on eight instruments — Anton 532, Anton 785, Kaiser, Metrohm, Mettler Toledo, Tec 5, Timegate, and Tornado — for samples of known composition. Three analytes vary between samples, all in g/L: glucose, sodium acetate (<code>Na_acetate</code>), and magnesium sulfate (<code>Mg_SO4</code>).</p>
+<p>All samples were measured at room temperature with an exposure time specific to each instrument. Most instruments recorded five replicate spectra per sample; Kaiser and Timegate recorded essentially one. Instrument availability varied during the campaign, so the sample sets are not identical across spectrometers.</p>
+<p>The instruments also differ in ways that any analysis has to account for. Their wavenumber ranges do not coincide: Anton 785 stops at 2300 cm⁻¹ where Anton 532 reaches 3500, and Kaiser starts below zero. Their resolutions differ just as much, from 511 points per spectrum on Timegate to 6593 on Kaiser. The largest range common to all eight is 300–1941 cm⁻¹, which is where the crop used throughout comes from: restricting every spectrum to it is a precondition for comparing instruments, not an optimization.</p>
+<p>We start with a single instrument, <code>anton_532</code>, to establish the structure of the data and look at one raw spectrum.</p>
 <div id="4b2c8fb8" class="cell" data-execution_count="20">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">"""</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">Load and visualize a sample spectrum from the anton_532 instrument.</span></span>
@@ -681,20 +800,15 @@ Figure&nbsp;1: Example Raman spectrum from the Kaiser dataset showing characteri
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_eda-cell-5-output-1.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_eda-cell-5-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="raman_files/figure-html/notebooks-_eda-cell-5-output-1.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
 </div>
 </section>
 <section id="data-structure-overview" class="level3">
-<h3 class="anchored" data-anchor-id="data-structure-overview">Data Structure Overview</h3>
-<p>Let’s examine the structure of the loaded dataset to understand how the data is organized. The DataFrame contains:</p>
-<ul>
-<li><strong>Metadata columns</strong>: Concentration values (glucose, Na_acetate, Mg_SO4) and other sample information</li>
-<li><strong>Spectral columns</strong>: Numeric column names representing wavenumber values (cm⁻¹)</li>
-<li>Each row represents a single spectrum measurement with its associated concentration metadata</li>
-</ul>
+<h3 class="anchored" data-anchor-id="data-structure-overview">Data structure overview</h3>
+<p>Each row of the DataFrame is one spectrum together with the concentrations of the sample it came from. The columns are of two kinds: metadata columns carrying the concentrations and other sample information, and spectral columns whose names are the wavenumbers themselves, in cm⁻¹. That naming convention is what <code>find_spectral_columns</code> relies on to tell the two apart.</p>
 <div id="4c6e1511" class="cell" data-execution_count="21">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the first few rows of the dataset</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>df.head(<span class="dv">5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -859,22 +973,9 @@ Figure&nbsp;1: Example Raman spectrum from the Kaiser dataset showing characteri
 </div>
 </section>
 <section id="step-by-step-preprocessing-visualization" class="level3">
-<h3 class="anchored" data-anchor-id="step-by-step-preprocessing-visualization">Step-by-Step Preprocessing Visualization</h3>
-<p>Preprocessing is crucial for Raman spectroscopy data analysis. Raw spectra contain:</p>
-<ul>
-<li><strong>Baseline drift</strong>: Broad fluorescence background</li>
-<li><strong>Cosmic rays</strong>: Sharp spikes from detector artifacts</li>
-<li><strong>Noise</strong>: Random measurement noise</li>
-<li><strong>Edge effects</strong>: Instrument-specific artifacts at spectral edges</li>
-</ul>
-<p>This section visualizes how each preprocessing step transforms the spectrum, helping us understand the impact of each operation. We apply the following steps:</p>
-<ul>
-<li><strong>Cropping</strong>: Remove edge artifacts and focus on fingerprint region (300-1942 cm⁻¹)</li>
-<li><strong>Cosmic Ray Removal</strong>: Remove sharp spikes (Whitaker-Hayes algorithm)</li>
-<li><strong>Denoising</strong>: Smooth the spectrum (Savitzky-Golay filter)</li>
-<li><strong>Baseline Correction</strong>: Remove broad fluorescence background (ASPLS)</li>
-</ul>
-<p>This visualization helps understand how each preprocessing step improves signal quality and prepares the data for analysis.</p>
+<h3 class="anchored" data-anchor-id="step-by-step-preprocessing-visualization">Step-by-step preprocessing visualization</h3>
+<p>A raw spectrum carries several things that are not signal: a broad fluorescence background, sharp spikes where cosmic rays struck the detector, random measurement noise, and unreliable regions at the edges of the instrument’s range. The pipeline removes them in a fixed order, and the plots below show what each step does to a single spectrum.</p>
+<p>The order is not arbitrary. Cropping to 300–1942 cm⁻¹ comes first, so that the later steps never see the edges. Whitaker–Hayes despiking comes before smoothing, because a smoothing filter applied to a spike spreads it over the window rather than removing it. Savitzky–Golay denoising comes next, and asPLS baseline correction last, since its weighting reads the noise level off the spectrum and behaves better once that noise has been reduced.</p>
 <div id="5d170e6f" class="cell" data-execution_count="22">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(data_path <span class="op">/</span> <span class="st">"anton_532.csv"</span>).drop( columns<span class="op">=</span>[<span class="st">"MSM_present"</span>, <span class="st">"fold_idx"</span>])</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>metadata_cols, spectral_cols, wavenumbers <span class="op">=</span> find_spectral_columns(df)</span>
@@ -895,102 +996,53 @@ Figure&nbsp;1: Example Raman spectrum from the Kaiser dataset showing characteri
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_eda-cell-7-output-1.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_eda-cell-7-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="raman_files/figure-html/notebooks-_eda-cell-7-output-1.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_eda-cell-7-output-2.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_eda-cell-7-output-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img src="raman_files/figure-html/notebooks-_eda-cell-7-output-2.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_eda-cell-7-output-3.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_eda-cell-7-output-3.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img src="raman_files/figure-html/notebooks-_eda-cell-7-output-3.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_eda-cell-7-output-4.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_eda-cell-7-output-4.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6"><img src="raman_files/figure-html/notebooks-_eda-cell-7-output-4.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_eda-cell-7-output-5.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_eda-cell-7-output-5.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7"><img src="raman_files/figure-html/notebooks-_eda-cell-7-output-5.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
 </div>
 </section>
 <section id="understanding-spectral-cropping" class="level3">
-<h3 class="anchored" data-anchor-id="understanding-spectral-cropping">Understanding Spectral Cropping</h3>
-<p>From the visualization above, we can observe:</p>
-<ul>
-<li><strong>Wavenumber range</strong>: Approximately 300–3600 cm⁻¹</li>
-<li><strong>Strong baseline/fluorescence</strong>: Broad curvature from background fluorescence</li>
-<li><strong>Edge artifacts</strong>:
-<ul>
-<li>Below ~450 cm⁻¹: Edge effects, Rayleigh tail, optical artifacts</li>
-<li>Above ~3000 cm⁻¹: OH stretch from water dominates the signal</li>
-</ul></li>
-<li><strong>Chemically informative region</strong>: The fingerprint region (400–1800 cm⁻¹) contains the most relevant information</li>
-</ul>
-<p>The reference paper <a href="https://doi.org/10.1016/j.saa.2025.125861">Comparing machine learning methods on Raman spectra from eight different spectrometers</a> recommends:</p>
-<ul>
-<li><strong>Crop to 300–1942 cm⁻¹</strong>: The largest common range across all 8 instruments</li>
-<li><strong>Rationale</strong>:
-<ul>
-<li>Preserves glucose, acetate, and MgSO₄ peaks</li>
-<li>Removes high-wavenumber water OH stretch</li>
-<li>Eliminates instrument-specific edge artifacts</li>
-<li>Improves cross-device robustness for transfer learning</li>
-</ul></li>
-</ul>
-<p>For this dataset, cropping to <strong>300–1942 cm⁻¹</strong> is justified because:</p>
-<ul>
-<li><strong>Glucose peaks</strong>: ~800–1150 cm⁻¹ ✓</li>
-<li><strong>Acetate peak</strong>: ~920 cm⁻¹ ✓</li>
-<li><strong>MgSO₄ strong peak</strong>: ~980 cm⁻¹ ✓</li>
-<li><strong>Minimal water interference</strong>: Removes dominant OH stretch region</li>
-<li><strong>Better signal-to-noise</strong>: Focuses on chemically informative region</li>
-</ul>
-<p>This region contains the most relevant information for quantitative analysis while removing noise and artifacts.</p>
+<h3 class="anchored" data-anchor-id="understanding-spectral-cropping">Understanding spectral cropping</h3>
+<p>The raw spectrum above runs from 200 to 3500 cm⁻¹ and shows what cropping is for. A strong fluorescence background curves under the entire range. Below about 450 cm⁻¹ there are edge effects, the Rayleigh tail, and optical artifacts; above about 3000 cm⁻¹ the O–H stretch of water dominates everything else. The chemically informative part, the fingerprint region between roughly 400 and 1800 cm⁻¹, sits in between.</p>
+<p>The reference paper, <a href="https://doi.org/10.1016/j.saa.2025.125861">Comparing machine learning methods on Raman spectra from eight different spectrometers</a>, crops to 300–1942 cm⁻¹, and that is the range used here. It is slightly wider than the fingerprint region because it is chosen for a different reason: it is the largest range common to all eight instruments — 300 to 1941 cm⁻¹, checking the files directly — which is what makes spectra from different devices comparable at all. It keeps the bands that matter — glucose around 800–1150 cm⁻¹, acetate near 920 cm⁻¹, MgSO₄ near 980 cm⁻¹ — while discarding the water O–H stretch and the instrument-specific edges.</p>
 </section>
 <section id="sample-structure-and-organization" class="level3">
-<h3 class="anchored" data-anchor-id="sample-structure-and-organization">Sample Structure and Organization</h3>
-<p>The dataset is organized around <strong>unique concentration triplets</strong> defined by the three analytes:</p>
-<ul>
-<li><strong>Glucose</strong> (g/L)</li>
-<li><strong>Sodium Acetate</strong> (Na_acetate, g/L)</li>
-<li><strong>Magnesium Sulfate</strong> (Mg_SO4, g/L)</li>
-</ul>
-<p><strong>Replication Structure:</strong></p>
-<ul>
-<li>Most instruments (Anton 532, Anton 785, Metrohm, Mettler Toledo, Tec 5, Tornado) recorded <strong>at least 5 replicate spectra</strong> per unique concentration triplet</li>
-<li><strong>Kaiser and Timegate instruments</strong> recorded only <strong>1 spectrum per concentration triplet</strong> (no replicates)</li>
-</ul>
-<p><strong>Sample Numbering:</strong> To facilitate analysis and visualization, we assign a unique <code>sample_number</code> to each distinct concentration triplet. This allows us to:</p>
-<ul>
-<li>Group spectra by their concentration profile</li>
-<li>Select representative spectra from each unique sample</li>
-<li>Track how preprocessing affects spectra from the same sample across different replicates</li>
-</ul>
+<h3 class="anchored" data-anchor-id="sample-structure-and-organization">Sample structure and organization</h3>
+<p>The dataset is organized around unique concentration triplets: a combination of glucose, sodium acetate, and magnesium sulfate concentrations defines a sample. Most instruments (Anton 532, Anton 785, Metrohm, Mettler Toledo, Tec 5, Tornado) recorded five replicate spectra of each triplet; Kaiser and Timegate recorded one.</p>
+<p>This replicate structure matters twice over. It gives a direct handle on measurement reproducibility, since replicates differ only by noise, and it constrains cross-validation later on: replicates of one sample must not be split between training and validation folds.</p>
 </section>
-<section id="exploring-concentration-distribution" class="level3">
-<h3 class="anchored" data-anchor-id="exploring-concentration-distribution">Exploring Concentration Distribution</h3>
-<p>Let’s examine the distribution of unique concentration triplets in the dataset. This helps us understand:</p>
-<ul>
-<li>How many unique samples (concentration combinations) are present</li>
-<li>The frequency of each concentration triplet</li>
-<li>The overall structure of the experimental design</li>
-</ul>
+<section id="exploring-the-concentration-distribution" class="level3">
+<h3 class="anchored" data-anchor-id="exploring-the-concentration-distribution">Exploring the concentration distribution</h3>
+<p>Counting the unique concentration triplets shows how many distinct samples the instrument measured, how often each was repeated, and hence the shape of the experimental design.</p>
 <div id="81048a91" class="cell" data-execution_count="23">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>df_metadata <span class="op">=</span> df[metadata_cols]</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>df_metadata[[<span class="st">"glucose"</span>, <span class="st">"Na_acetate"</span>, <span class="st">"Mg_SO4"</span>]].value_counts()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1054,14 +1106,8 @@ Name: count, dtype: int64</code></pre>
 </div>
 </section>
 <section id="assigning-sample-numbers" class="level3">
-<h3 class="anchored" data-anchor-id="assigning-sample-numbers">Assigning Sample Numbers</h3>
-<p>To facilitate analysis, we assign a unique <code>sample_number</code> to each distinct concentration triplet. This allows us to:</p>
-<ul>
-<li>Group all replicate spectra from the same sample together</li>
-<li>Easily select representative spectra for visualization</li>
-<li>Track samples across different preprocessing steps</li>
-</ul>
-<p>After assignment, we sort the DataFrame by <code>sample_number</code> to organize the data for easier analysis.</p>
+<h3 class="anchored" data-anchor-id="assigning-sample-numbers">Assigning sample numbers</h3>
+<p><code>groupby(...).ngroup()</code> numbers each distinct triplet, so that replicates of the same sample share a <code>sample_number</code>. Sorting on it afterwards brings those replicates together, which is convenient for everything below: grouping replicates, picking one representative spectrum per sample, and following a given sample through the preprocessing steps.</p>
 <div id="54a306a6" class="cell" data-execution_count="24">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>df[<span class="st">'sample_number'</span>] <span class="op">=</span> df.groupby([<span class="st">'glucose'</span>, <span class="st">'Na_acetate'</span>, <span class="st">'Mg_SO4'</span>]).ngroup()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -1374,24 +1420,11 @@ Name: count, dtype: int64</code></pre>
 </section>
 </section>
 <section id="comparing-preprocessing-pipelines-standard-vs.-background-subtraction" class="level2">
-<h2 class="anchored" data-anchor-id="comparing-preprocessing-pipelines-standard-vs.-background-subtraction">Comparing Preprocessing Pipelines: Standard vs.&nbsp;Background Subtraction</h2>
-<p>This section visualizes the effects of different preprocessing pipelines on Raman spectra from various concentrations. We compare two preprocessing approaches:</p>
-<ol type="1">
-<li><strong>Standard Pipeline</strong>: Applies cropping, cosmic ray removal, denoising, and baseline correction</li>
-<li><strong>Background Subtraction Pipeline</strong>: Crops the spectrum and subtracts a reference background spectrum</li>
-</ol>
-<p><strong>Key Objectives:</strong></p>
-<ul>
-<li>Understand how different preprocessing methods affect spectral appearance</li>
-<li>Compare pipeline performance on spectra from different concentrations</li>
-<li>Assess pipeline behavior on replicate spectra from the same concentration</li>
-</ul>
-<p><strong>Expected Observations:</strong></p>
-<ul>
-<li><p><strong>Background Subtraction Pipeline</strong>: When applied to spectra from different concentrations, this pipeline produces distinct spectral profiles that clearly differentiate between concentration levels. This demonstrates that the method effectively preserves concentration-dependent signal differences.</p></li>
-<li><p><strong>Standard Pipeline</strong>: In contrast, the standard pipeline tends to produce more similar-looking spectra across different concentrations, as it focuses on removing artifacts and noise while preserving the overall spectral shape. This can be beneficial for certain types of analysis but may reduce concentration-dependent signal differences.</p></li>
-</ul>
-<p><strong>Important Note:</strong> The background subtraction pipeline uses the first spectrum in the dataset as the reference background. For spectra from the same sample (same concentration), this is the first replicate. For spectra from different samples (different concentrations), this corresponds to the first sample in the dataset, which is the zero concentration sample.</p>
+<h2 class="anchored" data-anchor-id="comparing-preprocessing-pipelines-standard-vs.-background-subtraction">Comparing preprocessing pipelines: standard vs.&nbsp;background subtraction</h2>
+<p>Two preprocessing approaches are compared below. The standard pipeline crops, despikes, denoises, and corrects the baseline. The background subtraction pipeline crops and then subtracts a reference spectrum, leaving everything else alone.</p>
+<p>The comparison is run twice: once on spectra from different concentrations, to see whether a pipeline preserves the differences a regression will need, and once on replicates of a single concentration, to see how much variability survives it.</p>
+<p>The two behave differently, and the difference is instructive. Background subtraction produces clearly distinct profiles across concentrations, since whatever is common to every sample is removed and what remains is concentration-dependent. The standard pipeline produces spectra that look more alike, because removing artifacts and baseline also removes part of the amplitude that distinguishes one concentration from another. Neither is simply better: the first preserves more quantitative signal, the second is less sensitive to what varies between measurements.</p>
+<p>One caveat on the reference. The background subtraction pipeline uses the first spectrum of the dataset as its background. For replicates of a single sample that is the first replicate; across samples it is the first sample in the dataset, which is the zero-concentration one.</p>
 <div id="335b762f7bdc6814" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;ExecuteTime&quot;,&quot;value&quot;:{&quot;end_time&quot;:&quot;2025-06-30T09:12:40.341695Z&quot;,&quot;start_time&quot;:&quot;2025-06-30T09:12:40.337547Z&quot;}}" data-execution_count="26">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Note: Required for exporting static images in Quarto documents.</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># (Comment out these lines to enable interactive Plotly plots in Jupyter or other interactive environments.)</span></span>
@@ -1459,14 +1492,8 @@ Name: count, dtype: int64</code></pre>
 <span id="cb11-64"><a href="#cb11-64" aria-hidden="true" tabindex="-1"></a>    fig.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="comparing-pipelines-on-different-concentrations" class="level3">
-<h3 class="anchored" data-anchor-id="comparing-pipelines-on-different-concentrations">Comparing Pipelines on Different Concentrations</h3>
-<p>We first examine how each preprocessing pipeline handles spectra from <strong>different concentration levels</strong>. This helps us understand:</p>
-<ul>
-<li>How well each pipeline preserves concentration-dependent spectral features</li>
-<li>The ability to distinguish between different analyte concentrations</li>
-<li>The impact of preprocessing on quantitative signal information</li>
-</ul>
-<p>We select one representative spectrum from each unique concentration triplet to compare the pipelines on distinct samples.</p>
+<h3 class="anchored" data-anchor-id="comparing-pipelines-on-different-concentrations">Comparing pipelines on different concentrations</h3>
+<p>Taking one representative spectrum per concentration triplet shows how much of the concentration-dependent signal each pipeline leaves standing — which is exactly what a regression model will have to work with.</p>
 <div id="51e41d94" class="cell" data-execution_count="27">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>different_samples_df <span class="op">=</span> (</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    df.groupby(<span class="st">"sample_number"</span>, as_index<span class="op">=</span><span class="va">False</span>)</span>
@@ -1637,7 +1664,7 @@ Name: count, dtype: int64</code></pre>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_eda-cell-13-output-1.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_eda-cell-13-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8"><img src="raman_files/figure-html/notebooks-_eda-cell-13-output-1.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
@@ -1647,21 +1674,15 @@ Name: count, dtype: int64</code></pre>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_eda-cell-14-output-1.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_eda-cell-14-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9"><img src="raman_files/figure-html/notebooks-_eda-cell-14-output-1.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
 </div>
 </section>
 <section id="comparing-pipelines-on-replicate-spectra" class="level3">
-<h3 class="anchored" data-anchor-id="comparing-pipelines-on-replicate-spectra">Comparing Pipelines on Replicate Spectra</h3>
-<p>Next, we examine how each preprocessing pipeline handles <strong>replicate spectra from the same concentration</strong>. This analysis reveals:</p>
-<ul>
-<li><strong>Measurement reproducibility</strong>: How consistent are replicate measurements after preprocessing?</li>
-<li><strong>Noise characteristics</strong>: What residual variability remains after preprocessing?</li>
-<li><strong>Pipeline stability</strong>: How do different preprocessing methods affect replicate consistency?</li>
-</ul>
-<p>We randomly select one sample (concentration triplet) and visualize all its replicate spectra to assess within-sample variability.</p>
+<h3 class="anchored" data-anchor-id="comparing-pipelines-on-replicate-spectra">Comparing pipelines on replicate spectra</h3>
+<p>The complementary question is what happens to spectra that should be identical. Picking one triplet at random and plotting all of its replicates shows the reproducibility of the instrument and how much of the residual variability each pipeline removes.</p>
 <div id="2ed615be" class="cell" data-execution_count="30">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Draw a random sample number</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>unique_sample_numbers <span class="op">=</span> df[<span class="st">"sample_number"</span>].unique()</span>
@@ -1832,7 +1853,7 @@ Name: count, dtype: int64</code></pre>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_eda-cell-16-output-1.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_eda-cell-16-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10"><img src="raman_files/figure-html/notebooks-_eda-cell-16-output-1.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
@@ -1842,173 +1863,130 @@ Name: count, dtype: int64</code></pre>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_eda-cell-17-output-1.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_eda-cell-17-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11"><img src="raman_files/figure-html/notebooks-_eda-cell-17-output-1.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
 </div>
 </section>
 <section id="understanding-measurement-variability" class="level3">
-<h3 class="anchored" data-anchor-id="understanding-measurement-variability">Understanding Measurement Variability</h3>
-<p>The visualization above reveals important insights about measurement variability:</p>
-<p><strong>Key Observations:</strong></p>
-<ol type="1">
-<li><strong>Intrinsic Experimental Variability</strong>: Even with identical sample concentrations, replicate spectra show some variation. This reflects:
-<ul>
-<li>Natural measurement noise inherent in Raman spectroscopy</li>
-<li>Slight variations in sample positioning or laser focus</li>
-<li>Instrument-specific measurement characteristics</li>
-<li>Environmental factors (temperature, humidity, etc.)</li>
-</ul></li>
-<li><strong>Pipeline Impact on Variability</strong>:
-<ul>
-<li>The <strong>standard pipeline</strong> typically reduces variability by removing noise and artifacts, making replicates appear more similar</li>
-<li>The <strong>background subtraction pipeline</strong> may preserve or even amplify certain types of variability, depending on the reference background used</li>
-</ul></li>
-<li><strong>Implications for Analysis</strong>:
-<ul>
-<li>Understanding this variability is crucial for setting appropriate model expectations</li>
-<li>The residual variability after preprocessing represents the lower bound of prediction uncertainty</li>
-<li>This information helps in designing robust models that can handle real-world measurement conditions</li>
-</ul></li>
-</ol>
-<p>This variability analysis is essential for developing reliable quantitative models that can generalize to new measurements.</p>
+<h3 class="anchored" data-anchor-id="understanding-measurement-variability">Understanding measurement variability</h3>
+<p>Replicates of the same sample are not identical. The spread comes from the noise inherent to Raman measurement, from small differences in sample positioning and laser focus, from the characteristics of the instrument itself, and from environmental conditions during acquisition.</p>
+<p>The two pipelines act on that spread differently. The standard pipeline reduces it, since noise and artifacts are much of what distinguishes one replicate from another. Background subtraction can preserve or even amplify it, depending on how representative the chosen reference spectrum is.</p>
+<p>Whatever is left after preprocessing sets a floor on prediction error: no model can resolve concentration differences smaller than the variation between two measurements of the same sample. Knowing roughly where that floor lies is what makes the R² values of the modeling notebook interpretable rather than merely disappointing.</p>
 </section>
 </section>
-<a class="quarto-notebook-link" id="nblink-1" href="notebooks/_eda-preview.html#50a6ff66">Source: Raman Challenge Dataset Analysis</a></div>
+<a class="quarto-notebook-link" id="nblink-1" href="notebooks/_eda-preview.html#50a6ff66">Source: Raman challenge dataset analysis</a></div>
 <section id="sec-preprocessing-raman" class="level2">
-<h2 class="anchored" data-anchor-id="sec-preprocessing-raman">Preprocessing Algorithms</h2>
-<p>Raw Raman spectra often contain artifacts and noise that must be addressed before meaningful analysis can be performed. These preprocessing steps are essential for accurate peak identification, quantitative analysis, and machine learning applications. The standard preprocessing pipeline for Raman spectroscopy typically includes: spectral cropping to focus on regions of interest, cosmic ray removal to eliminate detector artifacts, denoising to reduce random noise, and baseline correction to remove fluorescence and drift effects. We describe each of these algorithms below, following the implementations available in RamanSPy <span class="citation" data-cites="georgiev2024ramanspy">(<a href="#ref-georgiev2024ramanspy" role="doc-biblioref">Georgiev et al. 2024</a>)</span>.</p>
+<h2 class="anchored" data-anchor-id="sec-preprocessing-raman">Preprocessing algorithms</h2>
+<p>Raw Raman spectra arrive with artifacts and noise that would defeat any downstream analysis: a fluorescence background far larger than the signal, cosmic-ray spikes indistinguishable from narrow peaks, random detector noise, and edge regions where the instrument response is unreliable. The standard pipeline removes them in a fixed order — crop, despike, denoise, correct the baseline — and the four subsections below derive each step as RamanSPy implements it <span class="citation" data-cites="georgiev2024ramanspy">(<a href="#ref-georgiev2024ramanspy" role="doc-biblioref">Georgiev et al. 2024</a>)</span>.</p>
 <section id="spectral-cropping" class="level3">
-<h3 class="anchored" data-anchor-id="spectral-cropping">Spectral Cropping</h3>
-<p>The first step in preprocessing is often to reduce the spectral range to the region of interest. For Raman spectroscopy, this typically means focusing on the “fingerprint region” (approximately 400-1800 <span class="math inline">\(cm^{-1}\)</span>) where most characteristic molecular vibrations appear. Cropping serves multiple purposes: it removes noisy edge regions that may contain artifacts, focuses computational resources on the relevant spectral features, and reduces the data size for downstream processing.</p>
-<p>The algorithm is straightforward: given a wavenumber axis <span class="math inline">\(w\)</span> and spectrum <span class="math inline">\(s\)</span>, we create a boolean mask and apply it to both:</p>
+<h3 class="anchored" data-anchor-id="spectral-cropping">Spectral cropping</h3>
+<p>Cropping restricts the spectrum to the region worth analyzing. Given a wavenumber axis <span class="math inline">\(w\)</span> and a spectrum <span class="math inline">\(s\)</span>, it is a boolean mask applied to both:</p>
 <p><span class="math display">\[
-w_{\text{cropped}} = w[w_{\text{min}} \leq w \leq w_{\text{max}}]
+w_{\text{cropped}} = w\,[\,w_{\text{min}} \leq w \leq w_{\text{max}}\,],
+\qquad
+s_{\text{cropped}} = s\,[\,w_{\text{min}} \leq w \leq w_{\text{max}}\,] .
 \]</span></p>
-<p><span class="math display">\[
-s_{\text{cropped}} = s[w_{\text{min}} \leq w \leq w_{\text{max}}]
-\]</span></p>
-<p>This operation has linear computational complexity <span class="math inline">\(O(n)\)</span> where <span class="math inline">\(n\)</span> is the spectrum length, making it an efficient first step in any preprocessing pipeline.</p>
+<p>The operation is <span class="math inline">\(O(n)\)</span> in the spectrum length and does three useful things at once: it discards noisy edge regions, it concentrates the later steps on the informative part of the signal, and it shrinks the data.</p>
+<p>The choice of range matters more than the triviality of the operation suggests. The notebooks crop to 300–1942 <span class="math inline">\(\text{cm}^{-1}\)</span>, following <span class="citation" data-cites="LANGE2025125861">(<a href="#ref-LANGE2025125861" role="doc-biblioref">Lange et al. 2025</a>)</span>: this is the largest range common to all eight instruments in the dataset — 300 to 1941 <span class="math inline">\(\text{cm}^{-1}\)</span>, going by the files themselves — so cropping to it also makes the spectra mutually comparable. It retains the glucose bands around 800–1150 <span class="math inline">\(\text{cm}^{-1}\)</span>, the acetate band near 920 <span class="math inline">\(\text{cm}^{-1}\)</span>, and the strong MgSO₄ band near 980 <span class="math inline">\(\text{cm}^{-1}\)</span>, while removing the Rayleigh tail below roughly 450 <span class="math inline">\(\text{cm}^{-1}\)</span> and the O–H stretch of water above 3000 <span class="math inline">\(\text{cm}^{-1}\)</span>, which would otherwise dominate everything else.</p>
 </section>
-<section id="cosmic-ray-removal-whitaker-hayes" class="level3">
-<h3 class="anchored" data-anchor-id="cosmic-ray-removal-whitaker-hayes">Cosmic Ray Removal (Whitaker-Hayes)</h3>
-<p>Cosmic rays striking the CCD detector during spectral acquisition can produce sharp intensity spikes that are easily mistaken for genuine Raman peaks. The Whitaker-Hayes algorithm <span class="citation" data-cites="WhitakerHayes2018">(<a href="#ref-WhitakerHayes2018" role="doc-biblioref">Whitaker and Hayes 2018</a>)</span> provides a robust method for identifying and removing these artifacts.</p>
-<p>The algorithm identifies spikes using <strong>modified z-scores</strong> computed from the first differences of the spectrum. The modified z-score is more robust to outliers than the standard z-score because it uses the median absolute deviation (MAD) instead of the standard deviation:</p>
+<section id="cosmic-ray-removal-whitakerhayes" class="level3">
+<h3 class="anchored" data-anchor-id="cosmic-ray-removal-whitakerhayes">Cosmic-ray removal (Whitaker–Hayes)</h3>
+<p>A cosmic ray striking the CCD during acquisition produces a sharp intensity spike that is easily mistaken for a genuine Raman peak. The Whitaker–Hayes algorithm <span class="citation" data-cites="WhitakerHayes2018">(<a href="#ref-WhitakerHayes2018" role="doc-biblioref">Whitaker and Hayes 2018</a>)</span> detects and removes these.</p>
+<p>Detection works on the first differences of the spectrum,</p>
 <p><span class="math display">\[
-\text{MAD} = \text{median}(|x_i - \text{median}(x)|)
+\Delta s_i = s_{i+1} - s_i ,
 \]</span></p>
+<p>because differencing amplifies abrupt jumps while flattening the gradual variation of real bands, which makes a spike far easier to see than it is in the raw intensities. Spikes are then flagged by a modified z-score, which replaces the standard deviation by the median absolute deviation</p>
 <p><span class="math display">\[
-\text{Modified Z-score} = 0.6745 \times \frac{x_i - \text{median}(x)}{\text{MAD}}
+\text{MAD}(x) = \text{median}\big(|x_i - \text{median}(x)|\big),
+\qquad
+z_i = 0.6745\,\frac{x_i - \text{median}(x)}{\text{MAD}(x)} ,
 \]</span></p>
-<p>The constant 0.6745 makes the MAD consistent with the standard deviation for normal distributions. The algorithm examines the first differences of the spectrum:</p>
-<p><span class="math display">\[
-\Delta s_i = s_{i+1} - s_i
-\]</span></p>
-<p>Because cosmic rays cause sharp discontinuities, examining differences amplifies these sudden changes while smoothing gradual variations, making spike detection more sensitive than direct intensity analysis.</p>
-<p>For each detected spike at position <span class="math inline">\(i\)</span> (where <span class="math inline">\(|z_{\Delta s_i}| &gt; \tau\)</span>, typically <span class="math inline">\(\tau = 8\)</span>), the algorithm iteratively replaces it with the local mean of non-spike neighbors within a kernel of size <span class="math inline">\(k\)</span>:</p>
+<p>the constant <span class="math inline">\(0.6745\)</span> being what makes the MAD consistent with the standard deviation for normal data. Median-based statistics matter here: the outliers being hunted are exactly the kind of points that would corrupt a mean-and-variance estimate of the noise level.</p>
+<p>Every position with <span class="math inline">\(|z_{\Delta s_i}| &gt; \tau\)</span> is declared a spike and replaced by the mean of its non-spike neighbors within a kernel of half-width <span class="math inline">\(k\)</span>,</p>
 <p><span class="math display">\[
 s'_i =
 \begin{cases}
-\text{mean}(s_j : j \in N(i), \text{spike}_j = \text{False}) &amp; \text{if spike}_i = \text{True} \\
-s_i &amp; \text{otherwise}
+\operatorname{mean}\big(s_j : j \in N(i),\ \text{spike}_j = \text{False}\big) &amp; \text{if } \text{spike}_i = \text{True},\\[2pt]
+s_i &amp; \text{otherwise},
 \end{cases}
 \]</span></p>
-<p>where <span class="math inline">\(N(i) = \{\max(0, i-k), \ldots, \min(n-1, i+k)\}\)</span> is the neighborhood around position <span class="math inline">\(i\)</span>.</p>
-<p>The algorithm’s robustness comes from its use of median-based statistics, which are resistant to outliers. The iterative nature allows it to handle multiple adjacent spikes, and the local mean replacement preserves peak shapes while removing artifacts.</p>
+<p>with <span class="math inline">\(N(i) = \{\max(0, i-k), \dots, \min(n-1, i+k)\}\)</span>. Excluding the neighbors that are themselves spikes is what lets the procedure handle several adjacent contaminated points, and replacing by a local mean rather than by interpolation over a wide window leaves the surrounding peak shapes untouched. RamanSPy defaults to <span class="math inline">\(\tau = 8\)</span> and <code>kernel_size = 3</code>, which the notebooks keep.</p>
 </section>
-<section id="denoising-savitzky-golay" class="level3">
-<h3 class="anchored" data-anchor-id="denoising-savitzky-golay">Denoising (Savitzky-Golay)</h3>
-<p>Random noise in Raman spectra can obscure genuine peaks and complicate analysis. The Savitzky-Golay filter <span class="citation" data-cites="SavitzkyGolay1964">(<a href="#ref-SavitzkyGolay1964" role="doc-biblioref">Savitzky and Golay 1964</a>)</span> reduces noise while preserving peak shapes and positions through local polynomial regression, making it superior to simple moving averages for spectroscopic data.</p>
-<p>For each point in the spectrum, the algorithm:</p>
-<ol type="1">
-<li>Considers a window of <code>window_length</code> points centered at that position</li>
-<li>Fits a polynomial of degree <code>polyorder</code> to these points using least squares</li>
-<li>Replaces the center point with the polynomial’s predicted value</li>
-</ol>
-<p>Mathematically, for a window centered at position <span class="math inline">\(i\)</span> with <span class="math inline">\(m = (\text{window\_length} - 1) / 2\)</span>:</p>
-<p>The polynomial fit is:</p>
+<section id="denoising-savitzkygolay" class="level3">
+<h3 class="anchored" data-anchor-id="denoising-savitzkygolay">Denoising (Savitzky–Golay)</h3>
+<p>Random noise obscures weak bands and, more insidiously, produces spurious local maxima that peak-finding routines will happily report. The Savitzky–Golay filter <span class="citation" data-cites="SavitzkyGolay1964">(<a href="#ref-SavitzkyGolay1964" role="doc-biblioref">Savitzky and Golay 1964</a>)</span> suppresses it by local polynomial regression, which preserves peak position and height far better than a moving average does.</p>
+<p>For every point of the spectrum, the filter takes a window of <code>window_length</code> points centered on it, fits a polynomial of degree <code>polyorder</code> by least squares,</p>
 <p><span class="math display">\[
-P(x) = a_0 + a_1 x + a_2 x^2 + \ldots + a_p x^p
+P(x) = a_0 + a_1 x + \dots + a_p x^p,
+\qquad
+\min_{a} \sum_{j=i-m}^{i+m} \big[y_j - P(x_j)\big]^2 ,
 \]</span></p>
-<p>where <span class="math inline">\(p = \text{polyorder}\)</span>. The least squares objective minimizes:</p>
-<p><span class="math display">\[
-\sum_{j=i-m}^{i+m} [y_j - P(x_j)]^2
-\]</span></p>
-<p>The smoothed value is then <span class="math inline">\(y'_i = P(x_i)\)</span>.</p>
-<p>The Savitzky-Golay filter can be efficiently implemented as a convolution with precomputed coefficients that depend only on <code>window_length</code> and <code>polyorder</code>, not on the data itself, giving it <span class="math inline">\(O(n)\)</span> complexity.</p>
-<p><strong>Why it works:</strong> Averaging over the window reduces random noise by a factor of approximately <span class="math inline">\(\sqrt{\text{window\_length}}\)</span>, while polynomial fitting preserves local trends better than a simple moving average. This means narrow peaks are not significantly broadened, and the filter can even compute derivatives simultaneously, which is useful for peak finding algorithms.</p>
-<p><strong>Parameter selection:</strong> The <code>window_length</code> must be odd and greater than <code>polyorder</code>. RamanSPy defaults to <code>window_length = 9</code> and <code>polyorder = 3</code> (cubic polynomial), which provides a good balance between noise reduction and peak preservation. Smaller windows (5-7) preserve narrow peaks better but provide less noise reduction, while larger windows (11-15) provide stronger noise reduction but may broaden narrow peaks.</p>
+<p>where <span class="math inline">\(m = (\texttt{window\_length} - 1)/2\)</span>, and replaces the point by the fitted value <span class="math inline">\(y'_i = P(x_i)\)</span>. Since the least-squares solution is linear in the data, the whole operation collapses into a convolution with coefficients that depend only on <code>window_length</code> and <code>polyorder</code>, never on the spectrum itself, so the filter costs <span class="math inline">\(O(n)\)</span> and the coefficients can be computed once.</p>
+<p>The reason it works is that averaging over a window suppresses noise while the polynomial retains local curvature. A moving average is the special case <span class="math inline">\(p = 0\)</span>, and it is precisely the flat-fit assumption that flattens narrow peaks; a cubic fit follows the shape of a band through the window instead. The same coefficients also yield smoothed derivatives at no extra cost, which is convenient for peak detection.</p>
+<p><code>window_length</code> must be odd and strictly greater than <code>polyorder</code>; RamanSPy requires both explicitly rather than supplying defaults. The notebooks use <code>window_length = 9</code> and <code>polyorder = 3</code>. Shorter windows preserve narrow peaks better but remove less noise, longer ones do the reverse, and beyond about 15 points a genuine band starts to broaden visibly.</p>
 </section>
 <section id="baseline-correction-aspls" class="level3">
-<h3 class="anchored" data-anchor-id="baseline-correction-aspls">Baseline Correction (ASPLS)</h3>
-<p>Baseline drift in Raman spectra arises from fluorescence, sample holder interference, or optical effects. This slowly-varying background can obscure peaks and complicate quantitative analysis. The ASPLS (Adaptive Smoothness Penalized Least Squares) method <span class="citation" data-cites="ZhangASPLS2010">(<a href="#ref-ZhangASPLS2010" role="doc-biblioref">Zhang et al. 2010</a>)</span> is an advanced variant of asymmetric least squares <span class="citation" data-cites="EilersALS2005">(<a href="#ref-EilersALS2005" role="doc-biblioref">Eilers and Boelens 2005</a>)</span> that adapts the smoothness constraint based on local signal characteristics.</p>
-<p>The goal is to find a baseline <span class="math inline">\(z\)</span> that minimizes:</p>
+<h3 class="anchored" data-anchor-id="baseline-correction-aspls">Baseline correction (asPLS)</h3>
+<p>The fluorescence background, together with sample-holder and optical contributions, adds a slowly varying baseline that is often larger than the peaks sitting on it. Removing it is the last and most delicate preprocessing step, because a baseline estimator flexible enough to follow the background is also flexible enough to climb into the peaks and eat them.</p>
+<p>Every method in this family solves a penalized least-squares problem: find a baseline <span class="math inline">\(z\)</span> minimizing a compromise between fidelity to the data and smoothness,</p>
 <p><span class="math display">\[
-Q = \sum_i w_i(y_i - z_i)^2 + \lambda \sum_j (\Delta^d z_j)^2
+Q(z) = \sum_i w_i (y_i - z_i)^2 \; + \; \lambda \sum_j \alpha_j \big(\Delta^d z_j\big)^2 ,
 \]</span></p>
-<p>where:</p>
-<ul>
-<li><span class="math inline">\(y_i\)</span> = observed spectrum values</li>
-<li><span class="math inline">\(z_i\)</span> = baseline values</li>
-<li><span class="math inline">\(w_i\)</span> = asymmetric weights</li>
-<li><span class="math inline">\(\lambda\)</span> = smoothness penalty parameter</li>
-<li><span class="math inline">\(\Delta^d\)</span> = <span class="math inline">\(d\)</span>-th order difference operator (typically <span class="math inline">\(d=2\)</span>)</li>
-</ul>
-<p>This formulation balances two competing objectives: <strong>fidelity</strong> (baseline close to data) and <strong>smoothness</strong> (baseline is smooth).</p>
-<p><strong>Asymmetric weighting</strong> is the key innovation that prevents the baseline from following peaks. Unlike symmetric least squares, ASPLS uses:</p>
+<p>where <span class="math inline">\(y\)</span> is the observed spectrum, <span class="math inline">\(\Delta^d\)</span> is the <span class="math inline">\(d\)</span>-th order difference operator, and <span class="math inline">\(\lambda\)</span> sets the global stiffness. With <span class="math inline">\(d = 2\)</span>,</p>
+<p><span class="math display">\[
+\Delta^2 z = [\,z_2 - 2z_1 + z_0,\ z_3 - 2z_2 + z_1,\ \dots\,] ,
+\]</span></p>
+<p>so the penalty charges for curvature and the minimizer is pulled toward a smooth curve. What distinguishes the members of the family is how the fidelity weights <span class="math inline">\(w_i\)</span> and the penalty weights <span class="math inline">\(\alpha_j\)</span> are chosen. RamanSPy exposes several of them through pybaselines — AsLS <span class="citation" data-cites="EilersALS2005">(<a href="#ref-EilersALS2005" role="doc-biblioref">Eilers and Boelens 2005</a>)</span>, airPLS <span class="citation" data-cites="ZhangAirPLS2010">(<a href="#ref-ZhangAirPLS2010" role="doc-biblioref">Zhang et al. 2010</a>)</span>, arPLS, asPLS — and the pipeline here uses asPLS <span class="citation" data-cites="ZhangASPLS2020">(<a href="#ref-ZhangASPLS2020" role="doc-biblioref">Zhang et al. 2020</a>)</span>.</p>
+<p>The original asymmetric least squares method <span class="citation" data-cites="EilersALS2005">(<a href="#ref-EilersALS2005" role="doc-biblioref">Eilers and Boelens 2005</a>)</span> fixes <span class="math inline">\(\alpha_j \equiv 1\)</span> and splits the fidelity weights in two,</p>
 <p><span class="math display">\[
 w_i =
 \begin{cases}
-p &amp; \text{if } y_i &gt; z_i \text{ (points above baseline)} \\
-1-p &amp; \text{if } y_i \leq z_i \text{ (points below baseline)}
+p &amp; \text{if } y_i &gt; z_i,\\
+1-p &amp; \text{if } y_i \leq z_i,
 \end{cases}
+\qquad p \ll 0.5 \ \ (\text{typically } 0.01).
 \]</span></p>
-<p>where <span class="math inline">\(p \ll 0.5\)</span> (typically <span class="math inline">\(p = 0.01\)</span>). Since peaks are above the baseline, they receive low weight, while baseline regions receive high weight. This forces the fitted baseline to pass <strong>under</strong> the peaks.</p>
-<p><strong>Smoothness penalty:</strong> The difference operator <span class="math inline">\(\Delta^d\)</span> penalizes roughness. For second-order differences (<span class="math inline">\(d=2\)</span>, the default):</p>
+<p>Since peaks lie above the baseline, they receive almost no weight, and the fitted curve is pushed underneath them. This is the mechanism that keeps the baseline out of the peaks, and asPLS keeps its spirit while replacing both weightings.</p>
+<p>Write <span class="math inline">\(r = y - z\)</span> for the residual at the current iterate. The fidelity weights become logistic rather than binary,</p>
 <p><span class="math display">\[
-\Delta^2 z = [z_2 - 2z_1 + z_0, z_3 - 2z_2 + z_1, \ldots]
+w_i = \frac{1}{1 + \exp\!\big(\tfrac{k}{\sigma_-}(r_i - \sigma_-)\big)} ,
 \]</span></p>
-<p>This penalizes curvature changes (second derivative), encouraging a smooth baseline.</p>
-<p><strong>Adaptive smoothness</strong> is the method’s key advantage: it varies <span class="math inline">\(\lambda\)</span> locally based on signal characteristics:</p>
+<p>where <span class="math inline">\(\sigma_-\)</span> is the standard deviation of the <em>negative</em> residuals and <span class="math inline">\(k\)</span> is an asymmetry coefficient. This is a smoothed version of the AsLS split: points far above the baseline get weights near <span class="math inline">\(0\)</span>, points below it get weights near <span class="math inline">\(1\)</span>, and the transition between the two happens over a width set by <span class="math inline">\(\sigma_-\)</span>. Estimating that scale from the negative residuals only is what makes it a measure of background noise rather than of peak height, so the filter adapts to how noisy the spectrum actually is instead of relying on a fixed threshold. The asPLS paper uses <span class="math inline">\(k=2\)</span>; pybaselines, and therefore RamanSPy, defaults to <span class="math inline">\(k = 0.5\)</span>, which its authors report as both closer to the published results and better behaved on noisy data.</p>
+<p>The adaptive part of the method is the penalty weight, recomputed at each iteration as the normalized residual magnitude</p>
 <p><span class="math display">\[
-\lambda_i^{\text{adaptive}} = \frac{\lambda}{1 + \alpha \times \text{feature}_i}
+\alpha_i = \frac{|r_i|}{\max_j |r_j|} \in [0, 1] .
 \]</span></p>
-<p>where <span class="math inline">\(\alpha\)</span> is an adaptation strength parameter and <span class="math inline">\(\text{feature}_i\)</span> represents local signal characteristics (e.g., magnitude of residual). This means:</p>
-<ul>
-<li><strong>Strong peaks</strong> (large residuals) → <span class="math inline">\(\lambda\)</span> decreases → more flexible baseline</li>
-<li><strong>Flat regions</strong> → <span class="math inline">\(\lambda\)</span> remains high → smooth baseline</li>
-</ul>
-<p>This prevents the baseline from “chasing” strong peaks while maintaining smoothness in flat regions.</p>
-<p>The algorithm iteratively solves the weighted penalized least squares problem, updating the asymmetric weights based on whether points are above or below the current baseline estimate, until convergence. RamanSPy defaults to <span class="math inline">\(\lambda = 10^5\)</span> and <code>diff_order = 2</code>, which work well for most Raman spectra.</p>
+<p>Note the direction, which is easy to get backwards. Under a peak the residual is large, so <span class="math inline">\(\alpha_i \approx 1\)</span> and the full penalty <span class="math inline">\(\lambda\)</span> applies: the baseline is held stiff exactly where it would otherwise be tempted to rise into the band. Where the baseline already tracks the data, the residual is small, <span class="math inline">\(\alpha_i\)</span> is small, the penalty is relaxed, and the curve is free to follow the local curvature of the background. A single global <span class="math inline">\(\lambda\)</span> has to be either too stiff under peaks or too rigid in between; letting <span class="math inline">\(\alpha\)</span> vary point by point removes that compromise, and it is what the “adaptive smoothness” in the name refers to.</p>
+<p>The two weightings are updated alternately with the baseline solve until the weights stop changing, at most a hundred times. RamanSPy inherits the pybaselines defaults <span class="math inline">\(\lambda = 10^5\)</span>, <code>diff_order = 2</code>, and <code>tol = 1e-3</code>, which the notebooks keep.</p>
 </section>
-<section id="complete-preprocessing-pipeline" class="level3">
-<h3 class="anchored" data-anchor-id="complete-preprocessing-pipeline">Complete Preprocessing Pipeline</h3>
-<p>The standard RamanSPy preprocessing workflow <span class="citation" data-cites="georgiev2024ramanspy">(<a href="#ref-georgiev2024ramanspy" role="doc-biblioref">Georgiev et al. 2024</a>)</span> applies these algorithms in a specific order, as the sequence of operations is critical for optimal results:</p>
+<section id="the-complete-pipeline" class="level3">
+<h3 class="anchored" data-anchor-id="the-complete-pipeline">The complete pipeline</h3>
+<p>The order of operations is not arbitrary. Cropping comes first so that the later steps never see the noisy edges. Despiking comes before smoothing, because a Savitzky–Golay filter applied to a spike does not remove it, it merely spreads it over the window and makes it harder to detect. Denoising comes before baseline correction, since the residual-based weighting of asPLS reads the noise level off the spectrum and behaves better once that noise is reduced. Normalization, when used, comes last, after the baseline has been removed and intensities are finally comparable.</p>
+<p>The pipeline used in both notebooks is therefore</p>
 <ol type="1">
-<li><strong>Cropping</strong> - Focus on region of interest, reduce data size</li>
-<li><strong>Whitaker-Hayes Despiking</strong> - Remove cosmic rays</li>
-<li><strong>Savitzky-Golay Smoothing</strong> - Reduce noise</li>
-<li><strong>ASPLS Baseline Correction</strong> - Remove baseline drift</li>
-<li><strong>Normalization</strong> (optional) - Scale for comparison</li>
+<li><strong>Cropping</strong> to 300–1942 <span class="math inline">\(\text{cm}^{-1}\)</span>;</li>
+<li><strong>Whitaker–Hayes despiking</strong>, with <code>kernel_size = 3</code> and <code>threshold = 8</code>;</li>
+<li><strong>Savitzky–Golay smoothing</strong>, with <code>window_length = 9</code> and <code>polyorder = 3</code>;</li>
+<li><strong>asPLS baseline correction</strong>, with <span class="math inline">\(\lambda = 10^5\)</span> and <code>diff_order = 2</code>;</li>
+<li><strong>MinMax normalization</strong>, for the modeling notebook only.</li>
 </ol>
-<p>The default parameters recommended by RamanSPy provide a good starting point for most applications: cropping to 600-1800 <span class="math inline">\(cm^{-1}\)</span> (or full fingerprint region 400-1800 <span class="math inline">\(cm^{-1}\)</span>), despiking with <code>kernel_size=3</code> and <code>threshold=8.0</code>, smoothing with <code>window_length=9</code> and <code>polyorder=3</code>, and baseline correction with <span class="math inline">\(\lambda = 10^5\)</span> and <code>diff_order=2</code>. These parameters should be kept consistent across all spectra within a study to ensure reproducibility and comparability.</p>
+<p>Whatever parameters are chosen, they must stay fixed across every spectrum in a study. Preprocessing is part of the model, and varying it per sample introduces exactly the kind of sample-dependent transformation that a calibration is supposed to be free of.</p>
 </section>
 </section>
 </section>
 <section id="sec-ml-raman" class="level1">
-<h1>Machine Learning Approaches</h1>
-<p>We now present a Machine Learning approach to predic the concentration of the different chemicals in the sample. The PLS Canonical algorithm is presented and explained in <a href="#sec-pls-canonical" class="quarto-xref">Section&nbsp;3.3</a>.</p>
+<h1>Machine learning approaches</h1>
+<p>The task is to predict the concentrations of the three analytes — glucose, sodium acetate, and magnesium sulfate — from a preprocessed spectrum. Models are fitted one instrument at a time, since spectral response and calibration differ enough between the eight spectrometers that a single pooled model would be solving a harder problem than the one at hand.</p>
+<p>One preprocessing decision is properly a modeling decision and is worth stating here rather than leaving it in the notebook. Peak height is proportional to concentration, so normalizing a spectrum destroys precisely the information a regression needs; but leaving intensities unnormalized also leaves in the instrumental variation — laser power, integration time, focus, detector response — that has nothing to do with chemistry, and on this dataset it leaves intensities reaching values around 350 in arbitrary units. Area-under-the-curve scaling is the worst of both worlds for regression, since forcing every spectrum to unit area erases concentration outright. Internal standard normalization, dividing by a stable reference band, is the principled answer, but the dataset offers no suitable reference peak. The notebook settles on MinMax scaling as a compromise, with the caveat that it ties the scale of each spectrum to whichever point happens to be its maximum. This is discussed at length in the notebook below.</p>
+<p>The model itself is PLS regression, derived in <a href="#sec-pls-regression" class="quarto-xref">Section&nbsp;3.3</a>.</p>
 <div class="quarto-embed-nb-cell">
 <section id="raman-challenge-machine-learning-model-for-concentration-prediction" class="level2">
-<h2 class="anchored" data-anchor-id="raman-challenge-machine-learning-model-for-concentration-prediction">Raman Challenge: Machine Learning Model for Concentration Prediction</h2>
-<p>This notebook demonstrates the development of <strong>Partial Least Squares (PLS) regression models</strong> for predicting concentrations of three compounds from Raman spectra:</p>
-<ul>
-<li><strong>Glucose</strong> (C₆H₁₂O₆)</li>
-<li><strong>Sodium acetate</strong> (Na_acetate)</li>
-<li><strong>Magnesium sulfate</strong> (Mg_SO4)</li>
-</ul>
-<p>The analysis is performed <strong>one instrument at a time</strong> to account for instrument-specific variations in spectral characteristics. This approach ensures that models are tailored to the unique spectral response and calibration of each instrument, improving prediction accuracy and model reliability.</p>
+<h2 class="anchored" data-anchor-id="raman-challenge-machine-learning-model-for-concentration-prediction">Raman challenge: machine learning model for concentration prediction</h2>
+<p>This notebook fits partial least squares (PLS) regression models predicting the concentrations of three compounds — glucose (C₆H₁₂O₆), sodium acetate (<code>Na_acetate</code>), and magnesium sulfate (<code>Mg_SO4</code>) — from Raman spectra.</p>
+<p>Models are fitted one instrument at a time. The eight spectrometers differ enough in spectral response and calibration that a single pooled model would be solving the harder transfer problem rather than the calibration problem at hand.</p>
 <div id="fa60a041" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Literal</span>
@@ -2072,14 +2050,11 @@ p &amp; \text{if } y_i &gt; z_i \text{ (points above baseline)} \\
 <span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>    wavenumbers <span class="op">=</span> pd.to_numeric(spectral_cols)</span>
 <span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> metadata_cols, spectral_cols, wavenumbers</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<section id="normalization-a-critical-preprocessing-decision" class="level3">
-<h3 class="anchored" data-anchor-id="normalization-a-critical-preprocessing-decision">Normalization: A Critical Preprocessing Decision</h3>
-<p>A fundamental preprocessing decision in quantitative Raman spectroscopy is whether to normalize the spectra. This choice involves an important trade-off:</p>
-<ul>
-<li><p><strong>Normalize</strong>: Ensures the model learns from <strong>chemical differences</strong> rather than measurement artifacts (laser power fluctuations, integration time variations, focusing differences, etc.). This helps remove instrumental effects that could confound the analysis.</p></li>
-<li><p><strong>Don’t normalize</strong>: Preserves the <strong>relationship between peak height and concentration</strong>, which is essential for quantitative regression. Absolute intensity information can be directly related to analyte concentration in ideal conditions.</p></li>
-</ul>
-<p><strong>Objective</strong>: Display some random spectra from the dataset to visually assess the intensity variations and determine whether normalization is necessary for this analysis.</p>
+<section id="normalization-a-preprocessing-decision" class="level3">
+<h3 class="anchored" data-anchor-id="normalization-a-preprocessing-decision">Normalization: a preprocessing decision</h3>
+<p>Whether to normalize the spectra is the one preprocessing choice that is really a modeling choice, and it cuts both ways.</p>
+<p>Normalizing removes instrumental variation — laser power, integration time, focus, detector response — so that what differs between two spectra is chemistry rather than measurement conditions. Not normalizing preserves the proportionality between peak height and concentration, which is the physical relationship a quantitative regression is built on.</p>
+<p>Before deciding, it is worth looking at the raw intensities: how much do they vary between spectra, and is that variation large enough to need correcting?</p>
 <div id="13d916ef" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">"""</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co">Display some random spectra from the dataset</span></span>
@@ -2119,72 +2094,45 @@ p &amp; \text{if } y_i &gt; z_i \text{ (points above baseline)} \\
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_ml-cell-5-output-1.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_ml-cell-5-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12"><img src="raman_files/figure-html/notebooks-_ml-cell-5-output-1.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_ml-cell-5-output-2.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_ml-cell-5-output-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-13"><img src="raman_files/figure-html/notebooks-_ml-cell-5-output-2.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
 </div>
 </section>
 <section id="discussion-normalization-in-the-preprocessing-pipeline" class="level3">
-<h3 class="anchored" data-anchor-id="discussion-normalization-in-the-preprocessing-pipeline">Discussion: Normalization in the Preprocessing Pipeline</h3>
-<p>We observe that without normalization, spectral intensities can reach very high values (e.g., ~350 arbitrary units), which is problematic for machine learning models that expect scaled data. However, choosing the appropriate normalization method is challenging due to noise and subtle spectral variations that must be preserved for quantitative analysis.</p>
-<p>Variations in overall spectral intensity can result from several instrumental factors:</p>
-<ul>
-<li><strong>Laser power fluctuations</strong>: Changes in laser output power between measurements</li>
-<li><strong>Focusing/sampling position</strong>: Variations in sample positioning and laser focus</li>
-<li><strong>Integration time</strong>: Differences in measurement duration</li>
-<li><strong>Detector response</strong>: Variations in detector sensitivity or calibration</li>
-</ul>
-<p>Normalization corrects for these instrumental effects, ensuring that differences between spectra reflect <strong>chemical composition</strong> rather than <strong>measurement artifacts</strong>.</p>
+<h3 class="anchored" data-anchor-id="discussion-normalization-in-the-preprocessing-pipeline">Discussion: normalization in the preprocessing pipeline</h3>
+<p>Unnormalized intensities reach values around 350 in arbitrary units, large enough to cause trouble for models that expect inputs on a comparable scale. Some normalization is therefore needed. Choosing which is the harder question, since the spectra also carry noise and subtle features that the chosen method must not flatten.</p>
+<p>The variation to be corrected comes from the instrument rather than the sample: fluctuations in laser output power, differences in sample positioning and laser focus, differences in measurement duration, and variations in detector sensitivity or calibration. Correcting it is what makes differences between spectra reflect composition rather than measurement conditions.</p>
 <section id="common-normalization-methods" class="level4">
-<h4 class="anchored" data-anchor-id="common-normalization-methods">Common Normalization Methods</h4>
-<p><strong>1. Area Under the Curve (AUC) Scaling</strong></p>
-<ul>
-<li><strong>What it does:</strong> Divides each spectrum by its total area, making all spectra have area = 1.</li>
-<li><strong>Why it’s problematic for regression:</strong> Destroys concentration information. Stronger peaks (indicating higher concentration) lead to a larger total area, but AUC scaling erases this difference by forcing all spectra to have the same area.</li>
-<li><strong>Best for:</strong> Classification tasks (focus on spectral shape, not absolute intensity). <strong>Avoid for regression.</strong></li>
-</ul>
-<p><strong>2. MinMax Scaling</strong></p>
-<ul>
-<li><strong>What it does:</strong> Scales each spectrum so its minimum is 0 and maximum is 1.</li>
-<li><strong>Problems for regression:</strong>
-<ul>
-<li>Scaling depends on the highest point, which may be a compound peak, solvent peak, or noise artifact.</li>
-<li>Inconsistent scaling between samples distorts the linear relationship between peak height and concentration.</li>
-<li>Different samples may have different scaling factors, making quantitative comparisons difficult.</li>
-</ul></li>
-<li><strong>Best for:</strong> Some ML classification tasks. <strong>Use with caution for regression.</strong></li>
-</ul>
-<p><strong>3. Internal Standard Normalization (Preferred for Quantitative Analysis)</strong></p>
-<ul>
-<li><p><strong>What it is:</strong> Normalize by dividing the analyte peak(s) by a stable reference peak (from a constant component or added internal standard).</p></li>
-<li><p><strong>Why it’s best:</strong> Corrects for experimental variations (laser power, integration time, focus, detector response) while preserving the linear relationship needed for regression.</p></li>
-<li><p><strong>Formula:</strong></p>
-<pre><code>Normalized Signal = (Analyte Peak Intensity) / (Standard Peak Intensity)</code></pre></li>
-<li><p><strong>Best for:</strong> Quantitative analysis and regression.</p></li>
-</ul>
+<h4 class="anchored" data-anchor-id="common-normalization-methods">Common normalization methods</h4>
+<p><strong>Area under the curve.</strong> Divides each spectrum by its total area, so that every spectrum ends up with area 1. This destroys exactly the information a regression needs: a higher concentration produces stronger peaks and therefore a larger area, and AUC scaling erases that difference by construction. Reasonable for classification, where only shape matters; unsuitable for regression.</p>
+<p><strong>MinMax scaling.</strong> Maps each spectrum to the range [0, 1]. Less destructive than AUC scaling, but the scale factor depends on whichever point happens to be the maximum, which may be an analyte band, a solvent band, or a noise artifact. Different samples then receive different scale factors, which distorts the linear relation between peak height and concentration.</p>
+<p><strong>Internal standard normalization.</strong> Divides the analyte bands by a stable reference band, taken from a constant component or from a deliberately added internal standard:</p>
+<pre><code>Normalized signal = (analyte peak intensity) / (standard peak intensity)</code></pre>
+<p>This corrects for the instrumental variations listed above while leaving the height-to-concentration relation intact. It is the right answer for quantitative work, provided a suitable reference band exists.</p>
 </section>
 <section id="summary-table" class="level4">
-<h4 class="anchored" data-anchor-id="summary-table">Summary Table</h4>
+<h4 class="anchored" data-anchor-id="summary-table">Summary table</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 13%">
-<col style="width: 17%">
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 18%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Method</th>
-<th>What it Does</th>
+<th>What it does</th>
 <th>Pro</th>
 <th>Con</th>
 <th>Best for</th>
@@ -2192,76 +2140,52 @@ p &amp; \text{if } y_i &gt; z_i \text{ (points above baseline)} \\
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>AUC Scaling</strong></td>
-<td>Area = 1 for all spectra</td>
-<td>Focuses on shape</td>
-<td><strong>Destroys intensity info</strong></td>
+<td>Area under the curve</td>
+<td>Area = 1 for every spectrum</td>
+<td>Isolates shape</td>
+<td>Destroys intensity information</td>
 <td>Classification</td>
 </tr>
 <tr class="even">
-<td><strong>MinMax Scaling</strong></td>
-<td>Scales to [0, 1]</td>
+<td>MinMax scaling</td>
+<td>Rescales to [0, 1]</td>
 <td>Preserves relative peak heights</td>
-<td>Inconsistent; distorts quantitative info</td>
+<td>Scale factor varies from sample to sample</td>
 <td>Some classification</td>
 </tr>
 <tr class="odd">
-<td><strong>Internal Standard</strong></td>
-<td>Ratio to stable peak</td>
-<td><strong>Corrects for variations; preserves linearity</strong></td>
-<td>Requires suitable standard/peak</td>
-<td><strong>Regression, quantitative</strong></td>
+<td>Internal standard</td>
+<td>Ratio to a stable band</td>
+<td>Corrects instrumental variation, preserves linearity</td>
+<td>Requires a suitable reference band</td>
+<td>Regression</td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="decision" class="level4">
 <h4 class="anchored" data-anchor-id="decision">Decision</h4>
-<p>Unfortunately, internal standard normalization is difficult to implement in this context due to the lack of a suitable reference peak or internal standard in the dataset. Since we need to normalize the spectra due to very high intensity values that would otherwise cause numerical issues in the models, we choose to apply <strong>MinMax scaling</strong> while being aware of its limitations for quantitative regression tasks. This represents a pragmatic compromise between correcting for instrumental variations and preserving as much quantitative information as possible.</p>
+<p>This dataset offers no suitable reference band, so internal standard normalization is not available. Since the raw intensities do need scaling, we settle on MinMax as a compromise, aware that it ties the scale of each spectrum to a single point. This is a known weakness of the models fitted below rather than a solved problem.</p>
 </section>
 </section>
 <section id="machine-learning-approach" class="level3">
-<h3 class="anchored" data-anchor-id="machine-learning-approach">Machine Learning Approach</h3>
-<p>We now train PLS regression models for concentration prediction, analyzing each instrument separately to account for instrument-specific spectral characteristics.</p>
-<section id="quantitative-modeling" class="level4">
-<h4 class="anchored" data-anchor-id="quantitative-modeling">1. Quantitative Modeling</h4>
-<p><strong>Model Choice:</strong></p>
-<ul>
-<li><strong>Partial Least Squares (PLS) Regression</strong> is the industry standard for spectroscopic data analysis. It effectively handles:
-<ul>
-<li><strong>High dimensionality</strong>: Many wavenumbers (features) relative to the number of samples</li>
-<li><strong>Severe multicollinearity</strong>: Highly correlated spectral features (adjacent wavenumbers are typically very similar)</li>
-<li><strong>Noise reduction</strong>: Projects data onto a lower-dimensional space of latent variables</li>
-</ul></li>
-<li>PLS finds latent variables (components) that <strong>maximize covariance</strong> between spectra (X) and concentrations (Y), making it ideal for quantitative prediction tasks.</li>
-</ul>
-<p><strong>Validation Strategy:</strong></p>
-<ul>
-<li>Use <strong>GroupKFold cross-validation</strong> with the sample <code>fold_idx</code> ID as the grouping variable.</li>
-<li>This ensures that spectra from the same sample are <strong>not split across training and validation sets</strong>, providing a more realistic performance estimate that accounts for sample-to-sample variation.</li>
-<li>This approach prevents data leakage and gives a better estimate of how the model will perform on truly unseen samples.</li>
-</ul>
-<p><strong>Hyperparameter Tuning:</strong></p>
-<ul>
-<li>The key parameter for PLS is the <strong>number of latent variables (components)</strong>.</li>
-<li>Train models with increasing numbers of components (1-20) and select the number that yields the lowest <strong>Root Mean Squared Error of Cross-Validation (RMSECV)</strong>.</li>
-<li>Too few components may underfit the data, while too many may overfit to noise.</li>
-</ul>
+<h3 class="anchored" data-anchor-id="machine-learning-approach">Machine learning approach</h3>
+<p>With the spectra preprocessed, the models can be fitted, one instrument at a time.</p>
+<section id="model-choice" class="level4">
+<h4 class="anchored" data-anchor-id="model-choice">Model choice</h4>
+<p>PLS regression is the standard tool for spectroscopic calibration, because it is built for precisely the difficulties this data presents. There are far more wavenumbers than samples, and adjacent wavenumbers are almost perfectly correlated, so ordinary least squares is not merely unstable but undefined. PLS sidesteps this by projecting the spectra onto a small number of latent components chosen to maximize covariance with the concentrations, and regressing on those instead. The projection doubles as a noise filter, since directions that covary with nothing useful are simply never retained.</p>
 </section>
-<section id="model-evaluation-interpretation" class="level4">
-<h4 class="anchored" data-anchor-id="model-evaluation-interpretation">2. Model Evaluation &amp; Interpretation</h4>
-<p><strong>Performance Metrics:</strong></p>
-<ul>
-<li>Evaluate the final model using the optimal number of components.</li>
-<li>Calculate <strong>R²</strong> (coefficient of determination) and <strong>RMSE</strong> (Root Mean Squared Error) from cross-validated predictions.</li>
-<li>R² indicates the proportion of variance explained by the model (closer to 1 is better).</li>
-<li>RMSE indicates the average prediction error in concentration units (g/L).</li>
-</ul>
-<p><strong>Visualization:</strong></p>
-<ul>
-<li>Generate <strong>Predicted vs.&nbsp;Actual</strong> plots to provide a clear visual assessment of model performance.</li>
-<li>Inspect <strong>PLS loadings</strong> to identify which spectral regions (wavenumbers) the model uses for predictions, enabling chemical interpretation and validation of the model’s behavior.</li>
-</ul>
+<section id="validation-strategy" class="level4">
+<h4 class="anchored" data-anchor-id="validation-strategy">Validation strategy</h4>
+<p>Cross-validation uses <code>GroupKFold</code> with <code>fold_idx</code> as the grouping variable, so that replicate spectra of one sample never straddle the training/validation split. Without grouping, a model could recognize a sample it had already seen under another replicate, and the score would measure memorization rather than generalization to new samples.</p>
+</section>
+<section id="hyperparameter-tuning" class="level4">
+<h4 class="anchored" data-anchor-id="hyperparameter-tuning">Hyperparameter tuning</h4>
+<p>The number of latent components is the only real hyperparameter. Too few underfit; too many begin fitting noise. We scan 1 to 20 components and keep the value minimizing the root mean squared error of cross-validation (RMSECV).</p>
+</section>
+<section id="evaluation-and-interpretation" class="level4">
+<h4 class="anchored" data-anchor-id="evaluation-and-interpretation">Evaluation and interpretation</h4>
+<p>The selected model is scored by R² and RMSE on the cross-validated predictions: R² gives the fraction of variance explained, RMSE the average error in g/L, which is the number that matters practically. Predicted-versus-actual plots show where a model fails rather than only how much, and the PLS loadings show which spectral regions drive its predictions — enough to check that it relies on the bands it ought to rather than on an artifact.</p>
 <div id="e7d2832a" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Loading the data</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -2678,7 +2602,7 @@ Optimal number of PLS components found: 12</code></pre>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_ml-cell-8-output-2.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_ml-cell-8-output-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14"><img src="raman_files/figure-html/notebooks-_ml-cell-8-output-2.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
@@ -2756,7 +2680,7 @@ Mg_SO4:
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_ml-cell-9-output-2.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_ml-cell-9-output-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-15"><img src="raman_files/figure-html/notebooks-_ml-cell-9-output-2.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
@@ -2791,7 +2715,7 @@ Mg_SO4:
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_ml-cell-10-output-1.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_ml-cell-10-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-16"><img src="raman_files/figure-html/notebooks-_ml-cell-10-output-1.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
@@ -3035,7 +2959,7 @@ Training PLS model for Mg_SO4
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_ml-cell-11-output-2.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_ml-cell-11-output-2.png" class="lightbox" data-gallery="quarto-lightbox-gallery-17"><img src="raman_files/figure-html/notebooks-_ml-cell-11-output-2.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
@@ -3054,7 +2978,7 @@ Mg_SO4                     0.7974            0.8131        +0.0157         0.615
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="raman_files/figure-html/notebooks-_ml-cell-11-output-4.png" class="img-fluid figure-img"></p>
+<p><a href="raman_files/figure-html/notebooks-_ml-cell-11-output-4.png" class="lightbox" data-gallery="quarto-lightbox-gallery-18"><img src="raman_files/figure-html/notebooks-_ml-cell-11-output-4.png" class="img-fluid figure-img"></a></p>
 </figure>
 </div>
 </div>
@@ -3064,154 +2988,119 @@ Mg_SO4                     0.7974            0.8131        +0.0157         0.615
 </section>
 <section id="conclusion" class="level2">
 <h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
-<p>This notebook demonstrates the development of <strong>Partial Least Squares (PLS) regression models</strong> for predicting concentrations of glucose, Na_acetate, and Mg_SO4 from Raman spectra. The following summarizes key findings and decisions:</p>
+<p>This notebook fitted PLS regression models predicting the concentrations of glucose, sodium acetate, and magnesium sulfate from Raman spectra recorded on the <code>anton_532</code> instrument.</p>
 <section id="preprocessing-pipeline" class="level3">
-<h3 class="anchored" data-anchor-id="preprocessing-pipeline">Preprocessing Pipeline</h3>
-<p><strong>Spectral Preprocessing Steps:</strong></p>
-<ol type="1">
-<li><strong>Cropping</strong> to the fingerprint region (300-1942 cm⁻¹) to focus on the most informative spectral region</li>
-<li><strong>Cosmic ray removal</strong> using the Whitaker-Hayes algorithm to eliminate spurious high-intensity spikes</li>
-<li><strong>Savitzky-Golay smoothing</strong> (window length=9, polynomial order=3) to reduce high-frequency noise</li>
-<li><strong>Baseline correction</strong> using Adaptive Smoothing Parameter Least Squares (ASPLS) to remove fluorescence background</li>
-</ol>
-<p><strong>Normalization:</strong></p>
-<ul>
-<li><strong>MinMax normalization</strong> was applied despite its limitations for regression tasks. This choice was necessary to handle high intensity variations (values reaching ~350 arbitrary units), as internal standard normalization was not feasible in this context due to the lack of a suitable reference peak.</li>
-</ul>
+<h3 class="anchored" data-anchor-id="preprocessing-pipeline">Preprocessing pipeline</h3>
+<p>Spectra were cropped to 300–1942 cm⁻¹, the largest range common to all eight instruments; despiked with the Whitaker–Hayes algorithm to remove cosmic-ray artifacts; smoothed with a Savitzky–Golay filter (window length 9, polynomial order 3); and baseline-corrected with adaptive smoothness penalized least squares (asPLS) to remove the fluorescence background.</p>
+<p>MinMax normalization was applied last. It is not the right choice for quantitative work, but the raw intensities reach values around 350 in arbitrary units and do need scaling, and the dataset provides no reference band on which to base an internal standard.</p>
 </section>
 <section id="modeling-approach" class="level3">
-<h3 class="anchored" data-anchor-id="modeling-approach">Modeling Approach</h3>
-<p>Two modeling strategies were compared:</p>
-<p><strong>1. Single Multi-Output PLS Model</strong></p>
-<ul>
-<li>One PLS model predicting all three targets simultaneously</li>
-<li>Optimal components: 12</li>
-<li>Overall R²: 0.34, RMSE: 1.50 g/L</li>
-<li>Individual performance varied significantly across targets</li>
-</ul>
-<p><strong>2. Separate PLS Models Per Target</strong></p>
-<ul>
-<li>Independent PLS models for each compound with individually optimized component counts</li>
-<li><strong>Glucose</strong>: 8 components, R²: 0.39, RMSE: 3.35 g/L</li>
-<li><strong>Na_acetate</strong>: 4 components, R²: 0.02, RMSE: 0.50 g/L<br>
-</li>
-<li><strong>Mg_SO4</strong>: 4 components, R²: 0.81, RMSE: 0.59 g/L</li>
-</ul>
+<h3 class="anchored" data-anchor-id="modeling-approach">Modeling approach</h3>
+<p>Two strategies were compared, each selecting its component count by grouped cross-validation.</p>
+<p>A single multi-output model predicting all three analytes at once settled on 12 components, for an overall R² of 0.34 and an RMSE of 1.50 g/L. That aggregate hides a wide spread: R² 0.39 for glucose, 0.80 for magnesium sulfate, and <strong>−0.17</strong> for sodium acetate — worse than predicting the mean.</p>
+<p>Fitting one model per analyte gives 8 components and R² 0.39 (RMSE 3.35 g/L) for glucose, 4 components and R² 0.02 (RMSE 0.50 g/L) for sodium acetate, and 4 components and R² 0.81 (RMSE 0.59 g/L) for magnesium sulfate.</p>
 </section>
 <section id="key-insights" class="level3">
-<h3 class="anchored" data-anchor-id="key-insights">Key Insights</h3>
-<ol type="1">
-<li><p><strong>Separate models provide superior interpretability</strong>: Each target has its own loadings that clearly show which spectral regions are important for that specific compound, making the models more interpretable and chemically meaningful.</p></li>
-<li><p><strong>Independent optimization is beneficial</strong>: Different targets require different numbers of components (8 for glucose vs.&nbsp;4 for Na_acetate and Mg_SO4), demonstrating that separate models allow for better hyperparameter tuning tailored to each compound’s spectral characteristics.</p></li>
-<li><p><strong>Performance varies significantly by compound</strong>:</p>
-<ul>
-<li><strong>Mg_SO4</strong> shows <strong>excellent</strong> predictive performance (R² = 0.81), indicating strong, distinct spectral signatures that are easily captured by the model.</li>
-<li><strong>Glucose</strong> shows <strong>moderate</strong> performance (R² = 0.39), suggesting some predictive capability but with room for improvement through feature engineering or alternative preprocessing.</li>
-<li><strong>Na_acetate</strong> shows <strong>poor</strong> performance (R² ≈ 0.02), indicating weak or overlapping spectral features that may require additional preprocessing, feature selection, or alternative modeling approaches.</li>
-</ul></li>
-<li><p><strong>Model selection recommendation</strong>: For production use, <strong>separate PLS models per target are recommended</strong> due to their:</p>
-<ul>
-<li>Improved interpretability through target-specific loadings</li>
-<li>Independent optimization capabilities for each compound</li>
-<li>Ability to focus on compound-specific spectral regions</li>
-</ul></li>
-</ol>
+<h3 class="anchored" data-anchor-id="key-insights">Key insights</h3>
+<p>The gap between the two strategies is narrower than it first looks, and concentrated in one place. Glucose is marginally <em>worse</em> with a dedicated model (0.386 against 0.392) and magnesium sulfate marginally better (0.813 against 0.797); both differences are within noise. The whole of the gain is on sodium acetate, which moves from −0.17 to 0.02. Made to share twelve components with two analytes that dominate the covariance, the joint model actively degraded its weakest target; given four components of its own, it merely fails to predict it.</p>
+<p>The second argument for separate models is interpretability: each carries its own loadings, which can be read against known band positions instead of mixing three chemistries into one shared set of components.</p>
+<p>The spread in performance follows the spectroscopy rather than anything about the models. MgSO₄ predicts well because it has a strong, isolated band near 980 cm⁻¹. Glucose is moderate: its bands between 800 and 1150 cm⁻¹ are present but overlapping. Sodium acetate does not predict at all — its band near 920 cm⁻¹ is weak and crowded by its neighbors, and an R² of 0.02 is indistinguishable from zero. For acetate, every component count other than 4 gives a <em>negative</em> R², which is the signature of a model fitting noise rather than one that needs tuning.</p>
+<p>That is also where to go next. Better results for acetate would come from a preprocessing or feature-selection step that isolates its band, or from a model able to exploit the joint structure of the three analytes — not from adding components.</p>
 </section>
 </section>
-<a class="quarto-notebook-link" id="nblink-2" href="notebooks/_ml-preview.html#0fd619c2">Source: Raman Challenge: Machine Learning Model for Concentration Prediction</a></div>
-<section id="sec-pls-canonical" class="level2">
-<h2 class="anchored" data-anchor-id="sec-pls-canonical">PLS Canonical (PLSW2A) Algorithm</h2>
-<section id="overview" class="level3">
-<h3 class="anchored" data-anchor-id="overview">Overview</h3>
-<p><a href="https://scikit-learn.org/stable/modules/cross_decomposition.html#cross-decomposition"><strong>PLS Canonical</strong></a> (also known as <strong>PLSW2A</strong>) is a method for finding low-dimensional projections of two data matrices <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> that maximize the covariance between their projected representations. Given two centered data matrices <span class="math inline">\(X \in \mathbb{R}^{n \times p}\)</span> and <span class="math inline">\(Y \in \mathbb{R}^{n \times q}\)</span>, and a desired number of latent components <span class="math inline">\(K\)</span>, the objective is to find projections that maximize shared covariance while allowing reconstruction of both <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> from latent components.</p>
-<p><strong>PLS Canonical</strong> focuses on <strong>symmetric covariance maximization</strong> between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, treating both matrices equally. This distinguishes it from <strong>PLS Regression</strong>, which focuses on <strong>predicting</strong> <span class="math inline">\(Y\)</span> from <span class="math inline">\(X\)</span>. The key algorithmic differences are:</p>
-<ol type="1">
-<li>In PLS Regression, the <span class="math inline">\(Y\)</span>-weight vector <span class="math inline">\(c_k\)</span> is never normalized (no unit length constraint);</li>
-<li>PLS Regression regresses <span class="math inline">\(Y_{k-1}\)</span> on <span class="math inline">\(X\)</span>-scores <span class="math inline">\(t_k\)</span> instead of <span class="math inline">\(Y\)</span>-scores <span class="math inline">\(u_k\)</span>:</li>
-</ol>
+<a class="quarto-notebook-link" id="nblink-2" href="notebooks/_ml-preview.html#0fd619c2">Source: Raman challenge: machine learning model for concentration prediction</a></div>
+<section id="sec-pls-regression" class="level2">
+<h2 class="anchored" data-anchor-id="sec-pls-regression">PLS regression</h2>
+<section id="the-problem" class="level3">
+<h3 class="anchored" data-anchor-id="the-problem">The problem</h3>
+<p>A preprocessed spectrum has as many features as it has wavenumbers, and the dataset has far fewer samples than that. Worse, adjacent wavenumbers are almost perfectly correlated, so the design matrix is severely rank-deficient and ordinary least squares is not merely unstable but undefined. Partial least squares is the standard chemometrics answer, and the baseline against which <span class="citation" data-cites="LANGE2025125861">(<a href="#ref-LANGE2025125861" role="doc-biblioref">Lange et al. 2025</a>)</span> measures everything else: rather than regressing on the wavenumbers, it builds a small number of latent components chosen to have maximal covariance with the targets, and regresses on those.</p>
+<p>Formally, given centered data matrices <span class="math inline">\(X \in \mathbb{R}^{n \times p}\)</span> and <span class="math inline">\(Y \in \mathbb{R}^{n \times q}\)</span> and a number of components <span class="math inline">\(K\)</span>, we seek a low-dimensional representation of <span class="math inline">\(X\)</span> that both reconstructs <span class="math inline">\(X\)</span> and predicts <span class="math inline">\(Y\)</span>. Here <span class="math inline">\(n\)</span> is the number of spectra, <span class="math inline">\(p\)</span> the number of wavenumbers, <span class="math inline">\(q = 3\)</span> the number of analytes, and <span class="math inline">\(K\)</span> is chosen by cross-validation.</p>
+<p>Two variants are worth distinguishing, because scikit-learn implements both and they are easily confused. <a href="https://scikit-learn.org/stable/modules/cross_decomposition.html#cross-decomposition"><code>PLSCanonical</code></a>, also known as PLSW2A, treats <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> symmetrically and is a decomposition method. <a href="https://scikit-learn.org/stable/modules/generated/sklearn.cross_decomposition.PLSRegression.html"><code>PLSRegression</code></a>, the one used in the notebook and derived below, breaks that symmetry deliberately in order to predict <span class="math inline">\(Y\)</span> from <span class="math inline">\(X\)</span>. The difference reduces to two changes in the algorithm, both appearing in step (c) and step (d) below: the <span class="math inline">\(Y\)</span>-weights are not normalized, and <span class="math inline">\(Y\)</span> is regressed and deflated on the <span class="math inline">\(X\)</span>-scores rather than on its own.</p>
+</section>
+<section id="the-algorithm" class="level3">
+<h3 class="anchored" data-anchor-id="the-algorithm">The algorithm</h3>
+<p>Start from <span class="math inline">\(X_0 = X\)</span> and <span class="math inline">\(Y_0 = Y\)</span>, both column-centered and, with scikit-learn’s default <code>scale=True</code>, scaled to unit variance. For each component <span class="math inline">\(k = 1, \dots, K\)</span>:</p>
+<p><strong>(a) Weights.</strong> Form the cross-covariance matrix <span class="math inline">\(C_k = X_{k-1}^\top Y_{k-1}\)</span> and take its leading singular pair,</p>
 <p><span class="math display">\[
-q_k = \frac{Y_{k-1}^\top t_k}{t_k^\top t_k} \quad \text{(PLS Regression)}
-\]</span> versus: <span class="math display">\[
-q_k = \frac{Y_{k-1}^\top u_k}{u_k^\top u_k} \quad \text{(PLS Canonical)}
+(w_k, c_k) = \arg\max_{\|w\| = 1} w^\top C_k c ,
 \]</span></p>
-</section>
-<section id="algorithm" class="level3">
-<h3 class="anchored" data-anchor-id="algorithm">Algorithm</h3>
-<p>The algorithm initializes with <span class="math inline">\(X_0 = X\)</span> and <span class="math inline">\(Y_0 = Y\)</span>. For each component <span class="math inline">\(k = 1, \dots, K\)</span>, the following steps are performed iteratively.</p>
-<p><strong>Step (a): Compute Weights via Covariance Maximization.</strong> Compute the cross-covariance matrix <span class="math inline">\(C_k = X_{k-1}^\top Y_{k-1}\)</span> and find the top left and right singular vectors: <span class="math display">\[
-(w_k, c_k) = \arg\max_{\|w\|=\|c\|=1} w^\top C_k c
+<p>with <span class="math inline">\(w_k \in \mathbb{R}^p\)</span> constrained to unit norm and <span class="math inline">\(c_k \in \mathbb{R}^q\)</span> left unnormalized. These are the directions in the two spaces whose projections covary most. They can be obtained by a full SVD of <span class="math inline">\(C_k\)</span> or, as scikit-learn does by default, by power iteration (NIPALS).</p>
+<p><strong>(b) Scores.</strong> Project the data onto the weights,</p>
+<p><span class="math display">\[
+t_k = X_{k-1} w_k \in \mathbb{R}^n ,
+\qquad
+u_k = \frac{Y_{k-1} c_k}{c_k^\top c_k} \in \mathbb{R}^n .
 \]</span></p>
-<p>These are obtained from the singular value decomposition of <span class="math inline">\(C_k\)</span>, where <span class="math inline">\(w_k \in \mathbb{R}^p\)</span> is the <span class="math inline">\(X\)</span>-weight vector and <span class="math inline">\(c_k \in \mathbb{R}^q\)</span> is the <span class="math inline">\(Y\)</span>-weight vector. These directions define projections of <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> that maximize their covariance. Implementation options include full SVD of <span class="math inline">\(X_{k-1}^\top Y_{k-1}\)</span> or power iteration (NIPALS algorithm).</p>
-<p><strong>Step (b): Compute Scores.</strong> Project data onto the weight vectors: <span class="math display">\[
-t_k = X_{k-1} w_k \quad \in \mathbb{R}^n \quad \text{($X$-score)}
-\]</span> <span class="math display">\[
-u_k = Y_{k-1} c_k \quad \in \mathbb{R}^n \quad \text{($Y$-score)}
+<p>The scores are the coordinates of the samples in the latent space. The <span class="math inline">\(X\)</span>-score <span class="math inline">\(t_k\)</span> does all the work below; <span class="math inline">\(u_k\)</span> is exposed by scikit-learn as <code>y_scores_</code> but takes no part in either the deflation or the prediction, which is the whole point of regression mode.</p>
+<p><strong>(c) Loadings.</strong> Regress the original variables on the <span class="math inline">\(X\)</span>-score:</p>
+<p><span class="math display">\[
+p_k = \frac{X_{k-1}^\top t_k}{t_k^\top t_k} \in \mathbb{R}^p ,
+\qquad
+q_k = \frac{Y_{k-1}^\top t_k}{t_k^\top t_k} \in \mathbb{R}^q .
 \]</span></p>
-<p>Scores are the sample coordinates in the shared latent space.</p>
-<p><strong>Step (c): Compute Loadings via Regression.</strong> Regress original variables onto their respective scores: <span class="math display">\[
-p_k = \frac{X_{k-1}^\top t_k}{t_k^\top t_k} \quad \in \mathbb{R}^p \quad \text{($X$-loading)}
-\]</span> <span class="math display">\[
-q_k = \frac{Y_{k-1}^\top u_k}{u_k^\top u_k} \quad \in \mathbb{R}^q \quad \text{($Y$-loading)}
+<p>Both loadings use <span class="math inline">\(t_k\)</span>. This is the asymmetry that defines <code>PLSRegression</code>: <code>PLSCanonical</code> would compute <span class="math inline">\(q_k = Y_{k-1}^\top u_k / (u_k^\top u_k)\)</span>, treating each block on its own terms. Here <span class="math inline">\(Y\)</span> is described entirely through the latent variables extracted from <span class="math inline">\(X\)</span>, which is what a predictive model needs.</p>
+<p><strong>(d) Deflation.</strong> Subtract the rank-one structure just extracted,</p>
+<p><span class="math display">\[
+X_k = X_{k-1} - t_k p_k^\top ,
+\qquad
+Y_k = Y_{k-1} - t_k q_k^\top .
 \]</span></p>
-<p>Loadings indicate how each original variable contributes to the latent component and provide the best rank-1 reconstruction of the deflated data.</p>
-<p><strong>Step (d): Deflation.</strong> Remove the extracted rank-1 structure: <span class="math display">\[
-X_k = X_{k-1} - t_k p_k^\top
-\]</span> <span class="math display">\[
-Y_k = Y_{k-1} - u_k q_k^\top
-\]</span></p>
-<p>Deflation ensures each subsequent component captures new, orthogonal covariance structure.</p>
+<p>Again both use <span class="math inline">\(t_k\)</span>. Deflation is what guarantees that the next component finds covariance structure that the previous ones did not already explain.</p>
 </section>
 <section id="matrix-decompositions" class="level3">
-<h3 class="anchored" data-anchor-id="matrix-decompositions">Matrix Decompositions</h3>
-<p>After extracting <span class="math inline">\(K\)</span> components, we obtain low-rank approximations. For <span class="math inline">\(X\)</span>: <span class="math display">\[
-X \approx T P^\top
+<h3 class="anchored" data-anchor-id="matrix-decompositions">Matrix decompositions</h3>
+<p>Collecting the <span class="math inline">\(K\)</span> components into matrices gives two low-rank approximations,</p>
+<p><span class="math display">\[
+X \approx T P^\top ,
+\qquad
+Y \approx T Q^\top ,
 \]</span></p>
-<p>where <span class="math inline">\(T = [t_1, \dots, t_K] \in \mathbb{R}^{n \times K}\)</span> is the <span class="math inline">\(X\)</span>-score matrix and <span class="math inline">\(P = [p_1, \dots, p_K] \in \mathbb{R}^{p \times K}\)</span> is the <span class="math inline">\(X\)</span>-loading matrix. For <span class="math inline">\(Y\)</span>: <span class="math display">\[
-Y \approx U Q^\top
-\]</span></p>
-<p>where <span class="math inline">\(U = [u_1, \dots, u_K] \in \mathbb{R}^{n \times K}\)</span> is the <span class="math inline">\(Y\)</span>-score matrix and <span class="math inline">\(Q = [q_1, \dots, q_K] \in \mathbb{R}^{q \times K}\)</span> is the <span class="math inline">\(Y\)</span>-loading matrix.</p>
+<p>with <span class="math inline">\(T = [t_1, \dots, t_K] \in \mathbb{R}^{n \times K}\)</span>, <span class="math inline">\(P = [p_1, \dots, p_K] \in \mathbb{R}^{p \times K}\)</span>, and <span class="math inline">\(Q = [q_1, \dots, q_K] \in \mathbb{R}^{q \times K}\)</span>.</p>
+<p>The same <span class="math inline">\(T\)</span> appears in both. Spectra and concentrations are expressed in one shared coordinate system, and prediction amounts to reading a sample’s coordinates off its spectrum and evaluating the second decomposition. This is what makes PLS loadings chemically interpretable: a column of <span class="math inline">\(P\)</span> shows which spectral regions define a component, and the corresponding column of <span class="math inline">\(Q\)</span> shows what that component says about each analyte.</p>
 </section>
-<section id="rotation-matrices" class="level3">
-<h3 class="anchored" data-anchor-id="rotation-matrices">Rotation Matrices</h3>
-<p>During training, we compute scores iteratively on deflated data. For new data <span class="math inline">\(X_{\text{new}}\)</span>, we need a single transformation that maps directly from the original space to scores <strong>without re-running the deflation algorithm</strong>. We seek a matrix <span class="math inline">\(R_x \in \mathbb{R}^{p \times K}\)</span> such that <span class="math inline">\(T = X R_x\)</span>, and then for new data: <span class="math inline">\(T_{\text{new}} = X_{\text{new}} R_x\)</span>.</p>
-<p>One might expect <span class="math inline">\(T = XW\)</span> where <span class="math inline">\(W = [w_1, \dots, w_K]\)</span>, but this is <strong>incorrect</strong> after the first component because each <span class="math inline">\(w_k\)</span> was computed on <strong>deflated data</strong> <span class="math inline">\(X_{k-1}\)</span> while <span class="math inline">\(X\)</span> is the <strong>original, undeflated data</strong>. Deflation breaks the direct relationship between weights and scores, so <span class="math inline">\(XW \neq T\)</span> in general.</p>
-<p>From the decomposition <span class="math inline">\(X \approx TP^\top\)</span>, multiply both sides by <span class="math inline">\(W\)</span>: <span class="math inline">\(XW \approx TP^\top W\)</span>. Since <span class="math inline">\(P^\top W \in \mathbb{R}^{K \times K}\)</span> is invertible in PLS Canonical, we have <span class="math inline">\(T = XW(P^\top W)^{-1}\)</span>. Define the <strong><span class="math inline">\(X\)</span>-rotation matrix</strong>: <span class="math display">\[
-R_x = W(P^\top W)^{-1}
+<section id="the-rotation-matrix" class="level3">
+<h3 class="anchored" data-anchor-id="the-rotation-matrix">The rotation matrix</h3>
+<p>During fitting, the scores are computed sequentially on deflated data. For a new spectrum we need a single matrix <span class="math inline">\(R_x \in \mathbb{R}^{p \times K}\)</span> with <span class="math inline">\(T = X R_x\)</span>, so that <span class="math inline">\(T_{\text{new}} = X_{\text{new}} R_x\)</span> without replaying the deflation.</p>
+<p>The obvious guess <span class="math inline">\(T = XW\)</span> is wrong for every component after the first, because <span class="math inline">\(w_k\)</span> was computed on <span class="math inline">\(X_{k-1}\)</span> while <span class="math inline">\(X\)</span> is undeflated; deflation breaks the direct correspondence between weights and scores. The fix follows from the decomposition. Multiplying <span class="math inline">\(X \approx TP^\top\)</span> on the right by <span class="math inline">\(W\)</span> gives <span class="math inline">\(XW \approx TP^\top W\)</span>, and since <span class="math inline">\(P^\top W \in \mathbb{R}^{K \times K}\)</span> is invertible,</p>
+<p><span class="math display">\[
+R_x = W\big(P^\top W\big)^{-1} ,
+\qquad
+T = X R_x .
 \]</span></p>
-<p>Then <span class="math inline">\(T = XR_x\)</span>. The dimensions are: <span class="math display">\[
-X \in \mathbb{R}^{n \times p}, \quad W \in \mathbb{R}^{p \times K}, \quad P \in \mathbb{R}^{p \times K}, \quad P^\top W \in \mathbb{R}^{K \times K}, \quad R_x \in \mathbb{R}^{p \times K}, \quad T \in \mathbb{R}^{n \times K}.
+<p>The dimensions run</p>
+<p><span class="math display">\[
+X \in \mathbb{R}^{n \times p}, \quad
+W \in \mathbb{R}^{p \times K}, \quad
+P \in \mathbb{R}^{p \times K}, \quad
+P^\top W \in \mathbb{R}^{K \times K}, \quad
+R_x \in \mathbb{R}^{p \times K}, \quad
+T \in \mathbb{R}^{n \times K} .
 \]</span></p>
-<p>Intuitively, <span class="math inline">\(W\)</span> provides “raw” projections based on deflated data, <span class="math inline">\((P^\top W)^{-1}\)</span> corrects for interference between components, and <span class="math inline">\(R_x\)</span> gives the equivalent direct projection from original space.</p>
-<p>By identical reasoning, from <span class="math inline">\(Y \approx UQ^\top\)</span>: <span class="math inline">\(U = YC(Q^\top C)^{-1}\)</span>. Define the <strong><span class="math inline">\(Y\)</span>-rotation matrix</strong>: <span class="math display">\[
-R_y = C(Q^\top C)^{-1}
-\]</span></p>
-<p>where <span class="math inline">\(C = [c_1, \dots, c_K] \in \mathbb{R}^{q \times K}\)</span>. Then <span class="math inline">\(U = YR_y\)</span>. In scikit-learn, <code>x_rotations_</code> stores <span class="math inline">\(R_x\)</span> and <code>y_rotations_</code> stores <span class="math inline">\(R_y\)</span>. Geometrically, rotation matrices re-embed the sequential deflation process into a single linear transformation in the original space.</p>
+<p>Read it as a correction: <span class="math inline">\(W\)</span> gives raw projections computed on deflated data, <span class="math inline">\((P^\top W)^{-1}\)</span> compensates for the interference between successive components, and the product is the equivalent direct projection from the original space. Geometrically, the rotation matrix folds the entire sequential deflation back into a single linear map. scikit-learn stores it as <code>x_rotations_</code>, alongside the analogous <span class="math inline">\(R_y = C(Q^\top C)^{-1}\)</span> in <code>y_rotations_</code>.</p>
 </section>
-<section id="prediction-mapping-x-to-y" class="level3">
-<h3 class="anchored" data-anchor-id="prediction-mapping-x-to-y">Prediction: Mapping <span class="math inline">\(X\)</span> to <span class="math inline">\(Y\)</span></h3>
-<p>The objective is to find a coefficient matrix <span class="math inline">\(B \in \mathbb{R}^{p \times q}\)</span> such that <span class="math inline">\(\hat{Y} = XB\)</span>. The prediction follows a three-stage pipeline through the latent space.</p>
-<ol type="1">
-<li><strong>Stage 1: <span class="math inline">\(X\)</span> to <span class="math inline">\(X\)</span>-scores</strong> uses <span class="math inline">\(T = XR_x\)</span>.</li>
-<li><strong>Stage 2: <span class="math inline">\(X\)</span>-scores to <span class="math inline">\(Y\)</span>-scores (latent regression)</strong> models the relationship between latent scores as <span class="math inline">\(U \approx TG\)</span>, where <span class="math inline">\(G \in \mathbb{R}^{K \times K}\)</span> is obtained via least squares: <span class="math display">\[
-G = (T^\top T)^{-1}T^\top U
-\]</span></li>
-<li><strong>Stage 3: <span class="math inline">\(Y\)</span>-scores to <span class="math inline">\(Y\)</span> (reconstruction)</strong> uses the decomposition <span class="math inline">\(Y \approx UQ^\top\)</span> to get <span class="math inline">\(\hat{Y} = UQ^\top\)</span>. Combining all stages: <span class="math display">\[
-\hat{Y} = XR_x \cdot G \cdot Q^\top
-\]</span> Therefore, the coefficient matrix is: <span class="math display">\[
-B = R_x G Q^\top
-\]</span> In scikit-learn, this is stored in the <code>coef_</code> attribute. The pipeline summary is: <span class="math display">\[
-X \xrightarrow{R_x} T \xrightarrow{G} U \xrightarrow{Q^\top} \hat{Y}
-\]</span></li>
-</ol>
+<section id="prediction" class="level3">
+<h3 class="anchored" data-anchor-id="prediction">Prediction</h3>
+<p>Everything needed is now in place. Scores come from the spectrum through <span class="math inline">\(T = X R_x\)</span>, and concentrations come from the scores through <span class="math inline">\(Y \approx T Q^\top\)</span>, so</p>
+<p><span class="math display">\[
+\hat{Y} = X R_x Q^\top ,
+\qquad
+B = R_x Q^\top \in \mathbb{R}^{p \times q} ,
+\]</span></p>
+<p>and the fitted model is the single linear map <span class="math inline">\(\hat{Y} = XB\)</span>. The pipeline is</p>
+<p><span class="math display">\[
+X \;\xrightarrow{\;R_x\;}\; T \;\xrightarrow{\;Q^\top\;}\; \hat{Y} .
+\]</span></p>
+<p>There is no separate regression between the latent spaces. Because step (c) already fitted <span class="math inline">\(Y\)</span> against <span class="math inline">\(t\)</span>, the <span class="math inline">\(Y\)</span>-loadings <em>are</em> the latent regression coefficients. <code>PLSCanonical</code>, having fitted <span class="math inline">\(Y\)</span> against <span class="math inline">\(u\)</span>, needs an extra least-squares step <span class="math inline">\(U \approx TG\)</span> and predicts through <span class="math inline">\(R_x G Q^\top\)</span> instead — a third stage that regression mode makes unnecessary.</p>
+<p>In scikit-learn, <span class="math inline">\(B\)</span> is stored in <code>coef_</code> with the standardization folded in and transposed to shape <span class="math inline">\((q, p)\)</span>: <code>coef_</code> <span class="math inline">\(= (R_x Q^\top \sigma_y)^\top / \sigma_x\)</span>, with <code>intercept_</code> <span class="math inline">\(= \bar{y}\)</span>, so that <code>predict</code> evaluates <span class="math inline">\((X - \bar{x})\,\texttt{coef\_}^\top + \bar{y}\)</span>.</p>
 </section>
-<section id="summary-table-1" class="level3">
-<h3 class="anchored" data-anchor-id="summary-table-1">Summary Table</h3>
+<section id="summary" class="level3">
+<h3 class="anchored" data-anchor-id="summary">Summary</h3>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 24%">
-<col style="width: 21%">
-<col style="width: 29%">
-<col style="width: 24%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -3223,50 +3112,61 @@ X \xrightarrow{R_x} T \xrightarrow{G} U \xrightarrow{Q^\top} \hat{Y}
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Weights</strong></td>
+<td>Weights</td>
 <td><span class="math inline">\(W, C\)</span></td>
 <td><span class="math inline">\(p \times K\)</span>, <span class="math inline">\(q \times K\)</span></td>
 <td>Directions of maximal shared covariance</td>
 </tr>
 <tr class="even">
-<td><strong>Scores</strong></td>
-<td><span class="math inline">\(T, U\)</span></td>
+<td>Scores</td>
+<td><span class="math inline">\(T\)</span></td>
 <td><span class="math inline">\(n \times K\)</span></td>
-<td>Latent representations of samples</td>
+<td>Coordinates of the samples in the latent space</td>
 </tr>
 <tr class="odd">
-<td><strong>Loadings</strong></td>
+<td>Loadings</td>
 <td><span class="math inline">\(P, Q\)</span></td>
 <td><span class="math inline">\(p \times K\)</span>, <span class="math inline">\(q \times K\)</span></td>
-<td>Reconstruction directions</td>
+<td>Reconstruction of <span class="math inline">\(X\)</span> and of <span class="math inline">\(Y\)</span> from those coordinates</td>
 </tr>
 <tr class="even">
-<td><strong>Rotations</strong></td>
-<td><span class="math inline">\(R_x, R_y\)</span></td>
-<td><span class="math inline">\(p \times K\)</span>, <span class="math inline">\(q \times K\)</span></td>
-<td>Direct projection from original to latent space</td>
+<td>Rotation</td>
+<td><span class="math inline">\(R_x\)</span></td>
+<td><span class="math inline">\(p \times K\)</span></td>
+<td>Direct projection from spectra to scores</td>
 </tr>
 <tr class="odd">
-<td><strong>Coefficients</strong></td>
+<td>Coefficients</td>
 <td><span class="math inline">\(B\)</span></td>
 <td><span class="math inline">\(p \times q\)</span></td>
-<td>Prediction map <span class="math inline">\(X \to Y\)</span> via latent space</td>
+<td>The fitted linear map <span class="math inline">\(X \to Y\)</span></td>
 </tr>
 </tbody>
 </table>
-<p>The core equations are:</p>
-<p><strong>Scores from original data:</strong> <span class="math display">\[
-T = XR_x, \quad U = YR_y
-\]</span> <strong>Decompositions:</strong> <span class="math display">\[
-X \approx TP^\top, \quad Y \approx UQ^\top
-\]</span> <strong>Prediction:</strong> <span class="math display">\[
-\hat{Y} = XB \quad \text{where} \quad B = R_xGQ^\top
+<p><span class="math display">\[
+T = X R_x ,
+\qquad
+X \approx T P^\top ,
+\quad
+Y \approx T Q^\top ,
+\qquad
+\hat{Y} = XB
+\ \text{ with }\
+B = R_x Q^\top .
 \]</span></p>
-
-
-
+<p>The one hyperparameter is <span class="math inline">\(K\)</span>. Too few components underfit, too many start fitting noise, and the notebook selects it by scanning <span class="math inline">\(K = 1, \dots, 20\)</span> and minimizing the cross-validated RMSE. The folds are built with <code>GroupKFold</code> on the sample index so that replicate spectra of the same sample never straddle the train/validation split, which would otherwise leak the answer and produce an optimistic estimate of performance on genuinely new samples.</p>
 </section>
 </section>
+</section>
+<section id="sec-conclusion" class="level1">
+<h1>Conclusion</h1>
+<p>Most of the work in this post is preprocessing, and that is the honest proportion. The physics of <a href="#sec-raman-overview" class="quarto-xref">Section&nbsp;1</a> explains why: the signal is one photon in <span class="math inline">\(10^7\)</span>, riding on a fluorescence background that can be larger than it is, on a detector that cosmic rays hit. Cropping, despiking, denoising, and baseline correction are not data hygiene applied before the interesting part — they are what turns a measurement into something a linear model can be fitted to at all.</p>
+<p>The model that follows is deliberately simple, and the results on the <code>anton_532</code> instrument show both what it buys and where it stops. Magnesium sulfate is predicted well (<span class="math inline">\(R^2 \approx 0.81\)</span>), glucose moderately (<span class="math inline">\(R^2 \approx 0.39\)</span>), and sodium acetate not at all (<span class="math inline">\(R^2 \approx 0.02\)</span>). The pattern tracks the spectroscopy rather than the machine learning: MgSO₄ has a strong, isolated band near 980 <span class="math inline">\(\text{cm}^{-1}\)</span>, whereas the acetate band near 920 <span class="math inline">\(\text{cm}^{-1}\)</span> is weaker and overlaps its neighbors.</p>
+<p>Fitting one PLS model per analyte rather than a single multi-output model changes less than one might expect, and the little it changes is concentrated in one place. Glucose and magnesium sulfate move by a few thousandths of <span class="math inline">\(R^2\)</span>, in opposite directions. What separate models fix is acetate, which the joint model predicted at <span class="math inline">\(R^2 = -0.17\)</span> — worse than the sample mean. Made to share twelve components with two analytes that dominate the covariance, the joint model actively degraded its weakest target; given four components of its own, it merely fails to predict it. The other argument for fitting separately is interpretability, since each model then carries loadings that can be read directly against known band positions instead of mixing three chemistries into one shared set of components.</p>
+<p>Two limitations are worth naming. MinMax normalization was chosen for want of an internal standard, and it couples the scale of every spectrum to a single point; a proper reference band, or a normalization that preserves the height-to-concentration relation, would be the first thing to revisit. And the models here are fitted per instrument, which sidesteps rather than solves the transfer problem that the original dataset was built to pose. Transfer across spectrometers is where the SpecBERT experiment in the <a href="https://github.com/nbrosse/raman-spectra">accompanying codebase</a> is aimed: pretraining on unlabeled spectra from many instruments is a plausible way to learn representations that survive the change of device, in a setting where spectra are cheap and concentration labels are not.</p>
+
+
+
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
@@ -3280,7 +3180,7 @@ Georgiev, Dimitar, Simon Vilms Pedersen, Ruoxiao Xie, Alvaro Fernández-Galiana,
 Hassfurther, Rosa. 2025. <em>Dig4Bio Raman Transfer Learning Challenge</em>. <a href="https://kaggle.com/competitions/dig-4-bio-raman-transfer-learning-challenge">https://kaggle.com/competitions/dig-4-bio-raman-transfer-learning-challenge</a>.
 </div>
 <div id="ref-LANGE2025125861" class="csl-entry" role="listitem">
-Lange, Christoph, Maxim Borisyak, Martin Kögler, et al. 2025. <span>“Comparing Machine Learning Methods on Raman Spectra from Eight Different Spectrometers.”</span> <em>Spectrochimica Acta Part A: Molecular and Biomolecular Spectroscopy</em> 334: 125861. https://doi.org/<a href="https://doi.org/10.1016/j.saa.2025.125861">https://doi.org/10.1016/j.saa.2025.125861</a>.
+Lange, Christoph, Maxim Borisyak, Martin Kögler, et al. 2025. <span>“Comparing Machine Learning Methods on Raman Spectra from Eight Different Spectrometers.”</span> <em>Spectrochimica Acta Part A: Molecular and Biomolecular Spectroscopy</em> 334: 125861. <a href="https://doi.org/10.1016/j.saa.2025.125861">https://doi.org/10.1016/j.saa.2025.125861</a>.
 </div>
 <div id="ref-SavitzkyGolay1964" class="csl-entry" role="listitem">
 Savitzky, Abraham, and Marcel J. E. Golay. 1964. <span>“Smoothing and Differentiation of Data by Simplified Least Squares Procedures.”</span> <em>Analytical Chemistry</em> 36 (8): 1627–39. <a href="https://doi.org/10.1021/ac60214a047">https://doi.org/10.1021/ac60214a047</a>.
@@ -3291,12 +3191,15 @@ Whitaker, Daniel A., and Kevin Hayes. 2018. <span>“A Simple Algorithm for Desp
 <div id="ref-wikipedia-raman-spectroscopy" class="csl-entry" role="listitem">
 Wikipedia contributors. 2025. <em>Raman Spectroscopy</em>. <a href="https://en.wikipedia.org/w/index.php?title=Raman_spectroscopy&amp;oldid=1328445745">https://en.wikipedia.org/w/index.php?title=Raman_spectroscopy&amp;oldid=1328445745</a>.
 </div>
-<div id="ref-ZhangASPLS2010" class="csl-entry" role="listitem">
+<div id="ref-ZhangASPLS2020" class="csl-entry" role="listitem">
+Zhang, Feng, Xiaojun Tang, Angxin Tong, et al. 2020. <span>“Baseline Correction for Infrared Spectra Using Adaptive Smoothness Parameter Penalized Least Squares Method.”</span> <em>Spectroscopy Letters</em> 53 (3): 222–33. <a href="https://doi.org/10.1080/00387010.2020.1730908">https://doi.org/10.1080/00387010.2020.1730908</a>.
+</div>
+<div id="ref-ZhangAirPLS2010" class="csl-entry" role="listitem">
 Zhang, Zhi-Min, Shan Chen, and Yi-Zeng Liang. 2010. <span>“Baseline Correction Using Adaptive Iteratively Reweighted Penalized Least Squares.”</span> <em>Analyst</em> 135 (5): 1138–46. <a href="https://doi.org/10.1039/B922045C">https://doi.org/10.1039/B922045C</a>.
 </div>
 </div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2026,
   author = {Brosse, Nicolas},
-  title = {Analyzing {Raman} {Spectra} with {Machine} {Learning}},
+  title = {Analyzing {Raman} Spectra with Machine Learning},
   date = {2026-01-18},
   url = {https://nbrosse.github.io/posts/raman/raman.html},
   langid = {en}
@@ -3307,6 +3210,19 @@ Learning.”</span> January 18. <a href="https://nbrosse.github.io/posts/raman/r
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
     const icon = "";
     const anchorJS = new window.AnchorJS();
     anchorJS.options = {
@@ -3706,6 +3622,38 @@ Learning.”</span> January 18. <a href="https://nbrosse.github.io/posts/raman/r
   });
   </script>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 

@@ -1,0 +1,2103 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+    <meta charset="utf-8">
+    <meta name="generator" content="quarto-1.9.37">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+    <title>CIFAR-10 posterior-concentration diagnostics – Nicolas’ Notebook</title>
+    <style>
+      /* Default styles provided by pandoc.
+      ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+      */
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      div.columns{display: flex; gap: min(4vw, 1.5em);}
+      div.column{flex: auto; overflow-x: auto;}
+      div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+      ul.task-list{list-style: none;}
+      ul.task-list li input[type="checkbox"] {
+        width: 0.8em;
+        margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+        vertical-align: middle;
+      }
+      /* CSS for syntax highlighting */
+      html { -webkit-text-size-adjust: 100%; }
+      pre > code.sourceCode { white-space: pre; position: relative; }
+      pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+      pre > code.sourceCode > span:empty { height: 1.2em; }
+      .sourceCode { overflow: visible; }
+      code.sourceCode > span { color: inherit; text-decoration: inherit; }
+      div.sourceCode { margin: 1em 0; }
+      pre.sourceCode { margin: 0; }
+      @media screen {
+      div.sourceCode { overflow: auto; }
+      }
+      @media print {
+      pre > code.sourceCode { white-space: pre-wrap; }
+      pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+      }
+      pre.numberSource code
+        { counter-reset: source-line 0; }
+      pre.numberSource code > span
+        { position: relative; left: -4em; counter-increment: source-line; }
+      pre.numberSource code > span > a:first-child::before
+        { content: counter(source-line);
+          position: relative; left: -1em; text-align: right; vertical-align: baseline;
+          border: none; display: inline-block;
+          -webkit-touch-callout: none; -webkit-user-select: none;
+          -khtml-user-select: none; -moz-user-select: none;
+          -ms-user-select: none; user-select: none;
+          padding: 0 4px; width: 4em;
+        }
+      pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+      div.sourceCode
+        {   }
+      @media screen {
+      pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+      }
+    </style>
+
+    <style>
+      body.hypothesis-enabled #quarto-embed-header {
+        padding-right: 36px;
+      }
+
+      #quarto-embed-header {
+        height: 3em;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: solid 1px;
+      }
+
+      #quarto-embed-header h6 {
+        font-size: 1.1em;
+        padding-top: 0.6em;
+        margin-left: 1em;
+        margin-right: 1em;
+        font-weight: 400;
+      }
+
+      #quarto-embed-header a.quarto-back-link,
+      #quarto-embed-header a.quarto-download-embed {
+        font-size: 0.8em;
+        margin-top: 1em;
+        margin-bottom: 1em;
+        margin-left: 1em;
+        margin-right: 1em;
+      }
+
+      .quarto-back-container {
+        padding-left: 0.5em;
+        display: flex;
+      }
+
+      .headroom {
+          will-change: transform;
+          transition: transform 200ms linear;
+      }
+
+      .headroom--pinned {
+          transform: translateY(0%);
+      }
+
+      .headroom--unpinned {
+          transform: translateY(-100%);
+      }      
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script>
+    window.document.addEventListener("DOMContentLoaded", function () {
+
+      var header = window.document.querySelector("#quarto-embed-header");
+      const titleBannerEl = window.document.querySelector("body > #title-block-header");
+      if (titleBannerEl) {
+        titleBannerEl.style.paddingTop = header.clientHeight + "px";
+      }
+      const contentEl = window.document.getElementById('quarto-content');
+      for (const child of contentEl.children) {
+        child.style.paddingTop = header.clientHeight + "px";
+        child.style.marginTop = "1em";
+      }
+
+      // Use the article root if the `back` call doesn't work. This isn't perfect
+      // but should typically work
+      window.quartoBackToArticle = () => {
+        var currentUrl = window.location.href;
+        window.history.back();
+        setTimeout(() => {
+            // if location was not changed in 100 ms, then there is no history back
+            if(currentUrl === window.location.href){              
+                // redirect to site root
+                window.location.href = '/';
+            }
+        }, 100);
+      }
+
+      const headroom = new window.Headroom(header, {
+        tolerance: 5,
+        onPin: function () {
+        },
+        onUnpin: function () {
+        },
+      });
+      headroom.init();
+    });
+    </script>
+
+    
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-d0ae9245876894da5ac7e18953ecc5cc.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-7f1822a086a24169120327e3a5d340d0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+     <script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>  <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>   <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script> 
+        <link rel="stylesheet" href="../../../styles.css">
+      </head>
+
+  <body class="floating nav-fixed quarto-notebook quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+    <div id="quarto-embed-header" class="headroom fixed-top bg-primary">
+      
+      <a onclick="window.quartoBackToArticle(); return false;" class="btn btn-primary quarto-back-link"><i class="bi bi-caret-left"></i> Back to Article</a>
+      <h6><i class="bi bi-journal-code"></i> CIFAR-10 posterior-concentration diagnostics</h6>
+
+            <a href="../../../posts/posterior-concentration/notebooks/_posterior_concentration.ipynb" class="btn btn-primary quarto-download-embed" download="_posterior_concentration.ipynb">Download Notebook</a>
+          </div>
+
+     <div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">Nicolas’ Notebook</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&amp;hl"> <i class="bi bi-google" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.researchgate.net/profile/Nicolas-Brosse-3"> <i class="bi bi-r-circle" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default toc-left page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">CIFAR-10 posterior-concentration diagnostics</h1>
+                      </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#posterior-decoding-theory" id="toc-posterior-decoding-theory" class="nav-link active" data-scroll-target="#posterior-decoding-theory">Posterior-decoding theory</a></li>
+  <li><a href="#theory-plots" id="toc-theory-plots" class="nav-link" data-scroll-target="#theory-plots">Theory plots</a></li>
+  <li><a href="#softmax-and-velocity-diagnostics" id="toc-softmax-and-velocity-diagnostics" class="nav-link" data-scroll-target="#softmax-and-velocity-diagnostics">Softmax and velocity diagnostics</a></li>
+  <li><a href="#small-gaussian-sanity-check" id="toc-small-gaussian-sanity-check" class="nav-link" data-scroll-target="#small-gaussian-sanity-check">Small Gaussian sanity check</a></li>
+  <li><a href="#cifar-10-data-and-covariance-aware-threshold" id="toc-cifar-10-data-and-covariance-aware-threshold" class="nav-link" data-scroll-target="#cifar-10-data-and-covariance-aware-threshold">CIFAR-10 data and covariance-aware threshold</a></li>
+  <li><a href="#cifar-10-diagnostics" id="toc-cifar-10-diagnostics" class="nav-link" data-scroll-target="#cifar-10-diagnostics">CIFAR-10 diagnostics</a></li>
+  <li><a href="#summary-table" id="toc-summary-table" class="nav-link" data-scroll-target="#summary-table">Summary table</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">        
+     <div id="ad2e89fb" class="cell markdown">
+<p>This companion notebook checks the posterior-concentration picture directly on CIFAR-10. Along planted trajectories <span class="math inline">\(x_t=(1-t)z+t x_\star\)</span> it evaluates the exact empirical softmax and tracks five related-but-distinct collapse diagnostics — the planted mass <span class="math inline">\(\lambda_\star\)</span>, the maximum mass <span class="math inline">\(\lambda_{\max}\)</span>, the normalized posterior entropy <span class="math inline">\(H(\lambda)/\log n\)</span>, the velocity alignment <span class="math inline">\(\cos_t\)</span>, and the planted recovery rate <span class="math inline">\(\mathbb P(\arg\max_i\lambda_i=i_\star)\)</span> — overlaying the isotropic threshold <span class="math inline">\(t_C^{\mathrm{iso}}\)</span> and the covariance-corrected threshold <span class="math inline">\(t_C^{\mathrm{cov}}\)</span>. The notebook below defines each diagnostic, explains why they must be read together rather than in isolation, and reports what the empirical transition looks like against these thresholds.</p>
+</div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [1]:</pre></div><div id="3b9dad0e" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:57.208035Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:57.207909Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:34:57.846430Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:34:57.845744Z&quot;}}" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Imports and configuration</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> __future__ <span class="im">import</span> annotations</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.optimize <span class="im">import</span> brentq</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.special <span class="im">import</span> expit, logsumexp</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> find_project_root(start: Path <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>) <span class="op">-&gt;</span> Path:</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Return the closest ancestor directory containing pyproject.toml."""</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    current <span class="op">=</span> (start <span class="kw">or</span> Path.cwd()).resolve()</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> candidate <span class="kw">in</span> [current, <span class="op">*</span>current.parents]:</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (candidate <span class="op">/</span> <span class="st">'pyproject.toml'</span>).exists():</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> candidate</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> current</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Anchor every path to the project root so that the notebook writes to the same</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co"># places whether it is run from notebooks/, from the project root, or by Quarto.</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>PROJECT_ROOT <span class="op">=</span> find_project_root()</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>FIGURES_DIR <span class="op">=</span> PROJECT_ROOT <span class="op">/</span> <span class="st">'figures'</span> <span class="op">/</span> <span class="st">'posterior_concentration'</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>OUTPUT_DIR <span class="op">=</span> PROJECT_ROOT <span class="op">/</span> <span class="st">'output'</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>DATA_DIR <span class="op">=</span> PROJECT_ROOT <span class="op">/</span> <span class="st">'data'</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>FIGURES_DIR.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>OUTPUT_DIR.mkdir(exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="co"># torchvision reads the CIFAR-10 pickles through a numpy call deprecated in numpy 2.4.</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="co"># The warning is third-party noise and prints an absolute local path into the output.</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>, message<span class="op">=</span><span class="vs">r'dtype</span><span class="ch">\(\)</span><span class="vs">: align should be passed as'</span>)</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>np.set_printoptions(precision<span class="op">=</span><span class="dv">6</span>, suppress<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+<div id="e98b3f64" class="cell markdown">
+<p>The CIFAR-10 proxy parameters are</p>
+<p><span class="math display">\[
+d = 3\times 32\times 32 = 3072,
+\qquad
+n = 50,000,
+\qquad
+\sigma^2 \approx 0.24.
+\]</span></p>
+<p>The value of <span class="math inline">\(\sigma^2\)</span> is the per-coordinate variance after the standard transformation from pixels in <span class="math inline">\([0,1]\)</span> to pixels in <span class="math inline">\([-1,1]\)</span>.</p>
+</div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [2]:</pre></div><div id="86617ffb" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:57.849421Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:57.849080Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:34:57.851821Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:34:57.851477Z&quot;}}" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>CIFAR10_D <span class="op">=</span> <span class="dv">3</span> <span class="op">*</span> <span class="dv">32</span> <span class="op">*</span> <span class="dv">32</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>CIFAR10_N_FULL <span class="op">=</span> <span class="dv">50_000</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>CIFAR10_SIGMA2 <span class="op">=</span> <span class="fl">0.24</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>CIFAR10_ALPHA_FULL <span class="op">=</span> np.log(CIFAR10_N_FULL) <span class="op">/</span> CIFAR10_D</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'd = </span><span class="sc">{</span>CIFAR10_D<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'n = </span><span class="sc">{</span>CIFAR10_N_FULL<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'sigma^2 = </span><span class="sc">{</span>CIFAR10_SIGMA2<span class="sc">:.4f}</span><span class="ss">'</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'alpha = log(n)/d = </span><span class="sc">{</span>CIFAR10_ALPHA_FULL<span class="sc">:.6f}</span><span class="ss">'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>d = 3072
+n = 50000
+sigma^2 = 0.2400
+alpha = log(n)/d = 0.003522</code></pre>
+</div>
+</div></div>
+<div id="506b1b1c" class="cell markdown">
+<section id="posterior-decoding-theory" class="level3">
+<h3 class="anchored" data-anchor-id="posterior-decoding-theory">Posterior-decoding theory</h3>
+<p>The helpers below implement the isotropic threshold derived in the post: the information rate <span class="math inline">\(\mathcal I_{\rm iso}(t)=\frac12\log(1+\sigma^2r(t)^2)\)</span> with <span class="math inline">\(r(t)=t/(1-t)\)</span>, the collapse time solving <span class="math inline">\(\mathcal I_{\rm iso}(t_C)=\log n/d\)</span>, and the finite-<span class="math inline">\(d\)</span> logistic approximation to the planted mass.</p>
+</section>
+</div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [3]:</pre></div><div id="3cb10c79" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:57.852901Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:57.852809Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:34:57.857360Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:34:57.856874Z&quot;}}" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Posterior-decoding theory functions</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> alpha_from_n_d(n: <span class="bu">int</span>, d: <span class="bu">int</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Return alpha = log(n) / d in nats per dimension."""</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n <span class="op">&lt;=</span> <span class="dv">0</span> <span class="kw">or</span> d <span class="op">&lt;=</span> <span class="dv">0</span>:</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'n and d must be positive'</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">float</span>(np.log(n) <span class="op">/</span> d)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> r_from_t(t):</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Map t in [0, 1) to r = t / (1 - t). Supports scalars and arrays."""</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    t_arr <span class="op">=</span> np.asarray(t, dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> np.<span class="bu">any</span>(t_arr <span class="op">&lt;</span> <span class="dv">0</span>) <span class="kw">or</span> np.<span class="bu">any</span>(t_arr <span class="op">&gt;=</span> <span class="dv">1</span>):</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'t must belong to [0, 1)'</span>)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> t_arr <span class="op">/</span> (<span class="fl">1.0</span> <span class="op">-</span> t_arr)</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">float</span>(out) <span class="cf">if</span> out.ndim <span class="op">==</span> <span class="dv">0</span> <span class="cf">else</span> out</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> t_from_r(r):</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Map r &gt;= 0 to t = r / (1 + r). Supports scalars and arrays."""</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    r_arr <span class="op">=</span> np.asarray(r, dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> np.<span class="bu">any</span>(r_arr <span class="op">&lt;</span> <span class="dv">0</span>):</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'r must be nonnegative'</span>)</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> r_arr <span class="op">/</span> (<span class="fl">1.0</span> <span class="op">+</span> r_arr)</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">float</span>(out) <span class="cf">if</span> out.ndim <span class="op">==</span> <span class="dv">0</span> <span class="cf">else</span> out</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> info_rate_isotropic(t, sigma2: <span class="bu">float</span>):</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a><span class="co">    Isotropic Gaussian information rate:</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a><span class="co">        I_iso(t) = 0.5 * log(1 + sigma2 * r(t)^2).</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> sigma2 <span class="op">&lt;=</span> <span class="dv">0</span>:</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'sigma2 must be positive'</span>)</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> r_from_t(t)</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fl">0.5</span> <span class="op">*</span> np.log1p(sigma2 <span class="op">*</span> np.asarray(r) <span class="op">**</span> <span class="dv">2</span>)</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> collapse_time_isotropic(n: <span class="bu">int</span>, d: <span class="bu">int</span>, sigma2: <span class="bu">float</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Closed-form isotropic posterior-decoding threshold."""</span></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>    alpha <span class="op">=</span> alpha_from_n_d(n, d)</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>    r_c <span class="op">=</span> np.sqrt(np.expm1(<span class="fl">2.0</span> <span class="op">*</span> alpha) <span class="op">/</span> sigma2)</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> t_from_r(r_c)</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> planted_mass_approx_from_info(info_rate, n: <span class="bu">int</span>, d: <span class="bu">int</span>):</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a><span class="co">    Finite-d logistic approximation to the planted posterior mass.</span></span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a><span class="co">    lambda_star(t) approx 1 / (1 + exp(d * (alpha - I(t))))</span></span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>    alpha <span class="op">=</span> alpha_from_n_d(n, d)</span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>    exponent <span class="op">=</span> d <span class="op">*</span> (alpha <span class="op">-</span> np.asarray(info_rate, dtype<span class="op">=</span><span class="bu">float</span>))</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> expit(<span class="op">-</span>exponent)</span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> planted_mass_approx_isotropic(t, n: <span class="bu">int</span>, d: <span class="bu">int</span>, sigma2: <span class="bu">float</span>):</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Finite-d planted-mass approximation under the isotropic Gaussian proxy."""</span></span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> planted_mass_approx_from_info(info_rate_isotropic(t, sigma2), n, d)</span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> time_for_planted_mass_isotropic(</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>    target_mass: <span class="bu">float</span>,</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>    n: <span class="bu">int</span>,</span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>    d: <span class="bu">int</span>,</span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>    sigma2: <span class="bu">float</span>,</span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Solve the isotropic logistic approximation for lambda_star approx target_mass."""</span></span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> <span class="dv">0</span> <span class="op">&lt;</span> target_mass <span class="op">&lt;</span> <span class="dv">1</span>:</span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'target_mass must lie in (0, 1)'</span>)</span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>    alpha <span class="op">=</span> alpha_from_n_d(n, d)</span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a>    required_info <span class="op">=</span> alpha <span class="op">+</span> np.log(target_mass <span class="op">/</span> (<span class="fl">1.0</span> <span class="op">-</span> target_mass)) <span class="op">/</span> d</span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> required_info <span class="op">&lt;=</span> <span class="dv">0</span>:</span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="fl">0.0</span></span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> np.sqrt(np.expm1(<span class="fl">2.0</span> <span class="op">*</span> required_info) <span class="op">/</span> sigma2)</span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> t_from_r(r)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [4]:</pre></div><div id="6c2d33c2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:57.858336Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:57.858253Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:34:57.860990Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:34:57.860540Z&quot;}}" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># CIFAR-10 isotropic proxy numbers</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>t_c_iso_full <span class="op">=</span> collapse_time_isotropic(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    n<span class="op">=</span>CIFAR10_N_FULL,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    d<span class="op">=</span>CIFAR10_D,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    sigma2<span class="op">=</span>CIFAR10_SIGMA2,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'Isotropic posterior-decoding t_C: </span><span class="sc">{</span>t_c_iso_full<span class="sc">:.6f}</span><span class="ss">'</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> mass <span class="kw">in</span> [<span class="fl">0.5</span>, <span class="fl">0.9</span>, <span class="fl">0.99</span>, <span class="fl">0.999</span>]:</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    t_mass <span class="op">=</span> time_for_planted_mass_isotropic(</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        target_mass<span class="op">=</span>mass,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        n<span class="op">=</span>CIFAR10_N_FULL,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        d<span class="op">=</span>CIFAR10_D,</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        sigma2<span class="op">=</span>CIFAR10_SIGMA2,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Approximate t for lambda_star ~= </span><span class="sc">{</span>mass<span class="sc">:&gt;5}</span><span class="ss">: </span><span class="sc">{</span>t_mass<span class="sc">:.6f}</span><span class="ss">'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Isotropic posterior-decoding t_C: 0.146482
+Approximate t for lambda_star ~=   0.5: 0.146482
+Approximate t for lambda_star ~=   0.9: 0.158469
+Approximate t for lambda_star ~=  0.99: 0.170126
+Approximate t for lambda_star ~= 0.999: 0.180274</code></pre>
+</div>
+</div></div>
+<div id="3e4903aa" class="cell markdown">
+<p>The covariance-aware counterpart replaces <span class="math inline">\(\mathcal I_{\rm iso}\)</span> by <span class="math inline">\(\mathcal I_C(t)=\frac{1}{2d}\sum_k\log(1+r(t)^2\mu_k)\)</span>, evaluated on the empirical eigenvalues <span class="math inline">\(\mu_k\)</span>, and solves the same equation <span class="math inline">\(\mathcal I_C(t_C)=\log n/d\)</span>.</p>
+</div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [5]:</pre></div><div id="c2e4ce3a" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:57.862087Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:57.862002Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:34:57.865491Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:34:57.864948Z&quot;}}" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Covariance-aware posterior-decoding functions</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> info_rate_covariance(t, eigenvalues: np.ndarray):</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co">    Covariance-aware information rate:</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">        I_C(t) = (1/(2d)) sum_k log(1 + r(t)^2 * mu_k).</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">    Supports scalar or array t. Eigenvalues should be nonnegative.</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    eigs <span class="op">=</span> np.asarray(eigenvalues, dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> eigs.ndim <span class="op">!=</span> <span class="dv">1</span> <span class="kw">or</span> eigs.size <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'eigenvalues must be a nonempty one-dimensional array'</span>)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> np.<span class="bu">any</span>(eigs <span class="op">&lt;</span> <span class="op">-</span><span class="fl">1e-12</span>):</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'eigenvalues must be nonnegative'</span>)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    eigs <span class="op">=</span> np.maximum(eigs, <span class="fl">0.0</span>)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    t_arr <span class="op">=</span> np.asarray(t, dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    scalar_input <span class="op">=</span> t_arr.ndim <span class="op">==</span> <span class="dv">0</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    t_flat <span class="op">=</span> np.atleast_1d(t_arr)</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> r_from_t(t_flat)</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    values <span class="op">=</span> <span class="fl">0.5</span> <span class="op">*</span> np.mean(np.log1p((r[:, <span class="va">None</span>] <span class="op">**</span> <span class="dv">2</span>) <span class="op">*</span> eigs[<span class="va">None</span>, :]), axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">float</span>(values[<span class="dv">0</span>]) <span class="cf">if</span> scalar_input <span class="cf">else</span> values.reshape(t_arr.shape)</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> collapse_time_covariance(n: <span class="bu">int</span>, eigenvalues: np.ndarray) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Solve I_C(t) = log(n)/d using covariance eigenvalues."""</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    eigs <span class="op">=</span> np.asarray(eigenvalues, dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> eigs.size</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    alpha <span class="op">=</span> alpha_from_n_d(n, d)</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> np.<span class="bu">all</span>(eigs <span class="op">&lt;=</span> <span class="dv">0</span>):</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.nan</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> equation(t: <span class="bu">float</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> info_rate_covariance(t, eigs) <span class="op">-</span> alpha</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>    <span class="co"># At t = 0, I_C = 0. As t -&gt; 1, I_C -&gt; infinity if at least one eigenvalue is positive.</span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">float</span>(brentq(equation, <span class="fl">1e-12</span>, <span class="fl">1.0</span> <span class="op">-</span> <span class="fl">1e-10</span>, maxiter<span class="op">=</span><span class="dv">200</span>))</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> planted_mass_approx_covariance(t, n: <span class="bu">int</span>, eigenvalues: np.ndarray):</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Finite-d planted-mass approximation using the covariance-aware information rate."""</span></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="bu">len</span>(eigenvalues)</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> planted_mass_approx_from_info(info_rate_covariance(t, eigenvalues), n, d)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+<div id="5127d685" class="cell markdown">
+<section id="theory-plots" class="level3">
+<h3 class="anchored" data-anchor-id="theory-plots">Theory plots</h3>
+<p>The next plot shows the isotropic information rate and the finite-dimensional planted-mass approximation for the CIFAR-10 proxy.</p>
+</section>
+</div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [6]:</pre></div><div id="9fa63528" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:57.866332Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:57.866247Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:34:58.143740Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:34:58.143477Z&quot;}}" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_isotropic_theory(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    n: <span class="bu">int</span> <span class="op">=</span> CIFAR10_N_FULL,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    d: <span class="bu">int</span> <span class="op">=</span> CIFAR10_D,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    sigma2: <span class="bu">float</span> <span class="op">=</span> CIFAR10_SIGMA2,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    t_max: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    path: Path <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> FIGURES_DIR <span class="op">/</span> <span class="st">'posterior_isotropic_theory.png'</span>,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Plot the isotropic information rate and planted-mass approximation."""</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    alpha <span class="op">=</span> alpha_from_n_d(n, d)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    t_grid <span class="op">=</span> np.linspace(<span class="fl">0.0</span>, t_max, <span class="dv">500</span>)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    info <span class="op">=</span> info_rate_isotropic(t_grid, sigma2)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    mass <span class="op">=</span> planted_mass_approx_from_info(info, n, d)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    t_c <span class="op">=</span> collapse_time_isotropic(n, d, sigma2)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    plt.plot(t_grid, info, label<span class="op">=</span><span class="st">'I_iso(t)'</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    plt.axhline(alpha, linestyle<span class="op">=</span><span class="st">'--'</span>, label<span class="op">=</span><span class="st">'log(n)/d'</span>)</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    plt.axvline(t_c, linestyle<span class="op">=</span><span class="st">':'</span>, label<span class="op">=</span><span class="ss">f't_C=</span><span class="sc">{</span>t_c<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    plt.xlabel(<span class="st">'time t'</span>)</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    plt.ylabel(<span class="st">'nats per dimension'</span>)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="st">'Isotropic posterior-decoding threshold'</span>)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    plt.legend()</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    plt.tight_layout()</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> path <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>        plt.savefig(path, dpi<span class="op">=</span><span class="dv">160</span>)</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>    plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    plt.plot(t_grid, mass, label<span class="op">=</span><span class="st">'logistic approximation to lambda_star(t)'</span>)</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>    plt.axvline(t_c, linestyle<span class="op">=</span><span class="st">':'</span>, label<span class="op">=</span><span class="ss">f't_C=</span><span class="sc">{</span>t_c<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    plt.xlabel(<span class="st">'time t'</span>)</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    plt.ylabel(<span class="st">'approximate planted posterior mass'</span>)</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="st">'Finite-d planted-mass approximation'</span>)</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    plt.ylim(<span class="op">-</span><span class="fl">0.02</span>, <span class="fl">1.02</span>)</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    plt.legend()</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>    plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>    plt.tight_layout()</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> path <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>        mass_path <span class="op">=</span> path.with_name(path.stem <span class="op">+</span> <span class="st">'_planted_mass.png'</span>)</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>        plt.savefig(mass_path, dpi<span class="op">=</span><span class="dv">160</span>)</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>plot_isotropic_theory()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="_posterior_concentration_files/figure-html/cell-7-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="_posterior_concentration_files/figure-html/cell-7-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div></div>
+<div id="4d4a58b5" class="cell markdown">
+<section id="softmax-and-velocity-diagnostics" class="level3">
+<h3 class="anchored" data-anchor-id="softmax-and-velocity-diagnostics">Softmax and velocity diagnostics</h3>
+<p>Along a planted trajectory we choose an index <span class="math inline">\(i_\star\)</span>, draw <span class="math inline">\(z\sim\mathcal N(0,I_d)\)</span>, and set</p>
+<p><span class="math display">\[
+x_t=(1-t)z+t x^{(i_\star)},
+\]</span></p>
+<p>so that the softmax <span class="math inline">\(\lambda_i(x_t,t)\)</span> is exactly the posterior over which training sample generated <span class="math inline">\(x_t\)</span>. Collapse can be read off several <em>related but non-identical</em> quantities, so we track all of them together.</p>
+<p>The first four are the concentration diagnostics named in the post:</p>
+<p><span class="math display">\[
+\lambda_\star(t)=\lambda_{i_\star}(x_t,t),
+\qquad
+\lambda_{\max}(t)=\max_i\lambda_i(x_t,t),
+\]</span></p>
+<p><span class="math display">\[
+\frac{H(\lambda(t))}{\log n},
+\qquad
+\cos_t
+=
+\cos\left(u_t(x_t),\,x^{(i_\star)}-z\right),
+\]</span></p>
+<p>where the marginal velocity is the posterior-weighted average</p>
+<p><span class="math display">\[
+u_t(x_t)=\sum_i\lambda_i(x_t,t)\frac{x^{(i)}-x_t}{1-t}
+=\frac{\sum_i\lambda_i(x_t,t)x^{(i)}-x_t}{1-t},
+\]</span></p>
+<p>and <span class="math inline">\(\cos_t\)</span> measures its alignment with the conditional velocity <span class="math inline">\(x^{(i_\star)}-z\)</span>.</p>
+<p>The fifth diagnostic is the <strong>planted recovery rate</strong></p>
+<p><span class="math display">\[
+\mathbb P\left(\arg\max_i\lambda_i(x_t,t)=i_\star\right),
+\]</span></p>
+<p>the probability that the <em>top</em> softmax weight lands on the training image that actually generated the trajectory. We estimate it by Monte Carlo, as the fraction of planted trajectories whose <span class="math inline">\(\arg\max_i\lambda_i\)</span> equals <span class="math inline">\(i_\star\)</span> (in code, <code>np.mean(np.argmax(weights, axis=1) == planted_indices)</code>).</p>
+<p>These five quantities are related but measure genuinely different events:</p>
+<ul>
+<li><span class="math inline">\(\lambda_\star\approx 1\)</span> means the posterior concentrates <strong>on the planted point</strong>: true collapse.</li>
+<li><span class="math inline">\(\lambda_{\max}\approx 1\)</span> means the posterior is one-hot, but possibly <strong>on the wrong</strong> nearest neighbour.</li>
+<li>low normalized entropy means the posterior is concentrated, but does not say <strong>which</strong> point wins.</li>
+<li>the planted recovery rate resolves exactly the ambiguity <span class="math inline">\(\lambda_{\max}\)</span> leaves open: it is high only when the one-hot mass sits on <span class="math inline">\(i_\star\)</span>.</li>
+<li>high <span class="math inline">\(\cos_t\)</span> can occur <strong>before</strong> the posterior is literally one-hot, because the weighted-average velocity may already point almost along the conditional velocity.</li>
+</ul>
+<p>This is why all five are plotted on the same axes below.</p>
+</section>
+</div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [7]:</pre></div><div id="4b6f3446" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:58.145305Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:58.145206Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:34:58.157058Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:34:58.154695Z&quot;}}" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Exact empirical softmax diagnostics</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rowwise_cosine(a: np.ndarray, b: np.ndarray, eps: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1e-12</span>) <span class="op">-&gt;</span> np.ndarray:</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Rowwise cosine similarity between two arrays of shape (batch, d)."""</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    numerator <span class="op">=</span> np.<span class="bu">sum</span>(a <span class="op">*</span> b, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    denom <span class="op">=</span> np.linalg.norm(a, axis<span class="op">=</span><span class="dv">1</span>) <span class="op">*</span> np.linalg.norm(b, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> numerator <span class="op">/</span> np.maximum(denom, eps)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> softmax_weights_for_batch(</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    x_t: np.ndarray,</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    data: np.ndarray,</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    t: <span class="bu">float</span>,</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    data_norms: np.ndarray <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>,</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> np.ndarray:</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute exact softmax weights for a batch of query points.</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="co">    Uses the posterior form with y = x_t / (1 - t) and r = t / (1 - t):</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co">        logits_i = -0.5 * ||y - r x_i||^2.</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> <span class="dv">0</span> <span class="op">&lt;=</span> t <span class="op">&lt;</span> <span class="dv">1</span>:</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'t must belong to [0, 1)'</span>)</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    data64 <span class="op">=</span> np.asarray(data, dtype<span class="op">=</span>np.float64)</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>    x_t64 <span class="op">=</span> np.atleast_2d(np.asarray(x_t, dtype<span class="op">=</span>np.float64))</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>    n, d <span class="op">=</span> data64.shape</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> x_t64.shape[<span class="dv">1</span>] <span class="op">!=</span> d:</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'x_t and data have incompatible dimensions'</span>)</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> data_norms <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>        data_norms <span class="op">=</span> np.<span class="bu">sum</span>(data64 <span class="op">*</span> data64, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>        data_norms <span class="op">=</span> np.asarray(data_norms, dtype<span class="op">=</span>np.float64)</span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> r_from_t(t)</span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> x_t64 <span class="op">/</span> (<span class="fl">1.0</span> <span class="op">-</span> t)</span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>    y_norms <span class="op">=</span> np.<span class="bu">sum</span>(y <span class="op">*</span> y, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ||y - r x_i||^2 = ||y||^2 + r^2 ||x_i||^2 - 2 r &lt;y, x_i&gt;</span></span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>    dist2 <span class="op">=</span> y_norms[:, <span class="va">None</span>] <span class="op">+</span> (r <span class="op">*</span> r) <span class="op">*</span> data_norms[<span class="va">None</span>, :] <span class="op">-</span> <span class="fl">2.0</span> <span class="op">*</span> r <span class="op">*</span> (y <span class="op">@</span> data64.T)</span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>    logits <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> dist2</span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>    log_probs <span class="op">=</span> logits <span class="op">-</span> logsumexp(logits, axis<span class="op">=</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a>    weights <span class="op">=</span> np.exp(log_probs)</span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> weights</span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_diagnostics_at_t(</span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a>    data: np.ndarray,</span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a>    t: <span class="bu">float</span>,</span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a>    n_queries: <span class="bu">int</span> <span class="op">=</span> <span class="dv">64</span>,</span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a>    rng: np.random.Generator <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>,</span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a>    data_norms: np.ndarray <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>,</span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> <span class="bu">dict</span>[<span class="bu">str</span>, <span class="bu">float</span>]:</span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Compute empirical posterior and velocity diagnostics at a single time."""</span></span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> rng <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a>        rng <span class="op">=</span> np.random.default_rng(<span class="dv">0</span>)</span>
+<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> np.asarray(data, dtype<span class="op">=</span>np.float64)</span>
+<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a>    n, d <span class="op">=</span> data.shape</span>
+<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_queries <span class="op">&lt;=</span> <span class="dv">0</span>:</span>
+<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">'n_queries must be positive'</span>)</span>
+<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a>    planted_indices <span class="op">=</span> rng.integers(<span class="dv">0</span>, n, size<span class="op">=</span>n_queries)</span>
+<span id="cb9-67"><a href="#cb9-67" aria-hidden="true" tabindex="-1"></a>    x_star <span class="op">=</span> data[planted_indices]</span>
+<span id="cb9-68"><a href="#cb9-68" aria-hidden="true" tabindex="-1"></a>    z <span class="op">=</span> rng.standard_normal(size<span class="op">=</span>(n_queries, d))</span>
+<span id="cb9-69"><a href="#cb9-69" aria-hidden="true" tabindex="-1"></a>    x_t <span class="op">=</span> (<span class="fl">1.0</span> <span class="op">-</span> t) <span class="op">*</span> z <span class="op">+</span> t <span class="op">*</span> x_star</span>
+<span id="cb9-70"><a href="#cb9-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-71"><a href="#cb9-71" aria-hidden="true" tabindex="-1"></a>    weights <span class="op">=</span> softmax_weights_for_batch(x_t, data, t, data_norms<span class="op">=</span>data_norms)</span>
+<span id="cb9-72"><a href="#cb9-72" aria-hidden="true" tabindex="-1"></a>    posterior_mean <span class="op">=</span> weights <span class="op">@</span> data</span>
+<span id="cb9-73"><a href="#cb9-73" aria-hidden="true" tabindex="-1"></a>    marginal_velocity <span class="op">=</span> (posterior_mean <span class="op">-</span> x_t) <span class="op">/</span> (<span class="fl">1.0</span> <span class="op">-</span> t)</span>
+<span id="cb9-74"><a href="#cb9-74" aria-hidden="true" tabindex="-1"></a>    conditional_velocity <span class="op">=</span> x_star <span class="op">-</span> z</span>
+<span id="cb9-75"><a href="#cb9-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-76"><a href="#cb9-76" aria-hidden="true" tabindex="-1"></a>    row <span class="op">=</span> np.arange(n_queries)</span>
+<span id="cb9-77"><a href="#cb9-77" aria-hidden="true" tabindex="-1"></a>    lambda_star <span class="op">=</span> weights[row, planted_indices]</span>
+<span id="cb9-78"><a href="#cb9-78" aria-hidden="true" tabindex="-1"></a>    lambda_max <span class="op">=</span> np.<span class="bu">max</span>(weights, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb9-79"><a href="#cb9-79" aria-hidden="true" tabindex="-1"></a>    entropy <span class="op">=</span> <span class="op">-</span>np.<span class="bu">sum</span>(weights <span class="op">*</span> np.log(np.maximum(weights, <span class="fl">1e-300</span>)), axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb9-80"><a href="#cb9-80" aria-hidden="true" tabindex="-1"></a>    normalized_entropy <span class="op">=</span> entropy <span class="op">/</span> np.log(n)</span>
+<span id="cb9-81"><a href="#cb9-81" aria-hidden="true" tabindex="-1"></a>    cosine <span class="op">=</span> rowwise_cosine(marginal_velocity, conditional_velocity)</span>
+<span id="cb9-82"><a href="#cb9-82" aria-hidden="true" tabindex="-1"></a>    argmax_is_star <span class="op">=</span> np.argmax(weights, axis<span class="op">=</span><span class="dv">1</span>) <span class="op">==</span> planted_indices</span>
+<span id="cb9-83"><a href="#cb9-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-84"><a href="#cb9-84" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {</span>
+<span id="cb9-85"><a href="#cb9-85" aria-hidden="true" tabindex="-1"></a>        <span class="st">'t'</span>: <span class="bu">float</span>(t),</span>
+<span id="cb9-86"><a href="#cb9-86" aria-hidden="true" tabindex="-1"></a>        <span class="st">'lambda_star_mean'</span>: <span class="bu">float</span>(np.mean(lambda_star)),</span>
+<span id="cb9-87"><a href="#cb9-87" aria-hidden="true" tabindex="-1"></a>        <span class="st">'lambda_star_std'</span>: <span class="bu">float</span>(np.std(lambda_star)),</span>
+<span id="cb9-88"><a href="#cb9-88" aria-hidden="true" tabindex="-1"></a>        <span class="st">'lambda_max_mean'</span>: <span class="bu">float</span>(np.mean(lambda_max)),</span>
+<span id="cb9-89"><a href="#cb9-89" aria-hidden="true" tabindex="-1"></a>        <span class="st">'lambda_max_std'</span>: <span class="bu">float</span>(np.std(lambda_max)),</span>
+<span id="cb9-90"><a href="#cb9-90" aria-hidden="true" tabindex="-1"></a>        <span class="st">'entropy_norm_mean'</span>: <span class="bu">float</span>(np.mean(normalized_entropy)),</span>
+<span id="cb9-91"><a href="#cb9-91" aria-hidden="true" tabindex="-1"></a>        <span class="st">'entropy_norm_std'</span>: <span class="bu">float</span>(np.std(normalized_entropy)),</span>
+<span id="cb9-92"><a href="#cb9-92" aria-hidden="true" tabindex="-1"></a>        <span class="st">'cosine_mean'</span>: <span class="bu">float</span>(np.mean(cosine)),</span>
+<span id="cb9-93"><a href="#cb9-93" aria-hidden="true" tabindex="-1"></a>        <span class="st">'cosine_std'</span>: <span class="bu">float</span>(np.std(cosine)),</span>
+<span id="cb9-94"><a href="#cb9-94" aria-hidden="true" tabindex="-1"></a>        <span class="st">'argmax_is_star_mean'</span>: <span class="bu">float</span>(np.mean(argmax_is_star)),</span>
+<span id="cb9-95"><a href="#cb9-95" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb9-96"><a href="#cb9-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-97"><a href="#cb9-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-98"><a href="#cb9-98" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_diagnostics_vs_time(</span>
+<span id="cb9-99"><a href="#cb9-99" aria-hidden="true" tabindex="-1"></a>    data: np.ndarray,</span>
+<span id="cb9-100"><a href="#cb9-100" aria-hidden="true" tabindex="-1"></a>    t_values: np.ndarray,</span>
+<span id="cb9-101"><a href="#cb9-101" aria-hidden="true" tabindex="-1"></a>    n_queries: <span class="bu">int</span> <span class="op">=</span> <span class="dv">64</span>,</span>
+<span id="cb9-102"><a href="#cb9-102" aria-hidden="true" tabindex="-1"></a>    seed: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>,</span>
+<span id="cb9-103"><a href="#cb9-103" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> pd.DataFrame:</span>
+<span id="cb9-104"><a href="#cb9-104" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Compute diagnostics over a grid of time values."""</span></span>
+<span id="cb9-105"><a href="#cb9-105" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> np.asarray(data, dtype<span class="op">=</span>np.float64)</span>
+<span id="cb9-106"><a href="#cb9-106" aria-hidden="true" tabindex="-1"></a>    data_norms <span class="op">=</span> np.<span class="bu">sum</span>(data <span class="op">*</span> data, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb9-107"><a href="#cb9-107" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb9-108"><a href="#cb9-108" aria-hidden="true" tabindex="-1"></a>    records <span class="op">=</span> []</span>
+<span id="cb9-109"><a href="#cb9-109" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> t <span class="kw">in</span> np.asarray(t_values, dtype<span class="op">=</span><span class="bu">float</span>):</span>
+<span id="cb9-110"><a href="#cb9-110" aria-hidden="true" tabindex="-1"></a>        records.append(</span>
+<span id="cb9-111"><a href="#cb9-111" aria-hidden="true" tabindex="-1"></a>            compute_diagnostics_at_t(</span>
+<span id="cb9-112"><a href="#cb9-112" aria-hidden="true" tabindex="-1"></a>                data<span class="op">=</span>data,</span>
+<span id="cb9-113"><a href="#cb9-113" aria-hidden="true" tabindex="-1"></a>                t<span class="op">=</span><span class="bu">float</span>(t),</span>
+<span id="cb9-114"><a href="#cb9-114" aria-hidden="true" tabindex="-1"></a>                n_queries<span class="op">=</span>n_queries,</span>
+<span id="cb9-115"><a href="#cb9-115" aria-hidden="true" tabindex="-1"></a>                rng<span class="op">=</span>rng,</span>
+<span id="cb9-116"><a href="#cb9-116" aria-hidden="true" tabindex="-1"></a>                data_norms<span class="op">=</span>data_norms,</span>
+<span id="cb9-117"><a href="#cb9-117" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb9-118"><a href="#cb9-118" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb9-119"><a href="#cb9-119" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pd.DataFrame.from_records(records)</span>
+<span id="cb9-120"><a href="#cb9-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-121"><a href="#cb9-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-122"><a href="#cb9-122" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_diagnostic_curves(</span>
+<span id="cb9-123"><a href="#cb9-123" aria-hidden="true" tabindex="-1"></a>    results: pd.DataFrame,</span>
+<span id="cb9-124"><a href="#cb9-124" aria-hidden="true" tabindex="-1"></a>    n: <span class="bu">int</span>,</span>
+<span id="cb9-125"><a href="#cb9-125" aria-hidden="true" tabindex="-1"></a>    d: <span class="bu">int</span>,</span>
+<span id="cb9-126"><a href="#cb9-126" aria-hidden="true" tabindex="-1"></a>    sigma2: <span class="bu">float</span> <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>,</span>
+<span id="cb9-127"><a href="#cb9-127" aria-hidden="true" tabindex="-1"></a>    eigenvalues: np.ndarray <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>,</span>
+<span id="cb9-128"><a href="#cb9-128" aria-hidden="true" tabindex="-1"></a>    title: <span class="bu">str</span> <span class="op">=</span> <span class="st">'Posterior diagnostics'</span>,</span>
+<span id="cb9-129"><a href="#cb9-129" aria-hidden="true" tabindex="-1"></a>    path: Path <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>,</span>
+<span id="cb9-130"><a href="#cb9-130" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb9-131"><a href="#cb9-131" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb9-132"><a href="#cb9-132" aria-hidden="true" tabindex="-1"></a><span class="co">    Plot the four empirical diagnostics advised in the post, plus the planted</span></span>
+<span id="cb9-133"><a href="#cb9-133" aria-hidden="true" tabindex="-1"></a><span class="co">    recovery rate, the finite-d planted-mass prediction, and the thresholds.</span></span>
+<span id="cb9-134"><a href="#cb9-134" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb9-135"><a href="#cb9-135" aria-hidden="true" tabindex="-1"></a>    t_emp <span class="op">=</span> np.asarray(results[<span class="st">'t'</span>], dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb9-136"><a href="#cb9-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-137"><a href="#cb9-137" aria-hidden="true" tabindex="-1"></a>    plt.figure(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">5.5</span>))</span>
+<span id="cb9-138"><a href="#cb9-138" aria-hidden="true" tabindex="-1"></a>    plt.plot(t_emp, results[<span class="st">'lambda_star_mean'</span>], label<span class="op">=</span><span class="vs">r'</span><span class="dv">$</span><span class="vs">E</span><span class="pp">[</span><span class="er">\</span><span class="pp">lambda_</span><span class="dv">\s</span><span class="pp">tar]</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb9-139"><a href="#cb9-139" aria-hidden="true" tabindex="-1"></a>    plt.plot(t_emp, results[<span class="st">'lambda_max_mean'</span>], label<span class="op">=</span><span class="vs">r'</span><span class="dv">$</span><span class="vs">E</span><span class="pp">[</span><span class="er">\</span><span class="pp">lambda_{</span><span class="dv">\m</span><span class="pp">ax}]</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb9-140"><a href="#cb9-140" aria-hidden="true" tabindex="-1"></a>    plt.plot(t_emp, results[<span class="st">'entropy_norm_mean'</span>], label<span class="op">=</span><span class="vs">r'</span><span class="dv">$</span><span class="vs">E</span><span class="pp">[H(</span><span class="er">\</span><span class="pp">lambda)/</span><span class="er">\</span><span class="pp">log n]</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb9-141"><a href="#cb9-141" aria-hidden="true" tabindex="-1"></a>    plt.plot(t_emp, results[<span class="st">'cosine_mean'</span>], label<span class="op">=</span><span class="vs">r'</span><span class="dv">$</span><span class="vs">E</span><span class="pp">[</span><span class="er">\</span><span class="pp">cos_t]</span><span class="dv">$</span><span class="vs">'</span>)</span>
+<span id="cb9-142"><a href="#cb9-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-143"><a href="#cb9-143" aria-hidden="true" tabindex="-1"></a>    <span class="co"># lambda_max can be one-hot on the wrong neighbour, so plot planted recovery</span></span>
+<span id="cb9-144"><a href="#cb9-144" aria-hidden="true" tabindex="-1"></a>    <span class="co"># separately from lambda_max: the two only agree after the transition.</span></span>
+<span id="cb9-145"><a href="#cb9-145" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="st">'argmax_is_star_mean'</span> <span class="kw">in</span> results:</span>
+<span id="cb9-146"><a href="#cb9-146" aria-hidden="true" tabindex="-1"></a>        plt.plot(</span>
+<span id="cb9-147"><a href="#cb9-147" aria-hidden="true" tabindex="-1"></a>            t_emp,</span>
+<span id="cb9-148"><a href="#cb9-148" aria-hidden="true" tabindex="-1"></a>            results[<span class="st">'argmax_is_star_mean'</span>],</span>
+<span id="cb9-149"><a href="#cb9-149" aria-hidden="true" tabindex="-1"></a>            linestyle<span class="op">=</span>(<span class="dv">0</span>, (<span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>)),</span>
+<span id="cb9-150"><a href="#cb9-150" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span><span class="st">'0.35'</span>,</span>
+<span id="cb9-151"><a href="#cb9-151" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span><span class="vs">r'</span><span class="dv">$</span><span class="vs">P</span><span class="kw">(</span><span class="ch">\a</span><span class="vs">rg</span><span class="dv">\m</span><span class="vs">ax_i </span><span class="er">\</span><span class="vs">lambda_i = i_</span><span class="dv">\s</span><span class="vs">tar</span><span class="kw">)</span><span class="dv">$</span><span class="vs">'</span>,</span>
+<span id="cb9-152"><a href="#cb9-152" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb9-153"><a href="#cb9-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-154"><a href="#cb9-154" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Finite-d theory prediction for the planted mass, overlaid on its empirical</span></span>
+<span id="cb9-155"><a href="#cb9-155" aria-hidden="true" tabindex="-1"></a>    <span class="co"># counterpart: lambda_star(t) ~= 1 / (1 + exp(d * (alpha - I(t)))).</span></span>
+<span id="cb9-156"><a href="#cb9-156" aria-hidden="true" tabindex="-1"></a>    t_grid <span class="op">=</span> np.linspace(t_emp.<span class="bu">min</span>(), t_emp.<span class="bu">max</span>(), <span class="dv">400</span>)</span>
+<span id="cb9-157"><a href="#cb9-157" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> sigma2 <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb9-158"><a href="#cb9-158" aria-hidden="true" tabindex="-1"></a>        plt.plot(</span>
+<span id="cb9-159"><a href="#cb9-159" aria-hidden="true" tabindex="-1"></a>            t_grid,</span>
+<span id="cb9-160"><a href="#cb9-160" aria-hidden="true" tabindex="-1"></a>            planted_mass_approx_isotropic(t_grid, n<span class="op">=</span>n, d<span class="op">=</span>d, sigma2<span class="op">=</span>sigma2),</span>
+<span id="cb9-161"><a href="#cb9-161" aria-hidden="true" tabindex="-1"></a>            linestyle<span class="op">=</span><span class="st">'--'</span>,</span>
+<span id="cb9-162"><a href="#cb9-162" aria-hidden="true" tabindex="-1"></a>            linewidth<span class="op">=</span><span class="fl">1.2</span>,</span>
+<span id="cb9-163"><a href="#cb9-163" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span><span class="st">'C0'</span>,</span>
+<span id="cb9-164"><a href="#cb9-164" aria-hidden="true" tabindex="-1"></a>            alpha<span class="op">=</span><span class="fl">0.75</span>,</span>
+<span id="cb9-165"><a href="#cb9-165" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span><span class="vs">r'isotropic theory </span><span class="dv">$</span><span class="er">\</span><span class="vs">lambda_</span><span class="dv">\s</span><span class="vs">tar</span><span class="kw">(</span><span class="vs">t</span><span class="kw">)</span><span class="dv">$</span><span class="vs">'</span>,</span>
+<span id="cb9-166"><a href="#cb9-166" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb9-167"><a href="#cb9-167" aria-hidden="true" tabindex="-1"></a>        t_c <span class="op">=</span> collapse_time_isotropic(n<span class="op">=</span>n, d<span class="op">=</span>d, sigma2<span class="op">=</span>sigma2)</span>
+<span id="cb9-168"><a href="#cb9-168" aria-hidden="true" tabindex="-1"></a>        plt.axvline(t_c, linestyle<span class="op">=</span><span class="st">':'</span>, color<span class="op">=</span><span class="st">'C0'</span>, label<span class="op">=</span><span class="ss">f'isotropic $t_C$=</span><span class="sc">{</span>t_c<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb9-169"><a href="#cb9-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-170"><a href="#cb9-170" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> eigenvalues <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb9-171"><a href="#cb9-171" aria-hidden="true" tabindex="-1"></a>        plt.plot(</span>
+<span id="cb9-172"><a href="#cb9-172" aria-hidden="true" tabindex="-1"></a>            t_grid,</span>
+<span id="cb9-173"><a href="#cb9-173" aria-hidden="true" tabindex="-1"></a>            planted_mass_approx_covariance(t_grid, n<span class="op">=</span>n, eigenvalues<span class="op">=</span>eigenvalues),</span>
+<span id="cb9-174"><a href="#cb9-174" aria-hidden="true" tabindex="-1"></a>            linestyle<span class="op">=</span><span class="st">'--'</span>,</span>
+<span id="cb9-175"><a href="#cb9-175" aria-hidden="true" tabindex="-1"></a>            linewidth<span class="op">=</span><span class="fl">1.2</span>,</span>
+<span id="cb9-176"><a href="#cb9-176" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span><span class="st">'C3'</span>,</span>
+<span id="cb9-177"><a href="#cb9-177" aria-hidden="true" tabindex="-1"></a>            alpha<span class="op">=</span><span class="fl">0.75</span>,</span>
+<span id="cb9-178"><a href="#cb9-178" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span><span class="vs">r'covariance theory </span><span class="dv">$</span><span class="er">\</span><span class="vs">lambda_</span><span class="dv">\s</span><span class="vs">tar</span><span class="kw">(</span><span class="vs">t</span><span class="kw">)</span><span class="dv">$</span><span class="vs">'</span>,</span>
+<span id="cb9-179"><a href="#cb9-179" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb9-180"><a href="#cb9-180" aria-hidden="true" tabindex="-1"></a>        t_c_cov <span class="op">=</span> collapse_time_covariance(n<span class="op">=</span>n, eigenvalues<span class="op">=</span>eigenvalues)</span>
+<span id="cb9-181"><a href="#cb9-181" aria-hidden="true" tabindex="-1"></a>        plt.axvline(t_c_cov, linestyle<span class="op">=</span><span class="st">'-.'</span>, color<span class="op">=</span><span class="st">'C3'</span>, label<span class="op">=</span><span class="ss">f'covariance $t_C$=</span><span class="sc">{</span>t_c_cov<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb9-182"><a href="#cb9-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-183"><a href="#cb9-183" aria-hidden="true" tabindex="-1"></a>    plt.xlabel(<span class="st">'time t'</span>)</span>
+<span id="cb9-184"><a href="#cb9-184" aria-hidden="true" tabindex="-1"></a>    plt.ylabel(<span class="st">'diagnostic value'</span>)</span>
+<span id="cb9-185"><a href="#cb9-185" aria-hidden="true" tabindex="-1"></a>    plt.title(title)</span>
+<span id="cb9-186"><a href="#cb9-186" aria-hidden="true" tabindex="-1"></a>    plt.ylim(<span class="op">-</span><span class="fl">0.05</span>, <span class="fl">1.05</span>)</span>
+<span id="cb9-187"><a href="#cb9-187" aria-hidden="true" tabindex="-1"></a>    plt.legend(fontsize<span class="op">=</span><span class="dv">8</span>, loc<span class="op">=</span><span class="st">'center right'</span>)</span>
+<span id="cb9-188"><a href="#cb9-188" aria-hidden="true" tabindex="-1"></a>    plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb9-189"><a href="#cb9-189" aria-hidden="true" tabindex="-1"></a>    plt.tight_layout()</span>
+<span id="cb9-190"><a href="#cb9-190" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> path <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb9-191"><a href="#cb9-191" aria-hidden="true" tabindex="-1"></a>        plt.savefig(path, dpi<span class="op">=</span><span class="dv">160</span>)</span>
+<span id="cb9-192"><a href="#cb9-192" aria-hidden="true" tabindex="-1"></a>    plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+<div id="d547d058" class="cell markdown">
+<section id="small-gaussian-sanity-check" class="level3">
+<h3 class="anchored" data-anchor-id="small-gaussian-sanity-check">Small Gaussian sanity check</h3>
+<p>This section runs without CIFAR-10. It verifies the mechanics of the posterior diagnostics on a smaller Gaussian codebook. The dimension and sample size are intentionally small so that the notebook executes quickly.</p>
+<p>This plot is a computational sanity check, not a CIFAR-10 prediction.</p>
+</section>
+</div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [8]:</pre></div><div id="a6dd99d8" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:58.158214Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:58.158099Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:34:58.478269Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:34:58.477869Z&quot;}}" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Small synthetic sanity check</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>RUN_GAUSSIAN_SANITY_CHECK <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> RUN_GAUSSIAN_SANITY_CHECK:</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(<span class="dv">123</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    d_demo <span class="op">=</span> <span class="dv">128</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    n_demo <span class="op">=</span> <span class="dv">800</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    sigma2_demo <span class="op">=</span> <span class="fl">0.24</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    data_demo <span class="op">=</span> rng.normal(loc<span class="op">=</span><span class="fl">0.0</span>, scale<span class="op">=</span>np.sqrt(sigma2_demo), size<span class="op">=</span>(n_demo, d_demo))</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    t_c_demo <span class="op">=</span> collapse_time_isotropic(n<span class="op">=</span>n_demo, d<span class="op">=</span>d_demo, sigma2<span class="op">=</span>sigma2_demo)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Synthetic demo: n=</span><span class="sc">{</span>n_demo<span class="sc">}</span><span class="ss">, d=</span><span class="sc">{</span>d_demo<span class="sc">}</span><span class="ss">, sigma^2=</span><span class="sc">{</span>sigma2_demo<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Synthetic isotropic threshold t_C=</span><span class="sc">{</span>t_c_demo<span class="sc">:.4f}</span><span class="ss">'</span>)</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    t_values_demo <span class="op">=</span> np.linspace(<span class="fl">0.0</span>, <span class="fl">0.75</span>, <span class="dv">31</span>)</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    demo_results <span class="op">=</span> compute_diagnostics_vs_time(</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>        data<span class="op">=</span>data_demo,</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>        t_values<span class="op">=</span>t_values_demo,</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>        n_queries<span class="op">=</span><span class="dv">32</span>,</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>        seed<span class="op">=</span><span class="dv">2026</span>,</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>    display(demo_results.head())</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    plot_diagnostic_curves(</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>        results<span class="op">=</span>demo_results,</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>        n<span class="op">=</span>n_demo,</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>        d<span class="op">=</span>d_demo,</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>        sigma2<span class="op">=</span>sigma2_demo,</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="st">'Synthetic Gaussian codebook diagnostics'</span>,</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>        path<span class="op">=</span>FIGURES_DIR <span class="op">/</span> <span class="st">'synthetic_posterior_diagnostics.png'</span>,</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Synthetic demo: n=800, d=128, sigma^2=0.24
+Synthetic isotropic threshold t_C=0.4038</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">lambda_star_mean</th>
+<th data-quarto-table-cell-role="th">lambda_star_std</th>
+<th data-quarto-table-cell-role="th">lambda_max_mean</th>
+<th data-quarto-table-cell-role="th">lambda_max_std</th>
+<th data-quarto-table-cell-role="th">entropy_norm_mean</th>
+<th data-quarto-table-cell-role="th">entropy_norm_std</th>
+<th data-quarto-table-cell-role="th">cosine_mean</th>
+<th data-quarto-table-cell-role="th">cosine_std</th>
+<th data-quarto-table-cell-role="th">argmax_is_star_mean</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>0.000</td>
+<td>0.001250</td>
+<td>0.000000</td>
+<td>0.001250</td>
+<td>0.000000</td>
+<td>1.000000</td>
+<td>0.000000</td>
+<td>0.895992</td>
+<td>0.018711</td>
+<td>0.00000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>0.025</td>
+<td>0.001312</td>
+<td>0.000189</td>
+<td>0.001940</td>
+<td>0.000098</td>
+<td>0.998459</td>
+<td>0.000137</td>
+<td>0.893258</td>
+<td>0.015023</td>
+<td>0.03125</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>0.050</td>
+<td>0.001333</td>
+<td>0.000351</td>
+<td>0.003030</td>
+<td>0.000272</td>
+<td>0.993773</td>
+<td>0.000721</td>
+<td>0.884116</td>
+<td>0.021570</td>
+<td>0.00000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>0.075</td>
+<td>0.001394</td>
+<td>0.000538</td>
+<td>0.004876</td>
+<td>0.001029</td>
+<td>0.984858</td>
+<td>0.001601</td>
+<td>0.881000</td>
+<td>0.014680</td>
+<td>0.00000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>0.100</td>
+<td>0.001679</td>
+<td>0.001042</td>
+<td>0.007469</td>
+<td>0.002044</td>
+<td>0.971488</td>
+<td>0.004881</td>
+<td>0.872208</td>
+<td>0.018751</td>
+<td>0.00000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div class="">
+<figure class="figure">
+<p class=""><img src="_posterior_concentration_files/figure-html/cell-9-output-3.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div></div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [9]:</pre></div><div id="f14cfc55" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:58.479699Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:58.479588Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:34:58.486708Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:34:58.486207Z&quot;}}" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># CIFAR-10 loader and covariance utilities</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_cifar10_data_numpy(</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    n_samples: <span class="bu">int</span> <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> <span class="va">None</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    root: <span class="bu">str</span> <span class="op">|</span> Path <span class="op">=</span> DATA_DIR,</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    download: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>,</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    random_subset: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    seed: <span class="bu">int</span> <span class="op">=</span> <span class="dv">0</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> <span class="bu">tuple</span>[np.ndarray, np.ndarray]:</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="co">    Load CIFAR-10 training data with the standard normalization used in the post.</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="co">    Set download=True on first use if the dataset is not already in `root`.</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="co">    -------</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="co">    data : ndarray, shape (n_samples, 3072)</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="co">        Flattened images after ToTensor() and Normalize((0.5,...),(0.5,...)).</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="co">    labels : ndarray, shape (n_samples,)</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="co">        CIFAR-10 labels.</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>        <span class="im">from</span> torchvision <span class="im">import</span> datasets, transforms</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> exc:</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">RuntimeError</span>(</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>            <span class="st">'Could not import torchvision. Install compatible versions, '</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>            <span class="st">'or run this notebook in an environment where CIFAR-10 can be loaded.'</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>        ) <span class="im">from</span> exc</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>    transform <span class="op">=</span> transforms.Compose([</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>        transforms.ToTensor(),</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>        transforms.Normalize((<span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>), (<span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>)),</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>    ])</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>    dataset <span class="op">=</span> datasets.CIFAR10(</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>        root<span class="op">=</span><span class="bu">str</span>(root),</span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>        train<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>        download<span class="op">=</span>download,</span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>        transform<span class="op">=</span>transform,</span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>    n_total <span class="op">=</span> <span class="bu">len</span>(dataset)</span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_samples <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>        indices <span class="op">=</span> np.arange(n_total)</span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>        n_samples <span class="op">=</span> <span class="bu">min</span>(<span class="bu">int</span>(n_samples), n_total)</span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> random_subset:</span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>            rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>            indices <span class="op">=</span> rng.choice(n_total, size<span class="op">=</span>n_samples, replace<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>            indices <span class="op">=</span> np.arange(n_samples)</span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> np.empty((<span class="bu">len</span>(indices), <span class="dv">3</span> <span class="op">*</span> <span class="dv">32</span> <span class="op">*</span> <span class="dv">32</span>), dtype<span class="op">=</span>np.float32)</span>
+<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a>    labels <span class="op">=</span> np.empty(<span class="bu">len</span>(indices), dtype<span class="op">=</span>np.int64)</span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, idx <span class="kw">in</span> <span class="bu">enumerate</span>(indices):</span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>        image, label <span class="op">=</span> dataset[<span class="bu">int</span>(idx)]</span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a>        data[k] <span class="op">=</span> image.reshape(<span class="op">-</span><span class="dv">1</span>).detach().cpu().numpy()</span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a>        labels[k] <span class="op">=</span> <span class="bu">int</span>(label)</span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> data, labels</span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_covariance_eigenvalues(data: np.ndarray, center: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>) <span class="op">-&gt;</span> np.ndarray:</span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Compute eigenvalues of the empirical covariance matrix of flattened data."""</span></span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> np.asarray(data, dtype<span class="op">=</span>np.float64)</span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> center:</span>
+<span id="cb12-70"><a href="#cb12-70" aria-hidden="true" tabindex="-1"></a>        X <span class="op">=</span> X <span class="op">-</span> X.mean(axis<span class="op">=</span><span class="dv">0</span>, keepdims<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb12-71"><a href="#cb12-71" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> X.shape[<span class="dv">0</span>]</span>
+<span id="cb12-72"><a href="#cb12-72" aria-hidden="true" tabindex="-1"></a>    covariance <span class="op">=</span> (X.T <span class="op">@</span> X) <span class="op">/</span> n</span>
+<span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a>    eigs <span class="op">=</span> np.linalg.eigvalsh(covariance)</span>
+<span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a>    eigs <span class="op">=</span> np.maximum(eigs, <span class="fl">0.0</span>)</span>
+<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.sort(eigs)[::<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-78"><a href="#cb12-78" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_or_compute_covariance_eigenvalues(</span>
+<span id="cb12-79"><a href="#cb12-79" aria-hidden="true" tabindex="-1"></a>    data: np.ndarray,</span>
+<span id="cb12-80"><a href="#cb12-80" aria-hidden="true" tabindex="-1"></a>    path: <span class="bu">str</span> <span class="op">|</span> Path <span class="op">=</span> OUTPUT_DIR <span class="op">/</span> <span class="st">'cifar10_cov_eigs.npy'</span>,</span>
+<span id="cb12-81"><a href="#cb12-81" aria-hidden="true" tabindex="-1"></a>    force: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span>,</span>
+<span id="cb12-82"><a href="#cb12-82" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> np.ndarray:</span>
+<span id="cb12-83"><a href="#cb12-83" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Load covariance eigenvalues from disk when available; otherwise compute and save."""</span></span>
+<span id="cb12-84"><a href="#cb12-84" aria-hidden="true" tabindex="-1"></a>    path <span class="op">=</span> Path(path)</span>
+<span id="cb12-85"><a href="#cb12-85" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> path.exists() <span class="kw">and</span> <span class="kw">not</span> force:</span>
+<span id="cb12-86"><a href="#cb12-86" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> path.suffix <span class="op">==</span> <span class="st">'.npy'</span>:</span>
+<span id="cb12-87"><a href="#cb12-87" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> np.load(path)</span>
+<span id="cb12-88"><a href="#cb12-88" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.loadtxt(path)</span>
+<span id="cb12-89"><a href="#cb12-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a>    eigs <span class="op">=</span> compute_covariance_eigenvalues(data)</span>
+<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a>    path.parent.mkdir(exist_ok<span class="op">=</span><span class="va">True</span>, parents<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb12-92"><a href="#cb12-92" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> path.suffix <span class="op">==</span> <span class="st">'.npy'</span>:</span>
+<span id="cb12-93"><a href="#cb12-93" aria-hidden="true" tabindex="-1"></a>        np.save(path, eigs)</span>
+<span id="cb12-94"><a href="#cb12-94" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb12-95"><a href="#cb12-95" aria-hidden="true" tabindex="-1"></a>        np.savetxt(path, eigs)</span>
+<span id="cb12-96"><a href="#cb12-96" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> eigs</span>
+<span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_covariance_spectrum(</span>
+<span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a>    eigenvalues: np.ndarray,</span>
+<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a>    path: Path <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> FIGURES_DIR <span class="op">/</span> <span class="st">'eigenvalues-cifar10.png'</span>,</span>
+<span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Plot the empirical covariance eigenvalue spectrum."""</span></span>
+<span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a>    eigs <span class="op">=</span> np.asarray(eigenvalues, dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb12-105"><a href="#cb12-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-106"><a href="#cb12-106" aria-hidden="true" tabindex="-1"></a>    plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
+<span id="cb12-107"><a href="#cb12-107" aria-hidden="true" tabindex="-1"></a>    plt.plot(eigs)</span>
+<span id="cb12-108"><a href="#cb12-108" aria-hidden="true" tabindex="-1"></a>    plt.yscale(<span class="st">'log'</span>)</span>
+<span id="cb12-109"><a href="#cb12-109" aria-hidden="true" tabindex="-1"></a>    plt.xlabel(<span class="st">'eigenvalue index'</span>)</span>
+<span id="cb12-110"><a href="#cb12-110" aria-hidden="true" tabindex="-1"></a>    plt.ylabel(<span class="st">'eigenvalue, log scale'</span>)</span>
+<span id="cb12-111"><a href="#cb12-111" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="st">'CIFAR-10 covariance eigenvalue spectrum'</span>)</span>
+<span id="cb12-112"><a href="#cb12-112" aria-hidden="true" tabindex="-1"></a>    plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb12-113"><a href="#cb12-113" aria-hidden="true" tabindex="-1"></a>    plt.tight_layout()</span>
+<span id="cb12-114"><a href="#cb12-114" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> path <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb12-115"><a href="#cb12-115" aria-hidden="true" tabindex="-1"></a>        plt.savefig(path, dpi<span class="op">=</span><span class="dv">160</span>)</span>
+<span id="cb12-116"><a href="#cb12-116" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
+<span id="cb12-117"><a href="#cb12-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-118"><a href="#cb12-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-119"><a href="#cb12-119" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_information_rate_with_covariance(</span>
+<span id="cb12-120"><a href="#cb12-120" aria-hidden="true" tabindex="-1"></a>    n: <span class="bu">int</span>,</span>
+<span id="cb12-121"><a href="#cb12-121" aria-hidden="true" tabindex="-1"></a>    sigma2: <span class="bu">float</span>,</span>
+<span id="cb12-122"><a href="#cb12-122" aria-hidden="true" tabindex="-1"></a>    eigenvalues: np.ndarray,</span>
+<span id="cb12-123"><a href="#cb12-123" aria-hidden="true" tabindex="-1"></a>    t_max: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span id="cb12-124"><a href="#cb12-124" aria-hidden="true" tabindex="-1"></a>    path: Path <span class="op">|</span> <span class="va">None</span> <span class="op">=</span> FIGURES_DIR <span class="op">/</span> <span class="st">'posterior_information_rate_covariance.png'</span>,</span>
+<span id="cb12-125"><a href="#cb12-125" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb12-126"><a href="#cb12-126" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Plot isotropic and covariance-aware information rates against log(n)/d."""</span></span>
+<span id="cb12-127"><a href="#cb12-127" aria-hidden="true" tabindex="-1"></a>    eigs <span class="op">=</span> np.asarray(eigenvalues, dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb12-128"><a href="#cb12-128" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="bu">len</span>(eigs)</span>
+<span id="cb12-129"><a href="#cb12-129" aria-hidden="true" tabindex="-1"></a>    alpha <span class="op">=</span> alpha_from_n_d(n, d)</span>
+<span id="cb12-130"><a href="#cb12-130" aria-hidden="true" tabindex="-1"></a>    t_grid <span class="op">=</span> np.linspace(<span class="fl">0.0</span>, t_max, <span class="dv">600</span>)</span>
+<span id="cb12-131"><a href="#cb12-131" aria-hidden="true" tabindex="-1"></a>    info_iso <span class="op">=</span> info_rate_isotropic(t_grid, sigma2<span class="op">=</span>sigma2)</span>
+<span id="cb12-132"><a href="#cb12-132" aria-hidden="true" tabindex="-1"></a>    info_cov <span class="op">=</span> info_rate_covariance(t_grid, eigs)</span>
+<span id="cb12-133"><a href="#cb12-133" aria-hidden="true" tabindex="-1"></a>    t_c_iso <span class="op">=</span> collapse_time_isotropic(n<span class="op">=</span>n, d<span class="op">=</span>d, sigma2<span class="op">=</span>sigma2)</span>
+<span id="cb12-134"><a href="#cb12-134" aria-hidden="true" tabindex="-1"></a>    t_c_cov <span class="op">=</span> collapse_time_covariance(n<span class="op">=</span>n, eigenvalues<span class="op">=</span>eigs)</span>
+<span id="cb12-135"><a href="#cb12-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-136"><a href="#cb12-136" aria-hidden="true" tabindex="-1"></a>    plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
+<span id="cb12-137"><a href="#cb12-137" aria-hidden="true" tabindex="-1"></a>    plt.plot(t_grid, info_iso, label<span class="op">=</span><span class="st">'isotropic I_iso(t)'</span>)</span>
+<span id="cb12-138"><a href="#cb12-138" aria-hidden="true" tabindex="-1"></a>    plt.plot(t_grid, info_cov, label<span class="op">=</span><span class="st">'covariance I_C(t)'</span>)</span>
+<span id="cb12-139"><a href="#cb12-139" aria-hidden="true" tabindex="-1"></a>    plt.axhline(alpha, linestyle<span class="op">=</span><span class="st">'--'</span>, label<span class="op">=</span><span class="st">'log(n)/d'</span>)</span>
+<span id="cb12-140"><a href="#cb12-140" aria-hidden="true" tabindex="-1"></a>    plt.axvline(t_c_iso, linestyle<span class="op">=</span><span class="st">':'</span>, label<span class="op">=</span><span class="ss">f'isotropic t_C=</span><span class="sc">{</span>t_c_iso<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb12-141"><a href="#cb12-141" aria-hidden="true" tabindex="-1"></a>    plt.axvline(t_c_cov, linestyle<span class="op">=</span><span class="st">'-.'</span>, label<span class="op">=</span><span class="ss">f'covariance t_C=</span><span class="sc">{</span>t_c_cov<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb12-142"><a href="#cb12-142" aria-hidden="true" tabindex="-1"></a>    plt.xlabel(<span class="st">'time t'</span>)</span>
+<span id="cb12-143"><a href="#cb12-143" aria-hidden="true" tabindex="-1"></a>    plt.ylabel(<span class="st">'nats per dimension'</span>)</span>
+<span id="cb12-144"><a href="#cb12-144" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="st">'Posterior-decoding threshold with empirical covariance'</span>)</span>
+<span id="cb12-145"><a href="#cb12-145" aria-hidden="true" tabindex="-1"></a>    plt.legend()</span>
+<span id="cb12-146"><a href="#cb12-146" aria-hidden="true" tabindex="-1"></a>    plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb12-147"><a href="#cb12-147" aria-hidden="true" tabindex="-1"></a>    plt.tight_layout()</span>
+<span id="cb12-148"><a href="#cb12-148" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> path <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb12-149"><a href="#cb12-149" aria-hidden="true" tabindex="-1"></a>        plt.savefig(path, dpi<span class="op">=</span><span class="dv">160</span>)</span>
+<span id="cb12-150"><a href="#cb12-150" aria-hidden="true" tabindex="-1"></a>    plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+<div id="0d07bc89" class="cell markdown">
+<section id="cifar-10-data-and-covariance-aware-threshold" class="level3">
+<h3 class="anchored" data-anchor-id="cifar-10-data-and-covariance-aware-threshold">CIFAR-10 data and covariance-aware threshold</h3>
+<p>The cell below computes the empirical covariance eigenvalues of all 50,000 images, then solves the log-determinant threshold</p>
+<p><span class="math display">\[
+\log n = \frac12\log\det\left(I_d+r_C^2 C\right).
+\]</span></p>
+<p>The eigenvalues are cached, so the eigendecomposition runs only once. They are computed before the diagnostics below so that both the isotropic and the covariance-aware thresholds can be overlaid on the empirical curves.</p>
+</section>
+</div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [10]:</pre></div><div id="f41fde1d" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:34:58.487890Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:34:58.487766Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:35:07.818047Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:35:07.817492Z&quot;}}" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co"># CIFAR-10 data and covariance-aware threshold</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>RUN_CIFAR10 <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> RUN_CIFAR10:</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Load the training set once; the diagnostics cell below reuses this array.</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    data_cifar, labels_cifar <span class="op">=</span> load_cifar10_data_numpy(n_samples<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    n_cifar, d_cifar <span class="op">=</span> data_cifar.shape</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    sigma2_empirical <span class="op">=</span> <span class="bu">float</span>(np.mean(np.var(data_cifar, axis<span class="op">=</span><span class="dv">0</span>)))</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Loaded CIFAR-10: n=</span><span class="sc">{</span>n_cifar<span class="sc">}</span><span class="ss">, d=</span><span class="sc">{</span>d_cifar<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Empirical average per-coordinate variance: </span><span class="sc">{</span>sigma2_empirical<span class="sc">:.6f}</span><span class="ss">'</span>)</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Post proxy value for comparison:           </span><span class="sc">{</span>CIFAR10_SIGMA2<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    eigs_cifar <span class="op">=</span> load_or_compute_covariance_eigenvalues(</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>        data_cifar,</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>        path<span class="op">=</span>OUTPUT_DIR <span class="op">/</span> <span class="st">'cifar10_cov_eigs.npy'</span>,</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>        force<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'</span><span class="ch">\n</span><span class="ss">Covariance eigenvalues: </span><span class="sc">{</span><span class="bu">len</span>(eigs_cifar)<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Mean eigenvalue: </span><span class="sc">{</span>np<span class="sc">.</span>mean(eigs_cifar)<span class="sc">:.6f}</span><span class="ss">'</span>)</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Max eigenvalue:  </span><span class="sc">{</span>np<span class="sc">.</span><span class="bu">max</span>(eigs_cifar)<span class="sc">:.6f}</span><span class="ss">'</span>)</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Min eigenvalue:  </span><span class="sc">{</span>np<span class="sc">.</span><span class="bu">min</span>(eigs_cifar)<span class="sc">:.6e}</span><span class="ss">'</span>)</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>    plot_covariance_spectrum(eigs_cifar)</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>    t_c_cov_full <span class="op">=</span> collapse_time_covariance(CIFAR10_N_FULL, eigs_cifar)</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Covariance-aware t_C, full CIFAR-10 n=50,000: </span><span class="sc">{</span>t_c_cov_full<span class="sc">:.6f}</span><span class="ss">'</span>)</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Isotropic t_C for comparison:                 </span><span class="sc">{</span>t_c_iso_full<span class="sc">:.6f}</span><span class="ss">'</span>)</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>    plot_information_rate_with_covariance(</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>        n<span class="op">=</span>CIFAR10_N_FULL,</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>        sigma2<span class="op">=</span>CIFAR10_SIGMA2,</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>        eigenvalues<span class="op">=</span>eigs_cifar,</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>        t_max<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>        path<span class="op">=</span>FIGURES_DIR <span class="op">/</span> <span class="st">'posterior_information_rate_covariance.png'</span>,</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'CIFAR-10 sections skipped. Set RUN_CIFAR10 = True to run them.'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Loaded CIFAR-10: n=50000, d=3072
+Empirical average per-coordinate variance: 0.247917
+Post proxy value for comparison:           0.24
+
+Covariance eigenvalues: 3072
+Mean eigenvalue: 0.247918
+Max eigenvalue:  221.448869
+Min eigenvalue:  6.348635e-06</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="_posterior_concentration_files/figure-html/cell-11-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Covariance-aware t_C, full CIFAR-10 n=50,000: 0.178817
+Isotropic t_C for comparison:                 0.146482</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="_posterior_concentration_files/figure-html/cell-11-output-4.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div></div>
+<div id="d879484e" class="cell markdown">
+<section id="cifar-10-diagnostics" class="level3">
+<h3 class="anchored" data-anchor-id="cifar-10-diagnostics">CIFAR-10 diagnostics</h3>
+<p>This cell computes the exact empirical softmax diagnostics on CIFAR-10. Both theory curves are overlaid: the isotropic proxy and the covariance-aware log-determinant threshold.</p>
+</section>
+</div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [11]:</pre></div><div id="14b07c9f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:35:07.819172Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:35:07.819006Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:35:20.264414Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:35:20.263646Z&quot;}}" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># CIFAR-10 empirical diagnostics</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Number of planted trajectories averaged at each time.</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>N_QUERY_TRAJECTORIES <span class="op">=</span> <span class="dv">64</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>CIFAR10_T_VALUES <span class="op">=</span> np.linspace(<span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="dv">41</span>)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Set to an int (e.g. 1000) to restrict the softmax codebook for a fast test.</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co"># The theory overlay follows automatically through log(n)/d.</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>CIFAR10_N_FOR_SOFTMAX <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> RUN_CIFAR10:</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> CIFAR10_N_FOR_SOFTMAX <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>        data_softmax <span class="op">=</span> data_cifar</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>        data_softmax <span class="op">=</span> data_cifar[:CIFAR10_N_FOR_SOFTMAX]</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    n_softmax, d_softmax <span class="op">=</span> data_softmax.shape</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>    sigma2_softmax <span class="op">=</span> <span class="bu">float</span>(np.mean(np.var(data_softmax, axis<span class="op">=</span><span class="dv">0</span>)))</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Softmax codebook: n=</span><span class="sc">{</span>n_softmax<span class="sc">}</span><span class="ss">, d=</span><span class="sc">{</span>d_softmax<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'Using alpha=log(</span><span class="sc">{</span>n_softmax<span class="sc">}</span><span class="ss">)/</span><span class="sc">{</span>d_softmax<span class="sc">}</span><span class="ss">=</span><span class="sc">{</span>alpha_from_n_d(n_softmax, d_softmax)<span class="sc">:.6f}</span><span class="ss">'</span>)</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>        <span class="st">'Isotropic threshold for this codebook: '</span></span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f'</span><span class="sc">{</span>collapse_time_isotropic(n_softmax, d_softmax, sigma2_softmax)<span class="sc">:.6f}</span><span class="ss">'</span></span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>    cifar_results <span class="op">=</span> compute_diagnostics_vs_time(</span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>        data<span class="op">=</span>data_softmax,</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>        t_values<span class="op">=</span>CIFAR10_T_VALUES,</span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>        n_queries<span class="op">=</span>N_QUERY_TRAJECTORIES,</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>        seed<span class="op">=</span><span class="dv">2026</span>,</span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a>    display(cifar_results.head())</span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>    cifar_results.to_csv(OUTPUT_DIR <span class="op">/</span> <span class="st">'cifar10_posterior_diagnostics.csv'</span>, index<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Overlay both thresholds: the eigenvalues describe the same codebook only</span></span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># when the full training set is used.</span></span>
+<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a>    plot_diagnostic_curves(</span>
+<span id="cb16-42"><a href="#cb16-42" aria-hidden="true" tabindex="-1"></a>        results<span class="op">=</span>cifar_results,</span>
+<span id="cb16-43"><a href="#cb16-43" aria-hidden="true" tabindex="-1"></a>        n<span class="op">=</span>n_softmax,</span>
+<span id="cb16-44"><a href="#cb16-44" aria-hidden="true" tabindex="-1"></a>        d<span class="op">=</span>d_softmax,</span>
+<span id="cb16-45"><a href="#cb16-45" aria-hidden="true" tabindex="-1"></a>        sigma2<span class="op">=</span>sigma2_softmax,</span>
+<span id="cb16-46"><a href="#cb16-46" aria-hidden="true" tabindex="-1"></a>        eigenvalues<span class="op">=</span>eigs_cifar <span class="cf">if</span> n_softmax <span class="op">==</span> CIFAR10_N_FULL <span class="cf">else</span> <span class="va">None</span>,</span>
+<span id="cb16-47"><a href="#cb16-47" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="ss">f'CIFAR-10 posterior diagnostics, n=</span><span class="sc">{</span>n_softmax<span class="sc">}</span><span class="ss">'</span>,</span>
+<span id="cb16-48"><a href="#cb16-48" aria-hidden="true" tabindex="-1"></a>        path<span class="op">=</span>FIGURES_DIR <span class="op">/</span> <span class="st">'cifar10_posterior_diagnostics.png'</span>,</span>
+<span id="cb16-49"><a href="#cb16-49" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb16-50"><a href="#cb16-50" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb16-51"><a href="#cb16-51" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'CIFAR-10 empirical diagnostics skipped. Set RUN_CIFAR10 = True to run them.'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Softmax codebook: n=50000, d=3072
+Using alpha=log(50000)/3072=0.003522
+Isotropic threshold for this codebook: 0.144465</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">t</th>
+<th data-quarto-table-cell-role="th">lambda_star_mean</th>
+<th data-quarto-table-cell-role="th">lambda_star_std</th>
+<th data-quarto-table-cell-role="th">lambda_max_mean</th>
+<th data-quarto-table-cell-role="th">lambda_max_std</th>
+<th data-quarto-table-cell-role="th">entropy_norm_mean</th>
+<th data-quarto-table-cell-role="th">entropy_norm_std</th>
+<th data-quarto-table-cell-role="th">cosine_mean</th>
+<th data-quarto-table-cell-role="th">cosine_std</th>
+<th data-quarto-table-cell-role="th">argmax_is_star_mean</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>0.0000</td>
+<td>0.000020</td>
+<td>0.000000</td>
+<td>0.000020</td>
+<td>0.000000</td>
+<td>1.000000</td>
+<td>0.000000</td>
+<td>0.900133</td>
+<td>0.045172</td>
+<td>0.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>0.0125</td>
+<td>0.000021</td>
+<td>0.000007</td>
+<td>0.000091</td>
+<td>0.000023</td>
+<td>0.993833</td>
+<td>0.003423</td>
+<td>0.901565</td>
+<td>0.045803</td>
+<td>0.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>0.0250</td>
+<td>0.000032</td>
+<td>0.000026</td>
+<td>0.000307</td>
+<td>0.000132</td>
+<td>0.978833</td>
+<td>0.007494</td>
+<td>0.897197</td>
+<td>0.042360</td>
+<td>0.0</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>0.0375</td>
+<td>0.000056</td>
+<td>0.000076</td>
+<td>0.001165</td>
+<td>0.000806</td>
+<td>0.949366</td>
+<td>0.017736</td>
+<td>0.905228</td>
+<td>0.039139</td>
+<td>0.0</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>0.0500</td>
+<td>0.000101</td>
+<td>0.000129</td>
+<td>0.003284</td>
+<td>0.002002</td>
+<td>0.906821</td>
+<td>0.026961</td>
+<td>0.906075</td>
+<td>0.036316</td>
+<td>0.0</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div class="">
+<figure class="figure">
+<p class=""><img src="_posterior_concentration_files/figure-html/cell-12-output-3.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div></div>
+<div id="94079992" class="cell markdown">
+<p><strong>Observations.</strong></p>
+<p>The posterior transition is sharp and lands where the theory says it should. The normalized entropy falls from <span class="math inline">\(1\)</span> to nearly <span class="math inline">\(0\)</span> between <span class="math inline">\(t\approx 0.10\)</span> and <span class="math inline">\(t\approx 0.30\)</span>, and <span class="math inline">\(\mathbb E[\lambda_\star]\)</span> crosses <span class="math inline">\(1/2\)</span> at <span class="math inline">\(t\approx 0.18\)</span>. The isotropic proxy predicts <span class="math inline">\(t_C\approx 0.146\)</span> and the covariance-aware log-determinant threshold predicts <span class="math inline">\(t_C\approx 0.179\)</span>; the anisotropic formula is the more accurate of the two, which is expected given how spiked the CIFAR-10 spectrum is. The isotropic value is the cruder prediction, but it already recovers the right early-time scale from the single number <span class="math inline">\(\sigma^2\)</span>.</p>
+<p>The three concentration diagnostics separate exactly as the post anticipates. Around <span class="math inline">\(t\approx 0.15\)</span>, <span class="math inline">\(\mathbb E[\lambda_{\max}]\approx 0.39\)</span> while <span class="math inline">\(\mathbb E[\lambda_\star]\approx 0.27\)</span> and the planted recovery rate is only <span class="math inline">\(\approx 0.34\)</span>. The softmax is already concentrating there, but on the wrong training image about two thirds of the time. Reading <span class="math inline">\(\lambda_{\max}\)</span> alone would place the collapse earlier than genuine planted recovery occurs.</p>
+<p>The cosine alignment behaves differently from the other three, and is the weakest diagnostic at small <span class="math inline">\(t\)</span>. It does not start near zero: it sits at <span class="math inline">\(\approx 0.90\)</span> at <span class="math inline">\(t=0\)</span> and increases monotonically. The reason is structural rather than numerical. At small <span class="math inline">\(t\)</span> the interpolant is <span class="math inline">\(x_t\approx z\)</span>, so the marginal velocity is <span class="math inline">\(\approx\bar x-z\)</span> while the conditional velocity is <span class="math inline">\(x_\star-z\)</span>. Both are dominated by the same <span class="math inline">\(-z\)</span> term, and since <span class="math inline">\(\|z\|\approx\sqrt d\approx 55\)</span> is large compared with <span class="math inline">\(\|x_\star\|\approx\sqrt{d\sigma^2}\approx 28\)</span>, the two vectors are nearly parallel before any posterior concentration has taken place. This is the concrete version of the caveat in the post that high cosine similarity can precede a one-hot posterior, so <span class="math inline">\(\cos_t\)</span> should not be read as a collapse indicator on its own. It is also worth keeping in mind when reading the cosine-similarity histograms reproduced earlier in the post: part of the alignment they show at small <span class="math inline">\(t\)</span> is high-dimensional geometry rather than posterior concentration.</p>
+</div>
+<div id="b3e567f0" class="cell markdown">
+<section id="summary-table" class="level3">
+<h3 class="anchored" data-anchor-id="summary-table">Summary table</h3>
+<p>The table collects the theoretical thresholds alongside the times actually measured on CIFAR-10, so the Gaussian-proxy prediction can be compared directly against the empirical transition.</p>
+</section>
+</div>
+<div class="cell-container"><div class="cell-decorator"><pre>In [12]:</pre></div><div id="6bcb0bbc" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-08-23T09:35:20.265851Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-08-23T09:35:20.265737Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-08-23T09:35:20.272988Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-08-23T09:35:20.272693Z&quot;}}" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> first_crossing(t_values: np.ndarray, values: np.ndarray, level: <span class="bu">float</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""First time at which `values` reaches `level`, by linear interpolation."""</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    t_values <span class="op">=</span> np.asarray(t_values, dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    values <span class="op">=</span> np.asarray(values, dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    above <span class="op">=</span> np.flatnonzero(values <span class="op">&gt;=</span> level)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> above.size <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">float</span>(<span class="st">'nan'</span>)</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    k <span class="op">=</span> <span class="bu">int</span>(above[<span class="dv">0</span>])</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> k <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">float</span>(t_values[<span class="dv">0</span>])</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    v0, v1 <span class="op">=</span> values[k <span class="op">-</span> <span class="dv">1</span>], values[k]</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> v1 <span class="op">==</span> v0:</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">float</span>(t_values[k])</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    weight <span class="op">=</span> (level <span class="op">-</span> v0) <span class="op">/</span> (v1 <span class="op">-</span> v0)</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">float</span>(t_values[k <span class="op">-</span> <span class="dv">1</span>] <span class="op">+</span> weight <span class="op">*</span> (t_values[k] <span class="op">-</span> t_values[k <span class="op">-</span> <span class="dv">1</span>]))</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> [</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    {<span class="st">'quantity'</span>: <span class="st">'alpha = log(50000)/3072'</span>, <span class="st">'value'</span>: CIFAR10_ALPHA_FULL},</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>    {<span class="st">'quantity'</span>: <span class="st">'isotropic t_C, sigma^2=0.24 (theory)'</span>, <span class="st">'value'</span>: t_c_iso_full},</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>        <span class="st">'quantity'</span>: <span class="st">'isotropic t for lambda_star approx 0.9 (theory)'</span>,</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>        <span class="st">'value'</span>: time_for_planted_mass_isotropic(<span class="fl">0.9</span>, CIFAR10_N_FULL, CIFAR10_D, CIFAR10_SIGMA2),</span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>        <span class="st">'quantity'</span>: <span class="st">'isotropic t for lambda_star approx 0.99 (theory)'</span>,</span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>        <span class="st">'value'</span>: time_for_planted_mass_isotropic(<span class="fl">0.99</span>, CIFAR10_N_FULL, CIFAR10_D, CIFAR10_SIGMA2),</span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="st">'t_c_cov_full'</span> <span class="kw">in</span> <span class="bu">globals</span>():</span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>    rows.append({<span class="st">'quantity'</span>: <span class="st">'covariance t_C, empirical spectrum (theory)'</span>, <span class="st">'value'</span>: t_c_cov_full})</span>
+<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="st">'cifar_results'</span> <span class="kw">in</span> <span class="bu">globals</span>():</span>
+<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a>    <span class="co"># cos_t is already near 0.9 at t=0 because both velocities are dominated by</span></span>
+<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># the shared -z term, so it is only informative at a stricter level.</span></span>
+<span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">+=</span> [</span>
+<span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a>            <span class="st">'quantity'</span>: <span class="st">'CIFAR-10 t where E[lambda_star] reaches 0.5 (measured)'</span>,</span>
+<span id="cb18-40"><a href="#cb18-40" aria-hidden="true" tabindex="-1"></a>            <span class="st">'value'</span>: first_crossing(cifar_results[<span class="st">'t'</span>], cifar_results[<span class="st">'lambda_star_mean'</span>], <span class="fl">0.5</span>),</span>
+<span id="cb18-41"><a href="#cb18-41" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb18-42"><a href="#cb18-42" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb18-43"><a href="#cb18-43" aria-hidden="true" tabindex="-1"></a>            <span class="st">'quantity'</span>: <span class="st">'CIFAR-10 t where planted recovery reaches 0.5 (measured)'</span>,</span>
+<span id="cb18-44"><a href="#cb18-44" aria-hidden="true" tabindex="-1"></a>            <span class="st">'value'</span>: first_crossing(cifar_results[<span class="st">'t'</span>], cifar_results[<span class="st">'argmax_is_star_mean'</span>], <span class="fl">0.5</span>),</span>
+<span id="cb18-45"><a href="#cb18-45" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb18-46"><a href="#cb18-46" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb18-47"><a href="#cb18-47" aria-hidden="true" tabindex="-1"></a>            <span class="st">'quantity'</span>: <span class="st">'CIFAR-10 t where E[H/log n] falls to 0.5 (measured)'</span>,</span>
+<span id="cb18-48"><a href="#cb18-48" aria-hidden="true" tabindex="-1"></a>            <span class="st">'value'</span>: first_crossing(</span>
+<span id="cb18-49"><a href="#cb18-49" aria-hidden="true" tabindex="-1"></a>                cifar_results[<span class="st">'t'</span>], <span class="op">-</span>np.asarray(cifar_results[<span class="st">'entropy_norm_mean'</span>]), <span class="op">-</span><span class="fl">0.5</span></span>
+<span id="cb18-50"><a href="#cb18-50" aria-hidden="true" tabindex="-1"></a>            ),</span>
+<span id="cb18-51"><a href="#cb18-51" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb18-52"><a href="#cb18-52" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb18-53"><a href="#cb18-53" aria-hidden="true" tabindex="-1"></a>            <span class="st">'quantity'</span>: <span class="st">'CIFAR-10 E[cos_t] at t=0 (measured, floor)'</span>,</span>
+<span id="cb18-54"><a href="#cb18-54" aria-hidden="true" tabindex="-1"></a>            <span class="st">'value'</span>: <span class="bu">float</span>(cifar_results[<span class="st">'cosine_mean'</span>].iloc[<span class="dv">0</span>]),</span>
+<span id="cb18-55"><a href="#cb18-55" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb18-56"><a href="#cb18-56" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb18-57"><a href="#cb18-57" aria-hidden="true" tabindex="-1"></a>            <span class="st">'quantity'</span>: <span class="st">'CIFAR-10 t where E[cos_t] reaches 0.99 (measured)'</span>,</span>
+<span id="cb18-58"><a href="#cb18-58" aria-hidden="true" tabindex="-1"></a>            <span class="st">'value'</span>: first_crossing(cifar_results[<span class="st">'t'</span>], cifar_results[<span class="st">'cosine_mean'</span>], <span class="fl">0.99</span>),</span>
+<span id="cb18-59"><a href="#cb18-59" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb18-60"><a href="#cb18-60" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb18-61"><a href="#cb18-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-62"><a href="#cb18-62" aria-hidden="true" tabindex="-1"></a>summary <span class="op">=</span> pd.DataFrame(rows)</span>
+<span id="cb18-63"><a href="#cb18-63" aria-hidden="true" tabindex="-1"></a>summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">quantity</th>
+<th data-quarto-table-cell-role="th">value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>alpha = log(50000)/3072</td>
+<td>0.003522</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>isotropic t_C, sigma^2=0.24 (theory)</td>
+<td>0.146482</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>isotropic t for lambda_star approx 0.9 (theory)</td>
+<td>0.158469</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>isotropic t for lambda_star approx 0.99 (theory)</td>
+<td>0.170126</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>covariance t_C, empirical spectrum (theory)</td>
+<td>0.178817</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>CIFAR-10 t where E[lambda_star] reaches 0.5 (m...</td>
+<td>0.181172</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>CIFAR-10 t where planted recovery reaches 0.5 ...</td>
+<td>0.161364</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>CIFAR-10 t where E[H/log n] falls to 0.5 (meas...</td>
+<td>0.129633</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>CIFAR-10 E[cos_t] at t=0 (measured, floor)</td>
+<td>0.900133</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>CIFAR-10 t where E[cos_t] reaches 0.99 (measured)</td>
+<td>0.227669</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div></div>
+
+
+     </main> <!-- /main -->  <script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>  </div> <!-- /content --> 
+  
+</body></html>

@@ -8,9 +8,9 @@
 
 <meta name="author" content="Nicolas Brosse">
 <meta name="dcterms.date" content="2025-08-15">
-<meta name="description" content="A comparison of formats for LLM-powered slide decks.">
+<meta name="description" content="One real presentation, four formats, one model: what Gemini 2.5 Pro actually produces when asked to rebuild an EDF producer booklet in HTML/CSS, Quarto/Reveal.js, the Google Slides API, and python-pptx — and why the failures in the API-driven formats are silent ones.">
 
-<title>LLM-Powered Slide Decks: A Comparison of Formats – Nicolas’ Notebook</title>
+<title>Generating slide decks with an LLM: a comparison of formats – Nicolas’ Notebook</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -77,10 +77,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-d0ae9245876894da5ac7e18953ecc5cc.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-f9e226253bcd7e75ae14e3379ab40ce6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-7f1822a086a24169120327e3a5d340d0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -113,7 +117,169 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link rel="stylesheet" href="../../styles.css">
 </head>
 
-<body class="nav-fixed quarto-light">
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top quarto-banner">
@@ -157,6 +323,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
 </div>
       </div> <!-- /container-fluid -->
     </nav>
@@ -165,10 +332,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">LLM-Powered Slide Decks: A Comparison of Formats</h1>
+      <h1 class="title">Generating slide decks with an LLM: a comparison of formats</h1>
                   <div>
         <div class="description">
-          A comparison of formats for LLM-powered slide decks.
+          One real presentation, four formats, one model: what Gemini 2.5 Pro actually produces when asked to rebuild an EDF producer booklet in HTML/CSS, Quarto/Reveal.js, the Google Slides API, and python-pptx — and why the failures in the API-driven formats are silent ones.
         </div>
       </div>
                           <div class="quarto-categories">
@@ -194,6 +361,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       </div>
     </div>
     
+      <div>
+      <div class="quarto-title-meta-heading">Modified</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date-modified">August 22, 2026</p>
+      </div>
+    </div>
       
     </div>
     
@@ -206,31 +379,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#sec-llm-slides" id="toc-sec-llm-slides" class="nav-link active" data-scroll-target="#sec-llm-slides">How LLMs Can Help You Create Slides</a></li>
-  <li><a href="#sec-why-code-based" id="toc-sec-why-code-based" class="nav-link" data-scroll-target="#sec-why-code-based">Why Code-Based Formats Work Better with LLMs</a></li>
-  <li><a href="#sec-edf-booklet" id="toc-sec-edf-booklet" class="nav-link" data-scroll-target="#sec-edf-booklet">EDF Producer Booklet (FET17CR): Overview</a></li>
-  <li><a href="#sec-html-css" id="toc-sec-html-css" class="nav-link" data-scroll-target="#sec-html-css">Building Slide Decks with Pure HTML &amp; CSS</a></li>
-  <li><a href="#sec-quarto-reveal" id="toc-sec-quarto-reveal" class="nav-link" data-scroll-target="#sec-quarto-reveal">Building Slide Decks with Quarto &amp; Reveal.js</a></li>
-  <li><a href="#sec-comparison-html-quarto" id="toc-sec-comparison-html-quarto" class="nav-link" data-scroll-target="#sec-comparison-html-quarto">Summary Table: HTML &amp; CSS vs.&nbsp;Quarto &amp; Reveal.js</a></li>
-  <li><a href="#sec-google-slides-api" id="toc-sec-google-slides-api" class="nav-link" data-scroll-target="#sec-google-slides-api">Building Slide Decks with Google Slides API</a>
+  <li><a href="#sec-why-code-based" id="toc-sec-why-code-based" class="nav-link active" data-scroll-target="#sec-why-code-based">Why code-based formats work better</a></li>
+  <li><a href="#sec-edf-booklet" id="toc-sec-edf-booklet" class="nav-link" data-scroll-target="#sec-edf-booklet">The source document</a></li>
+  <li><a href="#sec-html-css" id="toc-sec-html-css" class="nav-link" data-scroll-target="#sec-html-css">HTML and CSS</a></li>
+  <li><a href="#sec-quarto-reveal" id="toc-sec-quarto-reveal" class="nav-link" data-scroll-target="#sec-quarto-reveal">Quarto and Reveal.js</a>
   <ul class="collapse">
-  <li><a href="#method-1-the-google-slides-api" id="toc-method-1-the-google-slides-api" class="nav-link" data-scroll-target="#method-1-the-google-slides-api">Method 1: The Google Slides API</a></li>
-  <li><a href="#method-2-google-apps-script" id="toc-method-2-google-apps-script" class="nav-link" data-scroll-target="#method-2-google-apps-script">Method 2: Google Apps Script</a></li>
-  <li><a href="#summary-comparison-table" id="toc-summary-comparison-table" class="nav-link" data-scroll-target="#summary-comparison-table">Summary Comparison Table</a></li>
-  <li><a href="#example-on-the-edf-producer-booklet" id="toc-example-on-the-edf-producer-booklet" class="nav-link" data-scroll-target="#example-on-the-edf-producer-booklet">Example on the EDF Producer Booklet</a></li>
+  <li><a href="#sec-comparison-html-quarto" id="toc-sec-comparison-html-quarto" class="nav-link" data-scroll-target="#sec-comparison-html-quarto">HTML/CSS compared with Quarto</a></li>
   </ul></li>
-  <li><a href="#sec-microsoft-powerpoint" id="toc-sec-microsoft-powerpoint" class="nav-link" data-scroll-target="#sec-microsoft-powerpoint">Building Slide Decks with Microsoft PowerPoint</a>
-  <ul class="collapse">
-  <li><a href="#the-powerful-offline-way-third-party-libraries" id="toc-the-powerful-offline-way-third-party-libraries" class="nav-link" data-scroll-target="#the-powerful-offline-way-third-party-libraries">The Powerful, Offline Way: Third-Party Libraries</a></li>
-  <li><a href="#the-low-level-way-office-open-xml-ooxml-sdk" id="toc-the-low-level-way-office-open-xml-ooxml-sdk" class="nav-link" data-scroll-target="#the-low-level-way-office-open-xml-ooxml-sdk">The Low-Level Way: Office Open XML (OOXML) SDK</a></li>
-  <li><a href="#the-modern-cloud-native-way-microsoft-graph-api" id="toc-the-modern-cloud-native-way-microsoft-graph-api" class="nav-link" data-scroll-target="#the-modern-cloud-native-way-microsoft-graph-api">The Modern, Cloud-Native Way: Microsoft Graph API</a></li>
-  <li><a href="#the-classic-automation-way-vba-and-office-add-ins" id="toc-the-classic-automation-way-vba-and-office-add-ins" class="nav-link" data-scroll-target="#the-classic-automation-way-vba-and-office-add-ins">The Classic Automation Way: VBA and Office Add-ins</a></li>
-  <li><a href="#example-on-the-edf-producer-booklet-1" id="toc-example-on-the-edf-producer-booklet-1" class="nav-link" data-scroll-target="#example-on-the-edf-producer-booklet-1">Example on the EDF Producer Booklet</a></li>
-  </ul></li>
+  <li><a href="#sec-google-slides-api" id="toc-sec-google-slides-api" class="nav-link" data-scroll-target="#sec-google-slides-api">Google Slides</a></li>
+  <li><a href="#sec-microsoft-powerpoint" id="toc-sec-microsoft-powerpoint" class="nav-link" data-scroll-target="#sec-microsoft-powerpoint">PowerPoint</a></li>
+  <li><a href="#sec-results" id="toc-sec-results" class="nav-link" data-scroll-target="#sec-results">What the four attempts cost</a></li>
   <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion">Conclusion</a>
   <ul class="collapse">
-  <li><a href="#quartoreveal.js-vs-google-slides-vs-powerpoint-llm-centric" id="toc-quartoreveal.js-vs-google-slides-vs-powerpoint-llm-centric" class="nav-link" data-scroll-target="#quartoreveal.js-vs-google-slides-vs-powerpoint-llm-centric">Quarto/Reveal.js vs Google Slides vs PowerPoint (LLM-centric)</a></li>
-  <li><a href="#the-ideal-future-ui-vs-codestyle-markdown-under-the-hood" id="toc-the-ideal-future-ui-vs-codestyle-markdown-under-the-hood" class="nav-link" data-scroll-target="#the-ideal-future-ui-vs-codestyle-markdown-under-the-hood">The ideal future UI: VS Code–style, Markdown under the hood</a></li>
+  <li><a href="#the-editor-this-suggests" id="toc-the-editor-this-suggests" class="nav-link" data-scroll-target="#the-editor-this-suggests">The editor this suggests</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -242,39 +403,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<p>Creating effective slide decks is essential for communicating ideas in business, academia, and public speaking. Large Language Models (LLMs) can assist in this process by saving time, improving clarity, and boosting creativity. They can generate content, suggest visualizations, and write speaker notes.</p>
-<p>However, using LLMs to create slides — especially in Google Slides and PowerPoint — <strong>is challenging</strong>. Why is this the case ? <strong>Can we create a better experience ?</strong></p>
-<p>In this post, I will:</p>
-<ul>
-<li>Highlight why formats like HTML/CSS and Quarto/Reveal.js are better suited for LLM-powered slide decks.</li>
-<li>Share a comparison of the experience generating slides in different formats.</li>
-</ul>
-<p>To provide a fair and practical comparison, I selected the first pages of a real-world presentation: the <a href="livret_producteur_fet17cr_v1.1.pdf">EDF Producer Booklet (FET17CR)</a>. I then prompted an LLM, using Google Gemini Pro 2.5, to replicate the first few pages of this presentation in several different formats:</p>
-<ul>
-<li>HTML/CSS</li>
-<li>Quarto/Reveal.js</li>
-<li>Google Slides</li>
-<li>PowerPoint</li>
-</ul>
-<p>I evaluated the LLM’s output based on:</p>
-<ul>
-<li>Fidelity: How closely does the result match the original slides?</li>
-<li>Ease of Generation: How straightforward is the prompt and output process?</li>
-<li>Editability: How easy is it to modify the generated slides?</li>
-</ul>
-<p>Below, I present the results and discuss the strengths and weaknesses of each approach.</p>
-<p>The code is available on <a href="https://github.com/nbrosse/llm-slide-deck">GitHub</a>, with a companion website <a href="https://nbrosse.github.io/llm-slide-deck/">here</a> where you can view the rendered slides.</p>
-<p>The post is structured as follows:</p>
-<ul>
-<li><a href="#sec-llm-slides">How LLMs Can Help You Create Slides</a></li>
-<li><a href="#sec-why-code-based">Why Code-Based Formats Work Better with LLMs</a></li>
-<li><a href="#sec-edf-booklet">EDF Producer Booklet (FET17CR): Overview</a></li>
-<li><a href="#sec-html-css">Building Slide Decks with Pure HTML &amp; CSS</a></li>
-<li><a href="#sec-quarto-reveal">Building Slide Decks with Quarto &amp; Reveal.js</a></li>
-<li><a href="#sec-google-slides-api">Building Slide Decks with Google Slides API</a></li>
-<li><a href="#sec-microsoft-powerpoint">Building Slide Decks with Microsoft PowerPoint</a></li>
-<li><a href="#sec-conclusion">Conclusion</a></li>
-</ul>
+
+<p>Asking a language model to write a slide deck is not the same problem as asking it to write a document. A document is text, and text is what the model emits. A deck is a spatial arrangement of boxes, and the tools most people use to build one — PowerPoint, Google Slides — expose that arrangement through a graphical interface, not through a file the model can write. The model therefore cannot produce the deck; it can only produce a program that produces the deck.</p>
+<p>That extra hop is the whole story of this post. To see what it costs, I took the first five pages of a real presentation, the <a href="livret_producteur_fet17cr_v1.1.pdf">EDF producer booklet (FET17CR)</a>, and asked Gemini 2.5 Pro to reproduce them in four formats: hand-written HTML and CSS, Quarto/Reveal.js, the Google Slides API, and PowerPoint through <code>python-pptx</code>. Same source, same model, same five slides.</p>
+<p><a href="#sec-why-code-based" class="quarto-xref">Section&nbsp;1</a> sets out the argument. <a href="#sec-edf-booklet" class="quarto-xref">Section&nbsp;2</a> shows the source document, and <a href="#sec-html-css" class="quarto-xref">Section&nbsp;3</a> through <a href="#sec-microsoft-powerpoint" class="quarto-xref">Section&nbsp;6</a> walk through each attempt with its rendered output embedded. <a href="#sec-results" class="quarto-xref">Section&nbsp;7</a> compares them on the only terms that matter once the decks are built: how much source each one took, and what each one got wrong.</p>
+<p>The code is on <a href="https://github.com/nbrosse/llm-slide-deck">GitHub</a>, and the rendered decks are on a <a href="https://nbrosse.github.io/llm-slide-deck/">companion site</a>. The generated code is preserved as the model wrote it, bugs included, since the bugs are the evidence.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -285,529 +418,214 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>TL;DR</strong>:</p>
+<p><strong>Summary</strong></p>
 <ul>
-<li>LLMs are great for brainstorming, drafting concise slide content, suggesting visuals, and writing speaker notes.</li>
-<li>Code-first formats (Quarto/Reveal.js, HTML/CSS) let LLMs generate slides directly as text, yielding higher fidelity and easier edits than GUI tools.</li>
-<li>Quarto/Reveal.js is the most practical today: fast to author in Markdown, feature-rich, and simple to render to polished HTML.</li>
-<li>Google Slides API and PowerPoint via code (e.g., python-pptx) involve complex, verbose APIs and brittle workflows; fidelity and maintainability suffer.</li>
-<li>Recommendation: Generate Quarto/Reveal.js Markdown via chat today; ideal future is an interactive UI that uses Markdown under the hood and can export to <code>.pptx</code>.</li>
+<li>Code-first formats put the model’s natural output — structured text — directly into the artifact. GUI-first formats make it write a program instead, and add a layer where errors hide.</li>
+<li>The same five slides took 130 lines in Quarto, 492 in HTML/CSS, 270 in <code>python-pptx</code>, and 977 in the Google Slides API.</li>
+<li>Every defect in the <code>python-pptx</code> deck was silent: wrong aspect ratio, a transparency setting that does nothing, a misspelled title. The script exits zero and produces the wrong slides.</li>
+<li>Quarto/Reveal.js is the practical choice today. The gap is tooling, not models: what is missing is an editor that keeps Markdown underneath and can still export <code>.pptx</code> when someone asks for one.</li>
 </ul>
 </div>
 </div>
-<section id="sec-llm-slides" class="level1">
-<h1>How LLMs Can Help You Create Slides</h1>
-<p><strong>1. Brainstorming and Outlining</strong></p>
-<p>When you’re starting a presentation, LLMs can be incredibly helpful for getting your ideas flowing. They can generate fresh ideas for your presentation topic, suggest logical structures and outlines that make sense, and help you identify the key points that will resonate most with your audience. For example, you might ask them to “Suggest an outline for a presentation on renewable energy trends in 2025” and get a well-structured framework to build upon.</p>
-<p><strong>2. Drafting Slide Content</strong></p>
-<p>Once you have your outline, LLMs excel at helping you fill in the content. They can write concise bullet points that capture the essence of complex topics, summarize lengthy information into digestible chunks, and rephrase technical jargon into language that your audience will understand. A simple prompt like “Summarize the main benefits of using LLMs in education in 3 bullet points” can give you exactly what you need for a slide.</p>
-<p><strong>3. Visual Suggestions</strong></p>
-<p>While LLMs can’t create images directly, they’re great at suggesting what types of visuals would work best for your content. They can recommend specific types of charts, diagrams, or images that would illustrate your points effectively, and offer guidance on slide layouts and design principles. You might ask “What kind of chart would best illustrate the growth of AI adoption from 2020 to 2025?” and get specific recommendations for the most appropriate visualization.</p>
-<p><strong>4. Improving Clarity and Engagement</strong></p>
-<p>LLMs can act as a second pair of eyes on your presentation, reviewing your slides for clarity and suggesting improvements. They can propose engaging questions or anecdotes that will help you connect with your audience, and help you tailor your language to match your audience’s level of expertise. A prompt like “Rewrite this slide to be more engaging for a non-technical audience” can transform dry content into something that captures attention.</p>
-<p><strong>5. Generating Speaker Notes</strong></p>
-<p>One of the most valuable features LLMs offer is their ability to generate speaker notes that accompany each slide. They can draft detailed notes that help you elaborate on your bullet points during your talk, ensuring you don’t miss important details while keeping your presentation flowing naturally. You could ask them to “Write speaker notes for a slide about the challenges of AI in healthcare” and get comprehensive talking points.</p>
-<p><strong>6. Language and Translation Support</strong></p>
-<p>LLMs can also help with language-related tasks, from translating your slide content into multiple languages to checking grammar and spelling. This is particularly useful if you’re presenting to international audiences or want to ensure your presentation is polished and professional. A simple request like “Translate this slide into French” can instantly make your content accessible to a broader audience.</p>
-</section>
 <section id="sec-why-code-based" class="level1">
-<h1>Why Code-Based Formats Work Better with LLMs</h1>
-<p>The fundamental reason why LLMs struggle with Google Slides and PowerPoint is that these tools are designed for human interaction through graphical interfaces, not for programmatic creation. LLMs work best when they can generate and manipulate text-based code, which is exactly what formats like Reveal.js, Quarto, and HTML/CSS provide.</p>
-<p>When you ask an LLM to create a presentation in Google Slides or PowerPoint, it has to generate complex API calls or scripts that then manipulate the presentation through external interfaces. This creates multiple layers of abstraction and potential points of failure. The LLM isn’t directly creating the presentation; it’s creating code that creates the presentation.</p>
-<p>In contrast, with Reveal.js and Quarto, the LLM can work directly with the source material. A Quarto presentation is essentially a Markdown file with some YAML configuration. When you ask an LLM to create a slide deck, it can generate the actual presentation content in a format that’s both human-readable and machine-executable. The LLM’s natural output—structured text—becomes the presentation itself, not just instructions for building one.</p>
-<p>This direct approach eliminates the complexity of API authentication, object IDs, and the verbose syntax required by presentation software APIs. Instead, the LLM can focus on what it does best: generating clear, well-structured content that can be immediately rendered into a beautiful presentation.</p>
-<p>The comparison below supports this remark by showing how LLMs perform when generating presentations in different formats. When tasked with creating a slide deck, LLMs consistently produce more accurate, editable, and reliable results in code-based formats like Quarto/Reveal.js or HTML/CSS, compared to GUI-based tools like Google Slides or PowerPoint.</p>
+<h1>Why code-based formats work better</h1>
+<p>A Quarto presentation is a Markdown file with a YAML header. When the model writes one, the thing it writes is the presentation. Rendering is mechanical, and if the content is wrong it is wrong in a file you can read.</p>
+<p>A Google Slides presentation is not a file the model can write. It lives on Google’s servers, and to put anything into it the model has to emit JSON requests that name objects by identifiers it invented earlier in the same script, position them in absolute coordinates, and submit them in a batch. PowerPoint is nominally better — <code>.pptx</code> is a documented ZIP of XML, so a library can write one offline — but the model still writes a program that emits shapes at hardcoded offsets rather than writing the deck.</p>
+<p>The difference is not just verbosity, though <a href="#sec-results" class="quarto-xref">Section&nbsp;7</a> shows it is that too. It is that the intermediate program has its own failure modes, and they do not look like failures. A Markdown file that says the wrong thing says it visibly. A <code>python-pptx</code> script that sets a property the library does not have raises nothing, changes nothing, and prints nothing; you find out by opening the deck. Three of the four defects I found in the PowerPoint output are of exactly this kind.</p>
 </section>
 <section id="sec-edf-booklet" class="level1">
-<h1>EDF Producer Booklet (FET17CR): Overview</h1>
-<p>Below is a preview of the first pages of the <a href="livret_producteur_fet17cr_v1.1.pdf">EDF Producer Booklet (FET17CR)</a>. This document provides essential information for energy producers, including operational guidelines, key contacts, and regulatory details. You can view the original PDF directly in your browser or download it for offline reference.</p>
-<p>I prompt the LLM (Google Gemini Pro 2.5) to produce the slides in several formats, including Quarto/Reveal.js Markdown, pure HTML/CSS, Google Slides API code and PowerPoint <code>python-pptx</code> code. This allows me to compare how well the LLM handles each format in terms of fidelity, ease of generation, and editability.</p>
+<h1>The source document</h1>
+<p>The EDF producer booklet is a French-language onboarding document for winners of the FET17 onshore wind tender: a title slide over a photograph, a table of contents, a dense two-column preamble with sidebar callouts, a diagram of the parties involved, and a contractual timeline. It is ordinary corporate material, which is the point — it is the kind of deck people actually need to rebuild, with a real layout and a real brand to match.</p>
 <object data="livret_producteur_fet17cr_v1.1.pdf" type="application/pdf" width="100%" height="900px">
   <p>Your browser can't display PDFs. Download it <a href="livret_producteur_fet17cr_v1.1.pdf">here</a>.</p>
   <p>If the built-in PDF viewer fails, use the download link above.</p>
 </object>
 </section>
 <section id="sec-html-css" class="level1">
-<h1>Building Slide Decks with Pure HTML &amp; CSS</h1>
-<p>Building Slide Decks with Pure HTML &amp; CSS involves creating a single HTML file and styling it with CSS to behave like a presentation. When you create a slide deck using only HTML and CSS, you are responsible for every aspect of the presentation’s structure, style, and interactivity. This approach offers maximum flexibility but requires significant manual effort.</p>
-<p><strong>Pros:</strong></p>
-<ul>
-<li>Full control over every detail (layout, transitions, features).</li>
-<li>No dependencies—just HTML, CSS, and optionally JavaScript.</li>
-<li>Can be highly optimized for specific needs or branding.</li>
-</ul>
-<p><strong>Cons:</strong></p>
-<ul>
-<li>Time-consuming: you must implement navigation, slide transitions, and features like speaker notes from scratch.</li>
-<li>No built-in support for advanced features (fragments, code highlighting, export to PDF, etc.).</li>
-<li>Harder to maintain and collaborate on, especially for large presentations.</li>
-</ul>
-<p><strong>Structure (HTML):</strong> You define each slide as an HTML element, typically a <code>&lt;section&gt;</code> or a <code>&lt;div&gt;</code>. The entire presentation is a container holding these slide elements.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode html code-with-copy"><code class="sourceCode html"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">body</span><span class="dt">&gt;</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;</span><span class="kw">main</span><span class="ot"> id</span><span class="op">=</span><span class="st">"presentation"</span><span class="dt">&gt;</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;</span><span class="kw">section</span><span class="ot"> class</span><span class="op">=</span><span class="st">"slide active"</span><span class="dt">&gt;</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&lt;</span><span class="kw">h1</span><span class="dt">&gt;</span>My Presentation Title<span class="dt">&lt;/</span><span class="kw">h1</span><span class="dt">&gt;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&lt;</span><span class="kw">p</span><span class="dt">&gt;</span>By Me<span class="dt">&lt;/</span><span class="kw">p</span><span class="dt">&gt;</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;/</span><span class="kw">section</span><span class="dt">&gt;</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;</span><span class="kw">section</span><span class="ot"> class</span><span class="op">=</span><span class="st">"slide"</span><span class="dt">&gt;</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&lt;</span><span class="kw">h2</span><span class="dt">&gt;</span>Second Slide Topic<span class="dt">&lt;/</span><span class="kw">h2</span><span class="dt">&gt;</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&lt;</span><span class="kw">ul</span><span class="dt">&gt;</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&lt;</span><span class="kw">li</span><span class="dt">&gt;</span>Point 1<span class="dt">&lt;/</span><span class="kw">li</span><span class="dt">&gt;</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&lt;</span><span class="kw">li</span><span class="dt">&gt;</span>Point 2<span class="dt">&lt;/</span><span class="kw">li</span><span class="dt">&gt;</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&lt;/</span><span class="kw">ul</span><span class="dt">&gt;</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;/</span><span class="kw">section</span><span class="dt">&gt;</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">&lt;!-- more slides... --&gt;</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&lt;/</span><span class="kw">main</span><span class="dt">&gt;</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;/</span><span class="kw">body</span><span class="dt">&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><strong>Styling (CSS):</strong> You write CSS to make it look like a presentation. This is the most complex part.</p>
-<ul>
-<li>Hide all slides by default (<code>.slide { display: none; }</code>).</li>
-<li>Show only the current slide (<code>.slide.active { display: block; }</code>).</li>
-<li>Style the slides to take up the full screen, center content, set fonts, colors, backgrounds, etc.</li>
-<li>Create transitions between slides using CSS Transitions or Animations.</li>
-</ul>
-<p><strong>Functionality (JavaScript):</strong> You must write JavaScript from scratch to handle all logic:</p>
-<ul>
-<li>Listening for keyboard events (arrow keys) to navigate.</li>
-<li>Changing the <code>.active</code> class from the current slide to the next/previous one.</li>
-<li>Implementing a progress bar.</li>
-<li>Handling speaker notes in a separate window.</li>
-<li>Implementing any “fragment” animations (e.g., making bullet points appear one by one).</li>
-</ul>
-<p><strong>Example on the EDF Producer Booklet</strong></p>
-<p>The LLM was able to generate the HTML and CSS for the initial slides of the EDF Producer Booklet on the first attempt, with only minor issues. This highlights the LLM’s effectiveness and consistency when producing HTML/CSS-based slide decks. However, navigation between slides and editing content remain cumbersome.</p>
-<iframe src="https://nbrosse.github.io/llm-slide-deck/raw/presentation.html" width="100%" height="900px" "="">
+<h1>HTML and CSS</h1>
+<p>The first attempt gives the model no framework at all: one HTML file, styled by hand, expected to behave like a deck. In principle that means writing three things — the slide structure as a series of <code>&lt;section&gt;</code> elements, the CSS that sizes and styles them, and the JavaScript that handles navigation, keyboard events, speaker notes, and incremental reveals.</p>
+<p>The model wrote the first two and skipped the third. What came back is 492 lines, of which 314 are a single <code>&lt;style&gt;</code> block, and not one line of JavaScript. There are six <code>&lt;section class="slide"&gt;</code> elements stacked down the page, and the way you advance through them is to scroll. There is no keyboard navigation, no presenter view, no fragments, no way to project this and drive it from a clicker.</p>
+<p>Judged as a rendering job, the result is good. The layout is faithful, the EDF orange is right, the two-column preamble with its info boxes reproduces closely, and it arrived on the first attempt. Judged as a presentation, it is a web page. The absence is easy to miss precisely because nothing about the file announces it — you notice when you try to present.</p>
+<iframe src="https://nbrosse.github.io/llm-slide-deck/raw/presentation.html" width="100%" height="900px">
     <p>Your browser doesn't support HTML viewing. <a href="https://nbrosse.github.io/llm-slide-deck/raw/presentation.html" target="_blank">Click here to download the presentation (HTML)</a></p>
 </iframe>
 </section>
 <section id="sec-quarto-reveal" class="level1">
-<h1>Building Slide Decks with Quarto &amp; Reveal.js</h1>
-<p>Quarto and Reveal.js abstract away the low-level details, letting you focus on content rather than implementation.</p>
-<p><strong>Pros:</strong></p>
-<ul>
-<li>Write slides in Markdown—simple, readable, and easy to maintain.</li>
-<li>Built-in support for themes, transitions, code highlighting, speaker notes, and more.</li>
-<li>Easy to add advanced features (math, interactive widgets, citations).</li>
-<li>Integrates with version control and reproducible research workflows.</li>
-<li>Output is a polished HTML presentation powered by Reveal.js.</li>
-</ul>
-<p><strong>Cons:</strong></p>
-<ul>
-<li>Less granular control over the underlying HTML/CSS (though you can customize if needed).</li>
-<li>Requires installing Quarto and learning its configuration syntax.</li>
-</ul>
-<p>I use two tools in tandem:</p>
-<ul>
-<li><strong>Reveal.js:</strong> A powerful, open-source HTML presentation framework. It provides the engine: the pre-built CSS for styling, the JavaScript for navigation, speaker notes, plugins, and all the features.</li>
-<li><strong>Quarto:</strong> A next-generation, open-source scientific and technical publishing system. It acts as an authoring tool. You write your content in a simple format (Quarto Markdown), and Quarto converts it into the complex HTML, CSS, and JS structure that Reveal.js requires.</li>
-</ul>
-<p>Note that you can use Reveal.js without Quarto, but you need to write more code to get the same features.</p>
-<p><strong>Authoring (Quarto Markdown - <code>.qmd</code>):</strong> You create a single text file. You use simple Markdown for content and a YAML header for configuration.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "My Presentation Title"</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> "By Me"</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span><span class="co"> revealjs</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="an">theme:</span><span class="co"> sky</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">## Second Slide Topic</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Point 1</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Point 2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><strong>Rendering (Quarto CLI):</strong> You run a single command in your terminal: <code>quarto render my_presentation.qmd</code>.</p>
-<p><strong>Output:</strong> Quarto takes your <code>.qmd</code> file, intelligently processes it, and generates a fully-functional <code>my_presentation.html</code> file. This file contains all your content correctly formatted, along with all the necessary Reveal.js CSS and JavaScript to make it a working, interactive slideshow.</p>
-<p><strong>Example on the EDF Producer Booklet</strong></p>
-<p>Quarto works seamlessly: you can open the generated HTML file in any browser and your presentation is immediately ready, with no dependencies or build steps required. LLMs are familiar with Quarto syntax and were able to generate the initial slides of the EDF Producer Booklet on the first attempt with minimal errors. Additionally, editing content in the <code>.qmd</code> file is straightforward, and Quarto automatically updates the HTML output when you re-render.</p>
-<iframe src="https://nbrosse.github.io/llm-slide-deck/quarto/presentation.html" width="100%" height="900px" "="">
+<h1>Quarto and Reveal.js</h1>
+<p>Reveal.js supplies what the hand-written version lacked: navigation, transitions, speaker notes, fragments, PDF export. Quarto sits above it as the authoring layer, so the source stays Markdown and a single <code>quarto render</code> produces the finished HTML.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "My presentation"</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span><span class="co"> revealjs</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="an">theme:</span><span class="co"> sky</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">## Second slide</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Point 1</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Point 2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The deck for the booklet is 130 lines of <code>.qmd</code>, including a YAML header that sets the theme, the EDF logo, the footer, and a 1280×720 canvas, plus a small companion stylesheet for the branded elements. Content that has no Markdown equivalent — the overlay on the title slide, the info boxes — drops into inline HTML divs, which Quarto passes through. That is the honest cost of the format: when the layout stops being a list of bullets, you write HTML anyway, just less of it.</p>
+<p>The model handled the syntax comfortably and produced a working deck on the first attempt with minor corrections. Editing it afterwards is the part that distinguishes it from everything else here. Changing a heading means changing a heading, and re-rendering.</p>
+<iframe src="https://nbrosse.github.io/llm-slide-deck/quarto/presentation.html" width="100%" height="900px">
     <p>Your browser doesn't support HTML viewing. <a href="https://nbrosse.github.io/llm-slide-deck/quarto/presentation.html" target="_blank">Click here to download the presentation (HTML)</a></p>
 </iframe>
-</section>
-<section id="sec-comparison-html-quarto" class="level1">
-<h1>Summary Table: HTML &amp; CSS vs.&nbsp;Quarto &amp; Reveal.js</h1>
+<section id="sec-comparison-html-quarto" class="level2">
+<h2 class="anchored" data-anchor-id="sec-comparison-html-quarto">HTML/CSS compared with Quarto</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Feature / Aspect</th>
-<th style="text-align: left;">HTML &amp; CSS (from scratch)</th>
-<th style="text-align: left;">Quarto &amp; Reveal.js</th>
-<th style="text-align: left;">Notes</th>
+<th style="text-align: left;"></th>
+<th style="text-align: left;">HTML and CSS</th>
+<th style="text-align: left;">Quarto and Reveal.js</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Ease of Use &amp; Learning Curve</td>
-<td style="text-align: left;">Higher learning curve; requires knowledge of HTML, advanced CSS (Flexbox/Grid, animations), and JavaScript for interactivity.</td>
-<td style="text-align: left;">Lower learning curve; content is authored in Markdown with minimal need for HTML/CSS/JS.</td>
-<td style="text-align: left;">Quarto is simpler to start with; HTML/CSS provides direct control when needed.</td>
+<td style="text-align: left;">Authoring</td>
+<td style="text-align: left;">HTML structure, hand-written CSS, JavaScript for behaviour</td>
+<td style="text-align: left;">Markdown, with inline HTML where layout demands it</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Speed of Authoring</td>
-<td style="text-align: left;">Typically slower; structure and styling are created manually.</td>
-<td style="text-align: left;">Typically faster; content-first workflow with layout helpers.</td>
-<td style="text-align: left;">Quarto often leads to quicker drafts; speed in HTML/CSS depends on templates and tooling.</td>
+<td style="text-align: left;">Presentation features</td>
+<td style="text-align: left;">Built individually, or absent</td>
+<td style="text-align: left;">Navigation, notes, fragments, transitions included</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Styling &amp; Customization</td>
-<td style="text-align: left;">Full design flexibility via CSS and JavaScript.</td>
-<td style="text-align: left;">Theme-based customization with options to extend via CSS/SASS.</td>
-<td style="text-align: left;">HTML/CSS maximizes flexibility; Quarto balances customization and simplicity.</td>
+<td style="text-align: left;">Styling</td>
+<td style="text-align: left;">Unlimited, and entirely your responsibility</td>
+<td style="text-align: left;">Theme first, extended through CSS or SASS</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Code &amp; Syntax Highlighting</td>
-<td style="text-align: left;">Requires integrating a highlighting library and adding appropriate markup.</td>
-<td style="text-align: left;">Built-in syntax highlighting; optional executable code in supported languages.</td>
-<td style="text-align: left;">Quarto reduces setup effort.</td>
+<td style="text-align: left;">Code and maths</td>
+<td style="text-align: left;">A highlighting library and MathJax to wire up</td>
+<td style="text-align: left;">Built in</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Math &amp; Equations (LaTeX)</td>
-<td style="text-align: left;">Requires integrating and configuring MathJax/KaTeX.</td>
-<td style="text-align: left;">Built-in math rendering with LaTeX-style syntax.</td>
-<td style="text-align: left;">Quarto simplifies configuration.</td>
+<td style="text-align: left;">Output</td>
+<td style="text-align: left;">HTML</td>
+<td style="text-align: left;">HTML, PDF, and other formats from one source</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Speaker Notes</td>
-<td style="text-align: left;">Custom implementation required for presenter view and syncing.</td>
-<td style="text-align: left;">Built-in speaker view using notes blocks.</td>
-<td style="text-align: left;">Presenter tools are included in Quarto by default.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Advanced Features</td>
-<td style="text-align: left;">Implemented case-by-case (backgrounds, transitions, fragments, TOC, annotations).</td>
-<td style="text-align: left;">Many features available via options or YAML configuration.</td>
-<td style="text-align: left;">Quarto surfaces common features with minimal code.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Maintainability</td>
-<td style="text-align: left;">Content and presentation can be intertwined; global changes handled in CSS.</td>
-<td style="text-align: left;">Content and presentation are separated; themes control global style.</td>
-<td style="text-align: left;">Separation can ease long-term maintenance; HTML/CSS offers precise control.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Output Formats</td>
-<td style="text-align: left;">Generally targets HTML output.</td>
-<td style="text-align: left;">Can render slides, PDF, Word, or web pages from the same source file.</td>
-<td style="text-align: left;">Multi-format output supports varied publishing needs.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Collaboration</td>
-<td style="text-align: left;">Larger templates can be harder to review; merge conflicts may occur in markup/CSS.</td>
-<td style="text-align: left;">Markdown source is usually easier to review and version.</td>
-<td style="text-align: left;">Plain-text workflows can simplify collaboration.</td>
+<td style="text-align: left;">Review</td>
+<td style="text-align: left;">Diffs mix content and markup</td>
+<td style="text-align: left;">Diffs are mostly prose</td>
 </tr>
 </tbody>
 </table>
-<p>The comparison between pure HTML/CSS and Quarto/Reveal.js is a classic case of <strong>Control vs.&nbsp;Convenience</strong>.</p>
-<ul>
-<li><strong>HTML/CSS</strong> gives you ultimate, low-level control at the cost of immense complexity, time, and required expertise. You are building the engine <em>and</em> the car.</li>
-<li><strong>Quarto/Reveal.js</strong> gives you a powerful, feature-rich engine out of the box and an incredibly simple, intuitive interface to put your content into it. You are focusing on the journey, not on mechanical engineering.</li>
-</ul>
-<p>While the “from scratch” method is a valid (and sometimes necessary) approach for highly specialized design work, the <strong>Quarto and Reveal.js workflow is overwhelmingly superior for almost every practical use case.</strong> It is faster, easier, more maintainable, and comes packed with features that are critical for modern technical and academic presentations.</p>
+<p>Writing the deck from scratch buys precise control at the cost of building the presentation machinery yourself — and, as the previous section shows, the machinery is the part that gets quietly skipped. Reveal.js has already solved that problem, and Quarto makes it reachable from Markdown. For anything short of genuinely bespoke design work, that is the better trade.</p>
+</section>
 </section>
 <section id="sec-google-slides-api" class="level1">
-<h1>Building Slide Decks with Google Slides API</h1>
-<p>There are two primary ways to interact with Google Slides programmatically: the Google Slides API and Google Apps Script. Both methods allow you to create, read, and update presentations, but they differ significantly in their approach and capabilities.</p>
-<ol type="1">
-<li><strong>The Google Slides API:</strong> The official, robust, and recommended method for external applications.</li>
-<li><strong>Google Apps Script:</strong> The integrated, “inside-the-box” method for automation within the Google Workspace ecosystem.</li>
-</ol>
-<section id="method-1-the-google-slides-api" class="level2">
-<h2 class="anchored" data-anchor-id="method-1-the-google-slides-api">Method 1: The Google Slides API</h2>
-<p>This is the standard, modern way for an external program (e.g., a Python script on your server, a Node.js web app) to talk to Google Slides. It’s a RESTful API, meaning your code makes HTTP requests to Google’s servers to perform actions.</p>
-<p><strong>How it Works:</strong></p>
-<ol type="1">
-<li>Setup: You must first set up a project in the Google Cloud Console.</li>
-<li>Authentication: You enable the “Google Slides API” for your project and create credentials. This is the most complex part. You’ll typically use either:
-<ul>
-<li>OAuth 2.0: For applications where a user logs in and grants your app permission to manage their slides.</li>
-<li>Service Account: For backend applications that act on their own behalf (e.g., a nightly script that generates a report). This is common for automation.</li>
-</ul></li>
-<li>Code: You use a Google-provided client library (available for Python, Java, Node.js, PHP, etc.) or make raw HTTP requests to send commands. All operations are typically sent in a <code>batchUpdate</code> request, which bundles multiple changes into a single API call for efficiency.</li>
-</ol>
-<p><strong>Key Capabilities:</strong></p>
-<ul>
-<li>Create/Read Presentations: Create blank presentations or read the entire structure of an existing one.</li>
-<li>Manage Slides: Add new slides (with predefined layouts), delete slides, duplicate slides, and reorder them.</li>
-<li>Manipulate Shapes &amp; Text: Insert new text boxes, shapes, images, and tables. You can precisely control their size, position, and styling (font, color, fill, etc.).</li>
-<li>Data Merging: You can create a template presentation with placeholder text like <code>{customer_name}</code> or <code>{quarterly_revenue}</code>. Your code can then find and replace these placeholders with actual data, generating hundreds of custom decks from a single template.</li>
-<li>Read Speaker Notes: Programmatically get or set the speaker notes for any slide.</li>
-</ul>
-<p><strong>Pros:</strong></p>
-<ul>
-<li>Robust &amp; Scalable: Built for heavy, programmatic use.</li>
-<li>Language Agnostic: Works with any language that can make HTTP requests. Official libraries make it easy.</li>
-<li>Powerful Data Integration: The best method for data-driven slide generation (e.g., from a database or a CSV file).</li>
-<li>Secure: Uses industry-standard authentication (OAuth 2.0).</li>
-</ul>
-<p><strong>Cons:</strong></p>
-<ul>
-<li>Complex Initial Setup: The Google Cloud Console and authentication flow can be intimidating for beginners.</li>
-<li>Verbose: Requests can be complex JSON objects. A simple action like “insert text” requires specifying object IDs, locations, etc.</li>
-<li>Cannot Automate Everything: It cannot interact with the UI, click buttons, or use third-party add-ons. It only works with what the API exposes.</li>
-</ul>
-<p><strong>Example Use Case (Python):</strong> Example of how to create a new presentation and add a title slide.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Assumes you have set up credentials and have 'credentials.json'</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> google.oauth2.credentials <span class="im">import</span> Credentials</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> googleapiclient.discovery <span class="im">import</span> build</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Authentication ---</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>SCOPES <span class="op">=</span> [<span class="st">'https://www.googleapis.com/auth/presentations'</span>]</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>creds <span class="op">=</span> Credentials.from_authorized_user_file(<span class="st">'token.json'</span>, SCOPES) <span class="co"># Handle auth flow</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>service <span class="op">=</span> build(<span class="st">'slides'</span>, <span class="st">'v1'</span>, credentials<span class="op">=</span>creds)</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Create a new Presentation ---</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>body <span class="op">=</span> {<span class="st">'title'</span>: <span class="st">'Automated Weekly Report'</span>}</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>presentation <span class="op">=</span> service.presentations().create(body<span class="op">=</span>body).execute()</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>presentation_id <span class="op">=</span> presentation.get(<span class="st">'presentationId'</span>)</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Created presentation with ID: </span><span class="sc">{</span>presentation_id<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Add a Title Slide (assuming the first slide exists and is a title slide) ---</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>requests <span class="op">=</span> [</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    {</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>        <span class="st">'insertText'</span>: {</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>            <span class="st">'objectId'</span>: <span class="st">'your_title_object_id'</span>, <span class="co"># You'd need to find this ID first</span></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>            <span class="st">'text'</span>: <span class="st">'Weekly Sales Performance'</span>,</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>            <span class="st">'insertionIndex'</span>: <span class="dv">0</span></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    {</span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>        <span class="st">'insertText'</span>: {</span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>            <span class="st">'objectId'</span>: <span class="st">'your_subtitle_object_id'</span>, <span class="co"># Or get it from the slide layout</span></span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>            <span class="st">'text'</span>: <span class="st">'Data from week ending 2023-10-27'</span>,</span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>            <span class="st">'insertionIndex'</span>: <span class="dv">0</span></span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>]</span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Execute the batch update ---</span></span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>body <span class="op">=</span> {<span class="st">'requests'</span>: requests}</span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>service.presentations().batchUpdate(presentationId<span class="op">=</span>presentation_id, body<span class="op">=</span>body).execute()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="method-2-google-apps-script" class="level2">
-<h2 class="anchored" data-anchor-id="method-2-google-apps-script">Method 2: Google Apps Script</h2>
-<p>This is a server-side JavaScript platform that lives <em>inside</em> your Google account. You write code in a browser-based IDE, and it can be attached to a specific Google Doc/Sheet/Slide or run as a standalone project.</p>
-<p><strong>How it Works:</strong> You open a Google Slides presentation, go to <code>Extensions &gt; Apps Script</code>, and start writing JavaScript code. The code uses services like <code>SlidesApp</code>, <code>SpreadsheetApp</code>, and <code>GmailApp</code> to interact with Google products. It feels more like writing macros than interacting with a remote API.</p>
-<p><strong>Key Capabilities:</strong></p>
-<ul>
-<li>Everything the Slides API can do, but with a simpler, more object-oriented syntax.</li>
-<li>Create Custom Menus: Add your own menus to the Google Slides UI to trigger your scripts.</li>
-<li>Triggers: Run scripts automatically on a timer (e.g., every morning), when a form is submitted, or when the presentation is opened (<code>onOpen</code>).</li>
-<li>Seamless Integration: Effortlessly pull data from Google Sheets, create slides, and then email a PDF of the presentation using Gmail, all in one script.</li>
-</ul>
-<p><strong>Pros:</strong></p>
-<ul>
-<li>Zero Setup: No cloud console, no complex authentication. You just start writing code.</li>
-<li>Extremely Easy to Learn: The syntax is much more direct and intuitive than the API.</li>
-<li>Perfect for Internal Automation: Ideal for tasks within the Google Workspace ecosystem (e.g., “Generate slides from this Google Sheet”).</li>
-<li>Can create simple UI elements (menus, sidebars, dialogs).</li>
-</ul>
-<p><strong>Cons:</strong></p>
-<ul>
-<li>JavaScript Only: You are locked into the Google-flavored JavaScript environment.</li>
-<li>Not for External Apps: It’s difficult to call an Apps Script from an external, non-Google application (though possible via the Apps Script API or as a Web App).</li>
-<li>Execution Limits: Scripts have maximum runtimes (e.g., 6 minutes for a consumer account) and daily quotas.</li>
-</ul>
-<p><strong>Example Use Case:</strong> Add a custom menu item “Create Summary Slide” that reads data from a specific Google Sheet and generates a new slide.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode javascript code-with-copy"><code class="sourceCode javascript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// This code is written in the Apps Script editor attached to a presentation.</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">onOpen</span>() {</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Add a custom menu to the UI when the presentation is opened.</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  SlidesApp<span class="op">.</span><span class="fu">getUi</span>()</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>      <span class="op">.</span><span class="fu">createMenu</span>(<span class="st">'Automation'</span>)</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>      <span class="op">.</span><span class="fu">addItem</span>(<span class="st">'Generate Summary Slide'</span><span class="op">,</span> <span class="st">'createSummarySlide'</span>)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>      <span class="op">.</span><span class="fu">addToUi</span>()<span class="op">;</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">createSummarySlide</span>() {</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> presentation <span class="op">=</span> SlidesApp<span class="op">.</span><span class="fu">getActivePresentation</span>()<span class="op">;</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> spreadsheet <span class="op">=</span> SpreadsheetApp<span class="op">.</span><span class="fu">openById</span>(<span class="st">'your_spreadsheet_id_here'</span>)<span class="op">;</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> sheet <span class="op">=</span> spreadsheet<span class="op">.</span><span class="fu">getSheetByName</span>(<span class="st">'SalesData'</span>)<span class="op">;</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Get data from a cell in Google Sheets</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> totalRevenue <span class="op">=</span> sheet<span class="op">.</span><span class="fu">getRange</span>(<span class="st">'B2'</span>)<span class="op">.</span><span class="fu">getValue</span>()<span class="op">;</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> topProduct <span class="op">=</span> sheet<span class="op">.</span><span class="fu">getRange</span>(<span class="st">'B5'</span>)<span class="op">.</span><span class="fu">getValue</span>()<span class="op">;</span></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Add a new slide to the presentation</span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> slide <span class="op">=</span> presentation<span class="op">.</span><span class="fu">appendSlide</span>(SlidesApp<span class="op">.</span><span class="at">PredefinedLayout</span><span class="op">.</span><span class="at">TITLE_AND_BODY</span>)<span class="op">;</span></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Populate the new slide</span></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  slide<span class="op">.</span><span class="fu">getShapes</span>()<span class="op">.</span><span class="fu">find</span>(s <span class="kw">=&gt;</span> s<span class="op">.</span><span class="fu">isPlaceholder</span>() <span class="op">&amp;&amp;</span> s<span class="op">.</span><span class="fu">getPlaceholderType</span>() <span class="op">==</span> SlidesApp<span class="op">.</span><span class="at">PlaceholderType</span><span class="op">.</span><span class="at">TITLE</span>)<span class="op">.</span><span class="fu">getText</span>()<span class="op">.</span><span class="fu">setText</span>(<span class="st">'Sales Summary'</span>)<span class="op">;</span></span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  slide<span class="op">.</span><span class="fu">getShapes</span>()<span class="op">.</span><span class="fu">find</span>(s <span class="kw">=&gt;</span> s<span class="op">.</span><span class="fu">isPlaceholder</span>() <span class="op">&amp;&amp;</span> s<span class="op">.</span><span class="fu">getPlaceholderType</span>() <span class="op">==</span> SlidesApp<span class="op">.</span><span class="at">PlaceholderType</span><span class="op">.</span><span class="at">BODY</span>)<span class="op">.</span><span class="fu">getText</span>()<span class="op">.</span><span class="fu">setText</span>(<span class="vs">`Total Revenue: $</span><span class="sc">${</span>totalRevenue<span class="sc">}\n</span><span class="vs">Top Product: </span><span class="sc">${</span>topProduct<span class="sc">}</span><span class="vs">`</span>)<span class="op">;</span></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="summary-comparison-table" class="level2">
-<h2 class="anchored" data-anchor-id="summary-comparison-table">Summary Comparison Table</h2>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Feature</th>
-<th style="text-align: left;">Google Slides API</th>
-<th style="text-align: left;">Google Apps Script</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;"><strong>Primary Use Case</strong></td>
-<td style="text-align: left;">Backend services, data-driven generation</td>
-<td style="text-align: left;">Internal automation within Google Workspace</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><strong>Robustness</strong></td>
-<td style="text-align: left;"><strong>High.</strong> Official, stable interface.</td>
-<td style="text-align: left;"><strong>High.</strong> Stable internal interface.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><strong>Ease of Setup</strong></td>
-<td style="text-align: left;"><strong>Hard.</strong> Requires Google Cloud project &amp; OAuth.</td>
-<td style="text-align: left;"><strong>Very Easy.</strong> No setup required.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><strong>Language Support</strong></td>
-<td style="text-align: left;">Any (Python, Node.js, Java, etc.)</td>
-<td style="text-align: left;">JavaScript only</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><strong>Performance</strong></td>
-<td style="text-align: left;">Fast and efficient.</td>
-<td style="text-align: left;">Fast, but with execution time limits.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><strong>Integration</strong></td>
-<td style="text-align: left;">Excellent for external systems (databases, etc.)</td>
-<td style="text-align: left;">Excellent for internal G Suite apps (Sheets, Gmail)</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><strong>Recommendation</strong></td>
-<td style="text-align: left;"><strong>The standard choice for most programmatic work.</strong></td>
-<td style="text-align: left;"><strong>The best choice for quick, internal G Suite tasks.</strong></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="example-on-the-edf-producer-booklet" class="level2">
-<h2 class="anchored" data-anchor-id="example-on-the-edf-producer-booklet">Example on the EDF Producer Booklet</h2>
-<p>This section focuses on the Google Slides API, which offers the most flexible approach to programmatic slide creation. The complete implementation code is available on <a href="https://github.com/nbrosse/llm-slide-deck/blob/main/google/create_slides.py">GitHub</a>.</p>
-<p>Using Google Gemini Pro 2.5, I generated code to create the initial slides of the EDF Producer Booklet. The development process encountered multiple errors and required extensive trial-and-error iterations, along with substantial manual adjustments to produce functional code. The final implementation, while working, lacks readability and would be challenging to maintain or modify.</p>
-<p>Here is the rendered slides:</p>
-<iframe src="https://nbrosse.github.io/llm-slide-deck/google/EDF_Presentation_google_slides.pdf" width="100%" height="900px" "="">
+<h1>Google Slides</h1>
+<p>Two routes lead into Google Slides programmatically. Apps Script runs JavaScript inside the Google account, needs no setup, and suits automation that stays within Workspace; it is also confined to it, and subject to execution quotas. The Slides API is the route for anything external: a REST interface, a Cloud Console project, an OAuth flow, and client libraries in most languages. I used the API, since it is what an LLM-driven pipeline would realistically target.</p>
+<p>The generated script is <a href="https://github.com/nbrosse/llm-slide-deck/blob/main/google/create_slides.py">977 lines</a> for five slides, and its shape explains why. Nothing can be positioned by name, so every element gets an identifier the script invents and then threads through subsequent requests — <code>objectId</code> appears 71 times. Nothing can be positioned relatively, so every box carries absolute coordinates, 73 of them. Images cannot be referenced from disk: they are uploaded to Drive first, and their Drive file identifiers are passed back into the slide requests. Five per-slide builder functions, one running to roughly 180 lines, assemble a request list that is finally submitted in a single <code>batchUpdate</code>.</p>
+<p>Getting there took many rounds of iteration and manual repair. Errors surfaced late, in the batch response, phrased in terms of object identifiers rather than anything visible on a slide. The result works, and the fidelity is respectable — 16:9, correct colours, correct text. It is also code that neither I nor the model would enjoy modifying: to move a box, you find its identifier and edit a coordinate.</p>
+<iframe src="https://nbrosse.github.io/llm-slide-deck/google/EDF_Presentation_google_slides.pdf" width="100%" height="900px">
     <p>Your browser doesn't support PDF viewing. <a href="https://nbrosse.github.io/llm-slide-deck/google/EDF_Presentation_google_slides.pdf" target="_blank">Click here to download the presentation (PDF)</a></p>
 </iframe>
 </section>
-</section>
 <section id="sec-microsoft-powerpoint" class="level1">
-<h1>Building Slide Decks with Microsoft PowerPoint</h1>
-<p>Unlike Google Slides, PowerPoint file creation offers more diverse approaches due to the <code>.pptx</code> format being an open, well-documented, XML-based standard (Office Open XML or OOXML). The format essentially consists of a ZIP archive containing XML files and associated resources.</p>
-<section id="the-powerful-offline-way-third-party-libraries" class="level2">
-<h2 class="anchored" data-anchor-id="the-powerful-offline-way-third-party-libraries">The Powerful, Offline Way: Third-Party Libraries</h2>
-<p>This is the most common and practical approach for server-side generation. These libraries provide a high-level API to abstract away the complexity of the underlying OOXML format.</p>
-<ul>
-<li><strong>Python: <code>python-pptx</code></strong>
-<ul>
-<li><p>The de facto standard in the Python world. It lets you create and modify <code>.pptx</code> files without needing PowerPoint installed.</p></li>
-<li><p><strong>Example:</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pptx <span class="im">import</span> Presentation</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pptx.util <span class="im">import</span> Inches</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>prs <span class="op">=</span> Presentation()</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>title_slide_layout <span class="op">=</span> prs.slide_layouts[<span class="dv">0</span>] <span class="co"># Title Slide layout</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>slide <span class="op">=</span> prs.slides.add_slide(title_slide_layout)</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>title <span class="op">=</span> slide.shapes.title</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>subtitle <span class="op">=</span> slide.placeholders[<span class="dv">1</span>]</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>title.text <span class="op">=</span> <span class="st">"Hello, from Python!"</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>subtitle.text <span class="op">=</span> <span class="st">"Created with python-pptx"</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>prs.save(<span class="st">"report.pptx"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
-</ul></li>
-<li><strong>JavaScript/Node.js: <code>pptxgenjs</code></strong>
-<ul>
-<li><p>An excellent, feature-rich library that works in both Node.js and the browser. It has a fluent API and extensive documentation.</p></li>
-<li><p><strong>Example:</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode javascript code-with-copy"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> pptxgen <span class="op">=</span> <span class="pp">require</span>(<span class="st">"pptxgenjs"</span>)<span class="op">;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> pptx <span class="op">=</span> <span class="kw">new</span> <span class="fu">pptxgen</span>()<span class="op">;</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> slide <span class="op">=</span> pptx<span class="op">.</span><span class="fu">addSlide</span>()<span class="op">;</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>slide<span class="op">.</span><span class="fu">addText</span>(<span class="st">"Hello from Node.js!"</span><span class="op">,</span> {</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">x</span><span class="op">:</span> <span class="dv">1</span><span class="op">,</span> <span class="dt">y</span><span class="op">:</span> <span class="dv">1</span><span class="op">,</span> <span class="dt">w</span><span class="op">:</span> <span class="st">'80%'</span><span class="op">,</span> <span class="dt">h</span><span class="op">:</span> <span class="dv">1</span><span class="op">,</span> <span class="dt">fontSize</span><span class="op">:</span> <span class="dv">36</span><span class="op">,</span> <span class="dt">fill</span><span class="op">:</span> { <span class="dt">color</span><span class="op">:</span> <span class="st">'003366'</span> }</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>pptx<span class="op">.</span><span class="fu">writeFile</span>({ <span class="dt">fileName</span><span class="op">:</span> <span class="st">"report.pptx"</span> })<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
-</ul></li>
-<li><strong>Java: Apache POI</strong>
-<ul>
-<li><p>A mature, robust library from the Apache Software Foundation for working with Microsoft Office formats. The component for PowerPoint is <code>XSLF</code> (for <code>.pptx</code>). It’s powerful but can be more verbose than its Python/JS counterparts.</p></li>
-<li><p><strong>Example (Conceptual):</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>XMLSlideShow ppt <span class="op">=</span> <span class="kw">new</span> <span class="fu">XMLSlideShow</span><span class="op">();</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>XSLFSlideMaster defaultMaster <span class="op">=</span> ppt<span class="op">.</span><span class="fu">getSlideMasters</span><span class="op">().</span><span class="fu">get</span><span class="op">(</span><span class="dv">0</span><span class="op">);</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>XSLFSlideLayout titleLayout <span class="op">=</span> defaultMaster<span class="op">.</span><span class="fu">getLayout</span><span class="op">(</span>SlideLayout<span class="op">.</span><span class="fu">TITLE</span><span class="op">);</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>XSLFSlide slide <span class="op">=</span> ppt<span class="op">.</span><span class="fu">createSlide</span><span class="op">(</span>titleLayout<span class="op">);</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>XSLFTextShape title <span class="op">=</span> slide<span class="op">.</span><span class="fu">getPlaceholder</span><span class="op">(</span><span class="dv">0</span><span class="op">);</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>title<span class="op">.</span><span class="fu">setText</span><span class="op">(</span><span class="st">"Hello from Java!"</span><span class="op">);</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="bu">FileOutputStream</span> out <span class="op">=</span> <span class="kw">new</span> <span class="bu">FileOutputStream</span><span class="op">(</span><span class="st">"report.pptx"</span><span class="op">);</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>ppt<span class="op">.</span><span class="fu">write</span><span class="op">(</span>out<span class="op">);</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>out<span class="op">.</span><span class="fu">close</span><span class="op">();</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
-</ul></li>
-</ul>
-</section>
-<section id="the-low-level-way-office-open-xml-ooxml-sdk" class="level2">
-<h2 class="anchored" data-anchor-id="the-low-level-way-office-open-xml-ooxml-sdk">The Low-Level Way: Office Open XML (OOXML) SDK</h2>
-<p>This is a .NET library directly from Microsoft. It allows for the most granular control but is also the most complex. You are essentially manipulating the raw XML parts of the <code>.pptx</code> package.</p>
-<ul>
-<li><strong>How it Works:</strong> You programmatically create and relate XML parts like <code>slide1.xml</code>, <code>presentation.xml</code>, <code>theme1.xml</code>, etc.</li>
-<li><strong>Use Case:</strong> When a third-party library doesn’t support a specific, advanced feature you need, or when you are in a strict .NET environment and want maximum performance.</li>
-<li><strong>Language:</strong> .NET (C#, F#, VB.NET).</li>
-</ul>
-</section>
-<section id="the-modern-cloud-native-way-microsoft-graph-api" class="level2">
-<h2 class="anchored" data-anchor-id="the-modern-cloud-native-way-microsoft-graph-api">The Modern, Cloud-Native Way: Microsoft Graph API</h2>
-<p>This is Microsoft’s unified API for all Microsoft 365 services, including OneDrive, where PowerPoint files are stored. It is the cloud equivalent of the Google Slides API.</p>
-<ul>
-<li><strong>How it Works:</strong> You make RESTful API calls to the Graph endpoint. Its capabilities for <em>creating slide content</em> are still maturing and are not yet as comprehensive as libraries like <code>python-pptx</code>. It’s often used to manage files (upload, download, copy) that were generated by other means.</li>
-<li><strong>Key Features:</strong>
-<ul>
-<li>Create a blank presentation in OneDrive or SharePoint.</li>
-<li><em>Limited</em> ability to add slides and basic content.</li>
-<li>Powerful for file management and integration with the M365 ecosystem.</li>
-</ul></li>
-</ul>
-</section>
-<section id="the-classic-automation-way-vba-and-office-add-ins" class="level2">
-<h2 class="anchored" data-anchor-id="the-classic-automation-way-vba-and-office-add-ins">The Classic Automation Way: VBA and Office Add-ins</h2>
-<p>This method requires the PowerPoint application to be running. It’s for automating the application itself, not for server-side file generation.</p>
-<ul>
-<li><strong>VBA (Visual Basic for Applications):</strong> The legacy scripting language built into Office applications. You can write macros to create slides, insert objects, and control every aspect of the UI.</li>
-<li><strong>Office Add-ins (Office.js):</strong> The modern replacement for VBA. You use JavaScript, HTML, and CSS to create a web-based task pane inside PowerPoint that can interact with the presentation document.</li>
-</ul>
-</section>
-<section id="example-on-the-edf-producer-booklet-1" class="level2">
-<h2 class="anchored" data-anchor-id="example-on-the-edf-producer-booklet-1">Example on the EDF Producer Booklet</h2>
-<p>The complete code example is available on <a href="https://github.com/nbrosse/llm-slide-deck/blob/main/powerpoint/create_powerpoint_slides.py">GitHub</a>. This section examines the <code>python-pptx</code> library, a widely-adopted and well-documented solution for programmatic PowerPoint generation.</p>
-<p>Similar to the Google Slides approach, Google Gemini Pro 2.5 successfully generated code to create the initial slides of the EDF Producer Booklet using the <code>python-pptx</code> library. However, the output quality and visual fidelity proved disappointing. The generated code also suffered from poor readability and would be difficult to maintain. The rendered slides are displayed below:</p>
-<iframe src="https://nbrosse.github.io/llm-slide-deck/powerpoint/EDF_Presentation_powerpoint_slides.pdf" width="100%" height="900px" "="">
+<h1>PowerPoint</h1>
+<p>PowerPoint offers more room to manoeuvre, because <code>.pptx</code> is an open OOXML format that a library can write without PowerPoint installed. In Python that library is <code>python-pptx</code>; Node has <code>pptxgenjs</code>, Java has Apache POI, .NET has Microsoft’s own Open XML SDK for raw part-level manipulation, and the Microsoft Graph API covers file management in Microsoft 365 while its slide-authoring capabilities remain thin. VBA and Office add-ins automate the running application rather than generating files. For generating a deck from a script, <code>python-pptx</code> is the default choice, and it is the one I used.</p>
+<p>At <a href="https://github.com/nbrosse/llm-slide-deck/blob/main/powerpoint/create_powerpoint_slides.py">270 lines</a> the script is far shorter than the Google one, and it needs no authentication. It is also the only output of the four with defects I did not notice until I opened the file, and all three are worth stating precisely.</p>
+<p>The deck is 4:3. The script sets its canvas to ten inches by seven and a half, directly beneath a comment announcing a widescreen format:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>prs <span class="op">=</span> Presentation()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Use a widescreen format (16:9)</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>prs.slide_width <span class="op">=</span> Inches(<span class="dv">10</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>prs.slide_height <span class="op">=</span> Inches(<span class="fl">7.5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Ten by seven and a half is 4:3, and the exported PDF measures 720×540 points to prove it. The Quarto deck is 1280×720 and the Google deck exports at 720×405, both correctly 16:9. Only this one is letterboxed, and the comment sitting above the mistake asserts the opposite.</p>
+<p>The title slide’s semi-transparent overlay is not transparent. The script asks for it this way:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>shape.fill.solid()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>shape.fill.fore_color.rgb <span class="op">=</span> RGBColor(<span class="dv">255</span>, <span class="dv">255</span>, <span class="dv">255</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>shape.fill.transparency <span class="op">=</span> <span class="fl">0.25</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>python-pptx</code> has no <code>transparency</code> property on <code>FillFormat</code>. The assignment binds an attribute on the Python object, no alpha value is ever written into the XML, and the rectangle renders opaque white over the photograph. Nothing raises, nothing warns. The same call appears again later with the comment <code># Make it see-through</code>, and does nothing there too.</p>
+<p>The title is misspelled: <code>LIVRET D'ACCEUIL</code> where the booklet reads <code>ACCUEIL</code>. The Quarto deck, the HTML deck, and the Google script all spell it correctly. Only the transcription into <code>python-pptx</code> slipped, and only here is there no rendered source to proofread against.</p>
+<p>None of the three is a hard failure. The script runs to completion, exits cleanly, and writes a <code>.pptx</code> that opens. Everything that is wrong with it is visible only in the output.</p>
+<iframe src="https://nbrosse.github.io/llm-slide-deck/powerpoint/EDF_Presentation_powerpoint_slides.pdf" width="100%" height="900px">
     <p>Your browser doesn't support PDF viewing. <a href="https://nbrosse.github.io/llm-slide-deck/powerpoint/EDF_Presentation_powerpoint_slides.pdf" target="_blank">Click here to download the presentation (PDF)</a></p>
 </iframe>
 </section>
+<section id="sec-results" class="level1">
+<h1>What the four attempts cost</h1>
+<p>Five slides, one model, four formats:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Format</th>
+<th style="text-align: left;">Source</th>
+<th style="text-align: right;">Lines</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Quarto/Reveal.js</td>
+<td style="text-align: left;"><code>quarto/presentation.qmd</code></td>
+<td style="text-align: right;">130</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">PowerPoint</td>
+<td style="text-align: left;"><code>powerpoint/create_powerpoint_slides.py</code></td>
+<td style="text-align: right;">270</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">HTML/CSS</td>
+<td style="text-align: left;"><code>raw/presentation.html</code></td>
+<td style="text-align: right;">492</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Google Slides</td>
+<td style="text-align: left;"><code>google/create_slides.py</code></td>
+<td style="text-align: right;">977</td>
+</tr>
+</tbody>
+</table>
+<p>The spread is wide enough to be the argument on its own. The Quarto file is seven times shorter than the Google script for the same five slides, and it is also the only one of the four that a non-programmer could edit.</p>
+<p>The failures are more telling than the line counts, because they sort by format rather than by difficulty:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Format</th>
+<th style="text-align: left;">What went wrong</th>
+<th style="text-align: left;">How it surfaced</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Quarto/Reveal.js</td>
+<td style="text-align: left;">Minor corrections on first render</td>
+<td style="text-align: left;">Visible in the source</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">HTML/CSS</td>
+<td style="text-align: left;">No navigation — a scrolling page, not a deck</td>
+<td style="text-align: left;">On trying to present it</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Google Slides</td>
+<td style="text-align: left;">Many rounds of iteration and manual repair</td>
+<td style="text-align: left;">Batch errors naming object identifiers</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">PowerPoint</td>
+<td style="text-align: left;">4:3 canvas, inert transparency, misspelled title</td>
+<td style="text-align: left;">Only on opening the file</td>
+</tr>
+</tbody>
+</table>
+<p>Read down the last column and the pattern is the one <a href="#sec-why-code-based" class="quarto-xref">Section&nbsp;1</a> predicts. Where the model’s output is the artifact, mistakes are in plain text and you catch them by reading. Where the model’s output is a program that builds the artifact, the program can be entirely well-formed and still be wrong, and the only detector is a human looking at the result. The API-driven formats are not harder for the model in some abstract sense; they are harder to check.</p>
+<p>That also reframes what “fidelity” means for this comparison. The Google deck looks better than the PowerPoint one, but it took the most work to get there and would take the most work to change. The Quarto deck required the least of both.</p>
 </section>
 <section id="sec-conclusion" class="level1">
 <h1>Conclusion</h1>
-<section id="quartoreveal.js-vs-google-slides-vs-powerpoint-llm-centric" class="level2">
-<h2 class="anchored" data-anchor-id="quartoreveal.js-vs-google-slides-vs-powerpoint-llm-centric">Quarto/Reveal.js vs Google Slides vs PowerPoint (LLM-centric)</h2>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 25%">
@@ -817,58 +635,50 @@ Note
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Aspect</th>
-<th style="text-align: left;">Quarto / Reveal.js</th>
-<th style="text-align: left;">Google Slides (API/Apps Script)</th>
-<th style="text-align: left;">PowerPoint (.pptx via code)</th>
+<th style="text-align: left;"></th>
+<th style="text-align: left;">Quarto/Reveal.js</th>
+<th style="text-align: left;">Google Slides</th>
+<th style="text-align: left;">PowerPoint via code</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><strong>Generation Path</strong></td>
-<td style="text-align: left;">Direct text → Markdown/Quarto → render to HTML</td>
-<td style="text-align: left;">LLM writes API calls/scripts that manipulate slides</td>
-<td style="text-align: left;">LLM writes <code>.pptx</code>-generation code (e.g., <code>python-pptx</code>)</td>
+<td style="text-align: left;">Path from prompt</td>
+<td style="text-align: left;">Markdown, rendered</td>
+<td style="text-align: left;">JSON requests against a live document</td>
+<td style="text-align: left;">Python that emits shapes</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>Reliability &amp; Fidelity (from LLM)</strong></td>
-<td style="text-align: left;">High. Structured text matches LLM strengths; fewer moving parts</td>
-<td style="text-align: left;">Medium–Low. Verbose JSON/object IDs; brittle to small errors</td>
-<td style="text-align: left;">Medium–Low. APIs are verbose; layout fidelity is hard</td>
+<td style="text-align: left;">Reliability</td>
+<td style="text-align: left;">High — errors are visible in the source</td>
+<td style="text-align: left;">Low — object identifiers, absolute coordinates</td>
+<td style="text-align: left;">Low — errors are silent</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>Speed to First Draft</strong></td>
-<td style="text-align: left;">Fast. One file, one render</td>
-<td style="text-align: left;">Slow–Medium. Auth + batchUpdate cycles</td>
-<td style="text-align: left;">Medium. No auth, but heavy coding</td>
+<td style="text-align: left;">First draft</td>
+<td style="text-align: left;">One file, one render</td>
+<td style="text-align: left;">OAuth setup, then iteration</td>
+<td style="text-align: left;">Fast to run, slow to get right</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>Editability &amp; Maintenance</strong></td>
-<td style="text-align: left;">Excellent. Plain-text <code>.qmd</code>; easy diffs and refactors</td>
-<td style="text-align: left;">Poor. You edit code that edits slides; presentation is opaque</td>
-<td style="text-align: left;">Poor–Medium. Generated scripts are verbose and hard to read</td>
+<td style="text-align: left;">Editing later</td>
+<td style="text-align: left;">Plain text, readable diffs</td>
+<td style="text-align: left;">Edit the code that edits the deck</td>
+<td style="text-align: left;">Verbose generated script</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>Collaboration</strong></td>
-<td style="text-align: left;">Git-first; great for PRs, reviews, traceability</td>
-<td style="text-align: left;">Great in-GUI collaboration; weak for generated code</td>
-<td style="text-align: left;">Good in M365 GUI; weak for generated code</td>
+<td style="text-align: left;">Collaboration</td>
+<td style="text-align: left;">Git-native</td>
+<td style="text-align: left;">Strong in the GUI, weak on generated code</td>
+<td style="text-align: left;">Strong in the GUI, weak on generated code</td>
 </tr>
 </tbody>
 </table>
-<p>Bottom line: if an LLM is in the loop, code-first Quarto/Reveal.js provides the most reliable, editable path from prompt → slides. GUI-first tools shine for human collaboration but are brittle when fully generated by LLMs.</p>
-</section>
-<section id="the-ideal-future-ui-vs-codestyle-markdown-under-the-hood" class="level2">
-<h2 class="anchored" data-anchor-id="the-ideal-future-ui-vs-codestyle-markdown-under-the-hood">The ideal future UI: VS Code–style, Markdown under the hood</h2>
-<p>Build a dedicated editor that feels like VS Code and uses Quarto/Reveal.js internally:</p>
-<ul>
-<li><strong>Dual-pane workspace</strong>: Markdown/Quarto source on the left; live Reveal.js preview on the right, hot-reloading on save.</li>
-<li><strong>Context-aware copilot</strong>: Chat that is slide- and selection-aware (“tighten this bullet”, “restyle this image”, “split slide into two”). Actions map to structured edits in the <code>.qmd</code>.</li>
-<li><strong>Rich authoring UX</strong>: Outline/slide navigator, templates and themes, design tokens, fragments, notes, citations, and asset management.</li>
-<li><strong>One-click outputs</strong>: Export to HTML/PDF; Export to PowerPoint (<code>.pptx</code>) using a robust Markdown→<code>.pptx</code> converter (e.g., via <code>python-pptx</code>) with layout heuristics. Import from <code>.pptx</code> back to Markdown when needed.</li>
-<li><strong>Version control native</strong>: Git integrated diffs and reviews against the plain-text source; share links to rendered previews.</li>
-</ul>
-<p>This approach plays to the strengths of LLMs far more than working directly with PowerPoint or Google Slides, which present challenging paradigms for language models. LLMs excel at generating HTML, CSS, and Markdown thanks to extensive exposure to these formats in their training data.</p>
+<p>If a model is in the loop, Quarto/Reveal.js is the most reliable path from prompt to slides. GUI tools remain better for humans working together on a deck; they are poor targets for generation, and worse targets for verification.</p>
+<section id="the-editor-this-suggests" class="level2">
+<h2 class="anchored" data-anchor-id="the-editor-this-suggests">The editor this suggests</h2>
+<p>The remaining gap is tooling rather than model capability. What the experiment points to is an editor that keeps Markdown underneath and puts a real interface on top: source and live Reveal.js preview side by side; a chat that is aware of the current slide and selection, so that “tighten this bullet” or “split this slide in two” become structured edits to the <code>.qmd</code>; an outline view, themes, notes, and asset management; Git-native diffs against the plain-text source.</p>
+<p>The one feature that matters most is the least glamorous: export to <code>.pptx</code>. People ask for PowerPoint files, and they will keep asking. The lesson here is not that PowerPoint should be avoided but that a model should not be the thing writing it — a deterministic Markdown-to-<code>.pptx</code> converter can handle that hop, and can be tested, which is exactly what the generated scripts could not be.</p>
 
 
 </section>
@@ -876,17 +686,31 @@ Note
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2025,
   author = {Brosse, Nicolas},
-  title = {LLM-Powered {Slide} {Decks:} {A} {Comparison} of {Formats}},
+  title = {Generating Slide Decks with an {LLM:} A Comparison of
+    Formats},
   date = {2025-08-15},
   url = {https://nbrosse.github.io/posts/llm-slides/llm-slides.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2025" class="csl-entry quarto-appendix-citeas" role="listitem">
-Brosse, Nicolas. 2025. <span>“LLM-Powered Slide Decks: A Comparison of
-Formats.”</span> August 15. <a href="https://nbrosse.github.io/posts/llm-slides/llm-slides.html">https://nbrosse.github.io/posts/llm-slides/llm-slides.html</a>.
+Brosse, Nicolas. 2025. <span>“Generating Slide Decks with an LLM: A
+Comparison of Formats.”</span> August 15. <a href="https://nbrosse.github.io/posts/llm-slides/llm-slides.html">https://nbrosse.github.io/posts/llm-slides/llm-slides.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
     const icon = "";
     const anchorJS = new window.AnchorJS();
     anchorJS.options = {
