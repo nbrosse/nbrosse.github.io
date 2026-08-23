@@ -29,7 +29,7 @@ The setting is simple enough to visualize, and still rich enough to show the mai
 
 A companion post, [Closed-form flow matching](../closed-form-flow-matching/closed-form-fm.html), pushes the same posterior reading in a different direction: it replaces $p_{\mathrm{data}}$ by the empirical distribution of a finite training set, where the posterior becomes a softmax over training examples that collapses onto a single one in high dimension.
 
-The [accompanying code](https://github.com/nbrosse/introduction-flow-matching-diffusion) is on GitHub, and the experiment lives in a single [notebook](https://github.com/nbrosse/introduction-flow-matching-diffusion/blob/main/notebooks/posterior_averaging.ipynb).
+The [accompanying code](https://github.com/nbrosse/flow-matching-notes) is on GitHub, and the experiment lives in a single [notebook](https://github.com/nbrosse/flow-matching-notes/blob/main/notebooks/posterior_averaging.ipynb).
 
 # Setup and notation {#sec-setup}
 
@@ -367,7 +367,7 @@ Three remedies are standard, and this post uses none of them, in order to show t
 
 # Numerical experiment {#sec-experiment}
 
-The [notebook](https://github.com/nbrosse/introduction-flow-matching-diffusion/blob/main/notebooks/posterior_averaging.ipynb) fixes the following setup:
+The [notebook](https://github.com/nbrosse/flow-matching-notes/blob/main/notebooks/posterior_averaging.ipynb) fixes the following setup:
 
 - $p_{\mathrm{data}}$ is an equal-weight mixture of five isotropic Gaussians of unit covariance, with means equally spaced on the circle of radius $10$ in $\mathbb{R}^2$;
 - $p_{\mathrm{simple}}=\mathcal{N}(0,I_2)$ and $X_t=tZ+\sqrt{1-t}\,\varepsilon$;
