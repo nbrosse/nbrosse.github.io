@@ -35,7 +35,7 @@ Four steps run in sequence, orchestrated by the ingestion pipeline of @sec-inges
 
 ## From PDF to Markdown {#sec-pdf-markdown}
 
-The companion post [PDF Parsing for LLM Input](https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html) compares the available conversion methods. For RAG the choice here is a vision language model: more expensive than text extraction, but it describes figures and reads tables, and unlike a hosted service such as [LlamaParse](https://docs.cloud.llamaindex.ai/llamaparse/getting_started) it leaves the model, the provider and the prompt under your control.
+The companion post [Parsing PDFs for LLM input](https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html) compares the available conversion methods. For RAG the choice here is a vision language model: more expensive than text extraction, but it describes figures and reads tables, and unlike a hosted service such as [LlamaParse](https://docs.cloud.llamaindex.ai/llamaparse/getting_started) it leaves the model, the provider and the prompt under your control.
 
 `VLMPDFReader` (`src/pdf_rag/readers.py`) implements it. Each page is split off into a one-page PDF with `pypdf` and sent as raw PDF bytes to Gemini 2.0 Flash along with the transcription prompt below. Pages are transcribed concurrently, four at a time by default, and the results are joined with `--- end page N` markers; those markers are the only trace of pagination that survives into the Markdown, and most of what follows depends on them. The transcription is written to `<cache_dir>/<relative_path>.md`, so re-running the pipeline over a corpus already processed costs nothing.
 
@@ -709,7 +709,7 @@ Every stage exists in a synchronous and an asynchronous form; the asynchronous o
 
 ## An example query {#sec-pdf-rag-example}
 
-The notebook `notebooks/query_multi_pdfs_example.ipynb` runs the system over the six-document corpus and a list of queries from the configuration file.
+The notebook `notebooks/query_multi_pdfs_example.ipynb` runs the system over the six-document corpus and the list of queries in `configs/query_multi_pdfs_example.yaml`, which points at the six PDFs shipped in `data/pdfs`.
 
 ::: {.nb-scroll}
 {{< embed notebooks/_query_multi_pdfs_example.ipynb echo=true >}}
