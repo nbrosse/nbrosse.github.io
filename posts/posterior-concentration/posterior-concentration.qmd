@@ -42,7 +42,7 @@ This value should not be read as a universal constant for CIFAR-10. It is the pr
 
 The post is organized as follows. It first recalls the closed-form marginal velocity field for empirical Gaussian-OT flow matching and rewrites its softmax weights as a posterior distribution over the training index. It then reviews the empirical observations that motivate the analysis, before deriving the collapse time in an isotropic Gaussian proxy and its log-determinant generalization for non-isotropic covariance, and checking both against CIFAR-10 in a companion notebook. A last section connects this posterior concentration picture to the observed learning difficulties of neural velocity fields across time.
 
-The [accompanying code](https://github.com/nbrosse/flow-matching-notes) is on GitHub, and the checks reproduced below live in a single [notebook](https://github.com/nbrosse/flow-matching-notes/blob/main/notebooks/posterior_concentration.ipynb). It shares a repository with the notebook behind the companion post [Flow matching as posterior averaging](https://nbrosse.github.io/posts/posterior-averaging/posterior-averaging.html).
+The [accompanying code](https://github.com/nbrosse/flow-matching-notes) is on GitHub, and the checks reproduced below live in a single [notebook](https://github.com/nbrosse/flow-matching-notes/blob/main/notebooks/posterior_concentration.ipynb). It shares a repository with the notebook behind the companion post [Flow matching as posterior averaging](../posterior-averaging/posterior-averaging.html).
 
 # Setup and notation {#sec-setup-and-notation}
 
@@ -148,7 +148,7 @@ $$
 
 The second term is independent of $\theta$ and equals the conditional variance of the target. Hence minimizing the conditional flow matching loss has the same minimizers, and the same gradients, as minimizing the marginal flow matching loss.
 
-For a deeper exploration of the bias-variance decomposition in flow matching, see the blog post ["Flow matching as posterior averaging"](https://nbrosse.github.io/posts/posterior-averaging/posterior-averaging.html).
+For a deeper exploration of the bias-variance decomposition in flow matching, see the blog post ["Flow matching as posterior averaging"](../posterior-averaging/posterior-averaging.html).
 :::
 
 ## The closed-form empirical marginal velocity {#sec-closed-form-empirical-marginal-velocity}
