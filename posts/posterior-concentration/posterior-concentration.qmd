@@ -1,47 +1,32 @@
 ---
-title: "Closed-Form Flow Matching: Posterior Concentration and the Softmax Collapse"
+title: "Closed-form flow matching: posterior concentration and softmax collapse"
 author: "Nicolas Brosse"
 date: "2026-07-20"
-bibliography: closed-form-fm-references.bib
+date-modified: "2026-08-22"
+bibliography: posterior-concentration-references.bib
 categories: [deep learning, flow matching]
-description: "A mathematical analysis of the closed-form optimal velocity field in flow matching, explaining softmax collapse as posterior concentration in a high-dimensional Gaussian channel."
+description: "The closed-form velocity field of empirical flow matching is a softmax over training examples. Reading that softmax as a Bayesian posterior turns its collapse into a decoding problem, with an information-theoretic threshold that can be evaluated on CIFAR-10."
 citation:
-  url: https://nbrosse.github.io/posts/closed-form-flow-matching/closed-form-fm.html
+  url: https://nbrosse.github.io/posts/posterior-concentration/posterior-concentration.html
 ---
 
-Flow Matching (FM) learns a time-dependent velocity field transporting a simple source distribution to a target data distribution. In the Gaussian optimal-transport interpolation, and when the target distribution is replaced by the empirical training distribution, the exact marginal velocity field has a closed form: it is a softmax-weighted average over the training examples.
+Flow matching learns a time-dependent velocity field that transports a simple source distribution to a target data distribution. When the interpolation is the Gaussian optimal-transport one and the target is replaced by the empirical distribution of a finite training set, the exact marginal velocity field has a closed form: a softmax-weighted average over the training examples.
 
-In high dimension, this softmax often becomes almost one-hot very early along the interpolation path. I will refer to this phenomenon as **softmax collapse**. Once collapse occurs along a trajectory generated from a training example, the marginal velocity field becomes nearly equal to the conditional velocity field associated with that example. In other words, the exact empirical FM vector field behaves like a nearest-neighbor decoder, which helps explain why the empirical flow tends to memorize the training set.
+In high dimension that softmax often becomes almost one-hot very early along the interpolation path, a phenomenon referred to below as **softmax collapse**. Once it occurs along a trajectory generated from a training example, the marginal velocity field is nearly equal to the conditional velocity field attached to that example. The exact empirical field then behaves like a nearest-neighbor decoder, which is part of why the empirical flow memorizes its training set.
 
-The main point of this post is that this collapse has a simple mathematical interpretation. Along a planted trajectory, the closed-form softmax weights are exactly the posterior distribution over the training index in a finite Gaussian codebook model. The interpolant contains a noisy observation of the endpoint image, and the softmax answers the question:
+The point of this post is that the collapse has a simple mathematical interpretation. Along a trajectory planted at a training point, the closed-form softmax weights are exactly the posterior distribution over the training index in a finite Gaussian codebook model. The interpolant is a noisy observation of the planted image, and the softmax answers the question:
 
 > Which training point most likely generated this interpolant?
 
-Thus softmax collapse is a **posterior concentration** or **decoding** phenomenon. In an isotropic Gaussian proxy for CIFAR-10, the critical time is obtained by comparing the information contained in the interpolant to the entropy of the training index:
+Softmax collapse is therefore a **posterior concentration**, or decoding, phenomenon, and its onset can be located by comparing what the interpolant supplies against what identifying a training point costs. In an isotropic Gaussian proxy for CIFAR-10 that comparison reads
 
 $$
 \frac{\log n}{d}
 =
-\frac12 \log\left(1+\sigma^2\left(\frac{t_C}{1-t_C}\right)^2\right).
+\frac12 \log\left(1+\sigma^2\left(\frac{t_C}{1-t_C}\right)^2\right),
 $$
 
-Equivalently,
-
-$$
-\boxed{
- t_C
- =
- \frac{
- \sqrt{(e^{2\alpha}-1)/\sigma^2}
- }{
- 1+\sqrt{(e^{2\alpha}-1)/\sigma^2}
- },
- \qquad
- \alpha=\frac{\log n}{d}.
-}
-$$
-
-For the CIFAR-10 proxy
+with the information content of the interpolant on the right and the entropy of the training index on the left. For the CIFAR-10 proxy
 
 $$
 d=3072,
@@ -51,21 +36,23 @@ n=50{,}000,
 \sigma^2\approx 0.24,
 $$
 
-this gives $t_C\approx 0.146$.
+it gives $t_C\approx 0.146$.
 
 This value should not be read as a universal constant for CIFAR-10. It is the prediction of a simplified Gaussian model. But it has the right order of magnitude: it places the onset of posterior concentration around the same early-time regime in which empirical studies observe high correlation between the marginal and conditional velocity fields.
 
-This post is organized as follows. We first recall the closed-form marginal velocity field for empirical Gaussian-OT Flow Matching and rewrite its softmax weights as a posterior distribution over the training index. We then review the empirical observations that motivate the analysis, before deriving the collapse time in an isotropic Gaussian proxy and its log-determinant generalization for non-isotropic covariance. Finally, we connect this posterior concentration picture to the observed learning difficulties of neural velocity fields across time.
+The post is organized as follows. It first recalls the closed-form marginal velocity field for empirical Gaussian-OT flow matching and rewrites its softmax weights as a posterior distribution over the training index. It then reviews the empirical observations that motivate the analysis, before deriving the collapse time in an isotropic Gaussian proxy and its log-determinant generalization for non-isotropic covariance, and checking both against CIFAR-10 in a companion notebook. A last section connects this posterior concentration picture to the observed learning difficulties of neural velocity fields across time.
 
-# Setup and Notation {#sec-setup-and-notation}
+The [accompanying code](https://github.com/nbrosse/flow-matching-notes) is on GitHub, and the checks reproduced below live in a single [notebook](https://github.com/nbrosse/flow-matching-notes/blob/main/notebooks/posterior_concentration.ipynb). It shares a repository with the notebook behind the companion post [Flow matching as posterior averaging](../posterior-averaging/posterior-averaging.html).
 
-We follow the standard Flow Matching setup of [@lipman_flow_2024]. Let the source distribution be
+# Setup and notation {#sec-setup-and-notation}
+
+The setup is the standard flow matching one [@lipman_flow_2024]. Let the source distribution be
 
 $$
 p_0 = \mathcal N(0,I_d),
 $$
 
-and let the target distribution be an unknown data distribution $q$ on $\mathbb R^d$. Flow Matching defines a probability path $(p_t)_{0\leq t\leq 1}$ connecting $p_0$ to $q$ and learns a time-dependent velocity field
+and let the target distribution be an unknown data distribution $q$ on $\mathbb R^d$. Flow matching defines a probability path $(p_t)_{0\leq t\leq 1}$ connecting $p_0$ to $q$ and learns a time-dependent velocity field
 
 $$
 u : [0,1]\times \mathbb R^d \to \mathbb R^d.
@@ -81,9 +68,9 @@ $$
 
 If $X_0\sim p_0$, then $X_t=\psi_t(X_0)$ should have law $p_t$. In particular, $X_1$ should have approximately the data distribution.
 
-## Gaussian-OT Conditional Paths
+## Gaussian-OT conditional paths
 
-A common Flow Matching path is obtained by interpolating linearly between noise and data:
+A common flow matching path is obtained by interpolating linearly between noise and data:
 
 $$
 X_t=(1-t)X_0+tX_1,
@@ -116,7 +103,7 @@ u_t(X_t\mid X_1)
 =X_1-X_0.
 $$
 
-This is the target used in the usual conditional Flow Matching objective:
+This is the target used in the usual conditional flow matching objective:
 
 $$
 \mathcal L_{\mathrm{CFM}}(\theta)
@@ -159,20 +146,20 @@ $$
 \end{aligned}
 $$
 
-The second term is independent of $\theta$ and equals the conditional variance of the target. Hence minimizing the conditional Flow Matching loss has the same minimizers, and the same gradients, as minimizing the marginal Flow Matching loss.
+The second term is independent of $\theta$ and equals the conditional variance of the target. Hence minimizing the conditional flow matching loss has the same minimizers, and the same gradients, as minimizing the marginal flow matching loss.
 
-For a deeper exploration of the bias-variance decomposition in Flow Matching, see the blog post ["Flow Matching as Posterior Averaging"](https://nbrosse.github.io/posts/intro-fm-diffusion/intro-fm-diffusion.html).
+For a deeper exploration of the bias-variance decomposition in flow matching, see the blog post ["Flow matching as posterior averaging"](../posterior-averaging/posterior-averaging.html).
 :::
 
-## The Closed-Form Empirical Marginal Velocity {#sec-closed-form-empirical-marginal-velocity}
+## The closed-form empirical marginal velocity {#sec-closed-form-empirical-marginal-velocity}
 
-In practice, we observe a finite training set
+In practice only a finite training set is available,
 
 $$
 x^{(1)},\dots,x^{(n)}\in\mathbb R^d,
 $$
 
-and replace the target distribution $q$ by the empirical distribution
+and the target distribution $q$ is replaced by the empirical distribution
 
 $$
 \widehat q
@@ -219,7 +206,7 @@ $$
 
 As $t$ increases, the component means $t x^{(i)}$ separate. In high dimension, this separation can make the posterior over components concentrate very quickly.
 
-## The Softmax Weights Are a Posterior {#sec-softmax-as-posterior}
+## The softmax weights are a posterior {#sec-softmax-as-posterior}
 
 The key change of variables is
 
@@ -395,7 +382,7 @@ $$
 precisely the condition $\frac12\log(1+\rho)=\alpha$ obtained in @sec-random-coding-union-bound. The same threshold is therefore reached twice: there through a decoding argument, here through an excess-entropy computation. Their formula also depends on $\sigma^2$ alone and not on the separation between data clusters, consistent with the nonzero-mean remark in @sec-softmax-as-posterior.
 :::
 
-# Empirical Motivation {#sec-empirical-motivation}
+# Empirical motivation {#sec-empirical-motivation}
 
 The empirical observations in [@bertrand_closed-form_2025] motivate this mathematical analysis.
 
@@ -417,9 +404,11 @@ For fixed dataset size $n$, increasing $d$ decreases $\alpha$, and therefore dec
 
 @fig-article-fig-3 shows a non-monotone learning difficulty profile. The error is low near $t=0$, becomes large at intermediate times, decreases after the posterior starts concentrating, and rises again near $t=1$. The posterior concentration picture explains the intermediate-time difficulty; the final spike near $t=1$ has a different origin, namely nearest-neighbor discontinuities and the prefactor $1/(1-t)$. @sec-error-analysis returns to this profile once the threshold has been derived.
 
-# Isotropic Gaussian Proxy {#sec-isotropic-gaussian-proxy}
+# Isotropic Gaussian proxy {#sec-isotropic-gaussian-proxy}
 
-The identity of @sec-softmax-as-posterior is exact: whatever the training set, the softmax weights are the posterior over the training index in a finite Gaussian codebook model. But an identity says nothing about *when* that posterior concentrates. For that we need a distribution for the codebook itself, and the simplest useful choice replaces CIFAR-10 by an i.i.d. Gaussian cloud $x^{(i)}\sim\mathcal N(0,\sigma^2I_d)$ with variance matched to the data. What this buys is a channel that is memoryless across coordinates, which is exactly the structure a law-of-large-numbers argument needs, and it turns the question *how much signal is required to identify one of $n$ codewords?* into a classical one with a closed-form answer. We locate the threshold, calibrate $\sigma^2$ against the normalized CIFAR-10 pixel statistics and evaluate it.
+The identity of @sec-softmax-as-posterior is exact: whatever the training set, the softmax weights are the posterior over the training index in a finite Gaussian codebook model. But an identity says nothing about *when* that posterior concentrates. Answering that requires a distribution for the codebook itself, and the simplest useful choice replaces CIFAR-10 by an i.i.d. Gaussian cloud $x^{(i)}\sim\mathcal N(0,\sigma^2I_d)$ with variance matched to the data.
+
+What this buys is a channel that is memoryless across coordinates, exactly the structure a law-of-large-numbers argument needs. It also turns the question *how much signal is required to identify one of $n$ codewords?* into a classical one with a closed-form answer. The two subsections below locate the threshold, then calibrate $\sigma^2$ against the normalized CIFAR-10 pixel statistics and evaluate it.
 
 ## The information-rate threshold {#sec-random-coding-union-bound}
 
@@ -497,7 +486,7 @@ p(y\mid x)
 \exp\left(-\frac12\|y-rx\|^2\right),
 $$
 
-so that $\log L_i(Y)=\imath(x^{(i)};Y)$. For the planted pair $(X_\star,Y)$ we must show that $\frac1d\log L_\star$ concentrates.
+so that $\log L_i(Y)=\imath(x^{(i)};Y)$. For the planted pair $(X_\star,Y)$, the claim is that $\frac1d\log L_\star$ concentrates.
 
 **Step 1: the marginal output law.** Since $Y=rX+Z$ with $X\sim\mathcal N(0,\sigma^2I_d)$ independent of $Z\sim\mathcal N(0,I_d)$,
 
@@ -540,7 +529,7 @@ X_k\sim\mathcal N(0,\sigma^2),
 Z_k\sim\mathcal N(0,1),
 $$
 
-we have $I(X_k;Y_k)=h(Y_k)-h(Y_k\mid X_k)$. Since
+the mutual information is $I(X_k;Y_k)=h(Y_k)-h(Y_k\mid X_k)$. Since
 
 $$
 Y_k\sim\mathcal N(0,1+\sigma^2r^2),
@@ -610,7 +599,7 @@ n\,e^{-d\gamma}
 \exp\{d(\alpha-\gamma)\}.
 $$
 
-**Threshold.** Suppose we can pick $\gamma$ with
+**Threshold.** Suppose $\gamma$ can be picked with
 
 $$
 \alpha<\gamma<\mathcal I_{\mathrm{iso}}(r).
@@ -722,7 +711,7 @@ $$
 \frac{1}{1+W/L_\star},
 $$
 
-we obtain $\lambda_\star\to1$. Above the threshold, the posterior concentrates on the planted training point, which is exactly softmax collapse along a planted trajectory.
+the planted mass satisfies $\lambda_\star\to1$. Above the threshold, the posterior concentrates on the planted training point, which is exactly softmax collapse along a planted trajectory.
 :::
 
 The matching converse is the standard channel-coding converse via Fano's inequality: if the index can be decoded with vanishing error, its entropy rate cannot exceed the channel mutual information [@cover_elements_2006; @polyanskiy_channel_2010]. Achievability and converse together pin the collapse boundary at $\mathcal I_{\mathrm{iso}}(r_C)=\alpha$, which solves to
@@ -751,7 +740,7 @@ This is the supply-exceeds-demand comparison of the opening paragraph, now with 
 
 ## Numerical value for the CIFAR-10 proxy
 
-**Calibration.** The numerical values below use the standard CIFAR-10 normalization often used in Flow Matching experiments:
+**Calibration.** The numerical values below use the standard CIFAR-10 normalization often used in flow matching experiments:
 
 ```python
 dataset = datasets.CIFAR10(
@@ -791,11 +780,13 @@ $$
 0.273.
 $$
 
-As a simple isotropic proxy, we use
+As a simple isotropic proxy, this post uses the round value
 
 $$
-\sigma^2\approx 0.24.
+\sigma^2\approx 0.24,
 $$
+
+slightly below the per-coordinate variance $0.248$ measured on the normalized training set in the notebook below. The difference is immaterial here: using $0.248$ instead would move the threshold derived next from $0.146$ to $0.144$.
 
 This model is deliberately crude. Real CIFAR-10 images are bounded, structured, and highly non-Gaussian, and their covariance is far from isotropic. The isotropic calculation should be read as a first-order scale prediction, not as an exact model of images; @sec-general-covariance gives the natural covariance-corrected formula.
 
@@ -877,7 +868,7 @@ whose exponent changes sign exactly at $\mathcal I_{\mathrm{iso}}(r)=\alpha$, re
 This is a heuristic sharpening, not a theorem. The rigorous argument bounds $W/L_\star$ from one side only, which yields $\lambda_\star\to1$ above the threshold but not the exact sigmoid profile at finite $d$; the fluctuations of $\log L_\star$ and of $W$ around their typical scales are $O(\sqrt d)$ and are what smooth the transition in practice. The table above should be read in that spirit.
 :::
 
-# General Covariance Gaussian Proxy {#sec-general-covariance}
+# A general-covariance Gaussian proxy {#sec-general-covariance}
 
 The isotropic proxy is mathematically transparent, but real image data is strongly anisotropic.
 
@@ -955,7 +946,7 @@ $$
 
 Large-variance directions become informative early. Low-variance directions contribute later. Because $\log(1+r^2\mu)$ is concave in $\mu$, the full spectrum matters; the mean variance alone is not enough to determine the threshold.
 
-Given the spiked CIFAR-10 spectrum of @fig-eigenvalues-cifar10, a covariance-aware numerical study should therefore compute
+Given the spiked CIFAR-10 spectrum of @fig-eigenvalues-cifar10, the covariance-corrected prediction is read off the curve
 
 $$
 t\mapsto
@@ -963,15 +954,17 @@ t\mapsto
 \log\left(1+\left(\frac{t}{1-t}\right)^2\mu_k\right)
 $$
 
-and overlay the horizontal line $\alpha=\log n/d$. The crossing gives the covariance-corrected Gaussian prediction.
+at its crossing with the horizontal line $\alpha=\log n/d$.
 
-{{< embed notebooks/_cifar10_posterior_diagnostics.ipynb echo=false >}}
+The notebook that follows does exactly that on the full training set, and then goes one step further: rather than stopping at the Gaussian proxies, it evaluates the *exact* empirical softmax along planted trajectories $x_t=(1-t)z+tx_\star$ and tracks how it concentrates. Five diagnostics are followed together — the planted mass $\lambda_\star$, the largest weight $\lambda_{\max}$, the normalized posterior entropy $H(\lambda)/\log n$, the cosine alignment between the marginal and conditional velocities, and the planted recovery rate $\mathbb P(\arg\max_i\lambda_i=i_\star)$ — with both thresholds overlaid.
 
-# Consequences for Learning the Velocity Field {#sec-error-analysis}
+{{< embed notebooks/_posterior_concentration.ipynb echo=false >}}
 
-The threshold $t_C$ predicts a single event: the moment the posterior concentrates. Yet the measured error profile in @fig-article-fig-3 is non-monotone, with *two* difficult regions separated by an easy one. The posterior concentration picture resolves this apparent tension by splitting a typical trajectory into four regimes -- and, crucially, the two hard regions turn out to have unrelated causes. Only the first is governed by $\log n/d$; the second is a geometric artifact of the empirical field near $t=1$.
+# Consequences for learning the velocity field {#sec-error-analysis}
 
-## Regime 1: $t\approx 0$ -- nearly linear and easy
+The threshold $t_C$ predicts a single event: the moment the posterior concentrates. Yet the measured error profile in @fig-article-fig-3 is non-monotone, with *two* difficult regions separated by an easy one. The posterior concentration picture resolves this apparent tension by splitting a typical trajectory into four regimes — and, crucially, the two hard regions turn out to have unrelated causes. Only the first is governed by $\log n/d$; the second is a geometric artifact of the empirical field near $t=1$.
+
+## Regime 1: $t\approx 0$ — nearly linear and easy
 
 At $t=0$ the interpolant is pure noise, $X_t=Z$, and the weights are uniform (@sec-closed-form-empirical-marginal-velocity), so the marginal velocity collapses to an affine field:
 
@@ -987,7 +980,7 @@ $$
 
 the last step assuming approximately centered data. A near-linear target is trivial for a network, which is why the error is small near $t=0$.
 
-## Regime 2: $t\approx t_C$ -- posterior transition and peak difficulty
+## Regime 2: $t\approx t_C$ — posterior transition and peak difficulty
 
 As $t$ increases the rescaled observation $y=z+\tfrac{t}{1-t}x_\star$ begins to reveal the planted image, and the difficult regime is precisely the transition window
 
@@ -1008,7 +1001,7 @@ $$
 
 harder to approximate than either the affine field before it or the near-conditional field after it. This is the first peak in @fig-article-fig-3, and the posterior concentration picture places it exactly where the information-rate threshold predicts.
 
-## Regime 3: $t>t_C$ -- concentration and alignment
+## Regime 3: $t>t_C$ — concentration and alignment
 
 Past the threshold the posterior concentrates on the planted point, $\lambda_\star(t)\to 1$ (@sec-random-coding-union-bound), so along typical trajectories the marginal field reduces to the conditional one:
 
@@ -1024,7 +1017,7 @@ $$
 
 The network is once again learning a simple, near-conditional target rather than a mixture over many training points, and the error falls.
 
-## Regime 4: $t\uparrow 1$ -- nearest-neighbor discontinuities
+## Regime 4: $t\uparrow 1$ — nearest-neighbor discontinuities
 
 The second rise near $t=1$ has nothing to do with the posterior threshold. For an *arbitrary* input $x$, as $t\uparrow 1$ the softmax temperature $(1-t)^2$ tends to zero and the weights harden into a nearest-neighbor assignment,
 
@@ -1052,11 +1045,11 @@ $$
 \frac{x_\star-x_t}{1-t}=x_\star-z,
 $$
 
-which is $O(\sqrt d)$, not divergent. The late-time difficulty is therefore about approximating the empirical field as a function of $x$ near Voronoi boundaries -- a geometry-driven mechanism, unrelated to the information-theoretic transition of Regimes 2--3. The two hard regions of @fig-article-fig-3 thus have two separate explanations, and only the first is set by $\log n/d$.
+which is $O(\sqrt d)$, not divergent. The late-time difficulty is therefore about approximating the empirical field as a function of $x$ near Voronoi boundaries — a geometry-driven mechanism, unrelated to the information-theoretic transition of Regimes 2–3. The two hard regions of @fig-article-fig-3 thus have two separate explanations, and only the first is set by $\log n/d$.
 
 # Conclusion {#sec-conclusion}
 
-The empirical Gaussian-OT marginal velocity field in Flow Matching has a closed form involving a softmax over training examples. In high dimension, this softmax can concentrate very early along the interpolation path.
+The empirical Gaussian-OT marginal velocity field in flow matching has a closed form involving a softmax over training examples. In high dimension, this softmax can concentrate very early along the interpolation path.
 
 The central message of this post is that the phenomenon is not mysterious: after the change of variables $r=t/(1-t)$, $y=x/(1-t)$, the softmax weights are exactly posterior probabilities in a Gaussian observation model. Along a trajectory planted at a training example, the interpolant is a noisy observation of that example, and collapse occurs when the observation contains enough information to identify the planted point among $n$ candidates. In the isotropic Gaussian proxy this gives the explicit threshold
 
@@ -1074,8 +1067,8 @@ $$
 \frac12\log\det\left(I_d+\left(\frac{t_C}{1-t_C}\right)^2C\right),
 $$
 
-which is the natural way to incorporate the empirical covariance spectrum. This perspective also clarifies the training error profile observed empirically: the field is simple near $t=0$, difficult near the posterior transition, easier again once trajectories are decoded, and difficult near $t=1$ because the empirical field approaches a nearest-neighbor Voronoi field.
+which is the natural way to incorporate the empirical covariance spectrum and lands at $t_C\approx 0.179$ on CIFAR-10, against a measured transition at $t\approx 0.181$. This perspective also clarifies the training error profile observed empirically: the field is simple near $t=0$, difficult near the posterior transition, easier again once trajectories are decoded, and difficult near $t=1$ because the empirical field approaches a nearest-neighbor Voronoi field.
 
-The analysis is deliberately simplified, and several limitations are worth restating. CIFAR-10 is not Gaussian: images are bounded in $[-1,1]^d$ after normalization and have strong higher-order structure, so a Gaussian proxy captures only a coarse scale and covariance structure. Even the covariance-corrected log-determinant formula remains a Gaussian approximation, since the empirical covariance does not fully describe the data distribution. Posterior concentration is moreover a property of the exact empirical marginal field, whereas neural network training introduces additional approximation, optimization, and finite-sample effects. Finally, velocity alignment and posterior collapse are related but distinct: a high cosine similarity can occur before the posterior is exactly one-hot, and a one-hot posterior can select the wrong neighbor before planted recovery is reliable.
+The analysis is deliberately simplified, and several limitations are worth restating. CIFAR-10 is not Gaussian: images are bounded in $[-1,1]^d$ after normalization and have strong higher-order structure, so a Gaussian proxy captures only a coarse scale and covariance structure. Even the covariance-corrected log-determinant formula remains a Gaussian approximation, since the empirical covariance does not fully describe the data distribution. Posterior concentration is moreover a property of the exact empirical marginal field, whereas neural network training introduces additional approximation, optimization, and finite-sample effects. Finally, velocity alignment and posterior collapse are related but distinct, and the notebook makes the gap concrete: a high cosine similarity occurs well before the posterior is one-hot, and a nearly one-hot posterior can still select the wrong neighbor.
 
 Despite these caveats, softmax collapse is best understood as a high-dimensional posterior concentration phenomenon, governed by the scale $\log n/d$. It is a structural property of the empirical Gaussian-OT path, not merely an artifact of optimization.

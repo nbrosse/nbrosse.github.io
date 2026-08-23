@@ -1,1 +1,12 @@
 /* css styles */
+
+/* Long notebook output (e.g. the agent traces embedded in the PDF RAG post) is
+   capped in height and scrolled in place rather than filling the page. The
+   stdout <pre> can sit inside an .ansi-escaped-output wrapper, hence the
+   descendant selector. */
+.nb-scroll .cell-output pre {
+  max-height: 32rem;
+  overflow: auto;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-radius: 0.25rem;
+}
