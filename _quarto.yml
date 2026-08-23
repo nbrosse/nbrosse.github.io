@@ -18,12 +18,9 @@ website:
         href: https://www.researchgate.net/profile/Nicolas-Brosse-3
 format:
   html:
-    theme: flatly
+    theme:
+      light: cosmo
+      dark: [cosmo, theme-dark.scss]
     css: styles.css
     toc: true
-
-theme:
-  light: flatly
-  dark: darkly
-
 

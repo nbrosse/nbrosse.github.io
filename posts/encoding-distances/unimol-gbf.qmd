@@ -2,6 +2,7 @@
 title: "Encoding distances in molecules and pockets: GBFPT versus DCEPT"
 author: "Nicolas Brosse"
 date: "2024-04-24"
+date-modified: "2026-08-22"
 categories: [deep learning, biology]
 bibliography: unimol-gbf-references.bib
 description: "Uni-Mol encodes interatomic distances with a Gaussian basis whose parameters receive very large gradients. Replacing it with a discretized categorical embedding, in the spirit of AlphaFold, stabilizes pretraining but degrades the pocket embeddings used for retrieval."
