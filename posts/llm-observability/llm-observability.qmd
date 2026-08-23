@@ -77,7 +77,7 @@ The application here started from the [chatbot example](https://github.com/Answe
 
 # Building the chatbot {#sec-chatbot}
 
-The application is a single file, [`app/chat_fasthtml.py`](https://github.com/nbrosse/llm-observability/blob/main/app/chat_fasthtml.py). It serves a chat page, talks to Gemini over a WebSocket, and reports to Langfuse. The listings below are the real code, comments included; the prose sticks to the decisions the comments cannot explain.
+The application is a single file, [`app/chat_fasthtml.py`](https://github.com/nbrosse/llm-observability/blob/main/app/chat_fasthtml.py). It serves a chat page, talks to Gemini over a WebSocket, and reports to Langfuse. The listings below are the real code, trimmed of routine comments and reflowed to fit the page; nothing else is changed. The prose sticks to the decisions the code cannot explain.
 
 ## Setup and configuration
 
