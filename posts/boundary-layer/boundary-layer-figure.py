@@ -5,8 +5,10 @@ with inward direction +1.  This is the case d=m=1, c=1, k=0 of the general theor
 Everything is computed exactly (quadrature) and compared to the tangent-cone
 prediction, whose one-dimensional cone is the half-line [0,infty).
 """
-import numpy as np
+from pathlib import Path
+
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.integrate import quad
 from scipy.stats import norm
 
@@ -68,7 +70,8 @@ for ax, t in zip(axes, titles):
     ax.axvline(0.0, color="k", lw=0.6, alpha=0.3)
     ax.legend(fontsize=7.5, loc="best")
 fig.tight_layout()
-fig.savefig("mills-boundary-layer.png", bbox_inches="tight")
+fig.savefig(Path(__file__).resolve().parent / "figures" / "mills-boundary-layer.png",
+            bbox_inches="tight")
 
 # --- convergence check: leading term O(sigma), two-term O(sigma^2) --------------
 ac = np.linspace(-2.0, 3.0, 60)
