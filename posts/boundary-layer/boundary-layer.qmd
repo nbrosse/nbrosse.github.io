@@ -1,7 +1,7 @@
 ---
 title: "Mills ratios on manifolds: what Gaussian smoothing sees near a boundary"
 author: "Nicolas Brosse"
-date: "2026-08-24"
+date: "2026-08-26"
 bibliography: boundary-layer-references.bib
 categories: [asymptotics, diffusion models]
 description: "Convolving a singular measure with a Gaussian of width σ produces a smooth density whose logarithmic derivatives can blow up as σ → 0. Zooming in at scale σ replaces the support by its inward tangent cone: its Gaussian mass gives the leading density, and derivatives of its logarithm give the leading singular fields — a manifold-valued inverse Mills ratio."
@@ -28,8 +28,6 @@ This post is about a paper written with Arnak Dalalyan, [*Boundary-layer asympto
 The short answer is a single sentence. **Zoom in at scale $\sigma$: the support is replaced by its inward tangent cone, its Gaussian mass gives the leading density, and derivatives of its logarithm give the leading singular fields.** In one dimension, at the endpoint of an interval, the Gaussian mass of the inward half-line is $\Phi_{\mathrm N}(a)$ and its logarithmic derivative is the inverse Mills ratio $\lambda = \phi_{\mathrm N}/\Phi_{\mathrm N}$. Everything else in the paper is that computation carried out on a manifold with corners.
 
 @sec-setup fixes notation and recalls why the three fields above are the objects that denoising and transport-based generative models actually learn. @sec-mills works the one-dimensional case completely, including a numerical check of the two-term expansion, and it is the section to read if you read only one. @sec-layer introduces boundary-layer coordinates, and @sec-cone states the main density expansion. @sec-score explains where the negative powers of $\sigma$ come from, and @sec-cases specializes to a smooth density, a closed manifold, a smooth boundary, and a corner. @sec-diffusion collects the consequences for diffusion models, @sec-proof sketches the argument, and @sec-open lists what is left open.
-
-@fig-mills and the convergence table below it are produced by `code/boundary_layer_figure.py` in the paper's repository: one-dimensional quadrature for the exact quantities, closed forms for the predicted profiles, and nothing beyond `numpy`, `scipy` and `matplotlib`.
 
 # Setup and the three fields {#sec-setup}
 
