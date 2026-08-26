@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/boundary-layer/boundary-layer.html",
       "/posts/posterior-concentration/posterior-concentration.html",
       "/posts/posterior-averaging/posterior-averaging.html",
       "/posts/raman/raman.html",

@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Nicolas Brosse">
+<meta name="dcterms.date" content="2026-08-26">
+<meta name="description" content="Convolving a singular measure with a Gaussian of width σ produces a smooth density whose logarithmic derivatives can blow up as σ → 0. Zooming in at scale σ replaces the support by its inward tangent cone: its Gaussian mass gives the leading density, and derivatives of its logarithm give the leading singular fields — a manifold-valued inverse Mills ratio.">
+
+<title>Mills ratios on manifolds: what Gaussian smoothing sees near a boundary – Nicolas’ Notebook</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-d0ae9245876894da5ac7e18953ecc5cc.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-7f1822a086a24169120327e3a5d340d0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-079bce0147d390ff299ce1f57dc6b2aa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Nicolas’ Notebook</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&amp;hl"> <i class="bi bi-google" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.researchgate.net/profile/Nicolas-Brosse-3"> <i class="bi bi-r-circle" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Mills ratios on manifolds: what Gaussian smoothing sees near a boundary</h1>
+                  <div>
+        <div class="description">
+          Convolving a singular measure with a Gaussian of width σ produces a smooth density whose logarithmic derivatives can blow up as σ → 0. Zooming in at scale σ replaces the support by its inward tangent cone: its Gaussian mass gives the leading density, and derivatives of its logarithm give the leading singular fields — a manifold-valued inverse Mills ratio.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">asymptotics</div>
+                <div class="quarto-category">diffusion models</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Nicolas Brosse </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">August 26, 2026</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sec-setup" id="toc-sec-setup" class="nav-link active" data-scroll-target="#sec-setup">Setup and the three fields</a></li>
+  <li><a href="#sec-mills" id="toc-sec-mills" class="nav-link" data-scroll-target="#sec-mills">The one-dimensional picture</a>
+  <ul class="collapse">
+  <li><a href="#the-first-correction" id="toc-the-first-correction" class="nav-link" data-scroll-target="#the-first-correction">The first correction</a></li>
+  <li><a href="#a-numerical-check" id="toc-a-numerical-check" class="nav-link" data-scroll-target="#a-numerical-check">A numerical check</a></li>
+  </ul></li>
+  <li><a href="#sec-layer" id="toc-sec-layer" class="nav-link" data-scroll-target="#sec-layer">Boundary-layer coordinates</a>
+  <ul class="collapse">
+  <li><a href="#standing-assumptions" id="toc-standing-assumptions" class="nav-link" data-scroll-target="#standing-assumptions">Standing assumptions</a></li>
+  </ul></li>
+  <li><a href="#sec-cone" id="toc-sec-cone" class="nav-link" data-scroll-target="#sec-cone">The tangent-cone coefficient</a></li>
+  <li><a href="#sec-score" id="toc-sec-score" class="nav-link" data-scroll-target="#sec-score">Where the negative powers come from</a></li>
+  <li><a href="#sec-cases" id="toc-sec-cases" class="nav-link" data-scroll-target="#sec-cases">Four cases</a>
+  <ul class="collapse">
+  <li><a href="#a-smooth-positive-density-on-mathbb-rd" id="toc-a-smooth-positive-density-on-mathbb-rd" class="nav-link" data-scroll-target="#a-smooth-positive-density-on-mathbb-rd">A smooth positive density on <span class="math inline">\(\mathbb R^d\)</span></a></li>
+  <li><a href="#a-closed-embedded-manifold" id="toc-a-closed-embedded-manifold" class="nav-link" data-scroll-target="#a-closed-embedded-manifold">A closed embedded manifold</a></li>
+  <li><a href="#a-smooth-boundary-the-mills-ratio-again" id="toc-a-smooth-boundary-the-mills-ratio-again" class="nav-link" data-scroll-target="#a-smooth-boundary-the-mills-ratio-again">A smooth boundary: the Mills ratio again</a></li>
+  <li><a href="#a-corner-one-mills-ratio-per-face" id="toc-a-corner-one-mills-ratio-per-face" class="nav-link" data-scroll-target="#a-corner-one-mills-ratio-per-face">A corner: one Mills ratio per face</a></li>
+  </ul></li>
+  <li><a href="#sec-diffusion" id="toc-sec-diffusion" class="nav-link" data-scroll-target="#sec-diffusion">What this says about diffusion models</a></li>
+  <li><a href="#sec-proof" id="toc-sec-proof" class="nav-link" data-scroll-target="#sec-proof">Sketch of the proof</a>
+  <ul class="collapse">
+  <li><a href="#relation-to-heat-kernel-asymptotics" id="toc-relation-to-heat-kernel-asymptotics" class="nav-link" data-scroll-target="#relation-to-heat-kernel-asymptotics">Relation to heat-kernel asymptotics</a></li>
+  </ul></li>
+  <li><a href="#sec-open" id="toc-sec-open" class="nav-link" data-scroll-target="#sec-open">Open directions</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+
+<p>Let <span class="math inline">\(q\)</span> be a probability measure on <span class="math inline">\(\mathbb R^d\)</span> and let</p>
+<p><span class="math display">\[
+p_\sigma = \phi_\sigma \star q,
+\qquad
+\phi_\sigma = \text{density of } \mathcal N(0,\sigma^2 I_d).
+\]</span></p>
+<p>For every <span class="math inline">\(\sigma&gt;0\)</span> the function <span class="math inline">\(p_\sigma\)</span> is smooth and strictly positive, no matter how singular <span class="math inline">\(q\)</span> is. It can be a point mass, arclength on a curve, or the uniform law on a square; convolution with a Gaussian erases the distinction. And yet the distinction is not really gone. It reappears in the <em>rate</em> at which <span class="math inline">\(\log p_\sigma\)</span> and its derivatives degenerate as <span class="math inline">\(\sigma \downarrow 0\)</span>.</p>
+<p>This post is about a paper written with Arnak Dalalyan, <a href="https://arxiv.org/abs/2607.04514"><em>Boundary-layer asymptotics for Gaussian-smoothed singular measures</em></a> <span class="citation" data-cites="brosse2026boundary">(<a href="#ref-brosse2026boundary" role="doc-biblioref">Brosse and Dalalyan 2026</a>)</span>, which answers three questions at once: at what rate can the score <span class="math inline">\(\nabla\log p_\sigma\)</span>, the log-Hessian <span class="math inline">\(\nabla^2\log p_\sigma\)</span>, and the scale derivative <span class="math inline">\(\partial_\sigma\nabla\log p_\sigma\)</span> blow up; what the leading coefficients are; and which features of the geometry of the support they remember.</p>
+<p>The short answer is a single sentence. <strong>Zoom in at scale <span class="math inline">\(\sigma\)</span>: the support is replaced by its inward tangent cone, its Gaussian mass gives the leading density, and derivatives of its logarithm give the leading singular fields.</strong> In one dimension, at the endpoint of an interval, the Gaussian mass of the inward half-line is <span class="math inline">\(\Phi_{\mathrm N}(a)\)</span> and its logarithmic derivative is the inverse Mills ratio <span class="math inline">\(\lambda = \phi_{\mathrm N}/\Phi_{\mathrm N}\)</span>. Everything else in the paper is that computation carried out on a manifold with corners.</p>
+<p><a href="#sec-setup" class="quarto-xref">Section&nbsp;1</a> fixes notation and recalls why the three fields above are the objects that denoising and transport-based generative models actually learn. <a href="#sec-mills" class="quarto-xref">Section&nbsp;2</a> works the one-dimensional case completely, including a numerical check of the two-term expansion, and it is the section to read if you read only one. <a href="#sec-layer" class="quarto-xref">Section&nbsp;3</a> introduces boundary-layer coordinates, and <a href="#sec-cone" class="quarto-xref">Section&nbsp;4</a> states the main density expansion. <a href="#sec-score" class="quarto-xref">Section&nbsp;5</a> explains where the negative powers of <span class="math inline">\(\sigma\)</span> come from, and <a href="#sec-cases" class="quarto-xref">Section&nbsp;6</a> specializes to a smooth density, a closed manifold, a smooth boundary, and a corner. <a href="#sec-diffusion" class="quarto-xref">Section&nbsp;7</a> collects the consequences for diffusion models, <a href="#sec-proof" class="quarto-xref">Section&nbsp;8</a> sketches the argument, and <a href="#sec-open" class="quarto-xref">Section&nbsp;9</a> lists what is left open.</p>
+<section id="sec-setup" class="level1">
+<h1>Setup and the three fields</h1>
+<p>Write <span class="math inline">\(q\)</span> for a Borel probability measure on <span class="math inline">\(\mathbb R^d\)</span> and, for <span class="math inline">\(\sigma&gt;0\)</span>,</p>
+<p><span class="math display">\[
+p_\sigma(y)=\int_{\mathbb R^d}\phi_\sigma(y-x)\,q(\mathrm dx).
+\]</span></p>
+<p>Since <span class="math inline">\(\phi_\sigma\)</span> solves the heat equation, <span class="math inline">\(p_\sigma = q_{\sigma^2/2}\)</span> where <span class="math inline">\(\partial_t q_t = \Delta q_t\)</span>; the noise level <span class="math inline">\(\sigma\)</span> and the heat time <span class="math inline">\(t\)</span> are two parametrizations of the same path. The three fields of interest are</p>
+<p><span class="math display">\[
+\boldsymbol s_\sigma(y)=\nabla_y\log p_\sigma(y),
+\qquad
+\mathbf H_\sigma(y)=\nabla_y^2\log p_\sigma(y),
+\qquad
+\dot{\boldsymbol s}_\sigma(y)=\partial_\sigma \boldsymbol s_\sigma(y).
+\]</span></p>
+<p>They are not three unrelated objects. The heat equation in the <span class="math inline">\(\sigma\)</span> parametrization reads <span class="math inline">\(\partial_\sigma p_\sigma = \sigma\Delta p_\sigma\)</span>, hence</p>
+<p><span class="math display">\[
+\partial_\sigma \log p_\sigma = \sigma\bigl(\operatorname{tr}\mathbf H_\sigma + \|\boldsymbol s_\sigma\|^2\bigr),
+\qquad
+\dot{\boldsymbol s}_\sigma = \sigma\bigl(\nabla \operatorname{tr}\mathbf H_\sigma + 2\mathbf H_\sigma \boldsymbol s_\sigma\bigr).
+\]</span></p>
+<p>So <span class="math inline">\(\dot{\boldsymbol s}_\sigma\)</span> is not an auxiliary technical object: it is the scale variation of the same logarithmic field, coupled exactly to the other two.</p>
+<p>Three readings make these fields worth expanding.</p>
+<p><strong>Denoising.</strong> If <span class="math inline">\(X\sim q\)</span>, <span class="math inline">\(Z\sim\mathcal N(0,I_d)\)</span> independent, and <span class="math inline">\(Y_\sigma=X+\sigma Z\)</span>, then <span class="math inline">\(Y_\sigma\)</span> has density <span class="math inline">\(p_\sigma\)</span> and Tweedie’s identities <span class="citation" data-cites="robbins1956empirical efron2011tweedie vincent2011connection">(<a href="#ref-robbins1956empirical" role="doc-biblioref">Robbins 1956</a>; <a href="#ref-efron2011tweedie" role="doc-biblioref">Efron 2011</a>; <a href="#ref-vincent2011connection" role="doc-biblioref">Vincent 2011</a>)</span> give</p>
+<p><span class="math display">\[
+\mathbb E[X\mid Y_\sigma=y]=y+\sigma^2\boldsymbol s_\sigma(y),
+\qquad
+\operatorname{Cov}(X\mid Y_\sigma=y)=\sigma^4\mathbf H_\sigma(y)+\sigma^2 I_d .
+\]</span></p>
+<p>The score determines the denoising displacement; the log-Hessian determines the posterior covariance and the local linearization of the denoiser.</p>
+<p><strong>Transport.</strong> The heat path satisfies the continuity equation <span class="math inline">\(\partial_\sigma p_\sigma + \nabla\cdot(\boldsymbol v_\sigma p_\sigma)=0\)</span> with velocity <span class="math inline">\(\boldsymbol v_\sigma = -\sigma\boldsymbol s_\sigma\)</span>. Then <span class="math inline">\(\nabla_y\boldsymbol v_\sigma = -\sigma\mathbf H_\sigma\)</span> and <span class="math inline">\(\partial_\sigma\boldsymbol v_\sigma = -\boldsymbol s_\sigma - \sigma\dot{\boldsymbol s}_\sigma\)</span>.</p>
+<p><strong>Generative modeling.</strong> For the heat-regularized law, the population target of denoising score matching at noise level <span class="math inline">\(\sigma\)</span> is exactly <span class="math inline">\(\boldsymbol s_\sigma\)</span> <span class="citation" data-cites="hyvarinen2005scorematching vincent2011connection ho2020ddpm song2021scorebased karras2022edm">(<a href="#ref-hyvarinen2005scorematching" role="doc-biblioref">Hyvärinen 2005</a>; <a href="#ref-vincent2011connection" role="doc-biblioref">Vincent 2011</a>; <a href="#ref-ho2020ddpm" role="doc-biblioref">Ho et al. 2020</a>; <a href="#ref-song2021scorebased" role="doc-biblioref">Song et al. 2021</a>; <a href="#ref-karras2022edm" role="doc-biblioref">Karras et al. 2022</a>)</span>, and the canonical flow-matching velocity along the heat path is <span class="math inline">\(-\sigma\boldsymbol s_\sigma\)</span> <span class="citation" data-cites="lipman2023flowmatching lipman2024flowmatchingguide">(<a href="#ref-lipman2023flowmatching" role="doc-biblioref">Lipman et al. 2023</a>, <a href="#ref-lipman2024flowmatchingguide" role="doc-biblioref">2024</a>)</span>. High-order samplers are especially sensitive to how this field varies along the path <span class="citation" data-cites="lu2022dpmsolver">(<a href="#ref-lu2022dpmsolver" role="doc-biblioref">Lu et al. 2022</a>)</span>.</p>
+<p>The point of the paper is that when <span class="math inline">\(q\)</span> is concentrated on a lower-dimensional set, or when <span class="math inline">\(y\)</span> sits near a boundary or a corner of the support, these population fields are <em>not</em> governed at leading order by a smooth Euclidean density expansion.</p>
+<div id="fig-heat-density" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A three-by-seven grid of heatmaps. The top row barely changes across columns. The middle and bottom rows sharpen progressively, developing a visible edge and a thin bright filament respectively as the noise level decreases.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-heat-density-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/heat-density-grid.jpg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Heat regularizations p_\sigma = \phi_\sigma\star q of three measures on \mathbb R^2, at six decreasing noise levels \sigma\in\{0.70-0.09k\}_{k=0}^{5}, followed by the measure q itself. Top: a standard Gaussian, where nothing happens as \sigma\downarrow 0. Middle: the uniform law on \{\sqrt{|x_1|}+\sqrt{|x_2|}\le 1.5\}, a full-dimensional support with a boundary and four cusps. Bottom: uniform arclength on the curve \{\sqrt{|x_1|}+\sqrt{|x_2|}= 1.5\}, a one-dimensional support in \mathbb R^2."><img src="figures/heat-density-grid.jpg" class="img-fluid figure-img" style="width:100.0%" alt="A three-by-seven grid of heatmaps. The top row barely changes across columns. The middle and bottom rows sharpen progressively, developing a visible edge and a thin bright filament respectively as the noise level decreases."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-heat-density-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Heat regularizations <span class="math inline">\(p_\sigma = \phi_\sigma\star q\)</span> of three measures on <span class="math inline">\(\mathbb R^2\)</span>, at six decreasing noise levels <span class="math inline">\(\sigma\in\{0.70-0.09k\}_{k=0}^{5}\)</span>, followed by the measure <span class="math inline">\(q\)</span> itself. Top: a standard Gaussian, where nothing happens as <span class="math inline">\(\sigma\downarrow 0\)</span>. Middle: the uniform law on <span class="math inline">\(\{\sqrt{|x_1|}+\sqrt{|x_2|}\le 1.5\}\)</span>, a full-dimensional support with a boundary and four cusps. Bottom: uniform arclength on the curve <span class="math inline">\(\{\sqrt{|x_1|}+\sqrt{|x_2|}= 1.5\}\)</span>, a one-dimensional support in <span class="math inline">\(\mathbb R^2\)</span>.
+</figcaption>
+</figure>
+</div>
+<p><a href="#fig-heat-density" class="quarto-xref">Figure&nbsp;1</a> is the phenomenon in one image. In the top row the density is smooth and the picture is essentially static. In the other two rows the spatial variation of <span class="math inline">\(p_\sigma\)</span> concentrates into a layer of thickness <span class="math inline">\(O(\sigma)\)</span> around the boundary of the support. Derivatives taken across such a layer produce inverse powers of <span class="math inline">\(\sigma\)</span>. The rest of this post identifies them.</p>
+</section>
+<section id="sec-mills" class="level1">
+<h1>The one-dimensional picture</h1>
+<p>Take <span class="math inline">\(d=m=1\)</span> and let <span class="math inline">\(q\)</span> have density <span class="math inline">\(\rho\)</span> with respect to Lebesgue measure on <span class="math inline">\([0,1]\)</span>, with <span class="math inline">\(\rho&gt;0\)</span> up to and including the endpoints. The interesting point is the endpoint <span class="math inline">\(x=0\)</span>, where the support is one-sided. Because the Gaussian kernel has width <span class="math inline">\(\sigma\)</span>, the interesting observation points are those at distance <span class="math inline">\(O(\sigma)\)</span> from that endpoint, so we set</p>
+<p><span class="math display">\[
+y=\sigma a,
+\qquad a \in \mathbb R \text{ bounded},
+\]</span></p>
+<p>with <span class="math inline">\(a&gt;0\)</span> pointing inward. Substituting <span class="math inline">\(x=\sigma\zeta\)</span> in the convolution integral,</p>
+<p><span class="math display">\[
+p_\sigma(\sigma a)
+=\int_0^1 \rho(x)\,\phi_\sigma(\sigma a - x)\,\mathrm dx
+=\int_0^{1/\sigma} \rho(\sigma\zeta)\,\phi_{\mathrm N}(a-\zeta)\,\mathrm d\zeta ,
+\]</span></p>
+<p>where <span class="math inline">\(\phi_{\mathrm N}\)</span> is the standard normal density. Two things happen as <span class="math inline">\(\sigma\downarrow 0\)</span>. The upper limit escapes to <span class="math inline">\(+\infty\)</span> — the far endpoint contributes <span class="math inline">\(O(e^{-\kappa/\sigma^2})\)</span> and disappears — and <span class="math inline">\(\rho(\sigma\zeta)\)</span> converges to <span class="math inline">\(\rho(0)\)</span>. The interval has been replaced by the half-line <span class="math inline">\([0,\infty)\)</span>, its inward tangent cone at <span class="math inline">\(0\)</span>, and</p>
+<p><span class="math display">\[
+p_\sigma(\sigma a) = \rho(0)\,\Phi_{\mathrm N}(a) + O(\sigma),
+\qquad
+\Phi_{\mathrm N}(a)=\int_0^\infty \phi_{\mathrm N}(a-\zeta)\,\mathrm d\zeta
+= \int_{-\infty}^{a}\phi_{\mathrm N}(t)\,\mathrm dt .
+\]</span></p>
+<p>The leading coefficient is the density at the boundary point times the <strong>Gaussian mass of the inward cone seen from the rescaled observation point <span class="math inline">\(a\)</span></strong>. This is the whole paper in one line; the rest is geometry.</p>
+<p>Differentiating is where the singular scaling appears. Since <span class="math inline">\(a=y/\sigma\)</span>, each <span class="math inline">\(y\)</span>-derivative costs a factor <span class="math inline">\(\sigma^{-1}\)</span>:</p>
+<p><span class="math display">\[
+\boldsymbol s_\sigma(\sigma a)=\frac{1}{\sigma}\,\lambda(a)+O(1),
+\qquad
+\mathbf H_\sigma(\sigma a)=\frac{1}{\sigma^2}\,\lambda'(a)+O(\sigma^{-1}),
+\qquad
+\lambda=\frac{\phi_{\mathrm N}}{\Phi_{\mathrm N}} = (\log \Phi_{\mathrm N})' .
+\]</span></p>
+<p>The function <span class="math inline">\(\lambda\)</span> is the <strong>inverse Mills ratio</strong>. It is positive, decreasing, satisfies <span class="math inline">\(\lambda(a)\sim -a\)</span> as <span class="math inline">\(a\to-\infty\)</span> and <span class="math inline">\(\lambda(a)\to 0\)</span> as <span class="math inline">\(a\to+\infty\)</span>, and <span class="math inline">\(\lambda' = -\lambda(a+\lambda)&lt;0\)</span> by log-concavity of <span class="math inline">\(\Phi_{\mathrm N}\)</span>. So the score points inward with magnitude <span class="math inline">\(\sigma^{-1}\lambda(a)\)</span>: at <span class="math inline">\(a=0\)</span> it is <span class="math inline">\(\sigma^{-1}\sqrt{2/\pi}\)</span>, deep inside (<span class="math inline">\(a\gg 1\)</span>) it decays to the ordinary interior score, and outside the support (<span class="math inline">\(a \ll -1\)</span>) it becomes <span class="math inline">\(-a/\sigma = -y/\sigma^2\)</span>, the linear attraction of a Gaussian centered at the endpoint.</p>
+<section id="the-first-correction" class="level2">
+<h2 class="anchored" data-anchor-id="the-first-correction">The first correction</h2>
+<p>Keeping one more term in <span class="math inline">\(\rho(\sigma\zeta)=\rho(0)+\sigma\rho'(0)\zeta+O(\sigma^2)\)</span> gives</p>
+<p><span class="math display">\[
+p_\sigma(\sigma a)
+=\rho(0)\,\Phi_{\mathrm N}(a)
+\;+\;\sigma\rho'(0)\bigl(a\,\Phi_{\mathrm N}(a)+\phi_{\mathrm N}(a)\bigr)
+\;+\;O(\sigma^2),
+\]</span></p>
+<p>using <span class="math inline">\(\int_0^\infty \zeta\,\phi_{\mathrm N}(a-\zeta)\,\mathrm d\zeta = a\Phi_{\mathrm N}(a)+\phi_{\mathrm N}(a)\)</span>. Passing to the logarithm and writing <span class="math inline">\(\beta=(\log\rho)'(0)\)</span>,</p>
+<p><span class="math display">\[
+\log p_\sigma(\sigma a) = \log\rho(0)+\log\Phi_{\mathrm N}(a) + \sigma\,\beta\,\bigl(a+\lambda(a)\bigr)+O(\sigma^2),
+\]</span></p>
+<p>and differentiating in <span class="math inline">\(y\)</span>, that is applying <span class="math inline">\(\sigma^{-1}\partial_a\)</span>,</p>
+<p><span class="math display">\[
+\sigma\,\boldsymbol s_\sigma(\sigma a) = \lambda(a) + \sigma\beta\bigl(1+\lambda'(a)\bigr)+O(\sigma^2),
+\qquad
+\sigma^2\,\mathbf H_\sigma(\sigma a) = \lambda'(a) + \sigma\beta\,\lambda''(a)+O(\sigma^2).
+\]</span></p>
+<p>A sanity check at the level of the profiles: as <span class="math inline">\(a\to+\infty\)</span> the boundary is far away in units of <span class="math inline">\(\sigma\)</span>, <span class="math inline">\(\lambda\)</span> and <span class="math inline">\(\lambda'\)</span> vanish, and the first two terms recover <span class="math inline">\(\beta=(\log\rho)'(0)\)</span>, the ordinary interior score. The expansion itself is uniform only while <span class="math inline">\(a\)</span> stays in a fixed bounded interval; letting <span class="math inline">\(a\)</span> grow as <span class="math inline">\(\sigma\)</span> shrinks is a different regime.</p>
+</section>
+<section id="a-numerical-check" class="level2">
+<h2 class="anchored" data-anchor-id="a-numerical-check">A numerical check</h2>
+<p>Take <span class="math inline">\(\rho(x)=\tfrac23(1+x)\)</span> on <span class="math inline">\([0,1]\)</span>, so <span class="math inline">\(\rho(0)=\tfrac23\)</span> and <span class="math inline">\(\beta=1\)</span>. Computing <span class="math inline">\(p_\sigma\)</span>, <span class="math inline">\(\boldsymbol s_\sigma\)</span> and <span class="math inline">\(\mathbf H_\sigma\)</span> by quadrature and comparing to the two formulas above over <span class="math inline">\(a\in[-2,3]\)</span> gives the following maximal errors.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;"><span class="math inline">\(\sigma\)</span></th>
+<th style="text-align: right;"><span class="math inline">\(p_\sigma\)</span>, 1 term</th>
+<th style="text-align: right;"><span class="math inline">\(p_\sigma\)</span>, 2 terms</th>
+<th style="text-align: right;"><span class="math inline">\(\sigma\boldsymbol s_\sigma\)</span>, 1 term</th>
+<th style="text-align: right;"><span class="math inline">\(\sigma\boldsymbol s_\sigma\)</span>, 2 terms</th>
+<th style="text-align: right;"><span class="math inline">\(\sigma^2\mathbf H_\sigma\)</span>, 1 term</th>
+<th style="text-align: right;"><span class="math inline">\(\sigma^2\mathbf H_\sigma\)</span>, 2 terms</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;"><span class="math inline">\(0.1\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(2.0\cdot 10^{-1}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(1.7\cdot 10^{-12}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(7.7\cdot 10^{-2}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(2.3\cdot 10^{-2}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(2.4\cdot 10^{-2}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(8.6\cdot 10^{-3}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><span class="math inline">\(0.05\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(1.0\cdot 10^{-1}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(4.8\cdot 10^{-13}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(4.3\cdot 10^{-2}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(6.4\cdot 10^{-3}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(1.3\cdot 10^{-2}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(2.5\cdot 10^{-3}\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><span class="math inline">\(0.025\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(5.0\cdot 10^{-2}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(2.2\cdot 10^{-16}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(2.3\cdot 10^{-2}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(1.7\cdot 10^{-3}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(6.9\cdot 10^{-3}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(6.7\cdot 10^{-4}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;"><span class="math inline">\(0.0125\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(2.5\cdot 10^{-2}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(2.2\cdot 10^{-16}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(1.2\cdot 10^{-2}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(4.5\cdot 10^{-4}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(3.6\cdot 10^{-3}\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(1.8\cdot 10^{-4}\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">error ratio</td>
+<td style="text-align: right;"><span class="math inline">\(2.00\)</span></td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;"><span class="math inline">\(1.93\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(3.86\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(1.94\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(3.83\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>The last row gives the ratio for the final refinement: about <span class="math inline">\(2\)</span> for the one-term expansions and <span class="math inline">\(4\)</span> for the two-term ones, confirming the <span class="math inline">\(O(\sigma)\)</span> and <span class="math inline">\(O(\sigma^2)\)</span> rates for the rescaled quantities. The density column is more than that: because <span class="math inline">\(\rho\)</span> is affine and the support is flat, all terms beyond the first correction vanish identically and the two-term expansion is exact up to the exponentially small far-endpoint contribution — which is why that column sits at machine precision rather than at <span class="math inline">\(O(\sigma^2)\)</span>.</p>
+<div id="fig-mills" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three side-by-side plots against the rescaled coordinate a from -2.5 to 3. Left: the density, an increasing sigmoid saturating around 0.67. Middle: the rescaled score, decreasing from about 2.8 to near 0. Right: the rescaled log-Hessian, increasing from about -0.9 to 0. In each panel the exact curves at two noise levels track the leading profile closely.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mills-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/mills-boundary-layer.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: The boundary layer at the endpoint of [0,1], with \rho(x)=\frac{2}{3}(1+x). Solid black: the leading tangent-cone profiles \rho(0)\Phi_{\mathrm N}(a), \lambda(a), \lambda'(a). Solid colored: the exact quantities at \sigma=0.2 and \sigma=0.05, evaluated at y=\sigma a. Dotted: the two-term predictions, which are visually indistinguishable from the exact curves except at \sigma=0.2 and a\gtrsim 2, where the far endpoint of the interval is no longer negligible."><img src="figures/mills-boundary-layer.png" class="img-fluid figure-img" style="width:100.0%" alt="Three side-by-side plots against the rescaled coordinate a from -2.5 to 3. Left: the density, an increasing sigmoid saturating around 0.67. Middle: the rescaled score, decreasing from about 2.8 to near 0. Right: the rescaled log-Hessian, increasing from about -0.9 to 0. In each panel the exact curves at two noise levels track the leading profile closely."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mills-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: The boundary layer at the endpoint of <span class="math inline">\([0,1]\)</span>, with <span class="math inline">\(\rho(x)=\frac{2}{3}(1+x)\)</span>. Solid black: the leading tangent-cone profiles <span class="math inline">\(\rho(0)\Phi_{\mathrm N}(a)\)</span>, <span class="math inline">\(\lambda(a)\)</span>, <span class="math inline">\(\lambda'(a)\)</span>. Solid colored: the exact quantities at <span class="math inline">\(\sigma=0.2\)</span> and <span class="math inline">\(\sigma=0.05\)</span>, evaluated at <span class="math inline">\(y=\sigma a\)</span>. Dotted: the two-term predictions, which are visually indistinguishable from the exact curves except at <span class="math inline">\(\sigma=0.2\)</span> and <span class="math inline">\(a\gtrsim 2\)</span>, where the far endpoint of the interval is no longer negligible.
+</figcaption>
+</figure>
+</div>
+<p>Everything from here on is the same computation with the half-line replaced by a cone in <span class="math inline">\(\mathbb R^m\)</span>.</p>
+</section>
+</section>
+<section id="sec-layer" class="level1">
+<h1>Boundary-layer coordinates</h1>
+<p>Now let <span class="math inline">\(q\)</span> be concentrated on an embedded <span class="math inline">\(m\)</span>-dimensional manifold with corners <span class="math inline">\(\mathcal M\subset\mathbb R^d\)</span>, with <span class="math inline">\(q = \rho\,\mathrm d\mathrm{vol}_{\mathcal M}\)</span>. Write</p>
+<p><span class="math display">\[
+k=d-m \quad(\text{ambient codimension}),
+\qquad
+\mathbb H^m_c=\mathbb R^{m-c}\times[0,\infty)^c \quad(\text{standard quadrant}).
+\]</span></p>
+<p>A manifold with corners is stratified: every point has a neighborhood modeled on <span class="math inline">\(\mathbb H^m_c\)</span> for exactly one <span class="math inline">\(c\)</span>, and each smooth piece with a fixed <span class="math inline">\(c\)</span> is a codimension-<span class="math inline">\(c\)</span> <strong>stratum</strong> <span class="math inline">\(\mathcal S\)</span>. For a square, <span class="math inline">\(c=0\)</span> is the open face, <span class="math inline">\(c=1\)</span> gives the four open edges, and <span class="math inline">\(c=2\)</span> the four vertices.</p>
+<div id="fig-manifolds" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Three labeled 3D sketches: a shaded blue ball, a green warped disk, and a purple warped square, each with marked interior, boundary and corner points and a note giving the local model of each.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-manifolds-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/manifold-examples.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Three supports in \mathbb R^3. The closed ball is full-dimensional (m=d=3, so k=0) with a smooth boundary. The warped disk and the warped square are two-dimensional (m=2, k=1); the disk has a boundary but no corners, the square has both."><img src="figures/manifold-examples.png" class="img-fluid figure-img" style="width:100.0%" alt="Three labeled 3D sketches: a shaded blue ball, a green warped disk, and a purple warped square, each with marked interior, boundary and corner points and a note giving the local model of each."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-manifolds-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Three supports in <span class="math inline">\(\mathbb R^3\)</span>. The closed ball is full-dimensional (<span class="math inline">\(m=d=3\)</span>, so <span class="math inline">\(k=0\)</span>) with a smooth boundary. The warped disk and the warped square are two-dimensional (<span class="math inline">\(m=2\)</span>, <span class="math inline">\(k=1\)</span>); the disk has a boundary but no corners, the square has both.
+</figcaption>
+</figure>
+</div>
+<p>Two kinds of transverse directions have to be distinguished at a point <span class="math inline">\(x\)</span> of the stratum <span class="math inline">\(\mathcal S\)</span>:</p>
+<ul>
+<li><span class="math inline">\(\mathcal C_x = \mathcal T_x\mathcal M \cap (\mathcal T_x\mathcal S)^\perp\)</span>, of dimension <span class="math inline">\(c\)</span>: tangent to the support but transverse to the stratum. These carry the boundary and corner structure.</li>
+<li><span class="math inline">\(\mathcal N_x\mathcal M = (\mathcal T_x\mathcal M)^\perp\)</span>, of dimension <span class="math inline">\(k\)</span>: the ambient normal directions. These carry the lower-dimensionality.</li>
+</ul>
+<p>Choose smooth orthonormal frames <span class="math inline">\(\mathbf S(x),\mathbf C(x),\mathbf N(x)\)</span> for <span class="math inline">\(\mathcal T_x\mathcal S,\ \mathcal C_x,\ \mathcal N_x\mathcal M\)</span>, so that <span class="math inline">\(\mathbf Q(x)=[\,\mathbf S(x)\ \mathbf C(x)\ \mathbf N(x)\,]\in\mathsf O(d)\)</span>. The boundary layer is then parametrized by</p>
+<p><span class="math display">\[
+y_\sigma(a,x)=x+\sigma\,\mathbf C(x)\,a_{\mathcal C}+\sigma\,\mathbf N(x)\,a_{\mathcal N},
+\qquad
+a=(a_{\mathcal C},a_{\mathcal N})\in\mathbb R^c\times\mathbb R^k ,
+\]</span></p>
+<p>with <span class="math inline">\(x\in\mathcal S\)</span> and <span class="math inline">\(\|a\|\le A\)</span> fixed.</p>
+<div id="fig-coords" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A diagram of a shaded parallelogram representing the support, with a thicker blue line along its lower edge representing the stratum. A thin band above the edge is highlighted as the O(sigma) layer. Arrows from a point on the stratum show the tangent direction, the transverse-tangent displacement, and the normal displacement to the observation point.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-coords-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/boundary-layer-coordinates.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Boundary-layer coordinates near a stratum \mathcal S. The base point x=\pi(y) is the orthogonal projection of the observation point onto the stratum; a_{\mathcal C} records the displacement inside the support but transverse to the stratum, and a_{\mathcal N} the displacement out of the support. The regime of interest is the layer where both are O(\sigma)."><img src="figures/boundary-layer-coordinates.png" class="img-fluid figure-img" style="width:85.0%" alt="A diagram of a shaded parallelogram representing the support, with a thicker blue line along its lower edge representing the stratum. A thin band above the edge is highlighted as the O(sigma) layer. Arrows from a point on the stratum show the tangent direction, the transverse-tangent displacement, and the normal displacement to the observation point."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-coords-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Boundary-layer coordinates near a stratum <span class="math inline">\(\mathcal S\)</span>. The base point <span class="math inline">\(x=\pi(y)\)</span> is the orthogonal projection of the observation point onto the stratum; <span class="math inline">\(a_{\mathcal C}\)</span> records the displacement inside the support but transverse to the stratum, and <span class="math inline">\(a_{\mathcal N}\)</span> the displacement out of the support. The regime of interest is the layer where both are <span class="math inline">\(O(\sigma)\)</span>.
+</figcaption>
+</figure>
+</div>
+<p>Keeping <span class="math inline">\(a\)</span> bounded is exactly the statement that <span class="math inline">\(y\)</span> lies within <span class="math inline">\(O(\sigma)\)</span> of the stratum: the layer is</p>
+<p><span class="math display">\[
+\mathcal Y_{A,\mathcal K,\sigma_0}=\bigl\{(y,\sigma): \pi(y)\in\mathcal K,\ \|y-\pi(y)\|\le A\sigma,\ 0&lt;\sigma\le\sigma_0\bigr\},
+\]</span></p>
+<p>with <span class="math inline">\(\pi\)</span> the orthogonal projection onto <span class="math inline">\(\mathcal S\)</span> and <span class="math inline">\(\mathcal K\subset\mathcal S\)</span> compact. This is the regime studied here. It already contains distances <span class="math inline">\(\ll\sigma\)</span>, for which <span class="math inline">\(a\approx0\)</span>, and reaches all the way down to the support. For a full-dimensional support, points many noise scales inside the boundary are governed by the usual interior expansion. Points a fixed positive distance outside the support, or at a fixed normal distance from a lower-dimensional support, belong to a different off-support regime.</p>
+<section id="standing-assumptions" class="level2">
+<h2 class="anchored" data-anchor-id="standing-assumptions">Standing assumptions</h2>
+<p>The results hold under a local hypothesis <span class="citation" data-cites="brosse2026boundary">(<a href="#ref-brosse2026boundary" role="doc-biblioref">Brosse and Dalalyan 2026</a>, Assumption 1)</span>: <span class="math inline">\(q=\rho\,\mathrm d\mathrm{vol}_{\mathcal M}\)</span>; a compact piece <span class="math inline">\(\mathcal K\)</span> of the stratum is covered by a single <span class="math inline">\(C^{r+1}\)</span> corner chart <span class="math inline">\(\Phi:\mathcal V\times[0,\varepsilon)^c\to\mathcal M\)</span> of full rank; <span class="math inline">\(\rho\circ\Phi\)</span> is <span class="math inline">\(C^r\)</span>; and <span class="math inline">\(\rho\ge\rho_*&gt;0\)</span> on <span class="math inline">\(\mathcal K\)</span>. The chart carries one derivative more than the density because the adapted frames and tubular coordinates are built from its derivatives. Everything is local by design, and globalizing is routine — the coefficients below turn out to be chart-independent, so finitely many charts can be patched by taking maxima of the uniform constants.</p>
+</section>
+</section>
+<section id="sec-cone" class="level1">
+<h1>The tangent-cone coefficient</h1>
+<p>Fix <span class="math inline">\(x\in\mathcal K\)</span> and let <span class="math inline">\(\Phi_x\)</span> be the corner chart translated to <span class="math inline">\(x\)</span>. Since <span class="math inline">\([\,\mathbf S(x)\ \mathbf C(x)\,]\)</span> is an orthonormal frame of <span class="math inline">\(\mathcal T_x\mathcal M\)</span>, there is <span class="math inline">\(\mathbf L(x)\in\mathsf{GL}(m)\)</span> with</p>
+<p><span class="math display">\[
+\mathrm D\Phi_x(0)=\mathbf S(x)\mathbf L_{\mathcal S}(x)+\mathbf C(x)\mathbf L_{\mathcal C}(x),
+\qquad
+\mathbf L=[\,\mathbf L_{\mathcal S};\ \mathbf L_{\mathcal C}\,].
+\]</span></p>
+<p>In adapted tangent coordinates the linearized inward cone at <span class="math inline">\(x\)</span> is <span class="math inline">\(\mathbf L(x)\mathbb H^m_c\)</span>. Rescaling the integration variable by <span class="math inline">\(\xi=\sigma\zeta\)</span> turns the Gaussian exponent into</p>
+<p><span class="math display">\[
+\Psi(\zeta;a,x)=\tfrac12\Bigl[\ \|\mathbf L_{\mathcal S}(x)\zeta\|^2+\|a_{\mathcal C}-\mathbf L_{\mathcal C}(x)\zeta\|^2+\|a_{\mathcal N}\|^2\ \Bigr],
+\]</span></p>
+<p>the limit as <span class="math inline">\(\sigma\downarrow 0\)</span> of <span class="math inline">\(\|y_\sigma(a,x)-\Phi_x(\sigma\zeta)\|^2/(2\sigma^2)\)</span>. It is half the squared rescaled distance from the observation point to the point <span class="math inline">\(\zeta\)</span> of the linearized support: that point has stratum component <span class="math inline">\(\mathbf L_{\mathcal S}\zeta\)</span> and transverse-tangent component <span class="math inline">\(\mathbf L_{\mathcal C}\zeta\)</span>, and no ambient-normal component at all, which is why <span class="math inline">\(\|a_{\mathcal N}\|^2\)</span> appears as an additive constant. The leading coefficient is</p>
+<p><span class="math display">\[
+\mathsf C_0(a,x)=\rho(x)\,\lvert\det\mathbf L(x)\rvert\int_{\mathbb H^m_c} e^{-\Psi(\zeta;a,x)}\,\mathrm d\zeta ,
+\]</span></p>
+<p>a product of three factors: the density on the support, the volume Jacobian of the chart, and an unnormalized Gaussian mass of the linearized inward cone seen from <span class="math inline">\(a\)</span>. The universal normalization is kept outside, in the factor <span class="math inline">\((2\pi)^{-d/2}\)</span> below; after the two are combined, this is the <span class="math inline">\(m\)</span>-dimensional version of <span class="math inline">\(\rho(0)\Phi_{\mathrm N}(a)\)</span>.</p>
+<div id="thm-first-order-expansion" class="boundary-result theorem">
+<p><span class="theorem-title"><strong>Theorem 1 (First-order expansion)</strong></span> Under the standing assumption with <span class="math inline">\(r\ge 1\)</span> <span class="citation" data-cites="brosse2026boundary">(<a href="#ref-brosse2026boundary" role="doc-biblioref">Brosse and Dalalyan 2026</a>, Thm. 3)</span>, there is <span class="math inline">\(\sigma_0&gt;0\)</span> such that, uniformly over the layer <span class="math inline">\(\mathcal Y_{A,\mathcal K,\sigma_0}\)</span>, with <span class="math inline">\(x=\pi(y)\)</span> and <span class="math inline">\(a=a(y,\sigma)\)</span>,</p>
+<p><span class="math display">\[
+p_\sigma(y)=\sigma^{-k}(2\pi)^{-d/2}\bigl[\mathsf C_0(a,x)+O(\sigma)\bigr],
+\]</span> <span class="math display">\[
+\log p_\sigma(y)=-k\log\sigma-\tfrac d2\log(2\pi)+\mathsf L_0(a,x)+O(\sigma),
+\qquad \mathsf L_0=\log\mathsf C_0 .
+\]</span></p>
+</div>
+<p>Two remarks on the structure.</p>
+<p>The prefactor <span class="math inline">\(\sigma^{-k}\)</span> records the ambient codimension: <span class="math inline">\(q\)</span> puts finite mass on an <span class="math inline">\(m\)</span>-dimensional set and smoothing spreads it across a tube of radius <span class="math inline">\(\sim\sigma\)</span> in the <span class="math inline">\(k\)</span> normal directions, so the ambient density there is <span class="math inline">\(\sim\sigma^{-k}\)</span>. It carries no information about boundaries. Their geometry is in <span class="math inline">\(\mathsf C_0\)</span>, and it enters through two channels which the coordinates keep separate: the dependence on <span class="math inline">\(a_{\mathcal C}\)</span> records the boundary and corner structure, while the dependence on <span class="math inline">\(a_{\mathcal N}\)</span> gives the normal Gaussian profile.</p>
+<p>The second-order statement <span class="citation" data-cites="brosse2026boundary">(<a href="#ref-brosse2026boundary" role="doc-biblioref">Brosse and Dalalyan 2026</a>, Thm. 4)</span> adds a coefficient <span class="math inline">\(\mathsf C_1(a,x)\)</span> with <span class="math inline">\(r\ge 2\)</span>, so that <span class="math inline">\(p_\sigma=\sigma^{-k}(2\pi)^{-d/2}[\mathsf C_0+\sigma\mathsf C_1+O(\sigma^2)]\)</span> and <span class="math inline">\(\mathsf L_1=\mathsf C_1/\mathsf C_0\)</span>. It collects the two ways in which the true integral departs from its linearized cone model at order <span class="math inline">\(\sigma\)</span>: the chart is not its own linearization, and the amplitude <span class="math inline">\(\rho\circ\Phi_x\cdot J_x\)</span> is not constant. In the one-dimensional example of <a href="#sec-mills" class="quarto-xref">Section&nbsp;2</a>, the first source vanishes (the chart is linear) and the second gives the correction displayed there, once the outside Gaussian normalization is included.</p>
+<p>Although <span class="math inline">\(\mathsf C_0\)</span> and <span class="math inline">\(\mathsf C_1\)</span> are written through the chart datum <span class="math inline">\(\mathbf L(x)\)</span> and the frames, both are intrinsic: independent of the corner chart and equivariant under rotation of the frames. This is what makes the local statements patch.</p>
+</section>
+<section id="sec-score" class="level1">
+<h1>Where the negative powers come from</h1>
+<p>The density expansion has no negative powers of <span class="math inline">\(\sigma\)</span> beyond the harmless prefactor. They appear on differentiation, and for a reason that is entirely visible in the coordinates. The rescaled transverse variable is</p>
+<p><span class="math display">\[
+a(y,\sigma)=\frac{\nu(y)}{\sigma},
+\qquad \nu(y)=[\,\mathbf C(\pi(y))\ \mathbf N(\pi(y))\,]^\top\bigl(y-\pi(y)\bigr),
+\]</span></p>
+<p>so writing <span class="math inline">\(F^\sharp(y,\sigma)=F(a(y,\sigma),\pi(y),\sigma)\)</span> and <span class="math inline">\(\theta\)</span> for the stratum coordinate,</p>
+<p><span class="math display">\[
+\nabla_y F^\sharp = J_\theta(y)^\top\nabla_\theta F+\frac{1}{\sigma}\,J_\nu(y)^\top\nabla_a F,
+\qquad
+\partial_\sigma a=-\frac{a}{\sigma}.
+\]</span></p>
+<p>Derivatives along the stratum are harmless; derivatives across it each cost <span class="math inline">\(\sigma^{-1}\)</span>. One <span class="math inline">\(y\)</span>-derivative gives <span class="math inline">\(\sigma^{-1}\)</span>, two give <span class="math inline">\(\sigma^{-2}\)</span>, and a <span class="math inline">\(\sigma\)</span>-derivative at fixed <span class="math inline">\(y\)</span> gives <span class="math inline">\(\sigma^{-1}\)</span> as well since it must differentiate <span class="math inline">\(a\)</span>.</p>
+<div id="thm-score-expansions" class="boundary-result theorem">
+<p><span class="theorem-title"><strong>Theorem 2 (Expansions of the score and its derivatives)</strong></span> Uniformly over the layer <span class="citation" data-cites="brosse2026boundary">(<a href="#ref-brosse2026boundary" role="doc-biblioref">Brosse and Dalalyan 2026</a>, Thms. 5 and 6)</span>,</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\boldsymbol s_\sigma(y)=\sigma^{-1}\bigl(\mathsf S_0+\sigma \mathsf S_1+O(\sigma^2)\bigr),
+\quad
+\mathbf H_\sigma(y)=\sigma^{-2}\bigl(\mathsf H_0+\sigma\mathsf H_1+O(\sigma^2)\bigr),
+\\
+&amp;\dot{\boldsymbol s}_\sigma(y)=\sigma^{-2}\bigl(\dot{\mathsf S}_0+\sigma\dot{\mathsf S}_1+O(\sigma^2)\bigr),
+\end{aligned}
+\]</span></p>
+<p>with leading coefficients</p>
+<p><span class="math display">\[
+\mathsf S_0=\mathbf J_\nu^\top\,\nabla_a\mathsf L_0,
+\qquad
+\mathsf H_0=\mathbf J_\nu^\top\,\mathrm D_a^2\mathsf L_0\,\mathbf J_\nu,
+\qquad
+\dot{\mathsf S}_0=-\mathsf S_0-(\mathrm D_a\mathsf S_0)[a].
+\]</span></p>
+</div>
+<p>Evaluated on the stratum, <span class="math inline">\(\mathbf J_\nu(a,x,0)^\top=[\,\mathbf C(x)\ \mathbf N(x)\,]\)</span>: the Jacobian is just the transverse frame, so the leading coefficients are the first two derivatives of <span class="math inline">\(\log(\text{cone mass})\)</span> in the transverse variable, read back into ambient coordinates. <strong>The most singular parts of the score and of the log-Hessian are determined entirely by the Gaussian mass of the linearized inward tangent cone.</strong> Curvature of the support and variation of the density enter only at the next order, through <span class="math inline">\(\mathsf S_1\)</span> and <span class="math inline">\(\mathsf H_1\)</span>.</p>
+<p>The formula for <span class="math inline">\(\dot{\mathsf S}_0\)</span> is a two-line consequence of the chain rule and worth writing out, because it shows that the two contributions land at the same order and do not cancel. Differentiating <span class="math inline">\(\boldsymbol s_\sigma(y)=\sigma^{-1}\mathsf S_0(a(y,\sigma),x)\)</span> at fixed <span class="math inline">\(y\)</span>:</p>
+<p><span class="math display">\[
+\partial_\sigma\boldsymbol s_\sigma
+=-\frac{1}{\sigma^{2}}\mathsf S_0+\frac{1}{\sigma}(\mathrm D_a\mathsf S_0)\Bigl[-\frac a\sigma\Bigr]
+=\frac{1}{\sigma^{2}}\bigl(-\mathsf S_0-(\mathrm D_a\mathsf S_0)[a]\bigr).
+\]</span></p>
+<p>Both terms are of order <span class="math inline">\(\sigma^{-2}\)</span>: one from the explicit prefactor, one from the fact that holding <span class="math inline">\(y\)</span> fixed while shrinking <span class="math inline">\(\sigma\)</span> moves the rescaled coordinate <span class="math inline">\(a\)</span>. There is no cancellation in general.</p>
+<p>The smoothness budget is not free. The two-term score expansion needs <span class="math inline">\(r\ge 3\)</span>, and the two-term log-Hessian and <span class="math inline">\(\dot{\boldsymbol s}_\sigma\)</span> expansions need <span class="math inline">\(r\ge 4\)</span>; the first-order versions need <span class="math inline">\(r\ge2\)</span>, <span class="math inline">\(3\)</span>, <span class="math inline">\(3\)</span>. Each differentiation of the log-expansion consumes a derivative of the remainder, and the remainders have to be controlled <em>with their derivatives</em>, uniformly in <span class="math inline">\(a\)</span>, which is what makes the statements usable after differentiating.</p>
+</section>
+<section id="sec-cases" class="level1">
+<h1>Four cases</h1>
+<section id="a-smooth-positive-density-on-mathbb-rd" class="level2">
+<h2 class="anchored" data-anchor-id="a-smooth-positive-density-on-mathbb-rd">A smooth positive density on <span class="math inline">\(\mathbb R^d\)</span></h2>
+<p>Here <span class="math inline">\(m=d\)</span>, <span class="math inline">\(c=k=0\)</span>: no transverse variable, no cone, no singular prefactor. The expansion degenerates to the classical heat semigroup one,</p>
+<p><span class="math display">\[
+p_\sigma=\rho+\tfrac{\sigma^2}{2}\Delta\rho+O(\sigma^4),
+\qquad
+\boldsymbol s_\sigma=\nabla\log\rho+O(\sigma^2),
+\]</span></p>
+<p>with <span class="math inline">\(\mathsf C_0(x)=(2\pi)^{d/2}\rho(x)\)</span> and everything regular. The order-<span class="math inline">\(\sigma\)</span> coefficient vanishes by symmetry of the unconstrained Gaussian integral. Nothing happens, as it should: this is the top row of <a href="#fig-heat-density" class="quarto-xref">Figure&nbsp;1</a>.</p>
+</section>
+<section id="a-closed-embedded-manifold" class="level2">
+<h2 class="anchored" data-anchor-id="a-closed-embedded-manifold">A closed embedded manifold</h2>
+<p>Let <span class="math inline">\(\mathcal M\)</span> be smooth without boundary, so <span class="math inline">\(c=0\)</span>, <span class="math inline">\(k=d-m\)</span>, <span class="math inline">\(a=a_{\mathcal N}\)</span>, and the inward cone is the <em>full</em> tangent space <span class="math inline">\(\mathbb R^m\)</span>. The Gaussian integral is then unconstrained and its determinant cancels the Jacobian:</p>
+<p><span class="math display">\[
+\int_{\mathbb R^m}e^{-\frac12\|\mathbf L(x)\zeta\|^2}\mathrm d\zeta=\frac{(2\pi)^{m/2}}{|\det\mathbf L(x)|}
+\quad\Longrightarrow\quad
+\mathsf C_0(a,x)=(2\pi)^{m/2}\rho(x)\,e^{-\|a\|^2/2}.
+\]</span></p>
+<p>So <span class="math inline">\(\nabla_a\mathsf L_0=-a\)</span> and <span class="math inline">\(\mathrm D_a^2\mathsf L_0=-I_k\)</span>, giving</p>
+<p><span class="math display">\[
+\boldsymbol s_\sigma\bigl(x+\sigma\mathbf N(x)a\bigr)=-\frac{\mathbf N(x)a}{\sigma}+\nabla_{\mathcal M}\log\rho(x)+\tfrac12\boldsymbol h_{\mathcal M}(x)+O(\sigma),
+\]</span> <span class="math display">\[
+\mathbf H_\sigma=-\frac{\mathbf P_{\mathcal N}(x)}{\sigma^2}+\frac{\mathsf B_{a,x}}{\sigma}+O(1),
+\qquad
+\dot{\boldsymbol s}_\sigma=\frac{2\bigl(y-\pi(y)\bigr)}{\sigma^{3}}+O(1).
+\]</span></p>
+<p>The leading score is the normal attraction back to the support, of size <span class="math inline">\(\sigma^{-1}\|a\|\)</span>, recovering the behaviour <span class="math inline">\(\boldsymbol s_\sigma(y)\approx -(y-\pi(y))/\sigma^2\)</span> known from the manifold-hypothesis literature <span class="citation" data-cites="debortoli2022manifold pidstrigach2022manifolds chen2023scoremanifold">(<a href="#ref-debortoli2022manifold" role="doc-biblioref">De Bortoli 2022</a>; <a href="#ref-pidstrigach2022manifolds" role="doc-biblioref">Pidstrigach 2022</a>; <a href="#ref-chen2023scoremanifold" role="doc-biblioref">M. Chen et al. 2023</a>)</span>. What the expansion adds is the <span class="math inline">\(O(1)\)</span> term: the tangential score of the density, <em>plus</em> half the mean curvature vector <span class="math inline">\(\boldsymbol h_{\mathcal M}\)</span> — the trace of the second fundamental form. Curvature biases the denoiser because integrating a Gaussian against a curved submanifold is not the same as integrating against its tangent plane. In the log-Hessian, <span class="math inline">\(\mathbf P_{\mathcal N}\)</span> is the projection on the normal space and <span class="math inline">\(\mathsf B_{a,x}\)</span> is the bilinear form <span class="math inline">\(\langle\mathbf N(x)a,\mathrm{II}_x(\cdot,\cdot)\rangle\)</span> on tangent vectors, which vanishes when <span class="math inline">\(a=0\)</span>.</p>
+<p>Here <span class="math inline">\(\dot{\mathsf S}_0=2\mathbf N(x)a\)</span>, so <span class="math inline">\(\dot{\boldsymbol s}_\sigma\)</span> is <span class="math inline">\(O(\sigma^{-2})\)</span> in layer coordinates, where <span class="math inline">\(a\)</span> is bounded. The identity <span class="math inline">\(\mathbf N(x)a=(y-\pi(y))/\sigma\)</span> explains the second form above, but a genuinely fixed off-manifold point has <span class="math inline">\(\|a\|\to\infty\)</span> as the noise shrinks and lies outside this boundary-layer expansion.</p>
+</section>
+<section id="a-smooth-boundary-the-mills-ratio-again" class="level2">
+<h2 class="anchored" data-anchor-id="a-smooth-boundary-the-mills-ratio-again">A smooth boundary: the Mills ratio again</h2>
+<p>Let <span class="math inline">\(\mathbf A\)</span> be symmetric positive definite and let <span class="math inline">\(q\)</span> be uniform on the ellipsoid <span class="math inline">\(\mathcal E_{\mathbf A}=\{z:z^\top\mathbf A z\le 1\}\)</span>, with constant density <span class="math inline">\(\rho_{\mathbf A}=1/\operatorname{vol}_d(\mathcal E_{\mathbf A})\)</span>, so <span class="math inline">\(m=d\)</span>, <span class="math inline">\(c=1\)</span>, <span class="math inline">\(k=0\)</span>. Parametrizing the layer by <span class="math inline">\(y=x-\sigma a\,\mathbf A x/\|\mathbf A x\|\)</span> with <span class="math inline">\(a&gt;0\)</span> pointing inward,</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\mathsf C_0(a,x)=\rho_{\mathbf A}(2\pi)^{d/2}\Phi_{\mathrm N}(a),
+\qquad
+\boldsymbol s_\sigma=-\frac{\lambda(a)}{\sigma}\frac{\mathbf A x}{\|\mathbf A x\|}+O(1),
+\\
+&amp;\mathbf H_\sigma=\frac{\lambda'(a)}{\sigma^2}\frac{(\mathbf A x)(\mathbf A x)^\top}{\|\mathbf A x\|^2}+O(\sigma^{-1}).
+\end{aligned}
+\]</span></p>
+<p>This is <a href="#sec-mills" class="quarto-xref">Section&nbsp;2</a> verbatim, with the inward direction supplied by the geometry. Two things are worth noticing. The leading behaviour is <em>universal</em>: after zooming, the ellipsoid is its tangent half-space and only the local outward normal survives; curvature is pushed to lower order. And the rank-one log-Hessian is negative semi-definite, since <span class="math inline">\(\lambda'=(\log\Phi_{\mathrm N})''&lt;0\)</span>.</p>
+<p>The factor <span class="math inline">\(\Phi_{\mathrm N}(a)\)</span> is also an old acquaintance. In kernel density estimation, the bias near the edge of the support is governed by exactly this half-space model on a layer of width comparable to the bandwidth, and boundary kernels are designed to cancel it <span class="citation" data-cites="wandjones1995 jones1993boundary">(<a href="#ref-wandjones1995" role="doc-biblioref">Wand and Jones 1995</a>; <a href="#ref-jones1993boundary" role="doc-biblioref">Jones 1993</a>)</span>. What is new is the generalization to ambient codimension <span class="math inline">\(k\)</span> and to corners of arbitrary codimension <span class="math inline">\(c\)</span>, together with uniform control of the logarithmic derivatives.</p>
+</section>
+<section id="a-corner-one-mills-ratio-per-face" class="level2">
+<h2 class="anchored" data-anchor-id="a-corner-one-mills-ratio-per-face">A corner: one Mills ratio per face</h2>
+<p>An instructive case follows from <span class="math inline">\(\mathsf C_0\)</span> in two lines. Suppose the corner is right-angled in the chart, meaning <span class="math inline">\(\mathbf L(x)=I_m\)</span>. Then <span class="math inline">\(\Psi\)</span> separates and <span class="math inline">\(\mathbb H^m_c=\mathbb R^{m-c}\times[0,\infty)^c\)</span> is a product, so</p>
+<p><span class="math display">\[
+\int_{\mathbb H^m_c}e^{-\Psi}\,\mathrm d\zeta
+=(2\pi)^{m/2}\,e^{-\|a_{\mathcal N}\|^2/2}\prod_{j=1}^{c}\Phi_{\mathrm N}\bigl(a_{\mathcal C,j}\bigr),
+\]</span></p>
+<p>using <span class="math inline">\(\int_0^\infty e^{-(a-t)^2/2}\mathrm dt=\sqrt{2\pi}\,\Phi_{\mathrm N}(a)\)</span> on each factor. Hence</p>
+<p><span class="math display">\[
+\mathsf L_0(a,x)=\log\rho(x)+\tfrac m2\log 2\pi-\tfrac12\|a_{\mathcal N}\|^2+\sum_{j=1}^c\log\Phi_{\mathrm N}(a_{\mathcal C,j}),
+\]</span></p>
+<p>and, writing <span class="math inline">\(\mathbf c_1(x),\dots,\mathbf c_c(x)\)</span> for the columns of <span class="math inline">\(\mathbf C(x)\)</span>, that is the inward directions of the <span class="math inline">\(c\)</span> faces meeting at the corner,</p>
+<p><span class="math display">\[
+\boxed{\ \boldsymbol s_\sigma(y)=\frac1\sigma\Bigl[\ \sum_{j=1}^{c}\lambda\bigl(a_{\mathcal C,j}\bigr)\,\mathbf c_j(x)\;-\;\mathbf N(x)\,a_{\mathcal N}\ \Bigr]+O(1),\ }
+\]</span> <span class="math display">\[
+\mathbf H_\sigma(y)=\frac{1}{\sigma^2}\Bigl[\ \sum_{j=1}^{c}\lambda'\bigl(a_{\mathcal C,j}\bigr)\,\mathbf c_j(x)\mathbf c_j(x)^\top\;-\;\mathbf P_{\mathcal N}(x)\ \Bigr]+O(\sigma^{-1}).
+\]</span></p>
+<p>At leading order a right-angled corner behaves as <span class="math inline">\(c\)</span> <em>independent</em> boundaries: each face contributes its own inverse Mills ratio along its own inward direction, and the ambient normal directions contribute the usual linear attraction. Both earlier cases are recovered by setting <span class="math inline">\(c=0\)</span> or <span class="math inline">\(c=1,k=0\)</span>.</p>
+<p>The right-angle hypothesis is not cosmetic. For a general <span class="math inline">\(\mathbf L(x)\)</span> the cone is <span class="math inline">\(\mathbf L(x)\mathbb H^m_c\)</span> and the integral is the orthant probability of a <em>correlated</em> Gaussian, which does not factorize and has no elementary closed form once <span class="math inline">\(c\ge 3\)</span>. The structural statement — leading coefficient equals log-derivative of the cone mass — survives; the closed form does not.</p>
+</section>
+</section>
+<section id="sec-diffusion" class="level1">
+<h1>What this says about diffusion models</h1>
+<p><strong>The population denoiser.</strong> Combining the expansions with Tweedie, in the boundaryless case,</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\mathbb E[X\mid Y_\sigma=y]=x+\sigma^2\Bigl(\nabla_{\mathcal M}\log\rho(x)+\tfrac12\boldsymbol h_{\mathcal M}(x)\Bigr)+O(\sigma^3),
+\\
+&amp;\mathrm D_y\mathbb E[X\mid Y_\sigma=y]=\mathbf P_{\mathcal T}(x)+O(\sigma).
+\end{aligned}
+\]</span></p>
+<p>At small noise the ideal denoiser first collapses normally onto the support, then slides along it following the intrinsic density and the mean curvature. Near a boundary or corner the collapse is no longer a linear projection: it is the conditional mean inside a half-space or a cone, and the two are genuinely different — at <span class="math inline">\(a=0\)</span> the half-space denoiser moves inward by <span class="math inline">\(\sigma\lambda(0)=\sigma\sqrt{2/\pi}\)</span>, which a projection would not do.</p>
+<p><strong>Geometry is readable from the Hessian.</strong> In the boundaryless case the leading log-Hessian is <span class="math inline">\(-\sigma^{-2}\mathbf P_{\mathcal N}(x)\)</span>, so its strongly negative eigenspace <em>is</em> the normal space, and <span class="math inline">\(I_d+\sigma^2\mathbf H_\sigma\)</span> near-annihilates normal directions while preserving tangent ones. This is the mechanism behind estimating intrinsic dimension from a trained score <span class="citation" data-cites="stanczuk2024intrinsic">(<a href="#ref-stanczuk2024intrinsic" role="doc-biblioref">Stanczuk et al. 2024</a>)</span>. The corner formula refines the picture: at a codimension-<span class="math inline">\(c\)</span> corner there are <span class="math inline">\(k\)</span> eigenvalues near <span class="math inline">\(-\sigma^{-2}\)</span> from the normal space and <span class="math inline">\(c\)</span> further negative eigenvalues <span class="math inline">\(\sigma^{-2}\lambda'(a_{\mathcal C,j})\)</span> from the faces, along directions <em>inside</em> the support. The two families are distinguishable in principle: the <span class="math inline">\(k\)</span> normal eigenvalues sit at <span class="math inline">\(-\sigma^{-2}\)</span> whatever <span class="math inline">\(a\)</span> is, whereas <span class="math inline">\(\lambda'\)</span> takes values in <span class="math inline">\((-1,0)\)</span>, so the <span class="math inline">\(c\)</span> face eigenvalues are strictly above <span class="math inline">\(-\sigma^{-2}\)</span> and decay to <span class="math inline">\(0\)</span> as one moves inward from the face. So the same field carries the information needed to tell an interior point from a boundary point from a corner point. Whether it can be extracted reliably from a <em>trained</em> score is a separate question, not addressed here.</p>
+<p><strong>Hessian assumptions in discretization bounds.</strong> Fast Wasserstein bounds for DDPM have been obtained under conditions on the conditional covariance of the smoothed law <span class="citation" data-cites="arsenyan2025assessing">(<a href="#ref-arsenyan2025assessing" role="doc-biblioref">Arsenyan et al. 2025</a>)</span>, which through the second-order Tweedie identity are conditions on <span class="math inline">\(\mathbf H_\sigma\)</span>. The expansion supplies a geometric mechanism for them: near a stratum,</p>
+<p><span class="math display">\[
+\operatorname{Cov}\bigl(X\mid X+\sigma Z=y_\sigma(a,x)\bigr)=\sigma^2\bigl(I_d+\mathsf H_0(a,x,0)\bigr)+O(\sigma^3),
+\]</span></p>
+<p>with the leading matrix determined by the tangent cone.</p>
+<p><strong>No uniform Lipschitz constant down to zero noise.</strong> Some DDIM-type analyses control how the score varies with the noise level in order to bound deterministic-sampler discretization error <span class="citation" data-cites="chen2023restoration yu2025wasserstein">(<a href="#ref-chen2023restoration" role="doc-biblioref">S. Chen et al. 2023</a>; <a href="#ref-yu2025wasserstein" role="doc-biblioref">Yu and Yu 2025</a>)</span>. The expansion of <span class="math inline">\(\dot{\boldsymbol s}_\sigma\)</span> shows that a noise-independent Lipschitz constant cannot hold uniformly throughout the shrinking <span class="math inline">\(O(\sigma)\)</span> layer: wherever the leading coefficient is nonzero, <span class="math inline">\(\partial_\sigma\boldsymbol s_\sigma\)</span> is of order <span class="math inline">\(\sigma^{-2}\)</span>. This gives a geometric account of the low-noise Lipschitz singularities reported empirically <span class="citation" data-cites="yang2024lipschitz">(<a href="#ref-yang2024lipschitz" role="doc-biblioref">Yang et al. 2024</a>)</span>. It is a statement about the <em>population</em> score; it does not say that a particular trained network misbehaves.</p>
+<p><strong>Inverse problems.</strong> Second-order Tweedie methods express posterior covariance through <span class="math inline">\(\mathbf H_\sigma\)</span> <span class="citation" data-cites="boys2024tmpd">(<a href="#ref-boys2024tmpd" role="doc-biblioref">Boys et al. 2024</a>)</span>. Near a singular support that covariance is strongly anisotropic: ambient-normal variance can be much smaller, while cone directions carry a truncated-Gaussian coefficient different from unrestricted tangent directions. This is worth accounting for when a diffusion prior is used on constrained or intrinsically low-dimensional data.</p>
+</section>
+<section id="sec-proof" class="level1">
+<h1>Sketch of the proof</h1>
+<p>Five steps, in order.</p>
+<ol type="1">
+<li><p><strong>Localize.</strong> Split <span class="math inline">\(p_\sigma=p_{\mathrm{loc},\sigma}+p_{\mathrm{far},\sigma}\)</span> with a cutoff <span class="math inline">\(\chi_x\)</span> transported to <span class="math inline">\(\mathcal M\)</span> through the corner chart at <span class="math inline">\(x=\pi(y)\)</span>. Every point surviving <span class="math inline">\(1-\chi_x\)</span> is at distance <span class="math inline">\(\ge 2\delta_0\)</span> from <span class="math inline">\(x\)</span>, uniformly in <span class="math inline">\(x\in\mathcal K\)</span>, so the far term is exponentially small, <span class="math inline">\(O(e^{-\kappa/\sigma^2})\)</span>, together with all its derivatives. Only that <span class="math inline">\(q\)</span> is a probability measure is used here — no regularity.</p></li>
+<li><p><strong>Rescale.</strong> In the chart, <span class="math inline">\(p_{\mathrm{loc},\sigma}(y)=\int_{\mathbb H^m_c}\bar\chi_R(\xi)\,\phi_\sigma(y-\Phi_x(\xi))\,\mathcal A_x(\xi)\,\mathrm d\xi\)</span> with amplitude <span class="math inline">\(\mathcal A_x=\rho\circ\Phi_x\cdot J_x\)</span>. Substituting <span class="math inline">\(\xi=\sigma\zeta\)</span> makes the quadrant scale-invariant — this is where a <em>cone</em>, rather than a plane, becomes the limiting model — and produces the factor <span class="math inline">\(\sigma^{-k}\)</span>.</p></li>
+<li><p><strong>Taylor the phase and the amplitude.</strong> With <span class="math inline">\(y=y_\sigma(a,x)\)</span>, <span class="math display">\[
+\frac{\|y_\sigma(a,x)-\Phi_x(\sigma\zeta)\|^2}{2\sigma^2}=\Psi(\zeta;a,x)+\frac\sigma2\Lambda_x(\zeta;a)+O(\sigma^2),
+\]</span> where <span class="math inline">\(\Lambda_x\)</span> collects the quadratic Taylor terms of the chart, and <span class="math inline">\(\mathcal A_x(\sigma\zeta)=\mathcal A_x(0)+\sigma\langle\nabla\mathcal A_x(0),\zeta\rangle+O(\sigma^2)\)</span>.</p></li>
+<li><p><strong>Integrate over the cone.</strong> The order-<span class="math inline">\(1\)</span> term gives <span class="math inline">\(\mathsf C_0\)</span>, the order-<span class="math inline">\(\sigma\)</span> term gives <span class="math inline">\(\mathsf C_1\)</span>. Positivity of <span class="math inline">\(\rho\)</span> bounds <span class="math inline">\(\mathsf C_0\)</span> from below uniformly, which is what licenses passing to the logarithm and turning <span class="math inline">\(\mathsf C_1\)</span> into <span class="math inline">\(\mathsf L_1=\mathsf C_1/\mathsf C_0\)</span>.</p></li>
+<li><p><strong>Differentiate the log-expansion.</strong> Apply the chain rule of <a href="#sec-score" class="quarto-xref">Section&nbsp;5</a> to <span class="math inline">\(\mathsf L_0+\sigma\mathsf L_1\)</span> and collect powers. Each <span class="math inline">\(y\)</span>-derivative contributes <span class="math inline">\(\sigma^{-1}J_\nu^\top\nabla_a\)</span>; second derivatives also produce the tensors <span class="math inline">\(\mathbf Q_\nu,\mathbf Q_\theta\)</span> of second derivatives of the tubular coordinates, which is why <span class="math inline">\(\mathsf H_1\)</span> has four terms.</p></li>
+</ol>
+<p>The work is not in the five steps but in making them uniform. The remainders have to be bounded together with their mixed derivatives in <span class="math inline">\((a,x,\sigma)\)</span>, over <span class="math inline">\(\|a\|\le A\)</span> and <span class="math inline">\(x\in\mathcal K\)</span> and <span class="math inline">\(\sigma\in(0,\sigma_0]\)</span>, because step 5 differentiates them; the corner chart has to be uniform over the stratum piece; and derivatives in <span class="math inline">\(a\)</span> are taken over a <em>closed</em> ball while derivatives in <span class="math inline">\(x\)</span> are pullbacks under <span class="math inline">\(\theta\mapsto\Phi(\theta,0)\)</span>. That bookkeeping, not the Taylor expansion, is what fills the appendices.</p>
+<section id="relation-to-heat-kernel-asymptotics" class="level2">
+<h2 class="anchored" data-anchor-id="relation-to-heat-kernel-asymptotics">Relation to heat-kernel asymptotics</h2>
+<p>The structure is familiar from short-time heat-kernel expansions: locality, geometry seen at scale <span class="math inline">\(\sqrt t\)</span>, a boundary-layer variable <span class="math inline">\(r/\sqrt t\)</span> with the half-space as local model, and modified expansions at corners and edges <span class="citation" data-cites="McKeanSinger1967 Varadhan1967 Seeley1969Trace Grieser2004 vanDenBergSrisatkunarajah1988">(<a href="#ref-McKeanSinger1967" role="doc-biblioref">McKean and Singer 1967</a>; <a href="#ref-Varadhan1967" role="doc-biblioref">Varadhan 1967</a>; <a href="#ref-Seeley1969Trace" role="doc-biblioref">Seeley 1969</a>; <a href="#ref-Grieser2004" role="doc-biblioref">Grieser 2004</a>; <a href="#ref-vanDenBergSrisatkunarajah1988" role="doc-biblioref">Berg and Srisatkunarajah 1988</a>)</span>. The setting is nonetheless different. This is not the intrinsic heat kernel of a manifold, nor the heat kernel of a domain with boundary conditions; it is the Euclidean Gaussian regularization of a measure that may be singular with respect to Lebesgue measure. Only the locality principle carries over. There is also a link with diffusion maps, where ambient Gaussian kernels recover intrinsic operators after normalization <span class="citation" data-cites="CoifmanLafon2006">(<a href="#ref-CoifmanLafon2006" role="doc-biblioref">Coifman and Lafon 2006</a>)</span>, but that literature is about operator convergence whereas this is about pointwise asymptotics of the density and its logarithmic derivatives.</p>
+</section>
+</section>
+<section id="sec-open" class="level1">
+<h1>Open directions</h1>
+<p>Three concrete ones. <em>Higher orders</em>, which need a systematic description of higher jets of the support, the density and the volume element. <em>Transition regimes</em>, where several strata interact — the results above fix one active stratum and let <span class="math inline">\(y\)</span> approach it at scale <span class="math inline">\(\sigma\)</span>, but say nothing when <span class="math inline">\(y\)</span> approaches a corner at a scale different from its distance to an adjacent face. <em>Weaker geometry</em>: stratified supports beyond manifolds with corners, nonsmooth densities, mixtures of components of different dimensions.</p>
+<p>And one that is more open-ended. The regularized density and its logarithmic derivatives retain the tangent cone, the ambient codimension, the active boundary constraints, the density on the support and the curvature corrections. Whether these can be <em>reconstructed</em> — from small-noise samples, or from a learned score field — is the inverse question, and it is the one that would turn this from an asymptotic description into a tool.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-arsenyan2025assessing" class="csl-entry" role="listitem">
+Arsenyan, Vahan, Elen Vardanyan, and Arnak Dalalyan. 2025. <span>“Assessing the Quality of Denoising Diffusion Models in <span>Wasserstein</span> Distance: Noisy Score and Optimal Bounds.”</span> <em>Advances in Neural Information Processing Systems</em> 38: 19548–91.
+</div>
+<div id="ref-vanDenBergSrisatkunarajah1988" class="csl-entry" role="listitem">
+Berg, Michiel van den, and Sivakolundu Srisatkunarajah. 1988. <span>“Heat Equation for a Region in <span class="math inline">\(\mathbb{R}^2\)</span> with a Polygonal Boundary.”</span> <em>Journal of the London Mathematical Society</em>, 2nd series, vol. 37 (1): 119–27.
+</div>
+<div id="ref-boys2024tmpd" class="csl-entry" role="listitem">
+Boys, Benjamin, Mark Girolami, Jakiw Pidstrigach, Sebastian Reich, Alan Mosca, and Omer Deniz Akyildiz. 2024. <span>“<span>Tweedie</span> Moment Projected Diffusions for Inverse Problems.”</span> <em>Transactions on Machine Learning Research</em>.
+</div>
+<div id="ref-brosse2026boundary" class="csl-entry" role="listitem">
+Brosse, Nicolas, and Arnak S. Dalalyan. 2026. <em>Boundary-Layer Asymptotics for <span>Gaussian</span>-Smoothed Singular Measures</em>. <a href="https://arxiv.org/abs/2607.04514">https://arxiv.org/abs/2607.04514</a>.
+</div>
+<div id="ref-chen2023scoremanifold" class="csl-entry" role="listitem">
+Chen, Minshuo, Kaixuan Huang, Tuo Zhao, and Mengdi Wang. 2023. <span>“Score Approximation, Estimation and Distribution Recovery of Diffusion Models on Low-Dimensional Data.”</span> <em>Proceedings of the 40th International Conference on Machine Learning</em>, Proceedings of machine learning research, vol. 202: 4672–712.
+</div>
+<div id="ref-chen2023restoration" class="csl-entry" role="listitem">
+Chen, Sitan, Giannis Daras, and Alexandros G. Dimakis. 2023. <span>“Restoration-Degradation Beyond Linear Diffusions: A Non-Asymptotic Analysis for <span>DDIM</span>-Type Samplers.”</span> <em>Proceedings of the 40th International Conference on Machine Learning</em>, Proceedings of machine learning research, vol. 202: 4462–84.
+</div>
+<div id="ref-CoifmanLafon2006" class="csl-entry" role="listitem">
+Coifman, Ronald R., and Stéphane Lafon. 2006. <span>“Diffusion Maps.”</span> <em>Applied and Computational Harmonic Analysis</em> 21 (1): 5–30.
+</div>
+<div id="ref-debortoli2022manifold" class="csl-entry" role="listitem">
+De Bortoli, Valentin. 2022. <span>“Convergence of Denoising Diffusion Models Under the Manifold Hypothesis.”</span> <em>Transactions on Machine Learning Research</em>.
+</div>
+<div id="ref-efron2011tweedie" class="csl-entry" role="listitem">
+Efron, Bradley. 2011. <span>“<span class="nocase">Tweedie’s</span> Formula and Selection Bias.”</span> <em>Journal of the American Statistical Association</em> 106 (496): 1602–14.
+</div>
+<div id="ref-Grieser2004" class="csl-entry" role="listitem">
+Grieser, Daniel. 2004. <em>Notes on Heat Kernel Asymptotics</em>.
+</div>
+<div id="ref-ho2020ddpm" class="csl-entry" role="listitem">
+Ho, Jonathan, Ajay N. Jain, and Pieter Abbeel. 2020. <span>“Denoising Diffusion Probabilistic Models.”</span> <em>Advances in Neural Information Processing Systems</em> 33: 6840–51.
+</div>
+<div id="ref-hyvarinen2005scorematching" class="csl-entry" role="listitem">
+Hyvärinen, Aapo. 2005. <span>“Estimation of Non-Normalized Statistical Models by Score Matching.”</span> <em>Journal of Machine Learning Research</em> 6: 695–709.
+</div>
+<div id="ref-jones1993boundary" class="csl-entry" role="listitem">
+Jones, M. C. 1993. <span>“Simple Boundary Correction for Kernel Density Estimation.”</span> <em>Statistics and Computing</em> 3 (3): 135–46.
+</div>
+<div id="ref-karras2022edm" class="csl-entry" role="listitem">
+Karras, Tero, Miika Aittala, Timo Aila, and Samuli Laine. 2022. <span>“Elucidating the Design Space of Diffusion-Based Generative Models.”</span> <em>Advances in Neural Information Processing Systems</em> 35.
+</div>
+<div id="ref-lipman2023flowmatching" class="csl-entry" role="listitem">
+Lipman, Yaron, Ricky T. Q. Chen, Heli Ben-Hamu, Maximilian Nickel, and Matthew Le. 2023. <span>“Flow Matching for Generative Modeling.”</span> <em>International Conference on Learning Representations</em>.
+</div>
+<div id="ref-lipman2024flowmatchingguide" class="csl-entry" role="listitem">
+Lipman, Yaron, Marton Havasi, Peter Holderrieth, et al. 2024. <em>Flow Matching Guide and Code</em>. <a href="https://arxiv.org/abs/2412.06264">https://arxiv.org/abs/2412.06264</a>.
+</div>
+<div id="ref-lu2022dpmsolver" class="csl-entry" role="listitem">
+Lu, Cheng, Yuhao Zhou, Fan Bao, Jianfei Chen, Chongxuan Li, and Jun Zhu. 2022. <span>“<span>DPM-Solver</span>: A Fast <span>ODE</span> Solver for Diffusion Probabilistic Model Sampling in Around 10 Steps.”</span> <em>Advances in Neural Information Processing Systems</em> 35: 5775–87. <a href="https://arxiv.org/abs/2206.00927">https://arxiv.org/abs/2206.00927</a>.
+</div>
+<div id="ref-McKeanSinger1967" class="csl-entry" role="listitem">
+McKean, Henry P., Jr., and Isadore M. Singer. 1967. <span>“Curvature and the Eigenvalues of the Laplacian.”</span> <em>Journal of Differential Geometry</em> 1 (1–2): 43–69.
+</div>
+<div id="ref-pidstrigach2022manifolds" class="csl-entry" role="listitem">
+Pidstrigach, Jakiw. 2022. <span>“Score-Based Generative Models Detect Manifolds.”</span> <em>Advances in Neural Information Processing Systems</em> 35: 35852–65.
+</div>
+<div id="ref-robbins1956empirical" class="csl-entry" role="listitem">
+Robbins, Herbert. 1956. <span>“An Empirical Bayes Approach to Statistics.”</span> In <em>Proceedings of the Third Berkeley Symposium on Mathematical Statistics and Probability, Volume 1: Contributions to the Theory of Statistics</em>. University of California Press.
+</div>
+<div id="ref-Seeley1969Trace" class="csl-entry" role="listitem">
+Seeley, Robert Thomas. 1969. <span>“Analytic Extension of the Trace Associated with Elliptic Boundary Problems.”</span> <em>American Journal of Mathematics</em> 91 (4): 963–83.
+</div>
+<div id="ref-song2021scorebased" class="csl-entry" role="listitem">
+Song, Yang, Jascha Sohl-Dickstein, Diederik P. Kingma, Abhishek Kumar, Stefano Ermon, and Ben Poole. 2021. <span>“Score-Based Generative Modeling Through Stochastic Differential Equations.”</span> <em>International Conference on Learning Representations</em>.
+</div>
+<div id="ref-stanczuk2024intrinsic" class="csl-entry" role="listitem">
+Stanczuk, Jan Pawel, Georgios Batzolis, Teo Deveney, and Carola-Bibiane Schönlieb. 2024. <span>“Diffusion Models Encode the Intrinsic Dimension of Data Manifolds.”</span> <em>Proceedings of the 41st International Conference on Machine Learning</em>, Proceedings of machine learning research, vol. 235: 46412–40.
+</div>
+<div id="ref-Varadhan1967" class="csl-entry" role="listitem">
+Varadhan, S. R. Srinivasa. 1967. <span>“On the Behavior of the Fundamental Solution of the Heat Equation with Variable Coefficients.”</span> <em>Communications on Pure and Applied Mathematics</em> 20 (2): 431–55.
+</div>
+<div id="ref-vincent2011connection" class="csl-entry" role="listitem">
+Vincent, Pascal. 2011. <span>“A Connection Between Score Matching and Denoising Autoencoders.”</span> <em>Neural Computation</em> 23 (7): 1661–74.
+</div>
+<div id="ref-wandjones1995" class="csl-entry" role="listitem">
+Wand, M. P., and M. C. Jones. 1995. <em>Kernel Smoothing</em>. Vol. 60. Monographs on Statistics and Applied Probability. Chapman &amp; Hall.
+</div>
+<div id="ref-yang2024lipschitz" class="csl-entry" role="listitem">
+Yang, Zhantao, Ruili Feng, Han Zhang, et al. 2024. <span>“<span>Lipschitz</span> Singularities in Diffusion Models.”</span> <em>International Conference on Learning Representations</em>.
+</div>
+<div id="ref-yu2025wasserstein" class="csl-entry" role="listitem">
+Yu, Yifeng, and Lu Yu. 2025. <span>“Advancing <span>Wasserstein</span> Convergence Analysis of Score-Based Models: Insights from Discretization and Second-Order Acceleration.”</span> In <em>Advances in Neural Information Processing Systems</em>, edited by D. Belgrave, C. Zhang, H. Lin, et al., vol. 38. Curran Associates, Inc.
+</div>
+</div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2026,
+  author = {Brosse, Nicolas},
+  title = {Mills Ratios on Manifolds: What {Gaussian} Smoothing Sees
+    Near a Boundary},
+  date = {2026-08-26},
+  url = {https://nbrosse.github.io/posts/boundary-layer/boundary-layer.html},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Brosse, Nicolas. 2026. <span>“Mills Ratios on Manifolds: What Gaussian
+Smoothing Sees Near a Boundary.”</span> August 26. <a href="https://nbrosse.github.io/posts/boundary-layer/boundary-layer.html">https://nbrosse.github.io/posts/boundary-layer/boundary-layer.html</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/nbrosse\.github\.io\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+</body></html>
