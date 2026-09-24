@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>Nicolas&#39; Notebook</title>
+<link>https://nbrosse.github.io/</link>
+<atom:link href="https://nbrosse.github.io/index.xml" rel="self" type="application/rss+xml"/>
+<description></description>
+<generator>quarto-1.10.18</generator>
+<lastBuildDate>Tue, 25 Aug 2026 22:00:00 GMT</lastBuildDate>
+<item>
+  <title>Mills ratios on manifolds: what Gaussian smoothing sees near a boundary</title>
+  <dc:creator>Nicolas Brosse</dc:creator>
+  <link>https://nbrosse.github.io/posts/boundary-layer/boundary-layer.html</link>
+  <description><![CDATA[ Convolving a singular measure with a Gaussian of width σ produces a smooth density whose logarithmic derivatives can blow up as σ → 0. Zooming in at scale σ replaces the support by its inward tangent cone: its Gaussian mass gives the leading density, and derivatives of its logarithm give the leading singular fields — a manifold-valued inverse Mills ratio. ]]></description>
+  <category>asymptotics</category>
+  <category>diffusion models</category>
+  <guid>https://nbrosse.github.io/posts/boundary-layer/boundary-layer.html</guid>
+  <pubDate>Tue, 25 Aug 2026 22:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Closed-form flow matching: posterior concentration and softmax collapse</title>
+  <dc:creator>Nicolas Brosse</dc:creator>
+  <link>https://nbrosse.github.io/posts/posterior-concentration/posterior-concentration.html</link>
+  <description><![CDATA[ The closed-form velocity field of empirical flow matching is a softmax over training examples. Reading that softmax as a Bayesian posterior turns its collapse into a decoding problem, with an information-theoretic threshold that can be evaluated on CIFAR-10. ]]></description>
+  <category>deep learning</category>
+  <category>flow matching</category>
+  <guid>https://nbrosse.github.io/posts/posterior-concentration/posterior-concentration.html</guid>
+  <pubDate>Sun, 19 Jul 2026 22:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Flow matching as posterior averaging</title>
+  <dc:creator>Nicolas Brosse</dc:creator>
+  <link>https://nbrosse.github.io/posts/posterior-averaging/posterior-averaging.html</link>
+  <description><![CDATA[ A velocity-based introduction to flow matching with Gaussian probability paths: the marginal velocity field is a posterior average of conditional targets, and the gap between the conditional and marginal losses is an irreducible posterior-variance term that can be computed in closed form. ]]></description>
+  <category>deep learning</category>
+  <category>flow matching</category>
+  <guid>https://nbrosse.github.io/posts/posterior-averaging/posterior-averaging.html</guid>
+  <pubDate>Mon, 11 May 2026 22:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Analyzing Raman spectra with machine learning</title>
+  <dc:creator>Nicolas Brosse</dc:creator>
+  <link>https://nbrosse.github.io/posts/raman/raman.html</link>
+  <description><![CDATA[ From inelastic scattering to a calibrated regression model: the physics behind a Raman spectrum, the preprocessing pipeline that makes real spectra usable, and a PLS regression baseline for predicting analyte concentrations. ]]></description>
+  <category>machine learning</category>
+  <category>chemistry</category>
+  <guid>https://nbrosse.github.io/posts/raman/raman.html</guid>
+  <pubDate>Sat, 17 Jan 2026 23:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Generating slide decks with an LLM: a comparison of formats</title>
+  <dc:creator>Nicolas Brosse</dc:creator>
+  <link>https://nbrosse.github.io/posts/llm-slides/llm-slides.html</link>
+  <description><![CDATA[ One real presentation, four formats, one model: what Gemini 2.5 Pro actually produces when asked to rebuild an EDF producer booklet in HTML/CSS, Quarto/Reveal.js, the Google Slides API, and python-pptx — and why the failures in the API-driven formats are silent ones. ]]></description>
+  <category>LLM</category>
+  <guid>https://nbrosse.github.io/posts/llm-slides/llm-slides.html</guid>
+  <pubDate>Thu, 14 Aug 2025 22:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>LLM observability with Langfuse and a FastHTML chatbot</title>
+  <dc:creator>Nicolas Brosse</dc:creator>
+  <link>https://nbrosse.github.io/posts/llm-observability/llm-observability.html</link>
+  <description><![CDATA[ Instrumenting a chatbot end to end: Langfuse traces a conversation as a span, each model turn as a generation, and each thumbs-up as a score — wired into a FastHTML app that updates over a WebSocket instead of rerunning a script. ]]></description>
+  <category>LLM</category>
+  <category>python</category>
+  <guid>https://nbrosse.github.io/posts/llm-observability/llm-observability.html</guid>
+  <pubDate>Sun, 29 Jun 2025 22:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>PDF RAG: recovering document structure and querying a corpus</title>
+  <dc:creator>Nicolas Brosse</dc:creator>
+  <link>https://nbrosse.github.io/posts/pdf-rag/pdf-rag.html</link>
+  <description><![CDATA[ Page-by-page parsing destroys the structure a reader relies on. This post rebuilds it for PDFs with a vision language model, extracts metadata and a document tree, and then queries a corpus of reports and slide decks with a two-level ReAct agent. ]]></description>
+  <category>deep learning</category>
+  <category>LLM</category>
+  <category>RAG</category>
+  <guid>https://nbrosse.github.io/posts/pdf-rag/pdf-rag.html</guid>
+  <pubDate>Wed, 19 Mar 2025 23:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Parsing PDFs for LLM input</title>
+  <dc:creator>Nicolas Brosse</dc:creator>
+  <link>https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html</link>
+  <description><![CDATA[ How Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini, and Mistral OCR turn PDFs into Markdown: what the pipelines are made of, and where each one silently gets it wrong on six real documents. ]]></description>
+  <category>deep learning</category>
+  <category>LLM</category>
+  <guid>https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html</guid>
+  <pubDate>Mon, 17 Feb 2025 23:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Predicting MHC-peptide presentation with machine learning</title>
+  <dc:creator>Nicolas Brosse</dc:creator>
+  <link>https://nbrosse.github.io/posts/mhc/mhc.html</link>
+  <description><![CDATA[ Training a neural network to predict which peptides a given MHC class I allele presents, and benchmarking it against MHCflurry. ]]></description>
+  <category>deep learning</category>
+  <category>biology</category>
+  <guid>https://nbrosse.github.io/posts/mhc/mhc.html</guid>
+  <pubDate>Wed, 05 Feb 2025 23:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Encoding distances in molecules and pockets: GBFPT versus DCEPT</title>
+  <dc:creator>Nicolas Brosse</dc:creator>
+  <link>https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html</link>
+  <description><![CDATA[ Uni-Mol encodes interatomic distances with a Gaussian basis whose parameters receive very large gradients. Replacing it with a discretized categorical embedding, in the spirit of AlphaFold, stabilizes pretraining but degrades the pocket embeddings used for retrieval. ]]></description>
+  <category>deep learning</category>
+  <category>biology</category>
+  <guid>https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html</guid>
+  <pubDate>Tue, 23 Apr 2024 22:00:00 GMT</pubDate>
+</item>
+</channel>
+</rss>
