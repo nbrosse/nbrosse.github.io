@@ -5,6 +5,7 @@ project:
 
 website:
   title: "Nicolas' Notebook"
+  site-url: https://nbrosse.github.io
   navbar:
     right:
       - about.qmd
