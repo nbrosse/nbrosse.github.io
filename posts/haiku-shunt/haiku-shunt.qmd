@@ -2,7 +2,6 @@
 title: "Tokens saved are not dollars saved: an A/B test of a Claude Code context shunt"
 author: "Nicolas Brosse"
 date: "2026-10-04"
-post-type: engineering
 categories: [LLM, agents, evaluation]
 description: "Routing large file reads to a small model is reported to save 90% of tokens. Measured end to end, in dollars, on a real multi-turn task, the saving is −10% and not significant, and the model never delegated. What that says about evaluating agentic systems."
 lightbox: true

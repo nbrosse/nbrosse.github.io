@@ -3,7 +3,6 @@ title: "Mills ratios on manifolds: what Gaussian smoothing sees near a boundary"
 author: "Nicolas Brosse"
 date: "2026-08-26"
 bibliography: boundary-layer-references.bib
-post-type: research
 categories: [asymptotics, diffusion models]
 description: "Convolving a singular measure with a Gaussian of width σ produces a smooth density whose logarithmic derivatives can blow up as σ → 0. Zooming in at scale σ replaces the support by its inward tangent cone: its Gaussian mass gives the leading density, and derivatives of its logarithm give the leading singular fields — a manifold-valued inverse Mills ratio."
 lightbox: true

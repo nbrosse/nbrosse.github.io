@@ -24,4 +24,4 @@ My career spans both applied research and real-world deployment. I began at Thal
 
 In 2025, I worked closer to the end user: I explored venture creation by developing proofs of concept for AI-driven decision-making tools, and freelanced on projects ranging from LLM observability platforms (Rollstack) to improving Retrieval-Augmented Generation systems (Clarifeye).
 
-The [notebook](blog.qmd) collects research notes on generative models and engineering notes from these projects. Feel free to reach out if you would like to connect or collaborate.
+The [blog](blog.qmd) collects notes on generative models and on these projects. Feel free to reach out if you would like to connect or collaborate.

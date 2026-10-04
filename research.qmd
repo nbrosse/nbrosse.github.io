@@ -9,7 +9,7 @@ them in the small-noise regime. It grew out of a PhD on Langevin-based sampling
 algorithms and their non-asymptotic analysis, followed by work on uncertainty estimation
 in deep networks.
 
-Longer, informal companions to some of these results are in the [notebook](blog.qmd).
+Longer, informal companions to some of these results are on the [blog](blog.qmd).
 An up-to-date list is on
 [Google Scholar](https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&hl).
 

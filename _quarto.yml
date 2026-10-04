@@ -14,7 +14,7 @@ website:
     left:
       - research.qmd
       - projects.qmd
-      - text: Notebook
+      - text: Blog
         href: blog.qmd
       - about.qmd
     right:
