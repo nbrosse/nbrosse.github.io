@@ -3,7 +3,7 @@ title: "Analyzing Raman spectra with machine learning"
 author: "Nicolas Brosse"
 date: "2026-01-18"
 date-modified: "2026-08-21"
-section: engineering
+post-type: engineering
 categories: [machine learning, chemistry]
 bibliography: raman-references.bib
 description: "From inelastic scattering to a calibrated regression model: the physics behind a Raman spectrum, the preprocessing pipeline that makes real spectra usable, and a PLS regression baseline for predicting analyte concentrations."

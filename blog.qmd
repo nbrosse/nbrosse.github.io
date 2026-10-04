@@ -5,7 +5,7 @@ listing:
   - id: research-notes
     contents: posts
     include:
-      section: research
+      post-type: research
     sort: "date desc"
     type: table
     fields: [date, title, categories, description]
@@ -15,7 +15,7 @@ listing:
   - id: engineering-notes
     contents: posts
     include:
-      section: engineering
+      post-type: engineering
     sort: "date desc"
     type: table
     fields: [date, title, categories, description]

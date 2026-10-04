@@ -3,7 +3,7 @@ title: "Predicting MHC-peptide presentation with machine learning"
 author: "Nicolas Brosse"
 date: "2025-02-06"
 date-modified: "2026-08-22"
-section: engineering
+post-type: engineering
 categories: [deep learning, biology]
 bibliography: mhc-references.bib
 description: "Training a neural network to predict which peptides a given MHC class I allele presents, and benchmarking it against MHCflurry."
