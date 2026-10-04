@@ -2,16 +2,6 @@
 title: "Nicolas Brosse"
 subtitle: "AI research scientist — generative modeling, diffusion and flow matching, sampling"
 listing:
-  - id: selected
-    contents:
-      - posts/posterior-concentration/posterior-concentration.qmd
-      - posts/boundary-layer/boundary-layer.qmd
-      - posts/posterior-averaging/posterior-averaging.qmd
-    type: grid
-    grid-columns: 3
-    sort: false
-    fields: [title, description]
-    max-description-length: 180
   - id: latest
     contents: posts
     sort: "date desc"
@@ -24,6 +14,7 @@ listing:
       items: 50
 page-layout: full
 title-block-banner: true
+toc: false
 ---
 
 I am a postdoctoral researcher at CREST, working with
@@ -35,11 +26,6 @@ models for biology at MBZUAI and GenBio AI.
 
 [Research and publications →](research.qmd) · [Projects →](projects.qmd) ·
 [About →](about.qmd)
-
-## Selected work
-
-::: {#selected}
-:::
 
 ## Latest posts
 
