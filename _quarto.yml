@@ -4,11 +4,20 @@ project:
     port: 1234
 
 website:
-  title: "Nicolas' Notebook"
+  title: "Nicolas Brosse"
+  description: "Nicolas Brosse, AI research scientist working on generative models, diffusion and flow matching, and sampling."
   site-url: https://nbrosse.github.io
+  image: profile.jpg
+  open-graph: true
+  twitter-card: true
   navbar:
-    right:
+    left:
+      - research.qmd
+      - projects.qmd
+      - text: Notebook
+        href: blog.qmd
       - about.qmd
+    right:
       - icon: github
         href: https://github.com/nbrosse
       - icon: linkedin
