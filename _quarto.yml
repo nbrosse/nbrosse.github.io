@@ -5,17 +5,17 @@ project:
 
 website:
   title: "Nicolas Brosse"
-  description: "Nicolas Brosse, AI research scientist working on generative models, diffusion and flow matching, and sampling."
+  description: "Nicolas Brosse, AI research and development: from mathematical foundations to working systems — LLM systems, ML for science, generative models."
   site-url: https://nbrosse.github.io
   image: profile.jpg
   open-graph: true
   twitter-card: true
   navbar:
     left:
-      - research.qmd
       - projects.qmd
       - text: Blog
         href: blog.qmd
+      - research.qmd
       - about.qmd
     right:
       - icon: github

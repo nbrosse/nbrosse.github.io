@@ -1,41 +1,28 @@
 ---
 title: "Projects"
-description: "Code and tools: research software, notebooks for the blog posts, and applied ML projects with live demos."
+description: "Code, tools and demos: LLM systems and agents, ML for science, generative models, and developer tools."
 ---
 
-## Research tooling
-
-**[latexfmt](https://github.com/nbrosse/latexfmt)**\
-A LaTeX project formatter that understands mathematics: it chooses between `equation`
-and `align` without changing numbering, prunes unreferenced labels across the whole
-project, reflows prose, and verifies the result with a `latexmk` build. Golden-file
-tests check every transformation and that formatting is idempotent.
-`uv tool install latexfmt` · [PyPI](https://pypi.org/project/latexfmt/)
-
-**[flow-matching-notes](https://github.com/nbrosse/flow-matching-notes)**\
-The notebooks behind the flow matching posts:
-[flow matching as posterior averaging](posts/posterior-averaging/posterior-averaging.qmd)
-and [closed-form flow matching](posts/posterior-concentration/posterior-concentration.qmd).
-
-## Applied machine learning
+## LLM systems & agents
 
 **[haiku-shunt](https://github.com/nbrosse/haiku-shunt)**\
 A Claude Code plugin that keeps large file reads out of an expensive model's context
 by delegating them to a small one, and an A/B benchmark priced in dollars to find out
 whether that saves anything. Measured on a real task: not significantly, and not
 through delegation.
-
-**[pdf-parsing](https://github.com/nbrosse/pdf-parsing)**\
-A comparison of Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini and Mistral OCR
-on real documents.
-[Post](posts/pdf-parsing/pdf-parsing.qmd) ·
-[demo](https://huggingface.co/spaces/nicolasb92/pdf-parsing-demo)
+[Post](posts/haiku-shunt/haiku-shunt.qmd)
 
 **[pdf-rag](https://github.com/nbrosse/pdf-rag)**\
 Retrieval over a corpus of PDFs: recovering document structure with a vision language
 model, extracting metadata, and querying with a two-level ReAct agent.
 [Post](posts/pdf-rag/pdf-rag.qmd) ·
 [demo](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo)
+
+**[pdf-parsing](https://github.com/nbrosse/pdf-parsing)**\
+A comparison of Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini and Mistral OCR
+on real documents.
+[Post](posts/pdf-parsing/pdf-parsing.qmd) ·
+[demo](https://huggingface.co/spaces/nicolasb92/pdf-parsing-demo)
 
 **[llm-observability](https://github.com/nbrosse/llm-observability)**\
 End-to-end tracing of a FastHTML chatbot with Langfuse.
@@ -45,6 +32,8 @@ End-to-end tracing of a FastHTML chatbot with Langfuse.
 Rebuilding a real slide deck with an LLM in four formats, and where each one fails.
 [Post](posts/llm-slides/llm-slides.qmd)
 
+## ML for science
+
 **[mhcpred](https://github.com/nbrosse/mhcpred)**\
 Predicting MHC class I peptide presentation with a neural network, benchmarked against
 MHCflurry.
@@ -53,3 +42,23 @@ MHCflurry.
 **[raman-spectra](https://github.com/nbrosse/raman-spectra)**\
 Preprocessing Raman spectra and predicting analyte concentrations with PLS regression.
 [Post](posts/raman/raman.qmd)
+
+## Generative models
+
+**[flow-matching-notes](https://github.com/nbrosse/flow-matching-notes)**\
+The notebooks behind the flow matching posts:
+[flow matching as posterior averaging](posts/posterior-averaging/posterior-averaging.qmd)
+and [closed-form flow matching](posts/posterior-concentration/posterior-concentration.qmd).
+
+The code behind the papers (tamed Langevin, SGLD, control variates, normalizing
+constants, last-layer uncertainty) is linked from each entry on the
+[Research](research.qmd) page.
+
+## Developer tools
+
+**[latexfmt](https://github.com/nbrosse/latexfmt)**\
+A LaTeX project formatter that understands mathematics: it chooses between `equation`
+and `align` without changing numbering, prunes unreferenced labels across the whole
+project, reflows prose, and verifies the result with a `latexmk` build. Golden-file
+tests check every transformation and that formatting is idempotent.
+`uv tool install latexfmt` · [PyPI](https://pypi.org/project/latexfmt/)

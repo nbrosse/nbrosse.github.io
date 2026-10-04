@@ -1,6 +1,6 @@
 ---
 title: "Nicolas Brosse"
-subtitle: "AI research scientist — generative modeling, diffusion and flow matching, sampling"
+subtitle: "AI research & development — from mathematical foundations to working systems"
 listing:
   - id: latest
     contents: posts
@@ -17,14 +17,15 @@ title-block-banner: true
 toc: false
 ---
 
-I am a postdoctoral researcher at CREST, working with
-Arnak Dalalyan on the mathematics of generative models: diffusion models, flow matching,
-and what Gaussian smoothing does near the support of the data. Before that, I did a PhD
-in statistics on Langevin sampling algorithms, then spent six years building deep learning
-systems in industry — signal processing at Thales, drug discovery at Iktos, foundation
-models for biology at MBZUAI and GenBio AI.
+I work in AI R&D, between research and production. After a PhD in statistics on Langevin
+sampling, I spent six years building deep learning systems in industry — signal
+processing at Thales, drug discovery at Iktos, foundation models for biology at MBZUAI
+and GenBio AI — and, more recently, LLM systems as a freelancer. I am currently a
+postdoctoral researcher at CREST with Arnak Dalalyan, working on the mathematics of
+generative models. What I care about is taking an idea from paper to working system, and
+measuring whether it actually works.
 
-[Research and publications →](research.qmd) · [Projects →](projects.qmd) ·
+[Projects →](projects.qmd) · [Blog →](blog.qmd) · [Research and publications →](research.qmd) ·
 [About →](about.qmd)
 
 ## Latest posts
