@@ -1,7 +1,7 @@
 ---
 title: "Generating slide decks with an LLM: a comparison of formats"
 author: "Nicolas Brosse"
-date: 2025-08-15
+date: "2025-08-15"
 date-modified: "2026-08-22"
 section: engineering
 categories: [LLM]
