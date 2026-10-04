@@ -1,0 +1,109 @@
+---
+title: "Tokens saved are not dollars saved: an A/B test of a Claude Code context shunt"
+author: "Nicolas Brosse"
+date: "2026-10-04"
+post-type: engineering
+categories: [LLM, agents, evaluation]
+description: "Routing large file reads to a small model is reported to save 90% of tokens. Measured end to end, in dollars, on a real multi-turn task, the saving is −10% and not significant, and the model never delegated. What that says about evaluating agentic systems."
+lightbox: true
+citation:
+  url: https://nbrosse.github.io/posts/haiku-shunt/haiku-shunt.html
+---
+
+In August 2026 Spotify published `shunt`, a [Claude Code plugin](https://github.com/spotify/portal-ai-plugins/tree/e14bdb1/plugins/shunt) that stops the main model from reading large files and hands them to a cheaper worker model instead. Its README reports "82-94% of tokens" saved on large file reads, with a mean of 90%, and the figure travelled fast: several write-ups turned it into "cutting Claude Code token usage by 90%".
+
+The idea is sound and I wanted it outside Spotify's platform, so I rebuilt it as [haiku-shunt](https://github.com/nbrosse/haiku-shunt), with a Haiku subagent as the worker. Then I tried to measure what it saves on a bill. The answer, so far, is: not measurably, and not for the reason the design assumes.
+
+This post is about the gap between those two numbers. @sec-idea describes the mechanism and why it should pay. @sec-metric shows what a token count leaves out, with a cost model. @sec-protocol describes the A/B protocol, @sec-results its results, and @sec-lessons what they teach about evaluating agentic systems in general.
+
+# The idea {#sec-idea}
+
+A coding agent runs in turns. On every turn, the whole conversation so far — system prompt, tool results, the model's own messages — is sent again to the model. A 30,000-token file read on turn 3 of a 40-turn session is therefore not paid once: it rides along on the 37 turns that follow.
+
+The shunt cuts that at the source. A `PreToolUse` hook inspects each `Read` (and each `cat`, `head`, `less` in a shell command). When the file is large, the hook denies the call, and the denial message tells the model to ask a worker instead. The worker reads the file in its own context and returns a short answer, a few hundred tokens. The large file never enters the expensive context, so it is never re-sent.
+
+Spotify's worker runs on their internal AI platform. Mine is a native Claude Code subagent pinned to Haiku 4.5, so it needs no service and no API key. The hooks, the thresholds and the shape of the evaluation follow Spotify's design.
+
+# What a token count leaves out {#sec-metric}
+
+Spotify's benchmark compares, for one read, the tokens that enter the main context without the shunt (the file) against those that enter with it (the worker's answer). On a source and test pair of 7,408 lines, that is 75,990 tokens against 4,148. I have no reason to doubt it. But it answers a narrower question than "how much cheaper is my session", for three reasons.
+
+**Caching.** Claude Code caches the conversation prefix. A file that stays in context is written to the cache once, at twice the input rate for the one-hour cache, and then re-read on later turns at a fraction of it: 10% for most models, 5% for Opus 5.5. The re-sends that make the idea attractive are the cheapest tokens in the session.
+
+**The worker is not free.** A subagent starts with its own system prompt, about 14,600 tokens, which it has to write to its cache before it reads anything. That fixed cost is paid on every delegation, on a cheaper model, but paid.
+
+**The counterfactual is unobservable.** A token count assumes that without the shunt the model would have read the whole file, and that with it the model would have delegated. Neither is guaranteed. A model can read a 5,000-line file in targeted windows on its own, and a denied model can choose something other than the worker.
+
+Putting the first two together gives the cost avoided by keeping a file of $T$ tokens out of a parent whose input price is $P_\text{in}$ per million tokens, when $R$ turns remain after the read and a fraction $h$ of the prefix is a cache hit:
+
+$$
+C_\text{avoided} = \frac{T \, P_\text{in} \, (2 + \mu R)}{10^6},
+\qquad \mu = k h + 2 (1 - h),
+$$
+
+where $k$ is the parent's cache-read rate (0.05 for Opus 5.5) and both 2s are the price of a one-hour cache write. Take a 747-line file, about 4,500 tokens, read on turn 1 of an 18-turn Opus 5.5 session:
+
+```
+cache write   4,500 × $8.00/M (2× input)               ≈ $0.036
+re-sends      4,500 × $0.20/M (0.05× input) × 17 turns ≈ $0.015
+                                                  total ≈ $0.05
+```
+
+Five cents is the ceiling on what the shunt can save on that read, in a session that costs about $0.40. From it come the worker's fixed cost, about $0.02 of Haiku, and the windows the parent still has to read before it can edit the file. What is left is a few cents. The same formula gives a break-even file size below which delegation loses money: about 1,100 tokens for Opus 5.5 and 2,100 for Sonnet 5, under assumed values $R = 12$ and $h = 0.9$.
+
+A formula is an argument, not a measurement. The only way to know what the plugin saves is to run the same task with and without it and compare the bills.
+
+# The protocol {#sec-protocol}
+
+The benchmark script, [`bench/ab.sh`](https://github.com/nbrosse/haiku-shunt/blob/main/bench/ab.sh), runs one Claude Code session per arm and repetition, non-interactively, and takes the cost from what Claude Code itself reports (`total_cost_usd`), subagents included. That matters: a hand-rolled price table gets cache writes wrong, and leaving out the worker's spend would make the shunt arm look free. A few other choices follow from what can go wrong:
+
+- **The control loads no plugin at all**, rather than the plugin with its hooks disabled, so the agents it provides cannot change the model's behaviour in the control arm.
+- **Arms are interleaved, and their order rotates every repetition**, because cache warmth and service load drift during a campaign.
+- **Every run is checked.** A cheaper arm that did not do the work is not a saving, so each row carries a pass or fail from the task's own verification.
+
+The task has to be shaped like the hypothesis: long, multi-turn, with large files read early, so that there are turns left for the context to be re-sent. `bulk-discount` builds a throwaway pricing package of about 2,300 lines over three modules, all above the shunt's 350-line threshold, and asks for a feature that needs all three: a bulk discount in the pricing engine, its tests, and a new field in the report. Verification runs the package's tests and a hidden check that compares the new pricing with a pristine copy of the original rules.
+
+The parent was Opus 5.5, in Claude Code 2.1.281. I ran two campaigns of three repetitions per arm; the second after changing the denial message so that it names the exact subagent call to make.
+
+# Results {#sec-results}
+
+| campaign | arm | median cost | range | median turns | passed | median denies | median delegations |
+|---|---|---|---|---|---|---|---|
+| 1 | off | $0.449 | $0.317–0.488 | 18 | 3/3 | 0 | 0 |
+| 1 | on | $0.370 | $0.357–0.402 | 18 | 3/3 | 1 | **0** |
+| 2 | off | $0.452 | $0.446–0.486 | 14 | 2/3 | 0 | 0 |
+| 2 | on | $0.415 | $0.410–0.435 | 17 | 3/3 | 2 | **0** |
+
+: The bulk-discount A/B, three runs per arm and campaign. Costs are per session, as reported by Claude Code. {#tbl-ab}
+
+![Cost of each run. Horizontal bars are the pooled medians.](figures/ab-cost.svg){#fig-ab}
+
+Pooled, the six runs with the plugin have a median cost of $0.406 against $0.451 without it, about 10% less (@fig-ab). Five of the six control runs cost more than every plugin run; the sixth cost less than all of them. An exact two-sided Mann–Whitney test gives $p \approx 0.065$. That is suggestive and not significant.
+
+The more interesting number is in the last column. **In twelve runs, the model never delegated.** The hooks did fire — a typical run with the plugin was denied one or two reads — and after a denial the model took the other options the message offers: a `grep`, then `sed -n` or a windowed `Read` on the lines it needed. The mechanism itself works — in a separate smoke run the model called the subagent exactly as instructed, the worker ran on Haiku and answered correctly. On a real task, the model preferred to stay in control of what it read.
+
+So whatever the plugin saves, Haiku is not where it comes from. If there is an effect, it is the hook steering the main model towards targeted reads, which a model about to edit code needs anyway.
+
+There was one more observation, from campaign 2: every run with the plugin started by sizing the files (`xargs wc -l`), and two of three then stayed on targeted reads; every control run started by dumping the whole package to the terminal. Three runs per arm cannot say whether the plugin causes that.
+
+# What this says about evaluating agents {#sec-lessons}
+
+**Choose the metric that matches the decision.** Tokens kept out of the main context are easy to count and are what the design optimises, which is exactly why they flatter it. The decision a team faces is whether to install the plugin, and that is decided by the cost of a finished task, including the worker, at real cache prices. Spotify's number and mine are both correct; they answer different questions, and only one of them is the question a buyer asks. Their economics may also differ from mine: their worker runs on their own platform, whose model and price I do not know, and the plugin may exist for reasons other than cost, such as usage accounting or keeping data on internal infrastructure.
+
+**Agentic runs are noisy; plan the number of runs before running them.** Two sessions on the same task with the same settings differ by 20 to 40% in cost. From the twelve runs above, the pooled standard deviation is about 11% of the control mean. With a normal approximation, detecting a 10% effect with 80% power at the 5% level needs
+
+$$
+n \approx 2 \, (z_{0.975} + z_{0.8})^2 \left(\frac{\sigma}{\delta}\right)^2 \approx 2 \times 7.85 \times 1.1^2 \approx 20
+$$
+
+runs per arm, and more if outliers like the $0.317 control run are common. Six runs per arm could only ever detect an effect of about 18%. Running a campaign without doing that computation first is how a −10% median becomes a headline or gets dismissed, when the honest reading is "not enough data".
+
+**Measure behaviour, not only the mechanism.** The plugin was designed around delegation, and every component worked in isolation. On a real task the model routed around it. An agent is not a pipeline: a hook changes what the model sees, and the model decides what to do with it. The only way to find out is to look at what it did, run by run — here, counting denials and delegations next to the cost.
+
+**Know what cannot be enforced.** A hook can deny `cat big.py`, but not every way of reading a file: globs (`cat inv/*.py`), loops and `xargs` hide the file names from the command line, and those are what models most often run first on an unfamiliar package. No `PreToolUse` hook can stop a model that wants a file. Much of the plugin's code chases leaks that cannot be closed, to protect a saving that could not be measured.
+
+# Recommendation
+
+For most users, the cheapest option is no plugin: a line in `CLAUDE.md` asking the model to use `grep` and windowed reads on large files. Recent models largely do this already. If you work every day with very large files — logs, generated JSON, files of ten thousand lines and more — the saving per read is larger, and a minimal version is worth having: the `Read` hook with a high threshold and the worker, without the shell parsing.
+
+The more general point is about method. Before optimising an agent, decide which metric the decision depends on, and how many runs it will take to see the effect you hope for. Then measure the agent's behaviour, not just its bill. The code, the benchmark and the cost model are on GitHub at [haiku-shunt](https://github.com/nbrosse/haiku-shunt).
