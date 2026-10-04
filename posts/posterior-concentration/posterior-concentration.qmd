@@ -4,6 +4,7 @@ author: "Nicolas Brosse"
 date: "2026-07-20"
 date-modified: "2026-08-22"
 bibliography: posterior-concentration-references.bib
+section: research
 categories: [deep learning, flow matching]
 description: "The closed-form velocity field of empirical flow matching is a softmax over training examples. Reading that softmax as a Bayesian posterior turns its collapse into a decoding problem, with an information-theoretic threshold that can be evaluated on CIFAR-10."
 citation:

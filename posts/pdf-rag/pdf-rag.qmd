@@ -3,6 +3,7 @@ title: "PDF RAG: recovering document structure and querying a corpus"
 author: "Nicolas Brosse"
 date: "2025-03-20"
 date-modified: "2026-08-22"
+section: engineering
 categories: [deep learning, LLM, RAG]
 lightbox: true
 description: "Page-by-page parsing destroys the structure a reader relies on. This post rebuilds it for PDFs with a vision language model, extracts metadata and a document tree, and then queries a corpus of reports and slide decks with a two-level ReAct agent."

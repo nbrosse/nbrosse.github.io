@@ -1,0 +1,43 @@
+---
+title: "Notebook"
+description: "Research notes on generative models, and engineering notes on applied ML and LLM systems."
+listing:
+  - id: research-notes
+    contents: posts
+    include:
+      section: research
+    sort: "date desc"
+    type: table
+    fields: [date, title, categories, description]
+    categories: true
+    sort-ui: true
+    filter-ui: true
+  - id: engineering-notes
+    contents: posts
+    include:
+      section: engineering
+    sort: "date desc"
+    type: table
+    fields: [date, title, categories, description]
+    categories: true
+    sort-ui: true
+    filter-ui: true
+page-layout: full
+title-block-banner: true
+---
+
+## Research notes
+
+Informal companions to my research: derivations, closed-form computations and
+experiments on generative models.
+
+::: {#research-notes}
+:::
+
+## Engineering notes
+
+Applied machine learning and LLM systems, written from projects in industry and
+freelance work.
+
+::: {#engineering-notes}
+:::

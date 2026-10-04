@@ -6,6 +6,7 @@ date-modified: "2026-08-22"
 bibliography: posterior-averaging-references.bib
 description: "A velocity-based introduction to flow matching with Gaussian probability paths: the marginal velocity field is a posterior average of conditional targets, and the gap between the conditional and marginal losses is an irreducible posterior-variance term that can be computed in closed form."
 lightbox: true
+section: research
 categories: [deep learning, flow matching]
 citation:
   url: https://nbrosse.github.io/posts/posterior-averaging/posterior-averaging.html

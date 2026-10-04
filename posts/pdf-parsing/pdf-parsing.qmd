@@ -3,6 +3,7 @@ title: "Parsing PDFs for LLM input"
 author: "Nicolas Brosse"
 date: "2025-02-18"
 date-modified: "2026-08-22"
+section: engineering
 categories: [deep learning, LLM]
 bibliography: pdf-parsing-references.bib
 description: "How Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini, and Mistral OCR turn PDFs into Markdown: what the pipelines are made of, and where each one silently gets it wrong on six real documents."

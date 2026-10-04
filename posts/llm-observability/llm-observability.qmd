@@ -3,6 +3,7 @@ title: "LLM observability with Langfuse and a FastHTML chatbot"
 author: "Nicolas Brosse"
 date: "2025-06-30"
 date-modified: "2026-08-22"
+section: engineering
 categories: [LLM, python]
 description: "Instrumenting a chatbot end to end: Langfuse traces a conversation as a span, each model turn as a generation, and each thumbs-up as a score — wired into a FastHTML app that updates over a WebSocket instead of rerunning a script."
 lightbox: true
