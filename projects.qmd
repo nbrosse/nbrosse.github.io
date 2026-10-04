@@ -1,0 +1,48 @@
+---
+title: "Projects"
+description: "Code and tools: research software, notebooks for the blog posts, and applied ML projects with live demos."
+---
+
+## Research tooling
+
+**[latexfmt](https://github.com/nbrosse/latexfmt)**\
+A LaTeX project formatter that understands mathematics: it chooses between `equation`
+and `align` without changing numbering, prunes unreferenced labels across the whole
+project, reflows prose, and verifies the result with a `latexmk` build. Golden-file
+tests check every transformation and that formatting is idempotent.
+
+**[flow-matching-notes](https://github.com/nbrosse/flow-matching-notes)**\
+The notebooks behind the flow matching posts:
+[flow matching as posterior averaging](posts/posterior-averaging/posterior-averaging.qmd)
+and [closed-form flow matching](posts/posterior-concentration/posterior-concentration.qmd).
+
+## Applied machine learning
+
+**[pdf-parsing](https://github.com/nbrosse/pdf-parsing)**\
+A comparison of Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini and Mistral OCR
+on real documents.
+[Post](posts/pdf-parsing/pdf-parsing.qmd) ·
+[demo](https://huggingface.co/spaces/nicolasb92/pdf-parsing-demo)
+
+**[pdf-rag](https://github.com/nbrosse/pdf-rag)**\
+Retrieval over a corpus of PDFs: recovering document structure with a vision language
+model, extracting metadata, and querying with a two-level ReAct agent.
+[Post](posts/pdf-rag/pdf-rag.qmd) ·
+[demo](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo)
+
+**[llm-observability](https://github.com/nbrosse/llm-observability)**\
+End-to-end tracing of a FastHTML chatbot with Langfuse.
+[Post](posts/llm-observability/llm-observability.qmd)
+
+**[llm-slide-deck](https://github.com/nbrosse/llm-slide-deck)**\
+Rebuilding a real slide deck with an LLM in four formats, and where each one fails.
+[Post](posts/llm-slides/llm-slides.qmd)
+
+**[mhcpred](https://github.com/nbrosse/mhcpred)**\
+Predicting MHC class I peptide presentation with a neural network, benchmarked against
+MHCflurry.
+[Post](posts/mhc/mhc.qmd)
+
+**[raman-spectra](https://github.com/nbrosse/raman-spectra)**\
+Preprocessing Raman spectra and predicting analyte concentrations with PLS regression.
+[Post](posts/raman/raman.qmd)
