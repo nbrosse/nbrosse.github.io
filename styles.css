@@ -27,3 +27,22 @@
 .boundary-result > :last-child {
   margin-bottom: 0;
 }
+
+/* Home page "Latest posts": stack the date above the title instead of giving it
+   its own column, which stays empty below the date since posts have no image. */
+#listing-latest .quarto-post {
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+#listing-latest .quarto-post .metadata {
+  order: 0;
+  flex-basis: auto;
+  margin-top: 0;
+  padding-bottom: 0;
+}
+
+#listing-latest .quarto-post .body {
+  order: 1;
+  flex-basis: auto;
+}
