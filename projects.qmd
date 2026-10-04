@@ -10,6 +10,7 @@ A LaTeX project formatter that understands mathematics: it chooses between `equa
 and `align` without changing numbering, prunes unreferenced labels across the whole
 project, reflows prose, and verifies the result with a `latexmk` build. Golden-file
 tests check every transformation and that formatting is idempotent.
+`uv tool install latexfmt` · [PyPI](https://pypi.org/project/latexfmt/)
 
 **[flow-matching-notes](https://github.com/nbrosse/flow-matching-notes)**\
 The notebooks behind the flow matching posts:
@@ -17,6 +18,12 @@ The notebooks behind the flow matching posts:
 and [closed-form flow matching](posts/posterior-concentration/posterior-concentration.qmd).
 
 ## Applied machine learning
+
+**[haiku-shunt](https://github.com/nbrosse/haiku-shunt)**\
+A Claude Code plugin that keeps large file reads out of an expensive model's context
+by delegating them to a small one, and an A/B benchmark priced in dollars to find out
+whether that saves anything. Measured on a real task: not significantly, and not
+through delegation.
 
 **[pdf-parsing](https://github.com/nbrosse/pdf-parsing)**\
 A comparison of Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini and Mistral OCR
