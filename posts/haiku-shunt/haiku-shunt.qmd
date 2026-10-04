@@ -3,7 +3,7 @@ title: "Tokens saved are not dollars saved: an A/B test of a Claude Code context
 author: "Nicolas Brosse"
 date: "2026-10-04"
 categories: [LLM, agents, evaluation]
-description: "Routing large file reads to a small model is reported to save 90% of tokens. Measured end to end, in dollars, on a real multi-turn task, the saving is −10% and not significant, and the model never delegated. What that says about evaluating agentic systems."
+description: "Routing large file reads to a small model is reported to save 90% of tokens. Measured end to end, in dollars, on a real multi-turn task, the saving is −10% and not significant, and the model never delegated in six runs with the plugin. What that says about evaluating agentic systems."
 lightbox: true
 citation:
   url: https://nbrosse.github.io/posts/haiku-shunt/haiku-shunt.html
@@ -62,7 +62,7 @@ The benchmark script, [`bench/ab.sh`](https://github.com/nbrosse/haiku-shunt/blo
 
 The task has to be shaped like the hypothesis: long, multi-turn, with large files read early, so that there are turns left for the context to be re-sent. `bulk-discount` builds a throwaway pricing package of about 2,300 lines over three modules, all above the shunt's 350-line threshold, and asks for a feature that needs all three: a bulk discount in the pricing engine, its tests, and a new field in the report. Verification runs the package's tests and a hidden check that compares the new pricing with a pristine copy of the original rules.
 
-The parent was Opus 5.5, in Claude Code 2.1.281. I ran two campaigns of three repetitions per arm; the second after changing the denial message so that it names the exact subagent call to make.
+The parent was Opus 5.5, in Claude Code 2.1.281. I ran two campaigns of three repetitions per arm; the second after changing the denial message so that it names the exact subagent call to make. The plugin arm is therefore not quite the same treatment in the two campaigns, and pooling them below is exploratory: it is the best estimate I have, not a replication.
 
 # Results {#sec-results}
 
@@ -79,7 +79,9 @@ The parent was Opus 5.5, in Claude Code 2.1.281. I ran two campaigns of three re
 
 Pooled, the six runs with the plugin have a median cost of $0.406 against $0.451 without it, about 10% less (@fig-ab). Five of the six control runs cost more than every plugin run; the sixth cost less than all of them. An exact two-sided Mann–Whitney test gives $p \approx 0.065$. That is suggestive and not significant.
 
-The more interesting number is in the last column. **In twelve runs, the model never delegated.** The hooks did fire — a typical run with the plugin was denied one or two reads — and after a denial the model took the other options the message offers: a `grep`, then `sed -n` or a windowed `Read` on the lines it needed. The mechanism itself works — in a separate smoke run the model called the subagent exactly as instructed, the worker ran on Haiku and answered correctly. On a real task, the model preferred to stay in control of what it read.
+Cost has to be read next to the pass column. All six plugin runs passed the verification; one of the six control runs, in campaign 2, did not. It stays in the comparison: dropping it would mean choosing which runs count after seeing them. But a cheaper arm only matters if it also does the work, and with one failure in twelve runs, three per cell, the success rates cannot be told apart either.
+
+The more interesting number is in the last column. **In the six runs with the plugin, the model never delegated** — the control runs could not, since they have no plugin. The hooks did fire — a typical run with the plugin was denied one or two reads — and after a denial the model took the other options the message offers: a `grep`, then `sed -n` or a windowed `Read` on the lines it needed. The mechanism itself works — in a separate smoke run the model called the subagent exactly as instructed, the worker ran on Haiku and answered correctly. On a real task, the model preferred to stay in control of what it read.
 
 So whatever the plugin saves, Haiku is not where it comes from. If there is an effect, it is the hook steering the main model towards targeted reads, which a model about to edit code needs anyway.
 
@@ -89,7 +91,7 @@ There was one more observation, from campaign 2: every run with the plugin start
 
 **Choose the metric that matches the decision.** Tokens kept out of the main context are easy to count and are what the design optimises, which is exactly why they flatter it. The decision a team faces is whether to install the plugin, and that is decided by the cost of a finished task, including the worker, at real cache prices. Spotify's number and mine are both correct; they answer different questions, and only one of them is the question a buyer asks. Their economics may also differ from mine: their worker runs on their own platform, whose model and price I do not know, and the plugin may exist for reasons other than cost, such as usage accounting or keeping data on internal infrastructure.
 
-**Agentic runs are noisy; plan the number of runs before running them.** Two sessions on the same task with the same settings differ by 20 to 40% in cost. From the twelve runs above, the pooled standard deviation is about 11% of the control mean. With a normal approximation, detecting a 10% effect with 80% power at the 5% level needs
+**Agentic runs are noisy; plan the number of runs before running them.** Two sessions on the same task with the same settings differ by 20 to 40% in cost. From the twelve runs above, pooled across arms and campaigns, the standard deviation is about 11% of the control mean — a rough estimate, from few runs. With a normal approximation, detecting a 10% effect with 80% power at the 5% level needs
 
 $$
 n \approx 2 \, (z_{0.975} + z_{0.8})^2 \left(\frac{\sigma}{\delta}\right)^2 \approx 2 \times 7.85 \times 1.1^2 \approx 20
@@ -103,6 +105,6 @@ runs per arm, and more if outliers like the $0.317 control run are common. Six r
 
 # Recommendation
 
-For most users, the cheapest option is no plugin: a line in `CLAUDE.md` asking the model to use `grep` and windowed reads on large files. Recent models largely do this already. If you work every day with very large files — logs, generated JSON, files of ten thousand lines and more — the saving per read is larger, and a minimal version is worth having: the `Read` hook with a high threshold and the worker, without the shell parsing.
+What this suggests, and does not show: the cheapest option to try is no plugin, just a line in `CLAUDE.md` asking the model to use `grep` and windowed reads on large files. If the plugin's effect really is steering, that line may capture most of it. I have not measured it; testing it would take a third arm in the same A/B, which is the next experiment to run. If you work every day with very large files — logs, generated JSON, files of ten thousand lines and more — the saving per read is larger, and a minimal version is worth having: the `Read` hook with a high threshold and the worker, without the shell parsing.
 
 The more general point is about method. Before optimising an agent, decide which metric the decision depends on, and how many runs it will take to see the effect you hope for. Then measure the agent's behaviour, not just its bill. The code, the benchmark and the cost model are on GitHub at [haiku-shunt](https://github.com/nbrosse/haiku-shunt).
