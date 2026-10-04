@@ -26,7 +26,7 @@ page-layout: full
 title-block-banner: true
 ---
 
-I am a postdoctoral researcher at [CREST](https://crest.science/), working with
+I am a postdoctoral researcher at CREST, working with
 Arnak Dalalyan on the mathematics of generative models: diffusion models, flow matching,
 and what Gaussian smoothing does near the support of the data. Before that, I did a PhD
 in statistics on Langevin sampling algorithms, then spent six years building deep learning
