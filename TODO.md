@@ -17,12 +17,11 @@ Le manque le plus important : aucune trace des publications sur le site.
   - Diffusion approximations and control variates for MCMC → repo `controlvariates`
   - SGLD vs SGD → repo `sgld-sgd`
   - Uncertainties in deep neural networks → repo `uncertainties`
-  - Thèse de doctorat (lien HAL/theses.fr) — **pas encore ajoutée**, à confirmer.
-- [ ] Venues à confirmer : seules TULA (SPA 2019) et Normalizing constants (EJS 2018)
-  ont été vérifiées sur Crossref. SGLD (NeurIPS 2018 ?), last-layer, proximal Langevin :
-  arXiv seul pour l'instant. Control variates : Crossref donne une version
-  *Comput. Math. Math. Phys.* 2024 (doi 10.1134/S0965542524700167) avec Samsonov à la
-  place de Radhakrishnan, à vérifier avant de l'ajouter.
+  - Thèse de doctorat (DOI theses.fr)
+- [x] Venues vérifiées : SPA 2019, EJS 2018, NeurIPS 2018, COLT 2017,
+  Comput. Math. Math. Phys. 2024 (control variates, version publiée avec Samsonov),
+  chapitre Wiley 2024 (Iktos). Last-layer reste en preprint (aucune version publiée trouvée).
+- [ ] Ajouter d'éventuels travaux GenBio / MBZUAI (rien trouvé à ton nom sur bioRxiv).
 - [x] Section « Preprints » : boundary-layer asymptotics (arXiv:2607.04514).
 - [ ] Ajouter EDM error propagation quand le preprint sort.
 - [x] Courte intro (2–3 lignes) sur les axes : modèles génératifs, diffusion / flow

@@ -20,20 +20,17 @@ N. Brosse, A. S. Dalalyan · 2026\
 [arXiv:2607.04514](https://arxiv.org/abs/2607.04514) ·
 [blog post](posts/boundary-layer/boundary-layer.qmd)
 
-## Publications
-
 **On last-layer algorithms for classification: decoupling representation from uncertainty estimation**\
 N. Brosse, C. Riquelme, A. Martin, S. Gelly, É. Moulines · 2020\
 [arXiv:2001.08049](https://arxiv.org/abs/2001.08049) ·
 [code](https://github.com/nbrosse/uncertainties)
 
-**The promises and pitfalls of stochastic gradient Langevin dynamics**\
-N. Brosse, A. Durmus, É. Moulines · 2018\
-[arXiv:1811.10072](https://arxiv.org/abs/1811.10072) ·
-[code](https://github.com/nbrosse/sgld-sgd)
+## Publications
 
 **Diffusion approximations and control variates for MCMC**\
-N. Brosse, A. Durmus, S. Meyn, É. Moulines, A. Radhakrishnan · 2018\
+N. Brosse, A. Durmus, S. Meyn, É. Moulines, S. Samsonov\
+*Computational Mathematics and Mathematical Physics*, 64, 693–738, 2024 ·
+[doi](https://doi.org/10.1134/S0965542524700167) ·
 [arXiv:1808.01665](https://arxiv.org/abs/1808.01665) ·
 [code](https://github.com/nbrosse/controlvariates)
 
@@ -44,6 +41,13 @@ N. Brosse, A. Durmus, É. Moulines, S. Sabanis\
 [arXiv:1710.05559](https://arxiv.org/abs/1710.05559) ·
 [code](https://github.com/nbrosse/TULA)
 
+**The promises and pitfalls of stochastic gradient Langevin dynamics**\
+N. Brosse, A. Durmus, É. Moulines\
+*Advances in Neural Information Processing Systems (NeurIPS)*, 2018 ·
+[paper](https://papers.nips.cc/paper_files/paper/2018/hash/335cd1b90bfa4ee70b39d08a4ae0cf2d-Abstract.html) ·
+[arXiv:1811.10072](https://arxiv.org/abs/1811.10072) ·
+[code](https://github.com/nbrosse/sgld-sgd)
+
 **Normalizing constants of log-concave densities**\
 N. Brosse, A. Durmus, É. Moulines\
 *Electronic Journal of Statistics*, 2018 ·
@@ -52,5 +56,21 @@ N. Brosse, A. Durmus, É. Moulines\
 [code](https://github.com/nbrosse/normalizingconstant)
 
 **Sampling from a log-concave distribution with compact support with proximal Langevin Monte Carlo**\
-N. Brosse, A. Durmus, É. Moulines, M. Pereyra · 2017\
+N. Brosse, A. Durmus, É. Moulines, M. Pereyra\
+*Conference on Learning Theory (COLT)*, PMLR 65, 2017 ·
+[paper](https://proceedings.mlr.press/v65/brosse17a.html) ·
 [arXiv:1705.08964](https://arxiv.org/abs/1705.08964)
+
+## Book chapter
+
+**Using artificial intelligence for *de novo* drug design and retrosynthesis**\
+R. Arora, N. Brosse, C. Descamps, N. Devaux, N. Do Huu, P. Gendreau, Y. Gaston-Mathé,
+M. Parrot, Q. Perron, H. Tajmouati\
+In *Computational Drug Discovery*, Wiley, 2024, 275–298 ·
+[doi](https://doi.org/10.1002/9783527840748.ch12)
+
+## PhD thesis
+
+**Autour de l'algorithme du Langevin : extensions et applications**\
+*(Around the Langevin Monte Carlo algorithm: extensions and applications)*\
+2019 · [doi](https://doi.org/10.70675/c5c2a775zc4adz485aza0f1z600b46cb6e63)
