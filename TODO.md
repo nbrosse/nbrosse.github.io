@@ -23,7 +23,11 @@ Le manque le plus important : aucune trace des publications sur le site.
   chapitre Wiley 2024 (Iktos). Last-layer reste en preprint (aucune version publiée trouvée).
 - [ ] Ajouter d'éventuels travaux GenBio / MBZUAI (rien trouvé à ton nom sur bioRxiv).
 - [x] Section « Preprints » : boundary-layer asymptotics (arXiv:2607.04514).
-- [ ] Ajouter EDM error propagation quand le preprint sort.
+- [ ] Ajouter EDM error propagation quand le preprint sort. L'entrée est prête, en commentaire
+  dans `research.qmd` (branche `post/edm-error-propagation`), avec le post en brouillon.
+  À la sortie : remplacer `XXXX.XXXXX` (post, `.bib`, `research.qmd`), décommenter l'entrée,
+  fixer la date du post, retirer `draft: true`, vérifier la règle AISTATS sur la publicité
+  pendant la relecture et que le dépôt de code est public.
 - [x] Courte intro (2–3 lignes) sur les axes : modèles génératifs, diffusion / flow
   matching, méthodes MCMC et leur analyse.
 - [ ] Option : générer la liste depuis un `.bib` (Quarto le gère) plutôt qu'à la main.

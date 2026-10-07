@@ -15,6 +15,14 @@ An up-to-date list is on
 
 ## Preprints
 
+<!-- Uncomment once the preprint is announced on arXiv and the code repository is public.
+**Universal local error and realized amplification for the first-order EDM predictor**\
+N. Brosse, A. S. Dalalyan · 2026\
+[arXiv:XXXX.XXXXX](https://arxiv.org/abs/XXXX.XXXXX) ·
+[code](https://github.com/nbrosse/edm-error-propagation-code) ·
+[blog post](posts/edm-error-propagation/edm-error-propagation.qmd)
+-->
+
 **Boundary-layer asymptotics for Gaussian-smoothed singular measures**\
 N. Brosse, A. S. Dalalyan · 2026\
 [arXiv:2607.04514](https://arxiv.org/abs/2607.04514) ·
