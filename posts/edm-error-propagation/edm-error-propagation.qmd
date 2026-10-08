@@ -1,8 +1,8 @@
 ---
 title: "Local accuracy is not global accuracy: error propagation in the EDM diffusion sampler"
 author: "Nicolas Brosse"
-date: "2026-10-07"
-draft: false
+date: "2026-10-15"
+draft: true
 bibliography: edm-error-propagation-references.bib
 categories: [diffusion models, numerical analysis]
 description: "Diffusion models generate data by removing noise step by step, and EDM is one of the most widely used recipes for doing so. Each step makes a small error, provably second order whatever the data. Yet even with a perfect network, the final error shrinks more slowly than these local errors suggest, over every step count used in practice. What decides it is how much later steps stretch the errors made before them, which can be far less than worst-case estimates predict."

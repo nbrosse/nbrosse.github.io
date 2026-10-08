@@ -21,7 +21,6 @@ A LaTeX formatter that understands mathematics.
 **[edm-error-propagation-code](https://github.com/nbrosse/edm-error-propagation-code)**\
 The experiments and archived runs behind the EDM error propagation preprint: local
 errors of the first-order EDM sampler and the amplification they actually undergo.
-[Post](posts/edm-error-propagation/edm-error-propagation.qmd) ·
 [arXiv:2610.10190](https://arxiv.org/abs/2610.10190)
 
 **[flow-matching-notes](https://github.com/nbrosse/flow-matching-notes)**\
@@ -45,7 +44,6 @@ Preprocessing Raman spectra and predicting analyte concentrations with PLS regre
 **[haiku-shunt](https://github.com/nbrosse/haiku-shunt)**\
 A Claude Code plugin that delegates large file reads to a small model, and an A/B test
 of what that actually saves.
-[Post](posts/haiku-shunt/haiku-shunt.qmd)
 
 **[llm-slide-deck](https://github.com/nbrosse/llm-slide-deck)**\
 Rebuilding a real slide deck with an LLM in four formats, and where each one fails.

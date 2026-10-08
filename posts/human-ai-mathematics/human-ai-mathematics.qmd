@@ -1,7 +1,7 @@
 ---
 title: "AI agents on the KLS conjecture: a search mathematicians can trust and join"
 author: "Nicolas Brosse"
-date: "2026-10-08"
+date: "2026-10-09"
 categories: [AI for mathematics, agents]
 description: "AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running."
 lightbox: true
