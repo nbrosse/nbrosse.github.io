@@ -10,3 +10,6 @@ title-block-banner: true
 
 # citation
 citation: true
+
+# no "Source" link under embedded notebook cells: each post links to its code repository
+notebook-links: false
