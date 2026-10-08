@@ -1,11 +1,11 @@
 ---
-title: "Local accuracy is not global accuracy: error propagation in the EDM sampler"
+title: "Local accuracy is not global accuracy: error propagation in the EDM diffusion sampler"
 author: "Nicolas Brosse"
 date: "2026-10-07"
 draft: false
 bibliography: edm-error-propagation-references.bib
 categories: [diffusion models, numerical analysis]
-description: "Each step of the first-order EDM sampler makes an O(h²) Wasserstein error, for any data law. Yet with a perfect denoiser on a Gaussian mixture, the final error decays at order 0.6, not 1. The gap is amplification: what decides the final error is how much the learned steps expand the discrepancy they actually transport, which can be far smaller than any Lipschitz constant."
+description: "Diffusion models generate data by removing noise step by step, and EDM is one of the most widely used recipes for doing so. Each step makes a small error, provably second order whatever the data. Yet even with a perfect network, the final error shrinks more slowly than these local errors suggest, over every step count used in practice. What decides it is how much later steps stretch the errors made before them, which can be far less than worst-case estimates predict."
 lightbox: true
 crossref:
   thm-title: Theorem
@@ -14,22 +14,26 @@ citation:
   url: https://nbrosse.github.io/posts/edm-error-propagation/edm-error-propagation.html
 ---
 
-Take a one-dimensional mixture of four narrow Gaussians, give the sampler the *exact* denoiser, start it from the *exact* noisy law, and run the first-order deterministic sampler of @karras_elucidating_2022 on finer and finer grids. The only error left is discretization. Each step is a first-order method, so its local bias is quadratic in the step size, and the sum of these biases over $K$ steps decays like $1/K$. One would expect the final Wasserstein error to do the same.
+Diffusion models generate images, audio or molecules by starting from pure noise and removing it little by little [@ho_denoising_2020; @song_score-based_2021]. A neural network, the *denoiser*, is trained to guess the clean data behind a noisy observation, and sampling chains many such guesses, each taking the sample from one noise level to a slightly lower one. Mathematically, this is the numerical integration of an ordinary differential equation. Every step costs one evaluation of the network, so the aim is to reach good samples in as few steps as possible. [Lilian Weng's](https://lilianweng.github.io/posts/2021-07-11-diffusion-models/) and [Yang Song's](https://yang-song.net/blog/2021/score/) blog posts are gentle introductions, and @holderrieth2025 a more systematic one.
 
-It does not.
+EDM, from [*Elucidating the Design Space of Diffusion-Based Generative Models*](https://arxiv.org/abs/2206.00364) [@karras_elucidating_2022], separated the design choices of these samplers: where to place the noise levels, how to scale the network's inputs and outputs, and which integrator to use. It set a recipe that reached state-of-the-art image quality in a few dozen network evaluations. That recipe has become a reference: it is implemented in [k-diffusion](https://github.com/crowsonkb/k-diffusion), offered as the "Karras" schedule in common Stable Diffusion interfaces, and extended by EDM2 [@karras_analyzing_2024]. Why does it work so well, and what controls the error of the final sample? Each step makes a small error, and the real question is whether the following steps correct it or amplify it. This post studies that question on the simplest version of the sampler: the first-order step, without the second-order (Heun) correction that EDM uses by default.
+
+To see the issue in its purest form, remove every source of error but the step size. Take a one-dimensional mixture of four narrow Gaussians, give the sampler the *exact* denoiser, start it from the *exact* noisy law, and run the first-order deterministic sampler of @karras_elucidating_2022 on finer and finer grids. The only error left is discretization. Each step is a first-order method, so its local bias is quadratic in the step size, and the sum of these biases over $K$ steps decays like $1/K$. One would expect the final Wasserstein error to do the same.
+
+Over any step count used in practice, it does not, even though first-order decay eventually returns.
 
 ![Four-Gaussian mixture, oracle denoiser, exact initialization. The summed local biases (dashed) reach first-order decay; the final error $e_K$ (black) decays at order 0.58–0.60 over $K\in[17,1088]$. Propagating each local bias through the amplification measured on the later steps (solid blue) recovers the slope of the final error.](figures/teaser.png){#fig-teaser width=70% fig-alt="Log-log plot of error against the number of sampling steps K from 17 to 1088. The dashed line of summed biases has slope 1; the black final-error line and the blue propagated-biases line are parallel to each other with slope about 0.58."}
 
 Over the tested range, the final error decreases at orders 0.58–0.60 (@fig-teaser). Local accuracy is there; global accuracy lags behind. The missing ingredient is what happens to an error *after* it is made: every later step can shrink it or stretch it. Propagating each local bias through the stretching actually measured on the subsequent steps reproduces the observed slope.
 
-This post is about a paper written with Arnak Dalalyan, [*Universal Local Error and Realized Amplification for the First-Order EDM Predictor*](https://arxiv.org/abs/2610.10190) [@brosse2026edm], which makes this split precise. It has two halves of very different nature:
+That global error is local error propagated by the stability of the scheme is classical numerical analysis. What is specific here is the form both halves take for a diffusion sampler. This post is about a paper written with Arnak Dalalyan, [*Universal Local Error and Realized Amplification for the First-Order EDM Predictor*](https://arxiv.org/abs/2610.10190) [@brosse2026edm], which makes this split precise. It has two halves of very different nature:
 
 - **Error creation is universal.** The one-step discretization bias is $O(h^2)$ in 2-Wasserstein distance, with an explicit constant, *for every data law with finite second moment*. No support, smoothness or log-concavity assumption.
 - **Error propagation is not.** It depends on the learned network, and we measure it by the *realized* amplification: how much each step expands the Wasserstein distance between the two laws it actually transports, the exact one and the sampler's. This can be arbitrarily smaller than the worst-case Lipschitz constants that stability analyses usually rely on.
 
-Combined, they give a global bound of order $e^{\Lambda_K}/K$, where $\Lambda_K$ is the accumulated log-amplification at low noise. On the mixture above, $\Lambda_K$ grows like $0.41\log K$, and $1-0.41=0.59$.
+Combined, they give a global bound of order $e^{\Lambda_K}/K$, where $\Lambda_K$ is the accumulated log-amplification at low noise. On the mixture above, $\Lambda_K$, measured on the sampler's own laws, grows like $0.41\log K$ over the tested range, and $1-0.41=0.59$. This accounts for the observed slope a posteriori; it does not predict it independently.
 
-@sec-setup sets up the sampler and the one-step error decomposition. @sec-local proves the universal local bound, @sec-contraction shows what EDM's preconditioning buys at high noise, and @sec-amplification defines realized amplification and compares it with its worst-case majorants. @sec-global assembles the global bound and explains the 0.59, @sec-cifar looks at a pretrained CIFAR-10 model, and @sec-open lists the limits. A [previous post](../boundary-layer/boundary-layer.qmd) studied the same smoothed laws from the other end, as $\sigma\to 0$; here the noise stays bounded away from zero and the question is numerical.
+@sec-setup sets up the sampler and the one-step error decomposition. @sec-local proves the universal local bound, @sec-contraction shows what EDM's preconditioning buys at high noise, and @sec-amplification defines realized amplification and compares it with its worst-case majorants. @sec-global assembles the global bound and explains the 0.59, @sec-cifar looks at a pretrained CIFAR-10 model, and @sec-open lists the limits. The introduction is meant to be self-contained; from @sec-setup on, some familiarity with diffusion models helps. A [previous post](../boundary-layer/boundary-layer.qmd) studied the same smoothed laws from the other end, as $\sigma\to 0$; here the noise stays bounded away from zero and the question is numerical.
 
 # The sampler and its one-step error {#sec-setup}
 
@@ -46,7 +50,7 @@ v_\sigma(x)=\frac{x-D_\sigma(x)}{\sigma}=-\sigma\nabla\log p_\sigma(x),
 \qquad D_\sigma(x)=\mathbb E[X_0\mid X_\sigma=x],
 $$
 
-where $D_\sigma$ is the posterior-mean denoiser (Tweedie). Write $\Psi_{\sigma',\sigma}$ for the flow map from noise level $\sigma$ to $\sigma'$; it pushes $\mu_\sigma$ onto $\mu_{\sigma'}$ exactly. Generative modelling replaces $\Psi_{\underline\sigma,\overline\sigma}$ by a learned approximation and applies it to $\mathcal N(0,\overline\sigma^2 I_d)$. For background, @holderrieth2025 is a good introduction.
+where $D_\sigma$ is the posterior-mean denoiser (Tweedie). Write $\Psi_{\sigma',\sigma}$ for the flow map from noise level $\sigma$ to $\sigma'$; it pushes $\mu_\sigma$ onto $\mu_{\sigma'}$ exactly. Generative modelling replaces $\Psi_{\underline\sigma,\overline\sigma}$ by a learned approximation and applies it to $\mathcal N(0,\overline\sigma^2 I_d)$.
 
 Fix a schedule $\overline\sigma=\sigma_0>\sigma_1>\dots>\sigma_K=\underline\sigma>0$ and set $a_j=(\sigma_j-\sigma_{j+1})/\sigma_j$. Freezing the velocity at the start of each step gives the first-order EDM predictor, which in the variance-exploding parametrization is also the DDIM update [@song_denoising_implicit_2021]:
 
@@ -82,7 +86,7 @@ $$
 \gamma_j=\frac{W_2\bigl((\widehat\Phi_j)_\#\mu_{\sigma_j},(\widehat\Phi_j)_\#\widehat\mu_j\bigr)}{W_2(\mu_{\sigma_j},\widehat\mu_j)}.
 $$
 
-Nothing has been assumed yet. The three terms are of different nature, and the rest of the paper treats each with the tool it calls for: $\delta_j$ with Gaussian calculus, the learning term with EDM's parametrization, and $\gamma_j$ with optimal transport.
+If $e_j=0$, the two laws coincide, the propagation term vanishes, and we set $\gamma_j=0$. Nothing has been assumed yet. The three terms are of different nature, and the rest of the paper treats each with the tool it calls for: $\delta_j$ with Gaussian calculus, the learning term with EDM's parametrization, and $\gamma_j$ with optimal transport.
 
 # Error creation: a universal local bound {#sec-local}
 
@@ -154,7 +158,7 @@ $$
 L_j<\sigma_j/\sigma_{\mathrm{data}}.
 $$
 
-The admissible Lipschitz constant *grows with the noise*. At $\sigma=80$, the top of the default EDM schedule, with $\sigma_{\mathrm{data}}=0.5$, the network may be 160-Lipschitz and the step still contracts. High-noise steps therefore damp the errors made before them, including the initialization mismatch and the biases that the $\rho_{\mathrm{EDM}}=7$ bound puts at high noise. The paper turns this into a *high-noise block*, the steps above a level $\sigma_{\mathrm{hi}}$ where a uniform margin $b_{\mathrm{hi}}>0$ holds. A margin above $1-\rho=6/7$ makes the damped high-noise contribution independent of the starting noise $\sigma_0$.
+The admissible Lipschitz constant *grows with the noise*. At $\sigma=80$, the top of the default EDM schedule, with $\sigma_{\mathrm{data}}=0.5$, the network may be 160-Lipschitz and the step still contracts. When this certificate holds, high-noise steps damp the errors made before them, including the initialization mismatch and the biases that the $\rho_{\mathrm{EDM}}=7$ bound puts at high noise. The paper turns this into a *high-noise block*, the steps above a level $\sigma_{\mathrm{hi}}$ where a uniform margin $b_{\mathrm{hi}}>0$ is assumed. A margin above $1-\rho=6/7$ makes the damped high-noise contribution independent of the starting noise $\sigma_0$.
 
 At low noise, $\sigma_j/\sigma_{\mathrm{data}}$ is small and the certificate is useless: denoisers of concentrated data are steep there by necessity. Something else is needed.
 
@@ -216,13 +220,13 @@ Four sources, kept apart: initialization (damped at high noise), discretization,
 - $\Lambda_K$ bounded: first-order decay;
 - $\Lambda_K\le\omega\log K+C$ with $\omega<1$: decay at order $1-\omega$.
 
-Now back to the mixture. Because everything is one-dimensional, each law can be stored as 65,536 quantiles, and matching quantiles *is* the optimal coupling. So $e_K$, every $\gamma_j$ and $\Lambda_K$ can be computed, not estimated, on grids from $K=17$ to $K=1088$.
+Now back to the mixture. Because everything is one-dimensional, each law can be stored as 65,536 quantiles, and matching quantiles *is* the optimal coupling. So $e_K$, every $\gamma_j$ and $\Lambda_K$ are computed deterministically from the quantiles, with no sampling noise, on grids from $K=17$ to $K=1088$.
 
 ![Panels (a)–(c): the four-Gaussian mixture. (a) Measured $\Lambda_K$ and the fit $\omega\log K$, $\omega=0.41$. (b) Local orders of the final error and of the summed biases, against the amplification-based order $1-(\Lambda_K-\Lambda_{K/2})/\log 2$. (c) Directional bound (dashed) and finite-domain field proxy (dotted) divided by $\Lambda_K$, for the oracle, three trained networks and a misspecified denoiser. Panel (d): CIFAR-10, discussed in @sec-cifar.](figures/numerical-summary.png){#fig-summary width=100% fig-alt="Four panels. (a) Lambda_K grows roughly linearly in log K from 0.3 to 1.9. (b) The summed-bias order rises to 1, the final-error order stays near 0.59, and the amplification-based order decreases from 0.68 to meet it. (c) Ratios of majorants to Lambda_K on a log scale; the directional bound is near 1, the field proxy between 4 and 1000. (d) Absolute expansion rates against the noise level for the worst, displacement and random directions."}
 
 Three observations (@fig-summary a–c).
 
-**The amplification accounts for the rate.** $\Lambda_K$ grows like $0.41\log K$ and reaches $1.91$ at $K=1088$; the realized amplification therefore multiplies the accumulated biases by $e^{1.91}\approx 6.8$. An error proportional to $e^{\Lambda_K}/K$ would have order $1-(\Lambda_K-\Lambda_{K/2})/\log 2$ between successive grids, and this matches the observed order on the two finest pairs of grids (panel b).
+**The amplification accounts for the rate.** $\Lambda_K$ grows like $0.41\log K$ and reaches $1.91$ at $K=1088$; the product of the realized amplification factors over any stretch of low-noise steps is therefore at most $e^{1.91}\approx 6.8$, and each bias is multiplied only by the factors of the steps after it. An error proportional to $e^{\Lambda_K}/K$ would have order $1-(\Lambda_K-\Lambda_{K/2})/\log 2$ between successive grids, and this matches the observed order on the two finest pairs of grids (panel b).
 
 **This rate is preasymptotic.** For this oracle, $\Lambda_K$ is in fact bounded under refinement: the mixture's velocity is globally Lipschitz in $x$, since the component centres are bounded. The theorem therefore predicts first-order decay *eventually*, just not at step counts anyone uses. Finite-grid behaviour and asymptotic rate are different questions, and the order observed in practice belongs to the first.
 
@@ -234,9 +238,9 @@ None of these law-level quantities can be computed in dimension 3,072. What can 
 
 **High noise.** Replace the global Lipschitz constant in the margin $b_j$ by the 90th percentile of power-iteration estimates of $\|\nabla\widehat F_\sigma\|$ at 128 noised test images. This empirical margin turns positive at $\sigma=8.9$ and exceeds $6/7$, the threshold beyond which the high-noise block no longer depends on $\sigma_0$, above $\sigma=40.8$ (shading in @fig-summary d). The EDM contraction certificate is informative near the top of the schedule, and only there.
 
-**Low noise.** Pair the trajectories of the same latent on a coarse grid and on its refinement, and look at the expansion rate of the learned velocity along the segment between them, in three directions: the displacement $\zeta$ itself, the most expanding direction, and a random one. At $\sigma=0.004$, the random direction *contracts* (rate $-82$), the displacement *expands* (rate $+0.49$), and the worst direction overstates that expansion by a factor of 424 (@fig-summary d). A random probe misses the expansion that matters; a worst-case probe exaggerates it by more than two orders of magnitude. Direction is the whole story, which is what the directional bound of @sec-amplification is built on.
+**Low noise.** Pair the trajectories of the same latent on a coarse grid and on its refinement, and look at the expansion rate of the learned velocity along the segment between them, in three directions: the displacement $\zeta$ itself, the most expanding direction, and a random one. At $\sigma=0.004$, the random direction *contracts* (rate $-82$), the displacement *expands* (rate $+0.49$), and the worst direction overstates that expansion by a factor of 424 (@fig-summary d). A random probe misses the expansion that matters; a worst-case probe exaggerates it by more than two orders of magnitude. Direction matters, and this is the mechanism the directional bound of @sec-amplification is built on.
 
-These synchronous pairs are not the optimal coupling between $\mu_{\sigma_j}$ and $\widehat\mu_j$, so this does not estimate $\Lambda_K$. It shows that the gap between realized and worst-case expansion is not a one-dimensional artifact.
+These synchronous pairs are not the optimal coupling between $\mu_{\sigma_j}$ and $\widehat\mu_j$, so this does not estimate $\Lambda_K$. It does not measure the gap between realized and worst-case amplification either; it is a hint that the directional mechanism behind that gap is not a one-dimensional artifact.
 
 # Limits and what is open {#sec-open}
 
