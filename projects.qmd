@@ -1,7 +1,31 @@
 ---
 title: "Projects"
-description: "Code, tools and demos: LLM systems and agents, ML for science, generative models, and developer tools."
+description: "Code, tools and demos: AI for mathematics, LLM systems and agents, ML for science, and generative models."
 ---
+
+## AI for mathematics
+
+**[Human–AI Mathematics](https://human-ai-mathematics.github.io/)**\
+An open framework for mathematical research with AI agents. Its first tool is a
+[template](https://github.com/human-ai-mathematics/conjecture-search-template) for
+sustained conjecture search: a MyST manuscript, a ledger of certified claims, a checker,
+and researcher, reviewer and writer agents for Claude Code and Codex. A claim is proved
+only once an agent with a fresh context, or a named person, has reviewed the exact text.
+[Post](posts/human-ai-mathematics/human-ai-mathematics.qmd)
+
+**[kls-conjecture-search](https://github.com/human-ai-mathematics/kls-conjecture-search)**\
+The first search run with the template, on the Kannan–Lovász–Simonovits conjecture,
+which was proved by three other teams while it ran. The result is a
+[manuscript](https://human-ai-mathematics.github.io/kls-conjecture-search/) that
+reconstructs and compares the three proofs, with 192 statements whose status each links
+to its review.
+
+**[latexfmt](https://github.com/nbrosse/latexfmt)**\
+A LaTeX project formatter that understands mathematics: it chooses between `equation`
+and `align` without changing numbering, prunes unreferenced labels across the whole
+project, reflows prose, and verifies the result with a `latexmk` build. Golden-file
+tests check every transformation and that formatting is idempotent.
+`uv tool install latexfmt` · [PyPI](https://pypi.org/project/latexfmt/)
 
 ## LLM systems & agents
 
@@ -59,12 +83,3 @@ and [closed-form flow matching](posts/posterior-concentration/posterior-concentr
 The code behind the papers (tamed Langevin, SGLD, control variates, normalizing
 constants, last-layer uncertainty) is linked from each entry on the
 [Research](research.qmd) page.
-
-## Developer tools
-
-**[latexfmt](https://github.com/nbrosse/latexfmt)**\
-A LaTeX project formatter that understands mathematics: it chooses between `equation`
-and `align` without changing numbering, prunes unreferenced labels across the whole
-project, reflows prose, and verifies the result with a `latexmk` build. Golden-file
-tests check every transformation and that formatting is idempotent.
-`uv tool install latexfmt` · [PyPI](https://pypi.org/project/latexfmt/)

@@ -16,15 +16,20 @@ about:
     - icon: r-circle
       text: ResearchGate
       href: https://www.researchgate.net/profile/Nicolas-Brosse-3
+    - icon: file-earmark-pdf
+      text: CV
+      href: cv.pdf
 ---
 
-I work in AI research and development, between academic research and industry. I am currently a postdoctoral researcher at CREST, supervised by Arnak Dalalyan, where my research focuses on the mathematics of generative models, in particular diffusion models and flow matching. This work builds on a PhD in statistics and over six years of experience in data science and artificial intelligence. Publications and preprints are listed on the [Research](research.qmd) page.
+I work in AI research and development, between academic research and industry. I am currently a postdoctoral researcher at CREST (ENSAE Paris, Institut Polytechnique de Paris), supervised by Arnak Dalalyan. My research has two strands: the mathematics of generative models, in particular diffusion models and flow matching, and human–AI collaboration in mathematical research. For the second, I designed and built [Human–AI Mathematics](https://human-ai-mathematics.github.io/), an open framework in which AI agents search for and cross-review proofs, and every certified claim can be checked by a mathematician. This work builds on a PhD in statistics and over six years of experience in data science and artificial intelligence. Publications and preprints are listed on the [Research](research.qmd) page, and my CV is available [as a PDF](cv.pdf).
+
+My postdoctoral work is funded by the European Research Council (ERC) under the European Union's Horizon Europe research and innovation programme (grant agreement No. 101201229).
 
 My career spans both applied research and real-world deployment. I began at Thales, working on time series analysis, signal processing, object detection, and anomaly detection. I later joined Iktos, where I designed deep learning models for drug discovery, before contributing to foundational biological models at MBZUAI and GenBio AI.
 
 In 2025, I worked closer to the end user: I explored venture creation by developing proofs of concept for AI-driven decision-making tools, and freelanced on projects ranging from LLM observability platforms (Rollstack) to improving Retrieval-Augmented Generation systems (Clarifeye).
 
-The [blog](blog.qmd) collects notes on generative models and on these projects.
+The [blog](blog.qmd) collects notes on generative models, on AI-assisted research and on these projects.
 
 ## Contact
 

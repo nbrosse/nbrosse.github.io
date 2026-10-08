@@ -1,17 +1,39 @@
 ---
 title: "Research"
-description: "Publications and preprints on generative modeling, Langevin sampling and uncertainty in deep learning."
+description: "Publications and preprints on generative modeling, diffusion samplers and Langevin sampling, and human–AI collaboration in mathematical research."
 ---
 
 My research sits between probability and machine learning. It currently focuses on the
-theory of generative models — diffusion models and flow matching, and what happens to
-them in the small-noise regime. It grew out of a PhD on Langevin-based sampling
-algorithms and their non-asymptotic analysis, followed by work on uncertainty estimation
-in deep networks.
+theory of generative models — diffusion models and flow matching, how their samplers
+propagate errors, and what happens to them in the small-noise regime. It grew out of a
+PhD on Langevin-based sampling algorithms and their non-asymptotic analysis, followed by
+work on uncertainty estimation in deep networks. In parallel, I work on human–AI
+collaboration in mathematical research: how AI agents can take part in a search for a
+proof while what they establish stays trustworthy and checkable.
 
 Longer, informal companions to some of these results are on the [blog](blog.qmd).
 An up-to-date list is on
 [Google Scholar](https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&hl).
+
+## Human–AI Mathematics
+
+**[Human–AI Mathematics](https://human-ai-mathematics.github.io/)**\
+N. Brosse, J. Li, Y. Lyu · 2026 · supported by Project Numina\
+An open framework for mathematical research done by humans and AI agents together.
+Its first tool, [conjecture search](https://human-ai-mathematics.github.io/conjecture-search/),
+organizes many agents over many sessions around one statement, and moves a claim to
+proved or refuted only through an independent review or a named person's acceptance.
+[Template](https://github.com/human-ai-mathematics/conjecture-search-template) ·
+[blog post](posts/human-ai-mathematics/human-ai-mathematics.qmd)
+
+**The KLS theorem and its methods**\
+N. Brosse and the Numina Collaboration · 2026\
+The first case study: a manuscript that surveys the methods behind the
+Kannan–Lovász–Simonovits conjecture, reconstructs and compares its three 2026 proofs,
+and develops alternative mechanisms. Its proofs are checked by independent AI reviewer
+agents, not yet by human referees.
+[Manuscript](https://human-ai-mathematics.github.io/kls-conjecture-search/) ·
+[repository](https://github.com/human-ai-mathematics/kls-conjecture-search)
 
 ## Preprints
 

@@ -1,11 +1,13 @@
 project:
   type: website
+  resources:
+    - cv.pdf
   preview: 
     port: 1234
 
 website:
   title: "Nicolas Brosse"
-  description: "Nicolas Brosse, AI research and development: from mathematical foundations to working systems — LLM systems, ML for science, generative models."
+  description: "Nicolas Brosse, AI research and development: from mathematical foundations to working systems — generative models, human–AI collaboration in mathematical research, LLM systems, ML for science."
   site-url: https://nbrosse.github.io
   image: profile.jpg
   open-graph: true
@@ -17,9 +19,13 @@ website:
         href: blog.qmd
       - research.qmd
       - about.qmd
+      - text: CV
+        href: cv.pdf
     right:
       - icon: github
         href: https://github.com/nbrosse
+      - text: Human–AI Mathematics
+        href: https://human-ai-mathematics.github.io/
       - icon: linkedin
         href: https://www.linkedin.com/in/nicolas-brosse-984685a0/
       - icon: google

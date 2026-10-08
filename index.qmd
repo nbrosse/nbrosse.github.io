@@ -20,13 +20,16 @@ toc: false
 I work in AI R&D, between research and production. After a PhD in statistics on Langevin
 sampling, I spent six years building deep learning systems in industry — signal
 processing at Thales, drug discovery at Iktos, foundation models for biology at MBZUAI
-and GenBio AI — and, more recently, LLM systems as a freelancer. I am currently a
-postdoctoral researcher at CREST with Arnak Dalalyan, working on the mathematics of
-generative models. What I care about is taking an idea from paper to working system, and
-measuring whether it actually works.
+and GenBio AI — and LLM systems as a freelancer. I am now a postdoctoral researcher at
+CREST with Arnak Dalalyan, working on two things: the mathematics of generative models,
+and human–AI collaboration in mathematical research, through
+[Human–AI Mathematics](https://human-ai-mathematics.github.io/), an open framework in
+which AI agents search for and cross-review proofs that mathematicians can check. What I
+care about is taking an idea from paper to working system, and measuring whether it
+actually works.
 
 [Projects →](projects.qmd) · [Blog →](blog.qmd) · [Research and publications →](research.qmd) ·
-[About →](about.qmd)
+[About →](about.qmd) · [CV (PDF) →](cv.pdf)
 
 ## Latest posts
 
