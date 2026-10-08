@@ -1,0 +1,103 @@
+---
+title: "A status is earned, never predicted: AI agents on the KLS conjecture"
+author: "Nicolas Brosse"
+date: "2026-10-08"
+categories: [AI for mathematics, agents]
+description: "AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework that keeps such a search trustworthy: one shared record, and a claim moves to proved only through an independent review of its exact text. Its first case study is the KLS conjecture, which three teams proved while the search was running."
+lightbox: true
+citation:
+  url: https://nbrosse.github.io/posts/human-ai-mathematics/human-ai-mathematics.html
+---
+
+In the first week of October 2026, the Kannan–Lovász–Simonovits (KLS) conjecture was proved three times. Three teams, each working with frontier AI models, reached independent proofs within days of one another: Bizeul–Klartag–Lehec ([arXiv:2610.05474](https://arxiv.org/abs/2610.05474)), Song–Zhang in the [second version](https://arxiv.org/abs/2610.01447v2) of a preprint whose first version had stopped at an iterated-logarithm bound, and Balasubramanian–Kasiviswanathan ([arXiv:2610.07728](https://arxiv.org/abs/2610.07728)).
+
+Since June, I had been running a search on the same conjecture, with AI agents, as a testbed for a different question: not *can agents do mathematics*, but *how do you trust what they produce, and how does a mathematician read it?* The conjecture was solved elsewhere, and that is good news. The search was not wasted: within two days of each preprint, its proof had been rebuilt in the search's own format and certified there, and the result is now a [manuscript](https://human-ai-mathematics.github.io/kls-conjecture-search/) that reconstructs and compares the three proofs.
+
+This post is about the framework that came out of it, [Human–AI Mathematics](https://human-ai-mathematics.github.io/), and about what four months of agent-driven research taught me about where such a search goes wrong.
+
+# The problem is volume {#sec-problem}
+
+AI agents now produce mathematical work on a hard question faster than anyone can read it: proof attempts, reductions, numerical experiments, candidate counterexamples. Left unstructured, that volume works against the research in three ways.
+
+- **What was learned is lost.** A session ends, the next one starts from scratch, and an obstacle found on Tuesday is found again on Friday.
+- **Plausibility is mistaken for a result.** A clean-looking argument, a numerical trend or an agent's confident summary ends up being treated as established.
+- **A mathematician cannot get in.** Faced with hundreds of files, a reader cannot tell what is proved, what is open, and where they could help.
+
+The three proofs of KLS show the cost at a larger scale. The effort was spent three times over, and almost none of it was shared along the way: which routes each team tried, which obstacles stopped them, which ideas they set aside.
+
+# Four principles {#sec-principles}
+
+The first tool of the framework is [conjecture search](https://human-ai-mathematics.github.io/conjecture-search/): proving or refuting one hard statement over many sessions and many agents. It rests on four principles.
+
+1. **Organize the search.** One target statement, a portfolio of routes, missions with an expected result, and dated checkpoints, so that several agents over many sessions work as one search, and a route set aside keeps the obstacle that stopped it.
+2. **Make every status trustworthy.** A claim becomes proved or refuted only through a certification tied to the exact text examined: an independent review of an agent's work, or the explicit acceptance of a named person. Evidence guides the search; it never moves a status.
+3. **Open the research to mathematicians.** The output is a manuscript that reads like a paper, says what is settled and what is not, and shows each statement's status and who certified it.
+4. **Spend sparingly.** Agent calls are the budget. Each agent is launched for a result that needs it, and a guarantee that forces repeated calls must be worth what it costs.
+
+The second principle is the one everything else hangs on, and the repository's specification states it in one line: *a status is earned, never predicted*. A numerical run, a green check or a count of failed attempts moves nothing.
+
+# How it works {#sec-how}
+
+The [template](https://github.com/human-ai-mathematics/conjecture-search-template) is a plain repository that any agent client can work in, with three kinds of record:
+
+- the **ledger**, what is mathematically claimed: each statement's status (open, proved, refuted) and the statements its proof depends on;
+- the **portfolio**, what the search is doing: the routes being tried and what blocks them;
+- the **checkpoints**, what the search learned: dated, append-only notes that the next session reads instead of the whole history.
+
+Statements themselves live in a [MyST](https://mystmd.org/) manuscript, one labelled directive per claim, so that there is exactly one canonical version of each. Proofs live in standalone dossiers, and reviews in their own dated files.
+
+Three agent roles, defined for both Claude Code and Codex, write to these files: a **researcher** that attacks a mission and writes dossiers, a **reviewer** that checks a dossier, and a **writer** that turns the manuscript's prose into something a mathematician wants to read without touching any statement. The main session orchestrates: it chooses routes, launches missions, and is the only one that changes the ledger.
+
+Three rules make certification mean something.
+
+**Independence is a fresh context, not a different name.** A reviewer is launched with no conversation history: never a fork of the session that wrote or directed the proof, only the repository paths and a mission. Two agents that share a context share their blind spots.
+
+**A certification covers the exact text read.** Each review records a fingerprint of every statement and dossier it examined. Edit one of them afterwards and the checker reports the certification as stale until a new review passes it. An edit that leaves the mathematics unchanged, such as a renamed term, can be carried over by an *editorial note*: a fresh reviewer reads only the diff and answers one question, whether any statement, hypothesis, constant or step of proof changed.
+
+**The checker checks structure, not mathematics.** A script validates identities, dependencies and fingerprints, and refuses a status change while anything is inconsistent. It does not decide whether a proof is right; that stays with a reviewer, and ultimately with a reader.
+
+# What the KLS search taught me {#sec-lessons}
+
+The interesting material is in the [history](https://github.com/human-ai-mathematics/kls-conjecture-search/blob/main/HISTORY.md) of the search, and most of it is about the rules above being learned the hard way.
+
+**Cross-review is not review.** In August, a batch of proofs had been certified by two agents reviewing each other's work. When fresh reviewers, with no shared context, went over the same dossiers in October, several came back for revision: a false endpoint claim in the proof of a lemma, a proposition that had to be narrowed to a one-way implication, and a proof step of a one-dimensional result that failed on the density $c(1+x^2)^{-3}$. The proofs were repaired and recertified, and only the narrowed proposition changed its statement, but none of this had been caught the first time. Two agents reviewing each other had shared too much to be independent, and the specification now defines independence by context rather than by name.
+
+**Numbers are evidence, not results.** A first numerical reading in June supported one of the candidate conjectures. In August it was withdrawn: the runs had computed a different quantity. Had a status been allowed to follow from numerics, the ledger would have recorded a falsehood for two months.
+
+**Unwritten proofs accumulate.** At one point, 34 statements were marked proved without a written proof. Each had to be given a dossier and a review, or be reclassified. A proved status now requires a proof record that points to a passing review, or a literature reference for an established result, and the checker refuses anything else.
+
+**A shared record pays off when the world moves.** When Song and Zhang's first preprint appeared on 1 October, it was treated as an import to audit, not as a new approach: its proof was rebuilt in five dossiers and its eight statements certified two days later. The full proofs of the following week were handled the same way, in seven dossiers for Bizeul–Klartag–Lehec and nine for Balasubramanian–Kasiviswanathan, whose explicit constant, $C_P \le 1+2\cdot 10^{16}$, is certified with them.
+
+Where the search stands today:
+
+| | count |
+|---|---:|
+| Statements in the ledger | 192 |
+| Proved, with a certified proof record | 152 |
+| Proved, imported from the literature | 10 |
+| Refuted | 2 |
+| Open | 19 |
+| Definitions | 9 |
+| Proof dossiers | 76 |
+| Review files | 100 |
+| Dated checkpoints | 171 |
+
+: The KLS search on 8 October 2026, from its [ledger](https://github.com/human-ai-mathematics/kls-conjecture-search/blob/main/research/program/ledger.yaml) and repository. {#tbl-kls}
+
+Beyond the three proofs, the manuscript surveys six families of methods that led to KLS, says what the theorem gives and what remains of the question of its constant, and develops three alternative mechanisms for the Poincaré bound whose key statements are still open. A whole route, the fixed-cut localization, is kept as an archive of its obstructions and counterexamples: a failed route that records why it failed is a result too.
+
+# What "certified" means, and does not {#sec-caveats}
+
+The word needs care. In this manuscript, *certified* means that a passing review by an AI agent, independent of the proof's author, checked the proof against its exact text. Unless a human is named, both the author and the reviewer were agents. **None of these proofs has yet been reviewed by a person**, and none of this is journal refereeing. Formal verification is outside what the template checks: a formal proof can support a review, but certification is review-based.
+
+What the framework does guarantee is traceability. Every proved statement on the site shows who reviewed it, the review is a file anyone can read, and a reader who finds an error can point to the exact dossier and review that let it through. That is a weaker promise than correctness, but a checkable one, and it is the one a mathematician needs before deciding which parts to read closely.
+
+There are other limits. The checker records independence but cannot establish it: whether a reviewer really started from a fresh context depends on how it was launched. And since KLS was proved while the search was running, the template has not yet been tested from start to finish on a question that stays open.
+
+# What comes next {#sec-next}
+
+The next step is to run conjecture search on an open question, chosen with mathematicians who know the field, and to find out whether the result is pleasant to read and check, and efficient for its cost. A second tool is being explored: mapping a field, to consolidate known results into an account of which hold, how they connect and what remains open. The KLS manuscript, which turned into a consolidation of the field around the theorem, gives a first idea of what that could look like.
+
+If you are a mathematician and would like to propose a conjecture, check a proof, or tell us what makes such a manuscript hard to read, the [discussions](https://github.com/orgs/human-ai-mathematics/discussions) are open, and so are the [issues](https://github.com/human-ai-mathematics/human-ai-mathematics.github.io/issues).
+
+Human–AI Mathematics is built with Jia Li and Yuwei Lyu, and supported by [Project Numina](https://projectnumina.ai/). My work on it is part of my postdoc at CREST with Arnak Dalalyan, funded by the European Research Council (ERC) under the European Union's Horizon Europe research and innovation programme (grant agreement No. 101201229).
