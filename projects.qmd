@@ -45,6 +45,12 @@ Preprocessing Raman spectra and predicting analyte concentrations with PLS regre
 
 ## Generative models
 
+**[edm-error-propagation-code](https://github.com/nbrosse/edm-error-propagation-code)**\
+The experiments and archived runs behind the EDM error propagation preprint: local
+errors of the first-order EDM sampler and the amplification they actually undergo.
+[Post](posts/edm-error-propagation/edm-error-propagation.qmd) ·
+[arXiv:2610.10190](https://arxiv.org/abs/2610.10190)
+
 **[flow-matching-notes](https://github.com/nbrosse/flow-matching-notes)**\
 The notebooks behind the flow matching posts:
 [flow matching as posterior averaging](posts/posterior-averaging/posterior-averaging.qmd)

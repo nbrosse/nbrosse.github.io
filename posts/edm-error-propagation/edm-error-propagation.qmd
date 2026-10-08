@@ -2,7 +2,7 @@
 title: "Local accuracy is not global accuracy: error propagation in the EDM sampler"
 author: "Nicolas Brosse"
 date: "2026-10-07"
-draft: true
+draft: false
 bibliography: edm-error-propagation-references.bib
 categories: [diffusion models, numerical analysis]
 description: "Each step of the first-order EDM sampler makes an O(h²) Wasserstein error, for any data law. Yet with a perfect denoiser on a Gaussian mixture, the final error decays at order 0.6, not 1. The gap is amplification: what decides the final error is how much the learned steps expand the discrepancy they actually transport, which can be far smaller than any Lipschitz constant."
@@ -22,7 +22,7 @@ It does not.
 
 Over the tested range, the final error decreases at orders 0.58–0.60 (@fig-teaser). Local accuracy is there; global accuracy lags behind. The missing ingredient is what happens to an error *after* it is made: every later step can shrink it or stretch it. Propagating each local bias through the stretching actually measured on the subsequent steps reproduces the observed slope.
 
-This post is about a paper written with Arnak Dalalyan, [*Universal Local Error and Realized Amplification for the First-Order EDM Predictor*](https://arxiv.org/abs/XXXX.XXXXX) [@brosse2026edm], which makes this split precise. It has two halves of very different nature:
+This post is about a paper written with Arnak Dalalyan, [*Universal Local Error and Realized Amplification for the First-Order EDM Predictor*](https://arxiv.org/abs/2610.10190) [@brosse2026edm], which makes this split precise. It has two halves of very different nature:
 
 - **Error creation is universal.** The one-step discretization bias is $O(h^2)$ in 2-Wasserstein distance, with an explicit constant, *for every data law with finite second moment*. No support, smoothness or log-concavity assumption.
 - **Error propagation is not.** It depends on the learned network, and we measure it by the *realized* amplification: how much each step expands the Wasserstein distance between the two laws it actually transports, the exact one and the sampler's. This can be arbitrarily smaller than the worst-case Lipschitz constants that stability analyses usually rely on.
