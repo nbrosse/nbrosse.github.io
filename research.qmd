@@ -102,3 +102,9 @@ In *Computational Drug Discovery*, Wiley, 2024, 275–298 ·
 **Autour de l'algorithme du Langevin : extensions et applications**\
 *(Around the Langevin Monte Carlo algorithm: extensions and applications)*\
 2019 · [doi](https://doi.org/10.70675/c5c2a775zc4adz485aza0f1z600b46cb6e63)
+
+## Funding
+
+My postdoctoral work at CREST with Arnak Dalalyan is funded by the European Research
+Council (ERC) under the European Union's Horizon Europe research and innovation programme
+(grant agreement No. 101201229).
