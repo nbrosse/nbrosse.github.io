@@ -1,71 +1,20 @@
 ---
 title: "Projects"
-description: "Code, tools and demos: AI for mathematics, LLM systems and agents, ML for science, and generative models."
+description: "Code, tools and demos: AI for mathematics, generative models, ML for science, and LLM systems and agents."
 ---
 
 ## AI for mathematics
 
 **[Human–AI Mathematics](https://human-ai-mathematics.github.io/)**\
-An open framework for mathematical research with AI agents. Its first tool is a
-[template](https://github.com/human-ai-mathematics/conjecture-search-template) for
-sustained conjecture search: a MyST manuscript, a ledger of certified claims, a checker,
-and researcher, reviewer and writer agents for Claude Code and Codex. A claim is proved
-only once an agent with a fresh context, or a named person, has reviewed the exact text.
+An open framework for mathematical research with AI agents, in which a claim counts as
+proved only after an independent review. Its first case study is a
+[manuscript](https://human-ai-mathematics.github.io/kls-conjecture-search/) that
+reconstructs and compares the three proofs of the KLS conjecture.
 [Post](posts/human-ai-mathematics/human-ai-mathematics.qmd)
 
-**[kls-conjecture-search](https://github.com/human-ai-mathematics/kls-conjecture-search)**\
-The first search run with the template, on the Kannan–Lovász–Simonovits conjecture,
-which was proved by three other teams while it ran. The result is a
-[manuscript](https://human-ai-mathematics.github.io/kls-conjecture-search/) that
-reconstructs and compares the three proofs, with 192 statements whose status each links
-to its review.
-
 **[latexfmt](https://github.com/nbrosse/latexfmt)**\
-A LaTeX project formatter that understands mathematics: it chooses between `equation`
-and `align` without changing numbering, prunes unreferenced labels across the whole
-project, reflows prose, and verifies the result with a `latexmk` build. Golden-file
-tests check every transformation and that formatting is idempotent.
+A LaTeX formatter that understands mathematics.
 `uv tool install latexfmt` · [PyPI](https://pypi.org/project/latexfmt/)
-
-## LLM systems & agents
-
-**[haiku-shunt](https://github.com/nbrosse/haiku-shunt)**\
-A Claude Code plugin that keeps large file reads out of an expensive model's context
-by delegating them to a small one, and an A/B benchmark priced in dollars to find out
-whether that saves anything. Measured on a real task: not significantly, and not
-through delegation.
-[Post](posts/haiku-shunt/haiku-shunt.qmd)
-
-**[pdf-rag](https://github.com/nbrosse/pdf-rag)**\
-Retrieval over a corpus of PDFs: recovering document structure with a vision language
-model, extracting metadata, and querying with a two-level ReAct agent.
-[Post](posts/pdf-rag/pdf-rag.qmd) ·
-[demo](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo)
-
-**[pdf-parsing](https://github.com/nbrosse/pdf-parsing)**\
-A comparison of Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini and Mistral OCR
-on real documents.
-[Post](posts/pdf-parsing/pdf-parsing.qmd) ·
-[demo](https://huggingface.co/spaces/nicolasb92/pdf-parsing-demo)
-
-**[llm-observability](https://github.com/nbrosse/llm-observability)**\
-End-to-end tracing of a FastHTML chatbot with Langfuse.
-[Post](posts/llm-observability/llm-observability.qmd)
-
-**[llm-slide-deck](https://github.com/nbrosse/llm-slide-deck)**\
-Rebuilding a real slide deck with an LLM in four formats, and where each one fails.
-[Post](posts/llm-slides/llm-slides.qmd)
-
-## ML for science
-
-**[mhcpred](https://github.com/nbrosse/mhcpred)**\
-Predicting MHC class I peptide presentation with a neural network, benchmarked against
-MHCflurry.
-[Post](posts/mhc/mhc.qmd)
-
-**[raman-spectra](https://github.com/nbrosse/raman-spectra)**\
-Preprocessing Raman spectra and predicting analyte concentrations with PLS regression.
-[Post](posts/raman/raman.qmd)
 
 ## Generative models
 
@@ -80,6 +29,40 @@ The notebooks behind the flow matching posts:
 [flow matching as posterior averaging](posts/posterior-averaging/posterior-averaging.qmd)
 and [closed-form flow matching](posts/posterior-concentration/posterior-concentration.qmd).
 
-The code behind the papers (tamed Langevin, SGLD, control variates, normalizing
-constants, last-layer uncertainty) is linked from each entry on the
-[Research](research.qmd) page.
+## ML for science
+
+**[mhcpred](https://github.com/nbrosse/mhcpred)**\
+Predicting MHC class I peptide presentation with a neural network, benchmarked against
+MHCflurry.
+[Post](posts/mhc/mhc.qmd)
+
+**[raman-spectra](https://github.com/nbrosse/raman-spectra)**\
+Preprocessing Raman spectra and predicting analyte concentrations with PLS regression.
+[Post](posts/raman/raman.qmd)
+
+## LLM systems & agents
+
+**[haiku-shunt](https://github.com/nbrosse/haiku-shunt)**\
+A Claude Code plugin that delegates large file reads to a small model, and an A/B test
+of what that actually saves.
+[Post](posts/haiku-shunt/haiku-shunt.qmd)
+
+**[llm-slide-deck](https://github.com/nbrosse/llm-slide-deck)**\
+Rebuilding a real slide deck with an LLM in four formats, and where each one fails.
+[Post](posts/llm-slides/llm-slides.qmd)
+
+**[llm-observability](https://github.com/nbrosse/llm-observability)**\
+End-to-end tracing of a FastHTML chatbot with Langfuse.
+[Post](posts/llm-observability/llm-observability.qmd)
+
+**[pdf-rag](https://github.com/nbrosse/pdf-rag)**\
+Retrieval over a corpus of PDFs: recovering document structure with a vision language
+model, extracting metadata, and querying with a two-level ReAct agent.
+[Post](posts/pdf-rag/pdf-rag.qmd) ·
+[demo](https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo)
+
+**[pdf-parsing](https://github.com/nbrosse/pdf-parsing)**\
+A comparison of Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini and Mistral OCR
+on real documents.
+[Post](posts/pdf-parsing/pdf-parsing.qmd) ·
+[demo](https://huggingface.co/spaces/nicolasb92/pdf-parsing-demo)
