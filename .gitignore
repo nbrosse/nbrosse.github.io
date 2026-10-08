@@ -37,6 +37,7 @@
 *.nls
 *.out
 *.pdf
+!/cv.pdf
 *.pyg
 *.run.xml
 *.snm

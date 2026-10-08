@@ -1,17 +1,39 @@
 ---
-title: "Nicolas' Notebook"
+title: "Nicolas Brosse"
+subtitle: "AI research & development — from mathematical foundations to working systems"
 listing:
-  contents: posts
-  sort: "date desc"
-  type: table
-  fields: [date, title, categories, description]
-  categories: true
-  sort-ui: true
-  filter-ui: true
-  feed:
-    type: partial
+  - id: latest
+    contents: posts
+    sort: "date desc"
+    type: default
+    max-items: 5
+    fields: [date, title, description, categories]
+    categories: false
+    feed:
+      type: partial
+      items: 50
 page-layout: full
 title-block-banner: true
+toc: false
 ---
 
+I work in AI R&D, between research and production. After a PhD in statistics on Langevin
+sampling, I spent six years building deep learning systems in industry — signal
+processing at Thales, drug discovery at Iktos, foundation models for biology at MBZUAI
+and GenBio AI — and LLM systems as a freelancer. I am now a postdoctoral researcher at
+CREST with Arnak Dalalyan, working on two things: the mathematics of generative models,
+and human–AI collaboration in mathematical research, through
+[Human–AI Mathematics](https://human-ai-mathematics.github.io/), an open framework in
+which AI agents search for and cross-review proofs that mathematicians can check. What I
+care about is taking an idea from paper to working system, and measuring whether it
+actually works.
 
+[Projects →](projects.qmd) · [Blog →](blog.qmd) · [Research and publications →](research.qmd) ·
+[About →](about.qmd) · [CV (PDF) →](cv.pdf)
+
+## Latest posts
+
+::: {#latest}
+:::
+
+[All posts →](blog.qmd)

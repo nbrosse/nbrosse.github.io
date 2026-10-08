@@ -1,0 +1,109 @@
+---
+title: "Research"
+description: "Publications and preprints on generative modeling, diffusion samplers and Langevin sampling, and human–AI collaboration in mathematical research."
+---
+
+My research sits between probability and machine learning. It currently focuses on the
+theory of generative models — diffusion models and flow matching, how their samplers
+propagate errors, and what happens to them in the small-noise regime. It grew out of a
+PhD on Langevin-based sampling algorithms and their non-asymptotic analysis, followed by
+work on uncertainty estimation in deep networks. In parallel, I work on human–AI
+collaboration in mathematical research: how AI agents can take part in a search for a
+proof while what they establish stays trustworthy and checkable.
+
+Longer, informal companions to some of these results are on the [blog](blog.qmd).
+An up-to-date list is on
+[Google Scholar](https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&hl).
+
+## Human–AI Mathematics
+
+**[Human–AI Mathematics](https://human-ai-mathematics.github.io/)**\
+N. Brosse, J. Li, Y. Lyu · 2026 · supported by Project Numina\
+An open framework for mathematical research done by humans and AI agents together.
+Its first tool, [conjecture search](https://human-ai-mathematics.github.io/conjecture-search/),
+organizes many agents over many sessions around one statement, and moves a claim to
+proved or refuted only through an independent review or a named person's acceptance.
+[Template](https://github.com/human-ai-mathematics/conjecture-search-template) ·
+[blog post](posts/human-ai-mathematics/human-ai-mathematics.qmd)
+
+**The KLS theorem and its methods**\
+N. Brosse and the Numina Collaboration · 2026\
+The first case study: a manuscript that surveys the methods behind the
+Kannan–Lovász–Simonovits conjecture, reconstructs and compares its three 2026 proofs,
+and develops alternative mechanisms. Its proofs are checked by independent AI reviewer
+agents, not yet by human referees.
+[Manuscript](https://human-ai-mathematics.github.io/kls-conjecture-search/) ·
+[repository](https://github.com/human-ai-mathematics/kls-conjecture-search)
+
+## Preprints
+
+**Universal local error and realized amplification for the first-order EDM predictor**\
+N. Brosse, A. S. Dalalyan · 2026\
+[arXiv:2610.10190](https://arxiv.org/abs/2610.10190) ·
+[code](https://github.com/nbrosse/edm-error-propagation-code)
+
+**Boundary-layer asymptotics for Gaussian-smoothed singular measures**\
+N. Brosse, A. S. Dalalyan · 2026\
+[arXiv:2607.04514](https://arxiv.org/abs/2607.04514) ·
+[blog post](posts/boundary-layer/boundary-layer.qmd)
+
+**On last-layer algorithms for classification: decoupling representation from uncertainty estimation**\
+N. Brosse, C. Riquelme, A. Martin, S. Gelly, É. Moulines · 2020\
+[arXiv:2001.08049](https://arxiv.org/abs/2001.08049) ·
+[code](https://github.com/nbrosse/uncertainties)
+
+## Publications
+
+**Diffusion approximations and control variates for MCMC**\
+N. Brosse, A. Durmus, S. Meyn, É. Moulines, S. Samsonov\
+*Computational Mathematics and Mathematical Physics*, 64, 693–738, 2024 ·
+[doi](https://doi.org/10.1134/S0965542524700167) ·
+[arXiv:1808.01665](https://arxiv.org/abs/1808.01665) ·
+[code](https://github.com/nbrosse/controlvariates)
+
+**The tamed unadjusted Langevin algorithm**\
+N. Brosse, A. Durmus, É. Moulines, S. Sabanis\
+*Stochastic Processes and their Applications*, 2019 ·
+[doi](https://doi.org/10.1016/j.spa.2018.10.002) ·
+[arXiv:1710.05559](https://arxiv.org/abs/1710.05559) ·
+[code](https://github.com/nbrosse/TULA)
+
+**The promises and pitfalls of stochastic gradient Langevin dynamics**\
+N. Brosse, A. Durmus, É. Moulines\
+*Advances in Neural Information Processing Systems (NeurIPS)*, 2018 ·
+[paper](https://papers.nips.cc/paper_files/paper/2018/hash/335cd1b90bfa4ee70b39d08a4ae0cf2d-Abstract.html) ·
+[arXiv:1811.10072](https://arxiv.org/abs/1811.10072) ·
+[code](https://github.com/nbrosse/sgld-sgd)
+
+**Normalizing constants of log-concave densities**\
+N. Brosse, A. Durmus, É. Moulines\
+*Electronic Journal of Statistics*, 2018 ·
+[doi](https://doi.org/10.1214/18-EJS1411) ·
+[arXiv:1707.00460](https://arxiv.org/abs/1707.00460) ·
+[code](https://github.com/nbrosse/normalizingconstant)
+
+**Sampling from a log-concave distribution with compact support with proximal Langevin Monte Carlo**\
+N. Brosse, A. Durmus, É. Moulines, M. Pereyra\
+*Conference on Learning Theory (COLT)*, PMLR 65, 2017 ·
+[paper](https://proceedings.mlr.press/v65/brosse17a.html) ·
+[arXiv:1705.08964](https://arxiv.org/abs/1705.08964)
+
+## Book chapter
+
+**Using artificial intelligence for *de novo* drug design and retrosynthesis**\
+R. Arora, N. Brosse, C. Descamps, N. Devaux, N. Do Huu, P. Gendreau, Y. Gaston-Mathé,
+M. Parrot, Q. Perron, H. Tajmouati\
+In *Computational Drug Discovery*, Wiley, 2024, 275–298 ·
+[doi](https://doi.org/10.1002/9783527840748.ch12)
+
+## PhD thesis
+
+**Autour de l'algorithme du Langevin : extensions et applications**\
+*(Around the Langevin Monte Carlo algorithm: extensions and applications)*\
+2019 · [doi](https://doi.org/10.70675/c5c2a775zc4adz485aza0f1z600b46cb6e63)
+
+## Funding
+
+My postdoctoral work at CREST with Arnak Dalalyan is funded by the European Research
+Council (ERC) under the European Union's Horizon Europe research and innovation programme
+(grant agreement No. 101201229).
