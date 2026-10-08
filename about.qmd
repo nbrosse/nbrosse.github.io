@@ -1,6 +1,7 @@
 ---
 title: "About"
 image: profile.jpg
+toc: false
 about:
   template: solana
   links:
@@ -8,8 +9,14 @@ about:
       text: LinkedIn
       href: https://www.linkedin.com/in/nicolas-brosse-984685a0/
     - icon: github
-      text: Github
+      text: GitHub
       href: https://github.com/nbrosse
+    - icon: twitter-x
+      text: X
+      href: https://x.com/NicolasBrosse1
+    - icon: bluesky
+      text: Bluesky
+      href: https://bsky.app/profile/nbrosse.bsky.social
     - icon: google
       text: Google Scholar
       href: https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&hl
@@ -19,32 +26,50 @@ about:
     - icon: file-earmark-pdf
       text: CV
       href: cv.pdf
+    - icon: envelope
+      text: Email
+      href: "#"
 ---
 
-I work in AI research and development, between academic research and industry. I am currently a postdoctoral researcher at CREST (ENSAE Paris, Institut Polytechnique de Paris), supervised by Arnak Dalalyan. My research has two strands: the mathematics of generative models, in particular diffusion models and flow matching, and human–AI collaboration in mathematical research. For the second, I designed and built [Human–AI Mathematics](https://human-ai-mathematics.github.io/), an open framework in which AI agents search for and cross-review proofs, and every certified claim can be checked by a mathematician. This work builds on a PhD in statistics and over six years of experience in data science and artificial intelligence. Publications and preprints are listed on the [Research](research.qmd) page, and my CV is available [as a PDF](cv.pdf).
+I am a postdoctoral researcher at CREST (ENSAE Paris, Institut Polytechnique de Paris),
+working with Arnak Dalalyan. My research has two strands. The first is the mathematics of
+generative models: how diffusion and flow matching models behave in the small-noise
+regime, and how their samplers propagate errors. The second is human–AI collaboration in
+mathematical research. I designed and built
+[Human–AI Mathematics](https://human-ai-mathematics.github.io/), an open framework in
+which AI agents search for and cross-review proofs, and every claim they certify can be
+checked by a mathematician.
 
-My postdoctoral work is funded by the European Research Council (ERC) under the European Union's Horizon Europe research and innovation programme (grant agreement No. 101201229).
+I came to this from both research and industry. After a PhD in applied mathematics at
+École Polytechnique on Langevin sampling, and an internship at Google Brain, I spent six
+years building machine learning systems: signal processing, object detection and anomaly
+detection at Thales, deep learning for drug discovery at Iktos, then foundation models
+for biology at MBZUAI and GenBio AI. In 2025 I worked closer to end users, building
+proofs of concept for AI decision-support tools and freelancing on LLM systems, from
+evaluating LLM answers at Rollstack to improving retrieval at Clarifeye.
 
-My career spans both applied research and real-world deployment. I began at Thales, working on time series analysis, signal processing, object detection, and anomaly detection. I later joined Iktos, where I designed deep learning models for drug discovery, before contributing to foundational biological models at MBZUAI and GenBio AI.
+What ties it together is taking an idea from paper to working system, and measuring
+whether it actually works. Publications are on the [Research](research.qmd) page, code
+on [Projects](projects.qmd), and longer notes on the [blog](blog.qmd). To get in touch,
+[send me an email]{#contact-email}.
 
-In 2025, I worked closer to the end user: I explored venture creation by developing proofs of concept for AI-driven decision-making tools, and freelanced on projects ranging from LLM observability platforms (Rollstack) to improving Retrieval-Augmented Generation systems (Clarifeye).
-
-The [blog](blog.qmd) collects notes on generative models, on AI-assisted research and on these projects.
-
-## Contact
-
-Feel free to reach out if you would like to connect or collaborate:
-[nbrosse [at] gmail [dot] com]{#contact-email}.
+[My postdoctoral work is funded by the European Research Council (ERC) under the European
+Union's Horizon Europe research and innovation programme (grant agreement
+No. 101201229).]{.small .text-muted}
 
 <script>
-// The address is assembled in the browser so that it never appears in the HTML.
+// The address is assembled in the browser, so it appears neither in the HTML nor on the page.
 (function () {
+  var href = "mailto:" + ["nbrosse", "gmail.com"].join("@");
   var el = document.getElementById("contact-email");
-  if (!el) return;
-  var addr = ["nbrosse", "gmail.com"].join("@");
-  var a = document.createElement("a");
-  a.href = "mailto:" + addr;
-  a.textContent = addr;
-  el.replaceChildren(a);
+  if (el) {
+    var a = document.createElement("a");
+    a.href = href;
+    a.textContent = el.textContent;
+    el.replaceChildren(a);
+  }
+  document.querySelectorAll(".about-links a").forEach(function (link) {
+    if (link.textContent.trim() === "Email") link.href = href;
+  });
 })();
 </script>
