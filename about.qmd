@@ -24,4 +24,22 @@ My career spans both applied research and real-world deployment. I began at Thal
 
 In 2025, I worked closer to the end user: I explored venture creation by developing proofs of concept for AI-driven decision-making tools, and freelanced on projects ranging from LLM observability platforms (Rollstack) to improving Retrieval-Augmented Generation systems (Clarifeye).
 
-The [blog](blog.qmd) collects notes on generative models and on these projects. Feel free to reach out if you would like to connect or collaborate.
+The [blog](blog.qmd) collects notes on generative models and on these projects.
+
+## Contact
+
+Feel free to reach out if you would like to connect or collaborate:
+[nbrosse [at] gmail [dot] com]{#contact-email}.
+
+<script>
+// The address is assembled in the browser so that it never appears in the HTML.
+(function () {
+  var el = document.getElementById("contact-email");
+  if (!el) return;
+  var addr = ["nbrosse", "gmail.com"].join("@");
+  var a = document.createElement("a");
+  a.href = "mailto:" + addr;
+  a.textContent = addr;
+  el.replaceChildren(a);
+})();
+</script>
