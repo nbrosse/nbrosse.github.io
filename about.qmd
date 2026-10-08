@@ -40,7 +40,7 @@ mathematical research. I designed and built
 which AI agents search for and cross-review proofs, and every claim they certify can be
 checked by a mathematician.
 
-I came to this from both research and industry. After a PhD in applied mathematics at
+I came to this from both research and industry. After a PhD in statistics at
 École Polytechnique on Langevin sampling, and an internship at Google Brain, I spent six
 years building machine learning systems: signal processing, object detection and anomaly
 detection at Thales, deep learning for drug discovery at Iktos, then foundation models
