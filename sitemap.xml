@@ -1,51 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://nbrosse.github.io/index.html</loc>
-    <lastmod>2026-09-24T10:16:03.117Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/llm-observability/llm-observability.html</loc>
-    <lastmod>2026-08-23T10:51:10.053Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/mhc/mhc.html</loc>
-    <lastmod>2026-08-23T10:51:10.053Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/pdf-rag/pdf-rag.html</loc>
-    <lastmod>2026-08-23T10:51:10.055Z</lastmod>
+    <loc>https://nbrosse.github.io/research.html</loc>
+    <lastmod>2026-10-08T17:55:57.092Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/raman/raman.html</loc>
-    <lastmod>2026-08-23T10:51:10.086Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html</loc>
-    <lastmod>2026-08-23T10:51:10.054Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/about.html</loc>
-    <lastmod>2026-08-23T10:48:48.726Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/posterior-concentration/posterior-concentration.html</loc>
-    <lastmod>2026-08-23T10:51:10.074Z</lastmod>
+    <lastmod>2026-10-04T08:53:24.691Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/posterior-averaging/posterior-averaging.html</loc>
-    <lastmod>2026-08-23T10:51:10.070Z</lastmod>
+    <lastmod>2026-10-04T08:53:24.690Z</lastmod>
   </url>
   <url>
-    <loc>https://nbrosse.github.io/posts/boundary-layer/boundary-layer.html</loc>
-    <lastmod>2026-08-26T06:59:48.534Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html</loc>
-    <lastmod>2026-08-23T10:51:10.053Z</lastmod>
+    <loc>https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html</loc>
+    <lastmod>2026-10-08T17:55:57.092Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/llm-slides/llm-slides.html</loc>
-    <lastmod>2026-08-23T10:51:10.053Z</lastmod>
+    <lastmod>2026-10-08T17:55:57.091Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/human-ai-mathematics/human-ai-mathematics.html</loc>
+    <lastmod>2026-10-08T17:55:57.091Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html</loc>
+    <lastmod>2026-10-04T08:53:24.689Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/boundary-layer/boundary-layer.html</loc>
+    <lastmod>2026-10-04T08:53:24.689Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/blog.html</loc>
+    <lastmod>2026-10-08T17:55:57.089Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/about.html</loc>
+    <lastmod>2026-10-08T17:55:57.089Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/index.html</loc>
+    <lastmod>2026-10-08T17:55:57.090Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/llm-observability/llm-observability.html</loc>
+    <lastmod>2026-10-04T08:53:24.689Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/mhc/mhc.html</loc>
+    <lastmod>2026-10-04T08:53:24.689Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/pdf-rag/pdf-rag.html</loc>
+    <lastmod>2026-10-08T17:55:57.092Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/posterior-concentration/posterior-concentration.html</loc>
+    <lastmod>2026-10-04T08:53:24.690Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/projects.html</loc>
+    <lastmod>2026-10-08T17:55:57.092Z</lastmod>
   </url>
 </urlset>

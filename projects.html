@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="description" content="Code, tools and demos: AI for mathematics, generative models, ML for science, and LLM systems and agents.">
 
-<title>About – Nicolas Brosse</title>
+<title>Projects – Nicolas Brosse</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -40,6 +41,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
@@ -76,17 +78,17 @@ ul.task-list li input[type="checkbox"] {
 
 
 <link rel="stylesheet" href="styles.css">
-<meta property="og:title" content="About – Nicolas Brosse">
-<meta property="og:description" content="Nicolas Brosse, AI research and development: from mathematical foundations to working systems — generative models, human–AI collaboration in mathematical research, LLM systems, ML for science.">
+<meta property="og:title" content="Projects – Nicolas Brosse">
+<meta property="og:description" content="Code, tools and demos: AI for mathematics, generative models, ML for science, and LLM systems and agents.">
 <meta property="og:image" content="https://nbrosse.github.io/profile.jpg">
 <meta property="og:site_name" content="Nicolas Brosse">
-<meta name="twitter:title" content="About – Nicolas Brosse">
-<meta name="twitter:description" content="Nicolas Brosse, AI research and development: from mathematical foundations to working systems — generative models, human–AI collaboration in mathematical research, LLM systems, ML for science.">
+<meta name="twitter:title" content="Projects – Nicolas Brosse">
+<meta name="twitter:description" content="Code, tools and demos: AI for mathematics, generative models, ML for science, and LLM systems and agents.">
 <meta name="twitter:image" content="https://nbrosse.github.io/profile.jpg">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
-<body class="nav-fixed fullcontent quarto-light">
+<body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -104,7 +106,7 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./projects.html"> 
+    <a class="nav-link active" href="./projects.html" aria-current="page"> 
 <span class="menu-text">Projects</span></a>
   </li>  
   <li class="nav-item">
@@ -116,7 +118,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Research</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="./about.html" aria-current="page"> 
+    <a class="nav-link" href="./about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item">
@@ -166,83 +168,92 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    
-<!-- main -->
-<div class="quarto-about-solana column-body">
-  <div class="about-entity">
-    <div class="entity-contents">
-      <header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">About</h1>
-</div>
-<div class="quarto-title-meta">
-  </div>
-</header> <div class="about-links">
-  <a href="https://www.linkedin.com/in/nicolas-brosse-984685a0/" class="about-link" rel="" target="">
-    <i class="bi bi-linkedin"></i>
-     <span class="about-link-text">LinkedIn</span>
-  </a>
-  <a href="https://github.com/nbrosse" class="about-link" rel="" target="">
-    <i class="bi bi-github"></i>
-     <span class="about-link-text">GitHub</span>
-  </a>
-  <a href="https://x.com/NicolasBrosse1" class="about-link" rel="" target="">
-    <i class="bi bi-twitter-x"></i>
-     <span class="about-link-text">X</span>
-  </a>
-  <a href="https://bsky.app/profile/nbrosse.bsky.social" class="about-link" rel="" target="">
-    <i class="bi bi-bluesky"></i>
-     <span class="about-link-text">Bluesky</span>
-  </a>
-  <a href="https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&amp;hl" class="about-link" rel="" target="">
-    <i class="bi bi-google"></i>
-     <span class="about-link-text">Google Scholar</span>
-  </a>
-  <a href="https://www.researchgate.net/profile/Nicolas-Brosse-3" class="about-link" rel="" target="">
-    <i class="bi bi-r-circle"></i>
-     <span class="about-link-text">ResearchGate</span>
-  </a>
-  <a href="/cv.pdf" class="about-link" rel="" target="">
-    <i class="bi bi-file-earmark-pdf"></i>
-     <span class="about-link-text">CV</span>
-  </a>
-  <a href="/#" class="about-link" rel="" target="">
-    <i class="bi bi-envelope"></i>
-     <span class="about-link-text">Email</span>
-  </a>
-</div>
-      <div class="about-contents"><main class="content" id="quarto-document-content">
-<p>I am a postdoctoral researcher at CREST (ENSAE Paris, Institut Polytechnique de Paris), working with Arnak Dalalyan. My research has two strands. The first is the mathematics of generative models: how diffusion and flow matching models behave in the small-noise regime, and how their samplers propagate errors. The second is human–AI collaboration in mathematical research. I designed and built <a href="https://human-ai-mathematics.github.io/">Human–AI Mathematics</a>, an open framework in which AI agents search for and cross-review proofs, and every claim they certify can be checked by a mathematician.</p>
-<p>I came to this from both research and industry. After a PhD in statistics at École Polytechnique on Langevin sampling, and an internship at Google Brain, I spent six years building machine learning systems: signal processing, object detection and anomaly detection at Thales, deep learning for drug discovery at Iktos, then foundation models for biology at MBZUAI and GenBio AI. In 2025 I worked closer to end users, building proofs of concept for AI decision-support tools and freelancing on LLM systems, from evaluating LLM answers at Rollstack to improving retrieval at Clarifeye.</p>
-<p>What ties it together is taking an idea from paper to working system, and measuring whether it actually works. Publications are on the <a href="./research.html">Research</a> page, code on <a href="./projects.html">Projects</a>, and longer notes on the <a href="./blog.html">blog</a>. To get in touch, <span id="contact-email">send me an email</span>.</p>
-<p><span class="small text-muted">My postdoctoral work is funded by the European Research Council (ERC) under the European Union’s Horizon Europe research and innovation programme (grant agreement No.&nbsp;101201229).</span></p>
-<script>
-// The address is assembled in the browser, so it appears neither in the HTML nor on the page.
-(function () {
-  var href = "mailto:" + ["nbrosse", "gmail.com"].join("@");
-  var el = document.getElementById("contact-email");
-  if (el) {
-    var a = document.createElement("a");
-    a.href = href;
-    a.textContent = el.textContent;
-    el.replaceChildren(a);
-  }
-  document.querySelectorAll(".about-links a").forEach(function (link) {
-    if (link.textContent.trim() === "Email") link.href = href;
-  });
-})();
-</script>
-
-
-</main></div>
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#ai-for-mathematics" id="toc-ai-for-mathematics" class="nav-link active" data-scroll-target="#ai-for-mathematics">AI for mathematics</a></li>
+  <li><a href="#generative-models" id="toc-generative-models" class="nav-link" data-scroll-target="#generative-models">Generative models</a></li>
+  <li><a href="#ml-for-science" id="toc-ml-for-science" class="nav-link" data-scroll-target="#ml-for-science">ML for science</a></li>
+  <li><a href="#llm-systems-agents" id="toc-llm-systems-agents" class="nav-link" data-scroll-target="#llm-systems-agents">LLM systems &amp; agents</a></li>
+  </ul>
+</nav>
     </div>
-    <img src="profile.jpg" class="about-image
-  rounded " style="width: 15em;">
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Projects</h1>
+</div>
+
+<div>
+  <div class="description">
+    Code, tools and demos: AI for mathematics, generative models, ML for science, and LLM systems and agents.
   </div>
 </div>
- <!-- /main -->
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="ai-for-mathematics" class="level2">
+<h2 class="anchored" data-anchor-id="ai-for-mathematics">AI for mathematics</h2>
+<p><strong><a href="https://human-ai-mathematics.github.io/">Human–AI Mathematics</a></strong><br>
+An open framework for mathematical research with AI agents, in which a claim counts as proved only after an independent review. Its first case study is a <a href="https://human-ai-mathematics.github.io/kls-conjecture-search/">manuscript</a> that reconstructs and compares the three proofs of the KLS conjecture. <a href="./posts/human-ai-mathematics/human-ai-mathematics.html">Post</a></p>
+<p><strong><a href="https://github.com/nbrosse/latexfmt">latexfmt</a></strong><br>
+A LaTeX formatter that understands mathematics. <code>uv tool install latexfmt</code> · <a href="https://pypi.org/project/latexfmt/">PyPI</a></p>
+</section>
+<section id="generative-models" class="level2">
+<h2 class="anchored" data-anchor-id="generative-models">Generative models</h2>
+<p><strong><a href="https://github.com/nbrosse/edm-error-propagation-code">edm-error-propagation-code</a></strong><br>
+The experiments and archived runs behind the EDM error propagation preprint: local errors of the first-order EDM sampler and the amplification they actually undergo. <a href="https://arxiv.org/abs/2610.10190">arXiv:2610.10190</a></p>
+<p><strong><a href="https://github.com/nbrosse/flow-matching-notes">flow-matching-notes</a></strong><br>
+The notebooks behind the flow matching posts: <a href="./posts/posterior-averaging/posterior-averaging.html">flow matching as posterior averaging</a> and <a href="./posts/posterior-concentration/posterior-concentration.html">closed-form flow matching</a>.</p>
+</section>
+<section id="ml-for-science" class="level2">
+<h2 class="anchored" data-anchor-id="ml-for-science">ML for science</h2>
+<p><strong><a href="https://github.com/nbrosse/mhcpred">mhcpred</a></strong><br>
+Predicting MHC class I peptide presentation with a neural network, benchmarked against MHCflurry. <a href="./posts/mhc/mhc.html">Post</a></p>
+<p><strong><a href="https://github.com/nbrosse/raman-spectra">raman-spectra</a></strong><br>
+Preprocessing Raman spectra and predicting analyte concentrations with PLS regression. <a href="./posts/raman/raman.html">Post</a></p>
+</section>
+<section id="llm-systems-agents" class="level2">
+<h2 class="anchored" data-anchor-id="llm-systems-agents">LLM systems &amp; agents</h2>
+<p><strong><a href="https://github.com/nbrosse/haiku-shunt">haiku-shunt</a></strong><br>
+A Claude Code plugin that delegates large file reads to a small model, and an A/B test of what that actually saves.</p>
+<p><strong><a href="https://github.com/nbrosse/llm-slide-deck">llm-slide-deck</a></strong><br>
+Rebuilding a real slide deck with an LLM in four formats, and where each one fails. <a href="./posts/llm-slides/llm-slides.html">Post</a></p>
+<p><strong><a href="https://github.com/nbrosse/llm-observability">llm-observability</a></strong><br>
+End-to-end tracing of a FastHTML chatbot with Langfuse. <a href="./posts/llm-observability/llm-observability.html">Post</a></p>
+<p><strong><a href="https://github.com/nbrosse/pdf-rag">pdf-rag</a></strong><br>
+Retrieval over a corpus of PDFs: recovering document structure with a vision language model, extracting metadata, and querying with a two-level ReAct agent. <a href="./posts/pdf-rag/pdf-rag.html">Post</a> · <a href="https://huggingface.co/spaces/nicolasb92/pdf-rag-metadata-demo">demo</a></p>
+<p><strong><a href="https://github.com/nbrosse/pdf-parsing">pdf-parsing</a></strong><br>
+A comparison of Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini and Mistral OCR on real documents. <a href="./posts/pdf-parsing/pdf-parsing.html">Post</a> · <a href="https://huggingface.co/spaces/nicolasb92/pdf-parsing-demo">demo</a></p>
+
+
+</section>
+
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
     const isCodeAnnotation = (el) => {
       for (const clz of el.classList) {
         if (clz.startsWith('code-annotation-')) {                     

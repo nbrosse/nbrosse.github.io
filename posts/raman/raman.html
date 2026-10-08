@@ -10,7 +10,7 @@
 <meta name="dcterms.date" content="2026-01-18">
 <meta name="description" content="From inelastic scattering to a calibrated regression model: the physics behind a Raman spectrum, the preprocessing pipeline that makes real spectra usable, and a PLS regression baseline for predicting analyte concentrations.">
 
-<title>Analyzing Raman spectra with machine learning – Nicolas’ Notebook</title>
+<title>Analyzing Raman spectra with machine learning – Nicolas Brosse</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -99,14 +99,10 @@ div.csl-indent {
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-2c15b6d3d8b621baed39ca0caa7ab417.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-949991a7492f4cdb8a74b6c4066da250.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-2c15b6d3d8b621baed39ca0caa7ab417.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-2c15b6d3d8b621baed39ca0caa7ab417.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -140,6 +136,7 @@ div.csl-indent {
 <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+<script data-goatcounter="https://nbrosse.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
@@ -172,171 +169,23 @@ window.Quarto = {
 </script>
 
 <link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Analyzing Raman spectra with machine learning – Nicolas Brosse">
+<meta property="og:description" content="From inelastic scattering to a calibrated regression model: the physics behind a Raman spectrum, the preprocessing pipeline that makes real spectra usable, and a PLS regression baseline for predicting analyte concentrations.">
+<meta property="og:image" content="https://nbrosse.github.io/posts/raman/figures/raman-spectrum-example.png">
+<meta property="og:site_name" content="Nicolas Brosse">
+<meta property="og:image:alt" content="Raman spectrum plot showing intensity versus Raman shift, with labeled peaks corresponding to glucose, sodium acetate, and magnesium sulfate.">
+<meta property="og:image:height" content="579">
+<meta property="og:image:width" content="1429">
+<meta name="twitter:title" content="Analyzing Raman spectra with machine learning – Nicolas Brosse">
+<meta name="twitter:description" content="From inelastic scattering to a calibrated regression model: the physics behind a Raman spectrum, the preprocessing pipeline that makes real spectra usable, and a PLS regression baseline for predicting analyte concentrations.">
+<meta name="twitter:image" content="https://nbrosse.github.io/posts/raman/figures/raman-spectrum-example.png">
+<meta name="twitter:image:alt" content="Raman spectrum plot showing intensity versus Raman shift, with labeled peaks corresponding to glucose, sodium acetate, and magnesium sulfate.">
+<meta name="twitter:image-height" content="579">
+<meta name="twitter:image-width" content="1429">
+<meta name="twitter:card" content="summary_large_image">
 </head>
 
-<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
-    const toggleBodyColorMode = (bsSheetEl) => {
-      const mode = bsSheetEl.getAttribute("data-mode");
-      const bodyEl = window.document.querySelector("body");
-      if (mode === "dark") {
-        bodyEl.classList.add("quarto-dark");
-        bodyEl.classList.remove("quarto-light");
-      } else {
-        bodyEl.classList.add("quarto-light");
-        bodyEl.classList.remove("quarto-dark");
-      }
-    }
-    const toggleBodyColorPrimary = () => {
-      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
-      if (bsSheetEl) {
-        toggleBodyColorMode(bsSheetEl);
-      }
-    }
-    const setColorSchemeToggle = (alternate) => {
-      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
-      for (let i=0; i < toggles.length; i++) {
-        const toggle = toggles[i];
-        if (toggle) {
-          if (alternate) {
-            toggle.classList.add("alternate");
-          } else {
-            toggle.classList.remove("alternate");
-          }
-        }
-      }
-    };
-    const toggleColorMode = (alternate) => {
-      // Switch the stylesheets
-      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
-      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
-      manageTransitions('#quarto-margin-sidebar .nav-link', false);
-      if (alternate) {
-        // note: dark is layered on light, we don't disable primary!
-        enableStylesheet(alternateStylesheets);
-        for (const sheetNode of alternateStylesheets) {
-          if (sheetNode.id === "quarto-bootstrap") {
-            toggleBodyColorMode(sheetNode);
-          }
-        }
-      } else {
-        disableStylesheet(alternateStylesheets);
-        enableStylesheet(primaryStylesheets)
-        toggleBodyColorPrimary();
-      }
-      manageTransitions('#quarto-margin-sidebar .nav-link', true);
-      // Switch the toggles
-      setColorSchemeToggle(alternate)
-      // Hack to workaround the fact that safari doesn't
-      // properly recolor the scrollbar when toggling (#1455)
-      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
-        manageTransitions("body", false);
-        window.scrollTo(0, 1);
-        setTimeout(() => {
-          window.scrollTo(0, 0);
-          manageTransitions("body", true);
-        }, 40);
-      }
-    }
-    const disableStylesheet = (stylesheets) => {
-      for (let i=0; i < stylesheets.length; i++) {
-        const stylesheet = stylesheets[i];
-        stylesheet.rel = 'disabled-stylesheet';
-      }
-    }
-    const enableStylesheet = (stylesheets) => {
-      for (let i=0; i < stylesheets.length; i++) {
-        const stylesheet = stylesheets[i];
-        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
-          stylesheet.rel = 'stylesheet';
-        }
-      }
-    }
-    const manageTransitions = (selector, allowTransitions) => {
-      const els = window.document.querySelectorAll(selector);
-      for (let i=0; i < els.length; i++) {
-        const el = els[i];
-        if (allowTransitions) {
-          el.classList.remove('notransition');
-        } else {
-          el.classList.add('notransition');
-        }
-      }
-    }
-    const isFileUrl = () => {
-      return window.location.protocol === 'file:';
-    }
-    const hasAlternateSentinel = () => {
-      let styleSentinel = getColorSchemeSentinel();
-      if (styleSentinel !== null) {
-        return styleSentinel === "alternate";
-      } else {
-        return false;
-      }
-    }
-    const setStyleSentinel = (alternate) => {
-      const value = alternate ? "alternate" : "default";
-      if (!isFileUrl()) {
-        window.localStorage.setItem("quarto-color-scheme", value);
-      } else {
-        localAlternateSentinel = value;
-      }
-    }
-    const getColorSchemeSentinel = () => {
-      if (!isFileUrl()) {
-        const storageValue = window.localStorage.getItem("quarto-color-scheme");
-        return storageValue != null ? storageValue : localAlternateSentinel;
-      } else {
-        return localAlternateSentinel;
-      }
-    }
-    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
-      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
-      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
-      let newTheme = '';
-      if(authorPrefersDark) {
-        newTheme = isAlternate ? baseTheme : alternateTheme;
-      } else {
-        newTheme = isAlternate ? alternateTheme : baseTheme;
-      }
-      const changeGiscusTheme = () => {
-        // From: https://github.com/giscus/giscus/issues/336
-        const sendMessage = (message) => {
-          const iframe = document.querySelector('iframe.giscus-frame');
-          if (!iframe) return;
-          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
-        }
-        sendMessage({
-          setConfig: {
-            theme: newTheme
-          }
-        });
-      }
-      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
-      if (isGiscussLoaded) {
-        changeGiscusTheme();
-      }
-    };
-    const authorPrefersDark = false;
-    const darkModeDefault = authorPrefersDark;
-      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
-      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
-    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
-    // Dark / light mode switch
-    window.quartoToggleColorScheme = () => {
-      // Read the current dark / light value
-      let toAlternate = !hasAlternateSentinel();
-      toggleColorMode(toAlternate);
-      setStyleSentinel(toAlternate);
-      toggleGiscusIfUsed(toAlternate, darkModeDefault);
-      window.dispatchEvent(new Event('resize'));
-    };
-    // Switch to dark mode if need be
-    if (hasAlternateSentinel()) {
-      toggleColorMode(true);
-    } else {
-      toggleColorMode(false);
-    }
-  </script>
+<body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top quarto-banner">
@@ -344,7 +193,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../index.html">
-    <span class="navbar-title">Nicolas’ Notebook</span>
+    <span class="navbar-title">Nicolas Brosse</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -352,11 +201,29 @@ window.Quarto = {
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
   <li class="nav-item">
     <a class="nav-link" href="../../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../cv.pdf"> 
+<span class="menu-text">CV</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
     <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
 </i> 
@@ -364,6 +231,16 @@ window.Quarto = {
   </li>  
   <li class="nav-item compact">
     <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://x.com/NicolasBrosse1"> <i class="bi bi-twitter-x" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://bsky.app/profile/nbrosse.bsky.social"> <i class="bi bi-bluesky" role="img">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -380,7 +257,6 @@ window.Quarto = {
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
-  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
 </div>
       </div> <!-- /container-fluid -->
     </nav>
@@ -481,11 +357,10 @@ window.Quarto = {
   </ul></li>
   <li><a href="#sec-conclusion" id="toc-sec-conclusion" class="nav-link" data-scroll-target="#sec-conclusion">Conclusion</a></li>
   </ul>
-<div class="quarto-alternate-notebooks"><h2>Notebooks</h2><ul><li><a href="notebooks/_eda-preview.html"><i class="bi bi-journal-code"></i>Raman challenge dataset analysis</a></li><li><a href="notebooks/_ml-preview.html"><i class="bi bi-journal-code"></i>Raman challenge: machine learning model for concentration prediction</a></li></ul></div></nav>
+</nav>
     </div>
 <!-- main -->
 <main class="content quarto-banner-title-block" id="quarto-document-content">
-
 
 
 
@@ -672,7 +547,7 @@ E_n = h\left(n + \tfrac{1}{2}\right)\nu ,
 <p>The data from the interview homework is not public, so the dataset from the Kaggle competition <span class="citation" data-cites="dig-4-bio-raman-transfer-learning-challenge">(<a href="#ref-dig-4-bio-raman-transfer-learning-challenge" role="doc-biblioref">Hassfurther 2025</a>)</span> takes its place here. Both the dataset and the competition come from the article <span class="citation" data-cites="LANGE2025125861">(<a href="#ref-LANGE2025125861" role="doc-biblioref">Lange et al. 2025</a>)</span>, which compares machine learning methods on Raman spectra collected on eight different spectrometers.</p>
 <p>The aim below is not to reproduce the extensive analysis of that article, but to work through the simpler approaches implemented for the homework. All spectral processing uses RamanSPy <span class="citation" data-cites="georgiev2024ramanspy">(<a href="#ref-georgiev2024ramanspy" role="doc-biblioref">Georgiev et al. 2024</a>)</span>.</p>
 <p>The notebook that follows explores the dataset, applies the preprocessing pipeline step by step, and compares it against a background-subtraction alternative. The algorithms it calls are derived afterwards in <a href="#sec-preprocessing-raman" class="quarto-xref">Section&nbsp;2.3</a>.</p>
-<div class="quarto-embed-nb-cell">
+<div class="quarto-embed-nb-cell" data-notebook="/home/nicolas/PycharmProjects/nbrosse.github.io/posts/raman/notebooks/_eda.ipynb" data-notebook-title="Raman challenge dataset analysis" data-notebook-cellid="50a6ff66">
 <section id="raman-challenge-dataset-analysis" class="level2">
 <h2 class="anchored" data-anchor-id="raman-challenge-dataset-analysis">Raman challenge dataset analysis</h2>
 <p>This notebook explores the dig-4-bio-raman transfer learning challenge dataset: how the multi-instrument spectra are stored, what a raw spectrum looks like before any processing, and what each step of the preprocessing pipeline does to it.</p>
@@ -1879,7 +1754,7 @@ Name: count, dtype: int64</code></pre>
 <p>Whatever is left after preprocessing sets a floor on prediction error: no model can resolve concentration differences smaller than the variation between two measurements of the same sample. Knowing roughly where that floor lies is what makes the R² values of the modeling notebook interpretable rather than merely disappointing.</p>
 </section>
 </section>
-<a class="quarto-notebook-link" id="nblink-1" href="notebooks/_eda-preview.html#50a6ff66">Source: Raman challenge dataset analysis</a></div>
+</div>
 <section id="sec-preprocessing-raman" class="level2">
 <h2 class="anchored" data-anchor-id="sec-preprocessing-raman">Preprocessing algorithms</h2>
 <p>Raw Raman spectra arrive with artifacts and noise that would defeat any downstream analysis: a fluorescence background far larger than the signal, cosmic-ray spikes indistinguishable from narrow peaks, random detector noise, and edge regions where the instrument response is unreliable. The standard pipeline removes them in a fixed order — crop, despike, denoise, correct the baseline — and the four subsections below derive each step as RamanSPy implements it <span class="citation" data-cites="georgiev2024ramanspy">(<a href="#ref-georgiev2024ramanspy" role="doc-biblioref">Georgiev et al. 2024</a>)</span>.</p>
@@ -1985,7 +1860,7 @@ w_i = \frac{1}{1 + \exp\!\big(\tfrac{k}{\sigma_-}(r_i - \sigma_-)\big)} ,
 <p>The task is to predict the concentrations of the three analytes — glucose, sodium acetate, and magnesium sulfate — from a preprocessed spectrum. Models are fitted one instrument at a time, since spectral response and calibration differ enough between the eight spectrometers that a single pooled model would be solving a harder problem than the one at hand.</p>
 <p>One preprocessing decision is properly a modeling decision and is worth stating here rather than leaving it in the notebook. Peak height is proportional to concentration, so normalizing a spectrum destroys precisely the information a regression needs; but leaving intensities unnormalized also leaves in the instrumental variation — laser power, integration time, focus, detector response — that has nothing to do with chemistry, and on this dataset it leaves intensities reaching values around 350 in arbitrary units. Area-under-the-curve scaling is the worst of both worlds for regression, since forcing every spectrum to unit area erases concentration outright. Internal standard normalization, dividing by a stable reference band, is the principled answer, but the dataset offers no suitable reference peak. The notebook settles on MinMax scaling as a compromise, with the caveat that it ties the scale of each spectrum to whichever point happens to be its maximum. This is discussed at length in the notebook below.</p>
 <p>The model itself is PLS regression, derived in <a href="#sec-pls-regression" class="quarto-xref">Section&nbsp;3.3</a>.</p>
-<div class="quarto-embed-nb-cell">
+<div class="quarto-embed-nb-cell" data-notebook="/home/nicolas/PycharmProjects/nbrosse.github.io/posts/raman/notebooks/_ml.ipynb" data-notebook-title="Raman challenge: machine learning model for concentration prediction" data-notebook-cellid="0fd619c2">
 <section id="raman-challenge-machine-learning-model-for-concentration-prediction" class="level2">
 <h2 class="anchored" data-anchor-id="raman-challenge-machine-learning-model-for-concentration-prediction">Raman challenge: machine learning model for concentration prediction</h2>
 <p>This notebook fits partial least squares (PLS) regression models predicting the concentrations of three compounds — glucose (C₆H₁₂O₆), sodium acetate (<code>Na_acetate</code>), and magnesium sulfate (<code>Mg_SO4</code>) — from Raman spectra.</p>
@@ -3011,7 +2886,7 @@ Mg_SO4                     0.7974            0.8131        +0.0157         0.615
 <p>That is also where to go next. Better results for acetate would come from a preprocessing or feature-selection step that isolates its band, or from a model able to exploit the joint structure of the three analytes — not from adding components.</p>
 </section>
 </section>
-<a class="quarto-notebook-link" id="nblink-2" href="notebooks/_ml-preview.html#0fd619c2">Source: Raman challenge: machine learning model for concentration prediction</a></div>
+</div>
 <section id="sec-pls-regression" class="level2">
 <h2 class="anchored" data-anchor-id="sec-pls-regression">PLS regression</h2>
 <section id="the-problem" class="level3">
@@ -3213,19 +3088,6 @@ Learning.”</span> January 18. <a href="https://nbrosse.github.io/posts/raman/r
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
-    // Ensure there is a toggle, if there isn't float one in the top right
-    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
-      const a = window.document.createElement('a');
-      a.classList.add('top-right');
-      a.classList.add('quarto-color-scheme-toggle');
-      a.href = "";
-      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
-      const i = window.document.createElement("i");
-      i.classList.add('bi');
-      a.appendChild(i);
-      window.document.body.appendChild(a);
-    }
-    setColorSchemeToggle(hasAlternateSentinel())
     const icon = "";
     const anchorJS = new window.AnchorJS();
     anchorJS.options = {

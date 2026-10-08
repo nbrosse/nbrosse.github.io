@@ -6,8 +6,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Nicolas Brosse">
+<meta name="dcterms.date" content="2026-10-09">
+<meta name="description" content="AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running.">
 
-<title>Nicolas Brosse</title>
+<title>AI agents on the KLS conjecture: a search mathematicians can trust and join – Nicolas Brosse</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -29,25 +32,23 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
-<script src="site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-2c15b6d3d8b621baed39ca0caa7ab417.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-2c15b6d3d8b621baed39ca0caa7ab417.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -75,35 +76,6 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
-<script>
-
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-latest .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
-
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-description','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-latest'] = new List('listing-latest', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
 <script data-goatcounter="https://nbrosse.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
@@ -136,14 +108,14 @@ window.Quarto = {
 };
 </script>
 
-<link rel="stylesheet" href="styles.css">
-<link rel="alternate" type="application/rss+xml" title="Nicolas Brosse" href="index.xml" data-external="1"><meta property="og:title" content="Nicolas Brosse">
-<meta property="og:description" content="AI research &amp; development — from mathematical foundations to working systems">
-<meta property="og:image" content="https://nbrosse.github.io/profile.jpg">
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="AI agents on the KLS conjecture: a search mathematicians can trust and join – Nicolas Brosse">
+<meta property="og:description" content="AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running.">
+<meta property="og:image" content="https://nbrosse.github.io/posts/human-ai-mathematics/profile.jpg">
 <meta property="og:site_name" content="Nicolas Brosse">
-<meta name="twitter:title" content="Nicolas Brosse">
-<meta name="twitter:description" content="AI research &amp; development — from mathematical foundations to working systems">
-<meta name="twitter:image" content="https://nbrosse.github.io/profile.jpg">
+<meta name="twitter:title" content="AI agents on the KLS conjecture: a search mathematicians can trust and join – Nicolas Brosse">
+<meta name="twitter:description" content="AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running.">
+<meta name="twitter:image" content="https://nbrosse.github.io/posts/human-ai-mathematics/profile.jpg">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -154,7 +126,7 @@ window.Quarto = {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Nicolas Brosse</span>
     </a>
   </div>
@@ -165,23 +137,23 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./projects.html"> 
+    <a class="nav-link" href="../../projects.html"> 
 <span class="menu-text">Projects</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./blog.html"> 
+    <a class="nav-link" href="../../blog.html"> 
 <span class="menu-text">Blog</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./research.html"> 
+    <a class="nav-link" href="../../research.html"> 
 <span class="menu-text">Research</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./about.html"> 
+    <a class="nav-link" href="../../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./cv.pdf"> 
+    <a class="nav-link" href="../../cv.pdf"> 
 <span class="menu-text">CV</span></a>
   </li>  
 </ul>
@@ -226,168 +198,145 @@ window.Quarto = {
 <!-- content -->
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-page">
-      <h1 class="title">Nicolas Brosse</h1>
-            <p class="subtitle lead">AI research &amp; development — from mathematical foundations to working systems</p>
-                      </div>
+    <div class="quarto-title column-body">
+      <h1 class="title">AI agents on the KLS conjecture: a search mathematicians can trust and join</h1>
+                  <div>
+        <div class="description">
+          AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">AI for mathematics</div>
+                <div class="quarto-category">agents</div>
+              </div>
+                  </div>
   </div>
     
   
-  <div class="quarto-title-meta column-page">
+  <div class="quarto-title-meta">
 
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Nicolas Brosse </p>
+            </div>
+    </div>
       
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">October 9, 2026</p>
+      </div>
+    </div>
     
       
     </div>
     
   
-  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sec-problem" id="toc-sec-problem" class="nav-link active" data-scroll-target="#sec-problem">The problem is volume</a></li>
+  <li><a href="#sec-structure" id="toc-sec-structure" class="nav-link" data-scroll-target="#sec-structure">A structure agents can be trusted with</a>
+  <ul class="collapse">
+  <li><a href="#sec-records" id="toc-sec-records" class="nav-link" data-scroll-target="#sec-records">Records and roles</a></li>
+  <li><a href="#sec-status" id="toc-sec-status" class="nav-link" data-scroll-target="#sec-status">A status is earned, never predicted</a></li>
+  <li><a href="#sec-certified" id="toc-sec-certified" class="nav-link" data-scroll-target="#sec-certified">What <em>certified</em> means</a></li>
+  </ul></li>
+  <li><a href="#sec-lessons" id="toc-sec-lessons" class="nav-link" data-scroll-target="#sec-lessons">What four months taught me</a></li>
+  <li><a href="#sec-join" id="toc-sec-join" class="nav-link" data-scroll-target="#sec-join">A search mathematicians can join</a></li>
+  <li><a href="#sec-next" id="toc-sec-next" class="nav-link" data-scroll-target="#sec-next">What remains open</a></li>
+  </ul>
+</nav>
+    </div>
 <!-- main -->
-<main class="content quarto-banner-title-block column-page" id="quarto-document-content">
+<main class="content quarto-banner-title-block" id="quarto-document-content">
 
 
 
 
 
-<p>I work in AI R&amp;D, between research and production. After a PhD in statistics on Langevin sampling, I spent six years building deep learning systems in industry — signal processing at Thales, drug discovery at Iktos, foundation models for biology at MBZUAI and GenBio AI — and LLM systems as a freelancer. I am now a postdoctoral researcher at CREST with Arnak Dalalyan, working on two things: the mathematics of generative models, and human–AI collaboration in mathematical research, through <a href="https://human-ai-mathematics.github.io/">Human–AI Mathematics</a>, an open framework in which AI agents search for and cross-review proofs that mathematicians can check. What I care about is taking an idea from paper to working system, and measuring whether it actually works.</p>
-<p><a href="./projects.html">Projects →</a> · <a href="./blog.html">Blog →</a> · <a href="./research.html">Research and publications →</a> · <a href="./about.html">About →</a> · <a href="cv.pdf">CV (PDF) →</a></p>
-<section id="latest-posts" class="level2">
-<h2 class="anchored" data-anchor-id="latest-posts">Latest posts</h2>
-<div id="listing-latest" class="quarto-listing quarto-listing-container-default">
-<div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="QUklMjBmb3IlMjBtYXRoZW1hdGljcyUyQ2FnZW50cw==" data-listing-date-sort="1791496800000" data-listing-file-modified-sort="1791482157091" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="9" data-listing-word-count-sort="1726">
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/human-ai-mathematics/human-ai-mathematics.html" class="no-external">AI agents on the KLS conjecture: a search mathematicians can trust and join</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('QUklMjBmb3IlMjBtYXRoZW1hdGljcw=='); return false;">AI for mathematics</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWdlbnRz'); return false;">agents</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/human-ai-mathematics/human-ai-mathematics.html" class="no-external">
-<p>AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/human-ai-mathematics/human-ai-mathematics.html" class="no-external">
-<div class="listing-date">
-Oct 9, 2026
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="1" data-categories="YXN5bXB0b3RpY3MlMkNkaWZmdXNpb24lMjBtb2RlbHM=" data-listing-date-sort="1787695200000" data-listing-file-modified-sort="1791104004689" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="24" data-listing-word-count-sort="4631">
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/boundary-layer/boundary-layer.html" class="no-external">Mills ratios on manifolds: what Gaussian smoothing sees near a boundary</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('YXN5bXB0b3RpY3M='); return false;">asymptotics</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZGlmZnVzaW9uJTIwbW9kZWxz'); return false;">diffusion models</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/boundary-layer/boundary-layer.html" class="no-external">
-<p>Convolving a singular measure with a Gaussian of width σ produces a smooth density whose logarithmic derivatives can blow up as σ → 0. Zooming in at scale σ replaces the support by its inward tangent cone: its Gaussian mass gives the leading density, and derivatives of its logarithm give the leading singular fields — a manifold-valued inverse Mills ratio.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/boundary-layer/boundary-layer.html" class="no-external">
-<div class="listing-date">
-Aug 26, 2026
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="2" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDZmxvdyUyMG1hdGNoaW5n" data-listing-date-sort="1784498400000" data-listing-file-modified-sort="1791104004690" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="21" data-listing-word-count-sort="4125">
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/posterior-concentration/posterior-concentration.html" class="no-external">Closed-form flow matching: posterior concentration and softmax collapse</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZGVlcCUyMGxlYXJuaW5n'); return false;">deep learning</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZmxvdyUyMG1hdGNoaW5n'); return false;">flow matching</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/posterior-concentration/posterior-concentration.html" class="no-external">
-<p>The closed-form velocity field of empirical flow matching is a softmax over training examples. Reading that softmax as a Bayesian posterior turns its collapse into a decoding problem, with an information-theoretic threshold that can be evaluated on CIFAR-10.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/posterior-concentration/posterior-concentration.html" class="no-external">
-<div class="listing-date">
-Jul 20, 2026
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="3" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDZmxvdyUyMG1hdGNoaW5n" data-listing-date-sort="1778536800000" data-listing-file-modified-sort="1791104004690" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="18" data-listing-word-count-sort="3432">
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/posterior-averaging/posterior-averaging.html" class="no-external">Flow matching as posterior averaging</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZGVlcCUyMGxlYXJuaW5n'); return false;">deep learning</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZmxvdyUyMG1hdGNoaW5n'); return false;">flow matching</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/posterior-averaging/posterior-averaging.html" class="no-external">
-<p>A velocity-based introduction to flow matching with Gaussian probability paths: the marginal velocity field is a posterior average of conditional targets, and the gap between the conditional and marginal losses is an irreducible posterior-variance term that can be computed in closed form.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/posterior-averaging/posterior-averaging.html" class="no-external">
-<div class="listing-date">
-May 12, 2026
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="4" data-categories="bWFjaGluZSUyMGxlYXJuaW5nJTJDY2hlbWlzdHJ5" data-listing-date-sort="1768690800000" data-listing-file-modified-sort="1791104004691" data-listing-date-modified-sort="1787263200000" data-listing-reading-time-sort="27" data-listing-word-count-sort="5253">
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/raman/raman.html" class="no-external">Analyzing Raman spectra with machine learning</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('bWFjaGluZSUyMGxlYXJuaW5n'); return false;">machine learning</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('Y2hlbWlzdHJ5'); return false;">chemistry</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/raman/raman.html" class="no-external">
-<p>From inelastic scattering to a calibrated regression model: the physics behind a Raman spectrum, the preprocessing pipeline that makes real spectra usable, and a PLS regression baseline for predicting analyte concentrations.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/raman/raman.html" class="no-external">
-<div class="listing-date">
-Jan 18, 2026
-</div>
-</a>
-</div>
-</div>
-</div>
-<div class="listing-no-matching d-none">No matching items</div>
-</div>
-<p><a href="./blog.html">All posts →</a></p>
-
+<p>In the first week of October 2026, the Kannan–Lovász–Simonovits (KLS) conjecture was proved three times. Three teams, each working with frontier AI models, reached independent proofs within days of one another: Bizeul–Klartag–Lehec (<a href="https://arxiv.org/abs/2610.05474">arXiv:2610.05474</a>), Song–Zhang in the <a href="https://arxiv.org/abs/2610.01447v2">second version</a> of a preprint whose first version had stopped at an iterated-logarithm bound, and Balasubramanian–Kasiviswanathan (<a href="https://arxiv.org/abs/2610.07728">arXiv:2610.07728</a>).</p>
+<p>Since June, I had been running a search on the same conjecture, with AI agents, as a testbed for a different question: not <em>can agents do mathematics</em>, but <em>how do you trust what they produce, and how does a mathematician read it and take part?</em> The conjecture was solved elsewhere, and that is good news. The search was not wasted: within two days of each preprint, its proof had been rebuilt in the search’s own format and certified there, and the result is now a <a href="https://human-ai-mathematics.github.io/kls-conjecture-search/">manuscript</a> that reconstructs and compares the three proofs.</p>
+<p>This post is about the framework that came out of it, <a href="https://human-ai-mathematics.github.io/">Human–AI Mathematics</a>. It is a proof of concept: a first proposal, meant to evolve as it is used. Human–AI Mathematics is built with Jia Li and Yuwei Lyu, and supported by <a href="https://projectnumina.ai/">Project Numina</a>.</p>
+<section id="sec-problem" class="level1">
+<h1>The problem is volume</h1>
+<p>AI agents now produce mathematical work on a hard question faster than anyone can read it: proof attempts, reductions, numerical experiments, candidate counterexamples. Left unstructured, that volume works against the research in three ways.</p>
+<ul>
+<li><strong>What was learned is lost.</strong> A session ends, the next one starts from scratch, and an obstacle found on Tuesday is found again on Friday.</li>
+<li><strong>Plausibility is mistaken for a result.</strong> A clean-looking argument, a numerical trend or an agent’s confident summary ends up being treated as established.</li>
+<li><strong>A mathematician cannot get in.</strong> Faced with hundreds of files, a reader cannot tell what is proved, what is open, and where they could help.</li>
+</ul>
+<p>The three proofs of KLS show the problem at a larger scale. Three independent proofs are worth more than one, but what led to them stays private: Song and Zhang report <a href="https://arxiv.org/abs/2610.01447v2">exploring more than 100 approaches</a> with AI tools before finding theirs, and none of the three papers records which routes failed, or why.</p>
+<p>The first tool of the framework, <a href="https://human-ai-mathematics.github.io/conjecture-search/">conjecture search</a>, proves or refutes one hard statement over many sessions and many agents. It answers the first two problems with a structure agents can be trusted with, and the third with a search mathematicians can join.</p>
+</section>
+<section id="sec-structure" class="level1">
+<h1>A structure agents can be trusted with</h1>
+<p>What the structure guarantees is traceability, not correctness: every status can be traced to the text that was checked and to whoever checked it. Whether a proof is right is still decided by reading it.</p>
+<section id="sec-records" class="level2">
+<h2 class="anchored" data-anchor-id="sec-records">Records and roles</h2>
+<p>The <a href="https://github.com/human-ai-mathematics/conjecture-search-template">template</a> is a plain repository that any agent client can work in. A <strong>ledger</strong> records what is claimed, with each statement’s status and dependencies; a <strong>portfolio</strong> records the routes being tried and what blocks them; dated <strong>checkpoints</strong> record what each session learned, so that the next one reads them instead of the whole history. Statements live in a <a href="https://mystmd.org/">MyST</a> manuscript, one canonical version of each, and proofs and reviews in their own files.</p>
+<p>Three agent roles, defined for both Claude Code and Codex, write to these files: a <strong>researcher</strong> that attacks a mission and writes proofs, a <strong>reviewer</strong> that checks them, and a <strong>writer</strong> that improves the manuscript’s prose without touching any statement. The main session orchestrates: it chooses routes, launches missions, and is the only one that changes the ledger.</p>
+</section>
+<section id="sec-status" class="level2">
+<h2 class="anchored" data-anchor-id="sec-status">A status is earned, never predicted</h2>
+<p>Everything else hangs on this line of the specification. A claim becomes proved or refuted only through an independent review of an agent’s work, or the explicit acceptance of a named person. A numerical run, a green check or a count of failed attempts moves nothing. Three rules make certification mean something.</p>
+<p><strong>Independence is a fresh context, not a different name.</strong> A reviewer is launched with no conversation history: never a fork of the session that wrote or directed the proof, only the repository paths and a mission. Two agents that share a context share their blind spots.</p>
+<p><strong>A certification covers the exact text read.</strong> Each review records a fingerprint of every statement and proof it examined. Edit one of them afterwards and the checker reports the certification as stale until a new review passes it.</p>
+<p><strong>The checker checks structure, not mathematics.</strong> A script validates identities, dependencies and fingerprints, and refuses a status change while anything is inconsistent. It does not decide whether a proof is right; that stays with a reviewer, and ultimately with a reader.</p>
+</section>
+<section id="sec-certified" class="level2">
+<h2 class="anchored" data-anchor-id="sec-certified">What <em>certified</em> means</h2>
+<p>In the KLS manuscript, <em>certified</em> means that a passing review by an AI agent, independent of the proof’s author, checked the proof against its exact text. It is not journal refereeing. A fresh context removes a shared history, not shared habits: two instances of the same model can make the same mistake, and running the reviewer on a different model from the author only partly helps. This is the part of the framework most likely to evolve. Certification is review-based today, and formal verification, in Lean for instance, could later support the review of some statements, or take its place where a formal proof is within reach.</p>
+</section>
+</section>
+<section id="sec-lessons" class="level1">
+<h1>What four months taught me</h1>
+<p>The rules above were not designed up front; most of them were learned the hard way, and the <a href="https://github.com/human-ai-mathematics/kls-conjecture-search/blob/main/HISTORY.md">history</a> of the search records how.</p>
+<p>The clearest case started on 25 August, when 34 statements turned out to be marked proved without any written proof. Proofs were written for them, and agents reviewing each other’s work certified them. In early October I had the same proofs reviewed again, by agents launched with no shared context. Several came back for revision: a false endpoint claim in a lemma, a proposition that had to be narrowed to a one-way implication, and a step in a one-dimensional result that failed on the density <span class="math inline">\(c(1+x^2)^{-3}\)</span>. The proofs were repaired and recertified, but none of this had been caught the first time. That is where the rule of independence by context comes from.</p>
+<p>A few other observations:</p>
+<ul>
+<li><strong>Reviews do find errors.</strong> About one review in ten sent a proof back, and some found statements that were false, not merely unproved.</li>
+<li><strong>Numbers mislead quietly.</strong> A numerical reading from June that supported a candidate conjecture was withdrawn in August: the runs had computed a different quantity. Had numerics been allowed to move a status, the ledger would have recorded a falsehood for two months.</li>
+<li><strong>The human decides scope, not proofs.</strong> My own role was to choose the routes, accept or refuse risks, order the fresh reviews and publish by hand. The agents worked in waves, up to sixteen in parallel on the busiest days.</li>
+<li><strong>A shared record absorbs outside work.</strong> When Song and Zhang’s first preprint appeared on 1 October, its proof was rebuilt and its statements certified two days later, and the three full proofs of the following week were handled the same way.</li>
+</ul>
+</section>
+<section id="sec-join" class="level1">
+<h1>A search mathematicians can join</h1>
+<p>A trustworthy record is a precondition, not the goal: a mathematician will only take part in a search whose record they can trust. What the framework is really after is a search that mathematicians who have never opened the repository can read, question and contribute to.</p>
+<p><strong>The manuscript reads like a paper.</strong> It states the question, works through examples, says what is settled and what is not, gives the idea of each proof and where to start. Every statement shows its status and who certified it, so a reader knows at a glance what rests on what.</p>
+<p><strong>Taking part takes no setup.</strong> Each statement in the manuscript links to an issue form with the statement already filled in: an idea or a counterexample for an open statement, a correction for any other. Broader questions go to the <a href="https://github.com/orgs/human-ai-mathematics/discussions">discussions</a>. An issue moves no status by itself: the orchestrator turns what it brings into a mission or a correction, which then goes through review like everything else.</p>
+<p><strong>A mathematician’s word counts.</strong> The explicit acceptance of a named person is a certification in its own right: it is recorded with the proof and shown on the site as <em>accepted by</em>. A mathematician may also propose a statement, prove it and accept it themselves. That is a guarantee of a different kind from an independent review: it rests on the name attached, as a signed paper does, and the site shows which kind each status rests on.</p>
+<p><strong>Every error can be traced.</strong> Every proved statement shows who reviewed it, the review is a file anyone can read, and a reader who finds an error can point to the exact proof and review that let it through. That is a weaker promise than correctness, but a checkable one, and it is the one a mathematician needs before deciding which parts to read closely.</p>
+<p>So far, every proof in the KLS manuscript was written and reviewed by agents; none has yet been read by a person. That first human reading is the most useful contribution a mathematician could make today.</p>
+</section>
+<section id="sec-next" class="level1">
+<h1>What remains open</h1>
+<p>KLS is proved, but the search is not closed. The three proofs control the same thing, the growth of Appell coefficients, and differ in how they close the argument; only one gives an explicit constant, <span class="math inline">\(1+2\cdot 10^{16}\)</span>, against a lower bound of 4. Between the two, nothing is decided. A theorem can also be proved in more than one way, and the manuscript develops three alternative mechanisms for the Poincaré bound whose key statements are still open; one of them would give the constant 4.</p>
+<p>The framework itself has not yet been tested from start to finish on a question that stays open, since KLS was proved while the search was running. That is the next step: to run conjecture search on an open question, chosen with mathematicians who know the field, and to find out whether the result is pleasant to read and check, and efficient for its cost. A second tool is being explored: mapping a field, to consolidate known results into an account of which hold, how they connect and what remains open. The KLS manuscript, which turned into a consolidation of the field around the theorem, gives a first idea of what that could look like.</p>
+<p>If you are a mathematician and would like to propose that open question, check a proof, or tell us what makes such a manuscript hard to read, the <a href="https://github.com/orgs/human-ai-mathematics/discussions">discussions</a> are open, and so are the <a href="https://github.com/human-ai-mathematics/human-ai-mathematics.github.io/issues">issues</a>.</p>
 
 
 </section>
 
-</main> <!-- /main -->
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2026,
+  author = {Brosse, Nicolas},
+  title = {AI Agents on the {KLS} Conjecture: A Search Mathematicians
+    Can Trust and Join},
+  date = {2026-10-09},
+  url = {https://nbrosse.github.io/posts/human-ai-mathematics/human-ai-mathematics.html},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Brosse, Nicolas. 2026. <span>“AI Agents on the KLS Conjecture: A Search
+Mathematicians Can Trust and Join.”</span> October 9. <a href="https://nbrosse.github.io/posts/human-ai-mathematics/human-ai-mathematics.html">https://nbrosse.github.io/posts/human-ai-mathematics/human-ai-mathematics.html</a>.
+</div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";

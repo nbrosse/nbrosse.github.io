@@ -1,7 +1,24 @@
 [
   {
+    "listing": "/blog.html",
+    "items": [
+      "/posts/human-ai-mathematics/human-ai-mathematics.html",
+      "/posts/boundary-layer/boundary-layer.html",
+      "/posts/posterior-concentration/posterior-concentration.html",
+      "/posts/posterior-averaging/posterior-averaging.html",
+      "/posts/raman/raman.html",
+      "/posts/llm-slides/llm-slides.html",
+      "/posts/llm-observability/llm-observability.html",
+      "/posts/pdf-rag/pdf-rag.html",
+      "/posts/pdf-parsing/pdf-parsing.html",
+      "/posts/mhc/mhc.html",
+      "/posts/encoding-distances/unimol-gbf.html"
+    ]
+  },
+  {
     "listing": "/index.html",
     "items": [
+      "/posts/human-ai-mathematics/human-ai-mathematics.html",
       "/posts/boundary-layer/boundary-layer.html",
       "/posts/posterior-concentration/posterior-concentration.html",
       "/posts/posterior-averaging/posterior-averaging.html",

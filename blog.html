@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="description" content="Posts on generative models, LLM systems, applied machine learning and ML for science.">
 
-<title>About – Nicolas Brosse</title>
+<title>Blog – Nicolas Brosse</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -36,10 +37,13 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-listing/list.min.js"></script>
+<script src="site_libs/quarto-listing/quarto-listing.js"></script>
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
@@ -72,24 +76,82 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<script>
+
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    const listingTargetEl = window.document.querySelector('#listing-posts .list');
+    if (!listingTargetEl) {
+      // No listing discovered, do not attach.
+      return; 
+    }
+
+    const options = {
+      valueNames: ['listing-date','listing-title','listing-categories','listing-description',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-title-sort'] }],
+      
+      searchColumns: ["listing-date","listing-title","listing-author"],
+    };
+
+    window['quarto-listings'] = window['quarto-listings'] || {};
+    window['quarto-listings']['listing-posts'] = new List('listing-posts', options);
+
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  });
+
+  window.addEventListener('hashchange',() => {
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  })
+  </script>
 <script data-goatcounter="https://nbrosse.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="styles.css">
-<meta property="og:title" content="About – Nicolas Brosse">
-<meta property="og:description" content="Nicolas Brosse, AI research and development: from mathematical foundations to working systems — generative models, human–AI collaboration in mathematical research, LLM systems, ML for science.">
+<meta property="og:title" content="Blog – Nicolas Brosse">
+<meta property="og:description" content="Posts on generative models, LLM systems, applied machine learning and ML for science.">
 <meta property="og:image" content="https://nbrosse.github.io/profile.jpg">
 <meta property="og:site_name" content="Nicolas Brosse">
-<meta name="twitter:title" content="About – Nicolas Brosse">
-<meta name="twitter:description" content="Nicolas Brosse, AI research and development: from mathematical foundations to working systems — generative models, human–AI collaboration in mathematical research, LLM systems, ML for science.">
+<meta name="twitter:title" content="Blog – Nicolas Brosse">
+<meta name="twitter:description" content="Posts on generative models, LLM systems, applied machine learning and ML for science.">
 <meta name="twitter:image" content="https://nbrosse.github.io/profile.jpg">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
-<body class="nav-fixed fullcontent quarto-light">
+<body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top">
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
@@ -108,7 +170,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Projects</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./blog.html"> 
+    <a class="nav-link active" href="./blog.html" aria-current="page"> 
 <span class="menu-text">Blog</span></a>
   </li>  
   <li class="nav-item">
@@ -116,7 +178,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Research</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="./about.html" aria-current="page"> 
+    <a class="nav-link" href="./about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item">
@@ -163,86 +225,281 @@ ul.task-list li input[type="checkbox"] {
     </nav>
 </header>
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-page-left">
+      <h1 class="title">Blog</h1>
+                  <div>
+        <div class="description">
+          Posts on generative models, LLM systems, applied machine learning and ML for science.
+        </div>
+      </div>
+                </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta column-page-left">
+
+      
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(11)</span></div><div class="category" data-category="YWdlbnRz">agents <span class="quarto-category-count">(1)</span></div><div class="category" data-category="QUklMjBmb3IlMjBtYXRoZW1hdGljcw==">AI for mathematics <span class="quarto-category-count">(1)</span></div><div class="category" data-category="YXN5bXB0b3RpY3M=">asymptotics <span class="quarto-category-count">(1)</span></div><div class="category" data-category="YmlvbG9neQ==">biology <span class="quarto-category-count">(2)</span></div><div class="category" data-category="Y2hlbWlzdHJ5">chemistry <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ZGVlcCUyMGxlYXJuaW5n">deep learning <span class="quarto-category-count">(4)</span></div><div class="category" data-category="ZGlmZnVzaW9uJTIwbW9kZWxz">diffusion models <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ZG9jdW1lbnQlMjBBSQ==">document AI <span class="quarto-category-count">(2)</span></div><div class="category" data-category="ZmxvdyUyMG1hdGNoaW5n">flow matching <span class="quarto-category-count">(2)</span></div><div class="category" data-category="TExN">LLM <span class="quarto-category-count">(4)</span></div><div class="category" data-category="bWFjaGluZSUyMGxlYXJuaW5n">machine learning <span class="quarto-category-count">(1)</span></div><div class="category" data-category="cHl0aG9u">python <span class="quarto-category-count">(1)</span></div><div class="category" data-category="UkFH">RAG <span class="quarto-category-count">(1)</span></div></div></div>
 <!-- main -->
-<div class="quarto-about-solana column-body">
-  <div class="about-entity">
-    <div class="entity-contents">
-      <header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">About</h1>
-</div>
-<div class="quarto-title-meta">
+<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+
+
+
+
+
+<div id="listing-posts" class="quarto-listing quarto-listing-container-table">
+<div class="listing-actions-group">
+   <div class="input-group input-group-sm quarto-listing-sort">
+    <span class="input-group-text"><i class="bi bi-sort-down"></i></span>
+    <select id="listing-posts-sort" class="form-select" aria-label="Order By" onchange="window['quarto-listings']['listing-posts'].sort(this.options[this.selectedIndex].value, { order: this.options[this.selectedIndex].getAttribute('data-direction')})">
+      <option value="" disabled="" selected="" hidden="">Order By</option>
+      <option value="index" data-direction="asc">Default</option>
+      <option value="listing-date-sort" data-direction="asc">
+        Date - Oldest
+      </option>
+      <option value="listing-date-sort" data-direction="desc">
+        Date - Newest
+      </option>
+      <option value="listing-title-sort" data-direction="asc">
+        Title
+      </option>
+    </select>
   </div>
-</header> <div class="about-links">
-  <a href="https://www.linkedin.com/in/nicolas-brosse-984685a0/" class="about-link" rel="" target="">
-    <i class="bi bi-linkedin"></i>
-     <span class="about-link-text">LinkedIn</span>
-  </a>
-  <a href="https://github.com/nbrosse" class="about-link" rel="" target="">
-    <i class="bi bi-github"></i>
-     <span class="about-link-text">GitHub</span>
-  </a>
-  <a href="https://x.com/NicolasBrosse1" class="about-link" rel="" target="">
-    <i class="bi bi-twitter-x"></i>
-     <span class="about-link-text">X</span>
-  </a>
-  <a href="https://bsky.app/profile/nbrosse.bsky.social" class="about-link" rel="" target="">
-    <i class="bi bi-bluesky"></i>
-     <span class="about-link-text">Bluesky</span>
-  </a>
-  <a href="https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&amp;hl" class="about-link" rel="" target="">
-    <i class="bi bi-google"></i>
-     <span class="about-link-text">Google Scholar</span>
-  </a>
-  <a href="https://www.researchgate.net/profile/Nicolas-Brosse-3" class="about-link" rel="" target="">
-    <i class="bi bi-r-circle"></i>
-     <span class="about-link-text">ResearchGate</span>
-  </a>
-  <a href="/cv.pdf" class="about-link" rel="" target="">
-    <i class="bi bi-file-earmark-pdf"></i>
-     <span class="about-link-text">CV</span>
-  </a>
-  <a href="/#" class="about-link" rel="" target="">
-    <i class="bi bi-envelope"></i>
-     <span class="about-link-text">Email</span>
-  </a>
-</div>
-      <div class="about-contents"><main class="content" id="quarto-document-content">
-<p>I am a postdoctoral researcher at CREST (ENSAE Paris, Institut Polytechnique de Paris), working with Arnak Dalalyan. My research has two strands. The first is the mathematics of generative models: how diffusion and flow matching models behave in the small-noise regime, and how their samplers propagate errors. The second is human–AI collaboration in mathematical research. I designed and built <a href="https://human-ai-mathematics.github.io/">Human–AI Mathematics</a>, an open framework in which AI agents search for and cross-review proofs, and every claim they certify can be checked by a mathematician.</p>
-<p>I came to this from both research and industry. After a PhD in statistics at École Polytechnique on Langevin sampling, and an internship at Google Brain, I spent six years building machine learning systems: signal processing, object detection and anomaly detection at Thales, deep learning for drug discovery at Iktos, then foundation models for biology at MBZUAI and GenBio AI. In 2025 I worked closer to end users, building proofs of concept for AI decision-support tools and freelancing on LLM systems, from evaluating LLM answers at Rollstack to improving retrieval at Clarifeye.</p>
-<p>What ties it together is taking an idea from paper to working system, and measuring whether it actually works. Publications are on the <a href="./research.html">Research</a> page, code on <a href="./projects.html">Projects</a>, and longer notes on the <a href="./blog.html">blog</a>. To get in touch, <span id="contact-email">send me an email</span>.</p>
-<p><span class="small text-muted">My postdoctoral work is funded by the European Research Council (ERC) under the European Union’s Horizon Europe research and innovation programme (grant agreement No.&nbsp;101201229).</span></p>
-<script>
-// The address is assembled in the browser, so it appears neither in the HTML nor on the page.
-(function () {
-  var href = "mailto:" + ["nbrosse", "gmail.com"].join("@");
-  var el = document.getElementById("contact-email");
-  if (el) {
-    var a = document.createElement("a");
-    a.href = href;
-    a.textContent = el.textContent;
-    el.replaceChildren(a);
-  }
-  document.querySelectorAll(".about-links a").forEach(function (link) {
-    if (link.textContent.trim() === "Email") link.href = href;
-  });
-})();
-</script>
-
-
-</main></div>
+    <div class="input-group input-group-sm quarto-listing-filter">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input type="text" class="search form-control" placeholder="Filter">
     </div>
-    <img src="profile.jpg" class="about-image
-  rounded " style="width: 15em;">
-  </div>
 </div>
- <!-- /main -->
+<table class="quarto-listing-table table">
+<thead>
+<tr>
+
+<th>
+<a class="sort" data-sort="listing-date-sort" onclick="if (this.classList.contains('sort-asc')) { this.classList.add('sort-desc'); this.classList.remove('sort-asc') } else { this.classList.add('sort-asc'); this.classList.remove('sort-desc')} return false;">Date</a>
+</th>
+
+<th>
+<a class="sort" data-sort="listing-title-sort" onclick="if (this.classList.contains('sort-asc')) { this.classList.add('sort-desc'); this.classList.remove('sort-asc') } else { this.classList.add('sort-asc'); this.classList.remove('sort-desc')} return false;">Title</a>
+</th>
+
+<th>
+Categories
+</th>
+
+<th>
+Description
+</th>
+
+</tr>
+</thead>
+<tbody class="list">
+
+<tr data-index="0" data-categories="QUklMjBmb3IlMjBtYXRoZW1hdGljcyUyQ2FnZW50cw==" data-listing-date-sort="1791496800000" data-listing-file-modified-sort="1791482157091" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="9" data-listing-word-count-sort="1726" data-listing-title-sort="AI agents on the KLS conjecture: a search mathematicians can trust and join" data-listing-filename-sort="human-ai-mathematics.qmd">
+<td>
+<span class="listing-date">Oct 9, 2026</span>
+</td>
+<td>
+<a href="./posts/human-ai-mathematics/human-ai-mathematics.html" class="title listing-title">AI agents on the KLS conjecture: a search mathematicians can trust and join</a>
+</td>
+<td>
+<span class="listing-categories">AI for mathematics, agents</span>
+</td>
+<td>
+<span class="listing-description">AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running.</span>
+</td>
+
+</tr>
+
+<tr data-index="1" data-categories="YXN5bXB0b3RpY3MlMkNkaWZmdXNpb24lMjBtb2RlbHM=" data-listing-date-sort="1787695200000" data-listing-file-modified-sort="1791104004689" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="24" data-listing-word-count-sort="4631" data-listing-title-sort="Mills ratios on manifolds: what Gaussian smoothing sees near a boundary" data-listing-filename-sort="boundary-layer.qmd">
+<td>
+<span class="listing-date">Aug 26, 2026</span>
+</td>
+<td>
+<a href="./posts/boundary-layer/boundary-layer.html" class="title listing-title">Mills ratios on manifolds: what Gaussian smoothing sees near a boundary</a>
+</td>
+<td>
+<span class="listing-categories">asymptotics, diffusion models</span>
+</td>
+<td>
+<span class="listing-description">Convolving a singular measure with a Gaussian of width σ produces a smooth density whose logarithmic derivatives can blow up as σ → 0. Zooming in at scale σ replaces the support by its inward tangent cone: its Gaussian mass gives the leading density, and derivatives of its logarithm give the leading singular fields — a manifold-valued inverse Mills ratio.</span>
+</td>
+
+</tr>
+
+<tr data-index="2" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDZmxvdyUyMG1hdGNoaW5n" data-listing-date-sort="1784498400000" data-listing-file-modified-sort="1791104004690" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="21" data-listing-word-count-sort="4125" data-listing-title-sort="Closed-form flow matching: posterior concentration and softmax collapse" data-listing-filename-sort="posterior-concentration.qmd">
+<td>
+<span class="listing-date">Jul 20, 2026</span>
+</td>
+<td>
+<a href="./posts/posterior-concentration/posterior-concentration.html" class="title listing-title">Closed-form flow matching: posterior concentration and softmax collapse</a>
+</td>
+<td>
+<span class="listing-categories">deep learning, flow matching</span>
+</td>
+<td>
+<span class="listing-description">The closed-form velocity field of empirical flow matching is a softmax over training examples. Reading that softmax as a Bayesian posterior turns its collapse into a decoding problem, with an information-theoretic threshold that can be evaluated on CIFAR-10.</span>
+</td>
+
+</tr>
+
+<tr data-index="3" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDZmxvdyUyMG1hdGNoaW5n" data-listing-date-sort="1778536800000" data-listing-file-modified-sort="1791104004690" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="18" data-listing-word-count-sort="3432" data-listing-title-sort="Flow matching as posterior averaging" data-listing-filename-sort="posterior-averaging.qmd">
+<td>
+<span class="listing-date">May 12, 2026</span>
+</td>
+<td>
+<a href="./posts/posterior-averaging/posterior-averaging.html" class="title listing-title">Flow matching as posterior averaging</a>
+</td>
+<td>
+<span class="listing-categories">deep learning, flow matching</span>
+</td>
+<td>
+<span class="listing-description">A velocity-based introduction to flow matching with Gaussian probability paths: the marginal velocity field is a posterior average of conditional targets, and the gap between the conditional and marginal losses is an irreducible posterior-variance term that can be computed in closed form.</span>
+</td>
+
+</tr>
+
+<tr data-index="4" data-categories="bWFjaGluZSUyMGxlYXJuaW5nJTJDY2hlbWlzdHJ5" data-listing-date-sort="1768690800000" data-listing-file-modified-sort="1791104004691" data-listing-date-modified-sort="1787263200000" data-listing-reading-time-sort="27" data-listing-word-count-sort="5253" data-listing-title-sort="Analyzing Raman spectra with machine learning" data-listing-filename-sort="raman.qmd">
+<td>
+<span class="listing-date">Jan 18, 2026</span>
+</td>
+<td>
+<a href="./posts/raman/raman.html" class="title listing-title">Analyzing Raman spectra with machine learning</a>
+</td>
+<td>
+<span class="listing-categories">machine learning, chemistry</span>
+</td>
+<td>
+<span class="listing-description">From inelastic scattering to a calibrated regression model: the physics behind a Raman spectrum, the preprocessing pipeline that makes real spectra usable, and a PLS regression baseline for predicting analyte concentrations.</span>
+</td>
+
+</tr>
+
+<tr data-index="5" data-categories="TExN" data-listing-date-sort="1755208800000" data-listing-file-modified-sort="1791482157091" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="13" data-listing-word-count-sort="2509" data-listing-title-sort="Generating slide decks with an LLM: a comparison of formats" data-listing-filename-sort="llm-slides.qmd">
+<td>
+<span class="listing-date">Aug 15, 2025</span>
+</td>
+<td>
+<a href="./posts/llm-slides/llm-slides.html" class="title listing-title">Generating slide decks with an LLM: a comparison of formats</a>
+</td>
+<td>
+<span class="listing-categories">LLM</span>
+</td>
+<td>
+<span class="listing-description">One real presentation, four formats, one model: what Gemini 2.5 Pro actually produces when asked to rebuild an EDF producer booklet in HTML/CSS, Quarto/Reveal.js, the Google Slides API, and python-pptx — and why the failures in the API-driven formats are silent ones.</span>
+</td>
+
+</tr>
+
+<tr data-index="6" data-categories="TExNJTJDcHl0aG9u" data-listing-date-sort="1751234400000" data-listing-file-modified-sort="1791104004689" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="34" data-listing-word-count-sort="6714" data-listing-title-sort="LLM observability with Langfuse and a FastHTML chatbot" data-listing-filename-sort="llm-observability.qmd">
+<td>
+<span class="listing-date">Jun 30, 2025</span>
+</td>
+<td>
+<a href="./posts/llm-observability/llm-observability.html" class="title listing-title">LLM observability with Langfuse and a FastHTML chatbot</a>
+</td>
+<td>
+<span class="listing-categories">LLM, python</span>
+</td>
+<td>
+<span class="listing-description">Instrumenting a chatbot end to end: Langfuse traces a conversation as a span, each model turn as a generation, and each thumbs-up as a score — wired into a FastHTML app that updates over a WebSocket instead of rerunning a script.</span>
+</td>
+
+</tr>
+
+<tr data-index="7" data-categories="ZG9jdW1lbnQlMjBBSSUyQ0xMTSUyQ1JBRw==" data-listing-date-sort="1742425200000" data-listing-file-modified-sort="1791482157092" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="38" data-listing-word-count-sort="7476" data-listing-title-sort="PDF RAG: recovering document structure and querying a corpus" data-listing-filename-sort="pdf-rag.qmd">
+<td>
+<span class="listing-date">Mar 20, 2025</span>
+</td>
+<td>
+<a href="./posts/pdf-rag/pdf-rag.html" class="title listing-title">PDF RAG: recovering document structure and querying a corpus</a>
+</td>
+<td>
+<span class="listing-categories">document AI, LLM, RAG</span>
+</td>
+<td>
+<span class="listing-description">Page-by-page parsing destroys the structure a reader relies on. This post rebuilds it for PDFs with a vision language model, extracts metadata and a document tree, and then queries a corpus of reports and slide decks with a two-level ReAct agent.</span>
+</td>
+
+</tr>
+
+<tr data-index="8" data-categories="ZG9jdW1lbnQlMjBBSSUyQ0xMTQ==" data-listing-date-sort="1739833200000" data-listing-file-modified-sort="1791482157092" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="24" data-listing-word-count-sort="4615" data-listing-title-sort="Parsing PDFs for LLM input" data-listing-filename-sort="pdf-parsing.qmd">
+<td>
+<span class="listing-date">Feb 18, 2025</span>
+</td>
+<td>
+<a href="./posts/pdf-parsing/pdf-parsing.html" class="title listing-title">Parsing PDFs for LLM input</a>
+</td>
+<td>
+<span class="listing-categories">document AI, LLM</span>
+</td>
+<td>
+<span class="listing-description">How Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini, and Mistral OCR turn PDFs into Markdown: what the pipelines are made of, and where each one silently gets it wrong on six real documents.</span>
+</td>
+
+</tr>
+
+<tr data-index="9" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDYmlvbG9neQ==" data-listing-date-sort="1738796400000" data-listing-file-modified-sort="1791104004689" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="23" data-listing-word-count-sort="4593" data-listing-title-sort="Predicting MHC-peptide presentation with machine learning" data-listing-filename-sort="mhc.qmd">
+<td>
+<span class="listing-date">Feb 6, 2025</span>
+</td>
+<td>
+<a href="./posts/mhc/mhc.html" class="title listing-title">Predicting MHC-peptide presentation with machine learning</a>
+</td>
+<td>
+<span class="listing-categories">deep learning, biology</span>
+</td>
+<td>
+<span class="listing-description">Training a neural network to predict which peptides a given MHC class I allele presents, and benchmarking it against MHCflurry.</span>
+</td>
+
+</tr>
+
+<tr data-index="10" data-categories="ZGVlcCUyMGxlYXJuaW5nJTJDYmlvbG9neQ==" data-listing-date-sort="1713909600000" data-listing-file-modified-sort="1791104004689" data-listing-date-modified-sort="1787349600000" data-listing-reading-time-sort="19" data-listing-word-count-sort="3740" data-listing-title-sort="Encoding distances in molecules and pockets: GBFPT versus DCEPT" data-listing-filename-sort="unimol-gbf.qmd">
+<td>
+<span class="listing-date">Apr 24, 2024</span>
+</td>
+<td>
+<a href="./posts/encoding-distances/unimol-gbf.html" class="title listing-title">Encoding distances in molecules and pockets: GBFPT versus DCEPT</a>
+</td>
+<td>
+<span class="listing-categories">deep learning, biology</span>
+</td>
+<td>
+<span class="listing-description">Uni-Mol encodes interatomic distances with a Gaussian basis whose parameters receive very large gradients. Replacing it with a discretized categorical embedding, in the spirit of AlphaFold, stabilizes pretraining but degrades the pocket embeddings used for retrieval.</span>
+</td>
+
+</tr>
+
+</tbody>
+</table>
+<div class="listing-no-matching d-none">No matching items</div>
+</div>
+
+
+
+
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
     const isCodeAnnotation = (el) => {
       for (const clz of el.classList) {
         if (clz.startsWith('code-annotation-')) {                     

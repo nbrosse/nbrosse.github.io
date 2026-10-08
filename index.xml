@@ -5,12 +5,27 @@
       xmlns:dc="http://purl.org/dc/elements/1.1/" 
       version="2.0">
 <channel>
-<title>Nicolas&#39; Notebook</title>
+<title>Nicolas Brosse</title>
 <link>https://nbrosse.github.io/</link>
 <atom:link href="https://nbrosse.github.io/index.xml" rel="self" type="application/rss+xml"/>
-<description></description>
+<description>Nicolas Brosse, AI research and development: from mathematical foundations to working systems — generative models, human–AI collaboration in mathematical research, LLM systems, ML for science.</description>
+<image>
+<url>https://nbrosse.github.io/profile.jpg</url>
+<title>Nicolas Brosse</title>
+<link>https://nbrosse.github.io/</link>
+</image>
 <generator>quarto-1.10.18</generator>
-<lastBuildDate>Tue, 25 Aug 2026 22:00:00 GMT</lastBuildDate>
+<lastBuildDate>Thu, 08 Oct 2026 22:00:00 GMT</lastBuildDate>
+<item>
+  <title>AI agents on the KLS conjecture: a search mathematicians can trust and join</title>
+  <dc:creator>Nicolas Brosse</dc:creator>
+  <link>https://nbrosse.github.io/posts/human-ai-mathematics/human-ai-mathematics.html</link>
+  <description><![CDATA[ AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running. ]]></description>
+  <category>AI for mathematics</category>
+  <category>agents</category>
+  <guid>https://nbrosse.github.io/posts/human-ai-mathematics/human-ai-mathematics.html</guid>
+  <pubDate>Thu, 08 Oct 2026 22:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Mills ratios on manifolds: what Gaussian smoothing sees near a boundary</title>
   <dc:creator>Nicolas Brosse</dc:creator>
@@ -75,7 +90,7 @@
   <dc:creator>Nicolas Brosse</dc:creator>
   <link>https://nbrosse.github.io/posts/pdf-rag/pdf-rag.html</link>
   <description><![CDATA[ Page-by-page parsing destroys the structure a reader relies on. This post rebuilds it for PDFs with a vision language model, extracts metadata and a document tree, and then queries a corpus of reports and slide decks with a two-level ReAct agent. ]]></description>
-  <category>deep learning</category>
+  <category>document AI</category>
   <category>LLM</category>
   <category>RAG</category>
   <guid>https://nbrosse.github.io/posts/pdf-rag/pdf-rag.html</guid>
@@ -86,7 +101,7 @@
   <dc:creator>Nicolas Brosse</dc:creator>
   <link>https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html</link>
   <description><![CDATA[ How Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini, and Mistral OCR turn PDFs into Markdown: what the pipelines are made of, and where each one silently gets it wrong on six real documents. ]]></description>
-  <category>deep learning</category>
+  <category>document AI</category>
   <category>LLM</category>
   <guid>https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html</guid>
   <pubDate>Mon, 17 Feb 2025 23:00:00 GMT</pubDate>
