@@ -23,11 +23,11 @@ Le manque le plus important : aucune trace des publications sur le site.
   chapitre Wiley 2024 (Iktos). Last-layer reste en preprint (aucune version publiée trouvée).
 - [ ] Ajouter d'éventuels travaux GenBio / MBZUAI (rien trouvé à ton nom sur bioRxiv).
 - [x] Section « Preprints » : boundary-layer asymptotics (arXiv:2607.04514).
-- [ ] Ajouter EDM error propagation quand le preprint sort. L'entrée est prête, en commentaire
-  dans `research.qmd` (branche `post/edm-error-propagation`), avec le post en brouillon.
-  À la sortie : remplacer `XXXX.XXXXX` (post, `.bib`, `research.qmd`), décommenter l'entrée,
-  fixer la date du post, retirer `draft: true`, vérifier la règle AISTATS sur la publicité
-  pendant la relecture et que le dépôt de code est public.
+- [x] EDM error propagation (arXiv:2610.10190) : entrée Research, post publié, dépôt de code
+  public et lié depuis Projects.
+- [ ] Vérifier la règle AISTATS sur la publicité pendant la relecture (post EDM en ligne).
+- [x] Section « Human–AI Mathematics » : framework, template et manuscrit KLS (preuves
+  vérifiées par des agents, pas encore relues par des humains).
 - [x] Courte intro (2–3 lignes) sur les axes : modèles génératifs, diffusion / flow
   matching, méthodes MCMC et leur analyse.
 - [ ] Option : générer la liste depuis un `.bib` (Quarto le gère) plutôt qu'à la main.
@@ -53,12 +53,15 @@ Aujourd'hui : un tableau de posts triés par date, sujets mélangés.
 - [ ] Ajouter une section **Mentoring, teaching & talks** (encadrement de stagiaires
   ou de doctorants, enseignements, exposés, reviewing). C'est le principal signal
   « management » qui manque.
-- [ ] Ajouter un lien vers un **CV PDF** (`cv.pdf` à la racine, lien dans la navbar).
-- [ ] Ajouter un moyen de contact (email ou formulaire).
+- [x] Ajouter un lien vers un **CV PDF** (`cv.pdf` à la racine, lien dans la navbar).
+  À chaque mise à jour du CV : recopier `personal-notes/cv/build/cv-2026-clean-public.pdf`
+  (jamais la version `nophoto`, qui contient adresse et téléphone).
+- [x] Ajouter un moyen de contact (email ou formulaire).
 
 ## 4. Page Projects / Software (`projects.qmd`)
 
 - [x] Créer la page et l'ajouter à la navbar.
+- [x] Section « AI for mathematics » : Human–AI Mathematics, kls-conjecture-search, latexfmt.
 - [x] Une entrée par projet (liste simple plutôt que des cartes) : nom, une phrase, ce que ça montre, lien repo / post.
   - **latexfmt** : formateur LaTeX sémantique (outillage de recherche, tests golden,
     idempotence, rollback). Voir `postdoc/latexfmt/TODO.md`.
@@ -81,8 +84,9 @@ Aujourd'hui : un tableau de posts triés par date, sujets mélangés.
   « machine learning » et « deep learning » coexistent).
 - [x] Uniformiser le format des dates dans le front-matter (`llm-slides` n'a pas de
   guillemets, les autres si).
-- [ ] Nouveau post : haiku-shunt, présenté comme un retour sur la méthode d'évaluation
+- [x] Nouveau post : haiku-shunt, présenté comme un retour sur la méthode d'évaluation
   des agents de code (voir `haiku-shunt/TODO.md`).
+- [x] Nouveau post : Human–AI Mathematics et la recherche sur KLS.
 - [ ] Nouveau post (optionnel) : latexfmt (voir `postdoc/latexfmt/TODO.md`).
 
 ## Divers

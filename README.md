@@ -6,10 +6,11 @@ with [Quarto](https://quarto.org).
 | page | file |
 |---|---|
 | Home | `index.qmd` — positioning, latest posts; carries the RSS feed (`/index.xml`) |
-| Research | `research.qmd` — publications and preprints |
+| Research | `research.qmd` — Human–AI Mathematics, publications and preprints |
 | Projects | `projects.qmd` — code, tools and demos |
 | Blog | `blog.qmd` — every post, filterable by category |
-| About | `about.qmd` |
+| About | `about.qmd` — bio, contact |
+| CV | `cv.pdf` — public version of the CV, copied from the LaTeX source (declared in `project.resources`) |
 
 Posts live in `posts/<slug>/`.
 
