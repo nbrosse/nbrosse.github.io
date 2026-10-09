@@ -70,7 +70,9 @@ A few other observations:
 
 A trustworthy record is a precondition, not the goal: a mathematician will only take part in a search whose record they can trust. What the framework is really after is a search that mathematicians who have never opened the repository can read, question and contribute to.
 
-**The manuscript reads like a paper.** It states the question, works through examples, says what is settled and what is not, gives the idea of each proof and where to start. Every statement shows its status and who certified it, so a reader knows at a glance what rests on what.
+**The manuscript reads like a paper.** It states the question, works through examples, says what is settled and what is not, gives the idea of each proof and where to start. Every statement shows its status and who certified it, so a reader knows at a glance what rests on what (@fig-statement).
+
+![A statement of the KLS manuscript as a reader sees it. The header gives its status and how it was earned, here *Proved* through an independent agent review, with the reviewer's model and date; then its stable label and a link to propose a correction. [Live page](https://human-ai-mathematics.github.io/kls-conjecture-search/cmh-exact-cases/#prop-product-simplex-cone-gate), captured October 2026.](figures/manuscript-statement.png){#fig-statement width=90% fig-alt="Proposition 17.3 of the KLS manuscript. A header reads: Product-simplex cones and the sharp linear test, Proved, agent review, gpt-6-astra, 2026-10-04, followed by the label prop:product-simplex-cone-gate and a Correction link. Below it, the statement, with a numbered display equation for the eigenvalue."}
 
 **Taking part takes no setup.** Each statement in the manuscript links to an issue form with the statement already filled in: an idea or a counterexample for an open statement, a correction for any other. Broader questions go to the [discussions](https://github.com/orgs/human-ai-mathematics/discussions). An issue moves no status by itself: the orchestrator turns what it brings into a mission or a correction, which then goes through review like everything else.
 
