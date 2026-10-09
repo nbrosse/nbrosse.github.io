@@ -49,6 +49,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../../site_libs/bootstrap/bootstrap-2c15b6d3d8b621baed39ca0caa7ab417.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -77,6 +80,7 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 <script data-goatcounter="https://nbrosse.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" type="application/rss+xml" title="Nicolas Brosse" href="https://nbrosse.github.io/index.xml">
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
@@ -111,11 +115,17 @@ window.Quarto = {
 <link rel="stylesheet" href="../../styles.css">
 <meta property="og:title" content="AI agents on the KLS conjecture: a search mathematicians can trust and join – Nicolas Brosse">
 <meta property="og:description" content="AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running.">
-<meta property="og:image" content="https://nbrosse.github.io/posts/human-ai-mathematics/profile.jpg">
+<meta property="og:image" content="https://nbrosse.github.io/posts/human-ai-mathematics/figures/card.png">
 <meta property="og:site_name" content="Nicolas Brosse">
+<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:alt" content="Human–AI Mathematics logo: an orange and white infinity symbol on a dark blue disc.">
 <meta name="twitter:title" content="AI agents on the KLS conjecture: a search mathematicians can trust and join – Nicolas Brosse">
 <meta name="twitter:description" content="AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running.">
-<meta name="twitter:image" content="https://nbrosse.github.io/posts/human-ai-mathematics/profile.jpg">
+<meta name="twitter:image" content="https://nbrosse.github.io/posts/human-ai-mathematics/figures/card.png">
+<meta name="twitter:image-height" content="630">
+<meta name="twitter:image-width" content="1200">
+<meta name="twitter:image:alt" content="Human–AI Mathematics logo: an orange and white infinity symbol on a dark blue disc.">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -185,6 +195,11 @@ window.Quarto = {
   </li>  
   <li class="nav-item compact">
     <a class="nav-link" href="https://www.researchgate.net/profile/Nicolas-Brosse-3"> <i class="bi bi-r-circle" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -310,7 +325,17 @@ window.Quarto = {
 <section id="sec-join" class="level1">
 <h1>A search mathematicians can join</h1>
 <p>A trustworthy record is a precondition, not the goal: a mathematician will only take part in a search whose record they can trust. What the framework is really after is a search that mathematicians who have never opened the repository can read, question and contribute to.</p>
-<p><strong>The manuscript reads like a paper.</strong> It states the question, works through examples, says what is settled and what is not, gives the idea of each proof and where to start. Every statement shows its status and who certified it, so a reader knows at a glance what rests on what.</p>
+<p><strong>The manuscript reads like a paper.</strong> It states the question, works through examples, says what is settled and what is not, gives the idea of each proof and where to start. Every statement shows its status and who certified it, so a reader knows at a glance what rests on what (<a href="#fig-statement" class="quarto-xref">Figure&nbsp;1</a>).</p>
+<div id="fig-statement" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Proposition 17.3 of the KLS manuscript. A header reads: Product-simplex cones and the sharp linear test, Proved, agent review, gpt-6-astra, 2026-10-04, followed by the label prop:product-simplex-cone-gate and a Correction link. Below it, the statement, with a numbered display equation for the eigenvalue.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-statement-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/manuscript-statement.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: A statement of the KLS manuscript as a reader sees it. The header gives its status and how it was earned, here Proved through an independent agent review, with the reviewer’s model and date; then its stable label and a link to propose a correction. Live page, captured October 2026."><img src="figures/manuscript-statement.png" class="img-fluid figure-img" style="width:90.0%" alt="Proposition 17.3 of the KLS manuscript. A header reads: Product-simplex cones and the sharp linear test, Proved, agent review, gpt-6-astra, 2026-10-04, followed by the label prop:product-simplex-cone-gate and a Correction link. Below it, the statement, with a numbered display equation for the eigenvalue."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-statement-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: A statement of the KLS manuscript as a reader sees it. The header gives its status and how it was earned, here <em>Proved</em> through an independent agent review, with the reviewer’s model and date; then its stable label and a link to propose a correction. <a href="https://human-ai-mathematics.github.io/kls-conjecture-search/cmh-exact-cases/#prop-product-simplex-cone-gate">Live page</a>, captured October 2026.
+</figcaption>
+</figure>
+</div>
 <p><strong>Taking part takes no setup.</strong> Each statement in the manuscript links to an issue form with the statement already filled in: an idea or a counterexample for an open statement, a correction for any other. Broader questions go to the <a href="https://github.com/orgs/human-ai-mathematics/discussions">discussions</a>. An issue moves no status by itself: the orchestrator turns what it brings into a mission or a correction, which then goes through review like everything else.</p>
 <p><strong>A mathematician’s word counts.</strong> The explicit acceptance of a named person is a certification in its own right: it is recorded with the proof and shown on the site as <em>accepted by</em>. A mathematician may also propose a statement, prove it and accept it themselves. That is a guarantee of a different kind from an independent review: it rests on the name attached, as a signed paper does, and the site shows which kind each status rests on.</p>
 <p><strong>Every error can be traced.</strong> Every proved statement shows who reviewed it, the review is a file anyone can read, and a reader who finds an error can point to the exact proof and review that let it through. That is a weaker promise than correctness, but a checkable one, and it is the one a mathematician needs before deciding which parts to read closely.</p>
@@ -738,6 +763,38 @@ Mathematicians Can Trust and Join.”</span> October 9. <a href="https://nbrosse
   });
   </script>
 </div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
