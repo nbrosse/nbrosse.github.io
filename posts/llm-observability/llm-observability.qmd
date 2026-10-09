@@ -5,6 +5,8 @@ date: "2025-06-30"
 date-modified: "2026-08-22"
 categories: [LLM, python]
 description: "Instrumenting a chatbot end to end: Langfuse traces a conversation as a span, each model turn as a generation, and each thumbs-up as a score — wired into a FastHTML app that updates over a WebSocket instead of rerunning a script."
+image: figures/langfuse_trace.png
+image-alt: "The Langfuse dashboard displaying a trace for a chatbot conversation, with nested spans for generation, user input and scores."
 lightbox: true
 citation:
   url: https://nbrosse.github.io/posts/llm-observability/llm-observability.html

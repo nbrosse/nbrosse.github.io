@@ -6,6 +6,8 @@ date-modified: "2026-08-22"
 categories: [deep learning, biology]
 bibliography: mhc-references.bib
 description: "Training a neural network to predict which peptides a given MHC class I allele presents, and benchmarking it against MHCflurry."
+image: figures/card.png
+image-alt: "Codominant expression of HLA genes: a cell surface displaying maternal and paternal MHC class I and class II molecules."
 citation:
   url: https://nbrosse.github.io/posts/mhc/mhc.html
 ---

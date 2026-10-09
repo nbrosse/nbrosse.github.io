@@ -5,6 +5,8 @@ date: "2026-08-26"
 bibliography: boundary-layer-references.bib
 categories: [asymptotics, diffusion models]
 description: "Convolving a singular measure with a Gaussian of width σ produces a smooth density whose logarithmic derivatives can blow up as σ → 0. Zooming in at scale σ replaces the support by its inward tangent cone: its Gaussian mass gives the leading density, and derivatives of its logarithm give the leading singular fields — a manifold-valued inverse Mills ratio."
+image: figures/heat-density-grid.jpg
+image-alt: "Grid of heatmaps showing three measures on the plane smoothed at decreasing noise levels: a Gaussian that does not change, and two supports whose boundary sharpens."
 lightbox: true
 crossref:
   thm-title: Theorem

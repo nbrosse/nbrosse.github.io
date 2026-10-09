@@ -12,7 +12,7 @@ website:
   title: "Nicolas Brosse"
   description: "Nicolas Brosse, AI research and development: from mathematical foundations to working systems — generative models, human–AI collaboration in mathematical research, LLM systems, ML for science."
   site-url: https://nbrosse.github.io
-  image: profile.jpg
+  image: /social-card.png
   open-graph: true
   twitter-card: true
   navbar:
@@ -37,6 +37,9 @@ website:
         href: https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&hl
       - icon: r-circle
         href: https://www.researchgate.net/profile/Nicolas-Brosse-3
+      - icon: rss
+        href: index.xml
+        aria-label: RSS feed
 format:
   html:
     theme: cosmo
@@ -45,5 +48,7 @@ format:
       - text: |
           <script data-goatcounter="https://nbrosse.goatcounter.com/count"
                   async src="https://gc.zgo.at/count.js"></script>
+          <link rel="alternate" type="application/rss+xml" title="Nicolas Brosse"
+                href="https://nbrosse.github.io/index.xml">
     toc: true
 

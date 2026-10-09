@@ -6,6 +6,8 @@ date-modified: "2026-08-22"
 categories: [document AI, LLM, RAG]
 lightbox: true
 description: "Page-by-page parsing destroys the structure a reader relies on. This post rebuilds it for PDFs with a vision language model, extracts metadata and a document tree, and then queries a corpus of reports and slide decks with a two-level ReAct agent."
+image: figures/card.png
+image-alt: "A stack of PDF pages with headings of arbitrary sizes, and an arrow to the document tree recovered from them."
 notebook-links: true
 notebook-view:
   - notebook: notebooks/_query_multi_pdfs_example.ipynb

@@ -6,6 +6,8 @@ date-modified: "2026-08-22"
 bibliography: posterior-concentration-references.bib
 categories: [deep learning, flow matching]
 description: "The closed-form velocity field of empirical flow matching is a softmax over training examples. Reading that softmax as a Bayesian posterior turns its collapse into a decoding problem, with an information-theoretic threshold that can be evaluated on CIFAR-10."
+image: figures/eigenvalues-cifar10.png
+image-alt: "Eigenvalue spectrum of the CIFAR-10 covariance on a log scale, decaying over seven orders of magnitude."
 citation:
   url: https://nbrosse.github.io/posts/posterior-concentration/posterior-concentration.html
 ---

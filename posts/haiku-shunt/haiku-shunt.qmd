@@ -5,6 +5,8 @@ date: "2026-10-13"
 draft: true
 categories: [LLM, agents, evaluation]
 description: "A plugin that routes large file reads to a small model is reported to save 90% of tokens. Measured in dollars on a real task, it cut the median cost by about 10%, too few runs to call it an effect, and the model never once used the small model."
+image: figures/card.png
+image-alt: "Cost of each Claude Code session with and without the plugin; the median cost falls by about 10%."
 lightbox: true
 citation:
   url: https://nbrosse.github.io/posts/haiku-shunt/haiku-shunt.html

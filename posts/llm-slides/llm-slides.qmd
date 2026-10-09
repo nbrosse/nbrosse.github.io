@@ -5,6 +5,8 @@ date: "2025-08-15"
 date-modified: "2026-08-22"
 categories: [LLM]
 description: "One real presentation, four formats, one model: what Gemini 2.5 Pro actually produces when asked to rebuild an EDF producer booklet in HTML/CSS, Quarto/Reveal.js, the Google Slides API, and python-pptx — and why the failures in the API-driven formats are silent ones."
+image: figures/card.png
+image-alt: "Bar chart of the lines of code written for the same five slides: 130 for Quarto/Reveal.js, 270 for python-pptx, 492 for HTML/CSS and 977 for the Google Slides API."
 citation:
   url: https://nbrosse.github.io/posts/llm-slides/llm-slides.html
 ---
