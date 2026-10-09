@@ -4,6 +4,8 @@ author: "Nicolas Brosse"
 date: "2026-10-09"
 categories: [AI for mathematics, agents]
 description: "AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running."
+image: figures/card.png
+image-alt: "Human–AI Mathematics logo: an orange and white infinity symbol on a dark blue disc."
 lightbox: true
 citation:
   url: https://nbrosse.github.io/posts/human-ai-mathematics/human-ai-mathematics.html

@@ -6,6 +6,8 @@ date-modified: "2026-08-22"
 categories: [document AI, LLM]
 bibliography: pdf-parsing-references.bib
 description: "How Docling, Marker, MinerU, pymupdf4llm, LlamaParse, Gemini, and Mistral OCR turn PDFs into Markdown: what the pipelines are made of, and where each one silently gets it wrong on six real documents."
+image: figures/tbm04.png
+image-alt: "TableFormer architecture: a CNN backbone and transformer encoder-decoder predicting table structure tags and cell bounding boxes."
 lightbox: true
 citation:
   url: https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html

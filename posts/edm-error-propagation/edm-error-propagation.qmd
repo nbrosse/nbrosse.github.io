@@ -6,6 +6,8 @@ draft: true
 bibliography: edm-error-propagation-references.bib
 categories: [diffusion models, numerical analysis]
 description: "Diffusion models generate data by removing noise step by step, and EDM is one of the most widely used recipes for doing so. Each step makes a small error, provably second order whatever the data. Yet even with a perfect network, the final error shrinks more slowly than these local errors suggest, over every step count used in practice. What decides it is how much later steps stretch the errors made before them, which can be far less than worst-case estimates predict."
+image: figures/card.png
+image-alt: "Log-log plot of error against the number of sampling steps: summed local biases decay at slope 1, while the final error and the propagated biases decay at slope 0.58."
 lightbox: true
 crossref:
   thm-title: Theorem

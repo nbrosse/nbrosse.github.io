@@ -12,7 +12,9 @@ with [Quarto](https://quarto.org).
 | About | `about.qmd` — bio, contact |
 | CV | `cv.pdf` — public version of the CV, copied from the LaTeX source (declared in `project.resources`) |
 
-Posts live in `posts/<slug>/`.
+Posts live in `posts/<slug>/`. Each post sets `image:` and `image-alt:`, the preview shown
+when it is shared and in the RSS feed; the site default is `social-card.png`. The 1200×630
+cards (`social-card.png`, `posts/*/figures/card.png`) are built by `tools/make_cards.py`.
 
 ## Build
 

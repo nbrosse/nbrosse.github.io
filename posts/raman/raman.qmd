@@ -6,6 +6,8 @@ date-modified: "2026-08-21"
 categories: [machine learning, chemistry]
 bibliography: raman-references.bib
 description: "From inelastic scattering to a calibrated regression model: the physics behind a Raman spectrum, the preprocessing pipeline that makes real spectra usable, and a PLS regression baseline for predicting analyte concentrations."
+image: figures/raman-spectrum-example.png
+image-alt: "Raman spectrum plot showing intensity versus Raman shift, with labeled peaks corresponding to glucose, sodium acetate, and magnesium sulfate."
 lightbox: true
 citation:
   url: https://nbrosse.github.io/posts/raman/raman.html
