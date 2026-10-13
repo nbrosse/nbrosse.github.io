@@ -44,6 +44,7 @@ Preprocessing Raman spectra and predicting analyte concentrations with PLS regre
 **[haiku-shunt](https://github.com/nbrosse/haiku-shunt)**\
 A Claude Code plugin that delegates large file reads to a small model, and an A/B test
 of what that actually saves.
+[Post](posts/haiku-shunt/haiku-shunt.qmd)
 
 **[llm-slide-deck](https://github.com/nbrosse/llm-slide-deck)**\
 Rebuilding a real slide deck with an LLM in four formats, and where each one fails.
