@@ -15,7 +15,19 @@
 <link>https://nbrosse.github.io/</link>
 </image>
 <generator>quarto-1.10.18</generator>
-<lastBuildDate>Thu, 08 Oct 2026 22:00:00 GMT</lastBuildDate>
+<lastBuildDate>Mon, 12 Oct 2026 22:00:00 GMT</lastBuildDate>
+<item>
+  <title>Tokens saved are not dollars saved: an A/B test of a Claude Code context shunt</title>
+  <dc:creator>Nicolas Brosse</dc:creator>
+  <link>https://nbrosse.github.io/posts/haiku-shunt/haiku-shunt.html</link>
+  <description><![CDATA[ A plugin that routes large file reads to a small model is reported to save 90% of tokens. Measured in dollars on a real task, it cut the median cost by about 10%, too few runs to call it an effect, and the model never once used the small model. ]]></description>
+  <category>LLM</category>
+  <category>agents</category>
+  <category>evaluation</category>
+  <guid>https://nbrosse.github.io/posts/haiku-shunt/haiku-shunt.html</guid>
+  <pubDate>Mon, 12 Oct 2026 22:00:00 GMT</pubDate>
+  <media:content url="https://nbrosse.github.io/posts/haiku-shunt/figures/card.png" medium="image" type="image/png" height="76" width="144"/>
+</item>
 <item>
   <title>AI agents on the KLS conjecture: a search mathematicians can trust and join</title>
   <dc:creator>Nicolas Brosse</dc:creator>

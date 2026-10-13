@@ -1,2 +1,932 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"></html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Nicolas Brosse">
+<meta name="dcterms.date" content="2026-10-13">
+<meta name="description" content="A plugin that routes large file reads to a small model is reported to save 90% of tokens. Measured in dollars on a real task, it cut the median cost by about 10%, too few runs to call it an effect, and the model never once used the small model.">
+
+<title>Tokens saved are not dollars saved: an A/B test of a Claude Code context shunt – Nicolas Brosse</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-2c15b6d3d8b621baed39ca0caa7ab417.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script data-goatcounter="https://nbrosse.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" type="application/rss+xml" title="Nicolas Brosse" href="https://nbrosse.github.io/index.xml">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Tokens saved are not dollars saved: an A/B test of a Claude Code context shunt – Nicolas Brosse">
+<meta property="og:description" content="A plugin that routes large file reads to a small model is reported to save 90% of tokens. Measured in dollars on a real task, it cut the median cost by about 10%, too few runs to call it an effect, and the model never once used the small model.">
+<meta property="og:image" content="https://nbrosse.github.io/posts/haiku-shunt/figures/card.png">
+<meta property="og:site_name" content="Nicolas Brosse">
+<meta property="og:image:height" content="630">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:alt" content="Cost of each Claude Code session with and without the plugin; the median cost falls by about 10%.">
+<meta name="twitter:title" content="Tokens saved are not dollars saved: an A/B test of a Claude Code context shunt – Nicolas Brosse">
+<meta name="twitter:description" content="A plugin that routes large file reads to a small model is reported to save 90% of tokens. Measured in dollars on a real task, it cut the median cost by about 10%, too few runs to call it an effect, and the model never once used the small model.">
+<meta name="twitter:image" content="https://nbrosse.github.io/posts/haiku-shunt/figures/card.png">
+<meta name="twitter:image-height" content="630">
+<meta name="twitter:image-width" content="1200">
+<meta name="twitter:image:alt" content="Cost of each Claude Code session with and without the plugin; the median cost falls by about 10%.">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Nicolas Brosse</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../cv.pdf"> 
+<span class="menu-text">CV</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://x.com/NicolasBrosse1"> <i class="bi bi-twitter-x" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://bsky.app/profile/nbrosse.bsky.social"> <i class="bi bi-bluesky" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&amp;hl"> <i class="bi bi-google" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.researchgate.net/profile/Nicolas-Brosse-3"> <i class="bi bi-r-circle" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Tokens saved are not dollars saved: an A/B test of a Claude Code context shunt</h1>
+                  <div>
+        <div class="description">
+          A plugin that routes large file reads to a small model is reported to save 90% of tokens. Measured in dollars on a real task, it cut the median cost by about 10%, too few runs to call it an effect, and the model never once used the small model.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">LLM</div>
+                <div class="quarto-category">agents</div>
+                <div class="quarto-category">evaluation</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Nicolas Brosse </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">October 13, 2026</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sec-idea" id="toc-sec-idea" class="nav-link active" data-scroll-target="#sec-idea">The idea</a></li>
+  <li><a href="#sec-metric" id="toc-sec-metric" class="nav-link" data-scroll-target="#sec-metric">What a token count leaves out</a></li>
+  <li><a href="#sec-protocol" id="toc-sec-protocol" class="nav-link" data-scroll-target="#sec-protocol">The protocol</a></li>
+  <li><a href="#sec-results" id="toc-sec-results" class="nav-link" data-scroll-target="#sec-results">Results</a></li>
+  <li><a href="#sec-lessons" id="toc-sec-lessons" class="nav-link" data-scroll-target="#sec-lessons">What this says about evaluating agents</a></li>
+  <li><a href="#recommendation" id="toc-recommendation" class="nav-link" data-scroll-target="#recommendation">Recommendation</a></li>
+  <li><a href="#sec-appendix" id="toc-sec-appendix" class="nav-link" data-scroll-target="#sec-appendix">Appendix: the numbers behind the post</a>
+  <ul class="collapse">
+  <li><a href="#sec-appendix-cost" id="toc-sec-appendix-cost" class="nav-link" data-scroll-target="#sec-appendix-cost">The cost model</a></li>
+  <li><a href="#sec-appendix-test" id="toc-sec-appendix-test" class="nav-link" data-scroll-target="#sec-appendix-test">Is −10% distinguishable from noise?</a></li>
+  <li><a href="#sec-appendix-power" id="toc-sec-appendix-power" class="nav-link" data-scroll-target="#sec-appendix-power">How many runs would be needed</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<p>In August 2026 Spotify published <code>shunt</code>, a <a href="https://github.com/spotify/portal-ai-plugins/tree/e14bdb1/plugins/shunt">Claude Code plugin</a> that stops the main model from reading large files and hands them to a cheaper worker model instead. Its README reports “82-94% of tokens” saved on large file reads, and the figure travelled fast: several write-ups turned it into “cutting Claude Code token usage by 90%”.</p>
+<p>I rebuilt it as <a href="https://github.com/nbrosse/haiku-shunt">haiku-shunt</a>, with a Haiku subagent as the worker, and measured what it saves on a bill. So far: the median cost fell by about 10%, on too few runs to tell an effect from noise, and not for the reason the design assumes. In six runs with the plugin, the model never once delegated to Haiku.</p>
+<p>This post is about the gap between the token count and the bill, and what it teaches about evaluating agents.</p>
+<section id="sec-idea" class="level1">
+<h1>The idea</h1>
+<p>A coding agent works in turns: on every turn, the whole conversation so far (system prompt, tool results, the model’s own messages) is sent to the model again. A 30,000-token file read on turn 3 of a 40-turn session is therefore not paid once: it rides along on the 37 turns that follow.</p>
+<p>The shunt cuts that at the source. A <code>PreToolUse</code> hook inspects each <code>Read</code>, and each <code>cat</code>, <code>head</code> or <code>less</code> in a shell command. When the file is large, the hook denies the call and tells the model to ask a worker instead. The worker reads the file in its own context and returns a short answer of a few hundred tokens. The file never enters the expensive context, so it is never re-sent.</p>
+<p>Spotify’s worker runs on their internal AI platform; mine is a Claude Code subagent pinned to Haiku 4.5, which needs no service or API key. Everything else follows Spotify’s design.</p>
+</section>
+<section id="sec-metric" class="level1">
+<h1>What a token count leaves out</h1>
+<p>Spotify’s benchmark compares, for one read, the tokens that enter the main context without the shunt (the file) and with it (the worker’s answer): 75,990 against 4,148 on a 7,408-line pair of source and test files. It is correct, but it answers a narrower question than “how much cheaper is my session”, for three reasons.</p>
+<p><strong>Caching.</strong> Claude Code caches the conversation prefix. A file that stays in context is written to the cache once, at twice the input price, and later turns read it back at a fraction of that price: 10% for most models, 5% for Opus 5.5. The re-sends that make the idea attractive are the cheapest tokens in the session.</p>
+<p><strong>The worker is not free.</strong> A subagent starts with its own system prompt, about 14,600 tokens, written to its cache before it reads anything. That fixed cost is paid on every delegation, on a cheaper model, but paid.</p>
+<p><strong>The counterfactual is unobservable.</strong> A token count assumes that without the shunt the model would have read the whole file, and that with it the model would have delegated. It may do neither.</p>
+<p>The first two reasons can be priced. Take a 747-line file, about 4,500 tokens, read on turn 1 of an 18-turn Opus 5.5 session (input at $4 per million tokens). Keeping it out of the main context avoids one cache write and 17 re-sends:</p>
+<pre><code>cache write   4,500 × $8.00/M (2× input)               ≈ $0.036
+re-sends      4,500 × $0.20/M (0.05× input) × 17 turns ≈ $0.015
+                                                  total ≈ $0.05</code></pre>
+<p>That assumes every re-send is a cache hit. A miss costs a new cache write, 2× input instead of 0.05×, so misses raise the figure quickly: with 10% of re-sends missing, the total is about $0.11.</p>
+<p>So keeping this file out saves 5 to 11 cents, in a session that costs about $0.40. From that come the worker’s fixed cost, about $0.02 of Haiku, and the windows the parent still has to read before it can edit the file. Below some file size, delegating loses money: about 1,100 tokens for an Opus 5.5 parent, 2,100 for Sonnet 5. <a href="#sec-appendix-cost" class="quarto-xref">Section&nbsp;7.1</a> gives the general formula and the break-even.</p>
+<p>A formula is an argument, not a measurement. The only way to know what the plugin saves is to run the same task with and without it and compare the bills.</p>
+</section>
+<section id="sec-protocol" class="level1">
+<h1>The protocol</h1>
+<p>The benchmark script, <a href="https://github.com/nbrosse/haiku-shunt/blob/main/bench/ab.sh"><code>bench/ab.sh</code></a>, runs one non-interactive Claude Code session per arm and repetition, and takes the cost Claude Code itself reports (<code>total_cost_usd</code>), subagents included. A hand-rolled price table would get cache writes wrong, and leaving out the worker would make the plugin look free. Three other choices:</p>
+<ul>
+<li><strong>The control loads no plugin at all</strong>, rather than the plugin with its hooks disabled, so the plugin’s agents cannot influence the control arm.</li>
+<li><strong>Arms are interleaved and their order rotates every repetition</strong>, because cache warmth and service load drift during a campaign.</li>
+<li><strong>Every run is checked.</strong> A cheaper run that did not do the work is not a saving.</li>
+</ul>
+<p>The task has to be shaped like the hypothesis: long, multi-turn, with large files read early, so that there are turns left for re-sends. <code>bulk-discount</code> builds a throwaway pricing package of about 2,300 lines in three modules, all above the shunt’s 350-line threshold, and asks for a feature that touches all three: a bulk discount in the pricing engine, its tests, and a new field in the report. The check runs the package’s tests plus a hidden test that compares the new pricing with a pristine copy of the original rules.</p>
+<p>The parent was Opus 5.5, in Claude Code 2.1.281. I ran two campaigns of three repetitions per arm. Between them I changed the denial message so that it names the exact subagent call to make, so the plugin arm is not quite the same treatment in both, and pooling them below is exploratory.</p>
+</section>
+<section id="sec-results" class="level1">
+<h1>Results</h1>
+<div id="tbl-ab" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: The bulk-discount A/B. <em>Cost</em>: per session, as reported by Claude Code, worker included; † marks the run that failed the check. <em>Turns</em>: median number of turns Claude Code reports for the session (<code>num_turns</code>). <em>Checks passed</em>: runs whose tests and hidden check passed. <em>Reads denied</em>: file reads the plugin’s hook blocked, per run. <em>Calls to Haiku</em>: delegations to the worker subagent. The control arm has no plugin, so it can neither be denied nor delegate (—).
+</figcaption>
+<div aria-describedby="tbl-ab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Campaign</th>
+<th>Arm</th>
+<th>Cost of each run</th>
+<th>Turns</th>
+<th>Checks passed</th>
+<th>Reads denied</th>
+<th>Calls to Haiku</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>without plugin</td>
+<td>$0.317, $0.449, $0.488</td>
+<td>18</td>
+<td>3/3</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>with plugin</td>
+<td>$0.357, $0.370, $0.402</td>
+<td>18</td>
+<td>3/3</td>
+<td>1, 2, 1</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td>without plugin</td>
+<td>$0.446†, $0.452, $0.486</td>
+<td>14</td>
+<td>2/3</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>with plugin</td>
+<td>$0.410, $0.415, $0.435</td>
+<td>17</td>
+<td>3/3</td>
+<td>1, 0, 1</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>pooled</td>
+<td>without plugin</td>
+<td>median $0.451</td>
+<td></td>
+<td>5/6</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>pooled</td>
+<td>with plugin</td>
+<td>median $0.406 (−10%)</td>
+<td></td>
+<td>6/6</td>
+<td>6 in total</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p><strong>Is −10% real?</strong> Not established. Runs of the same arm vary by about 11% in cost, as much as the gap between the arms. A standard test for small samples says that a gap like this one would appear about once in fifteen campaigns even if the plugin did nothing (<span class="math inline">\(p \approx 0.07\)</span>): suggestive, not conclusive. To detect a 10% effect reliably at this level of noise would take about twenty runs per arm, not six. <a href="#sec-appendix-test" class="quarto-xref">Section&nbsp;7.2</a> and <a href="#sec-appendix-power" class="quarto-xref">Section&nbsp;7.3</a> explain both numbers.</p>
+<p>The one failed run, an expensive control, stays in the comparison: dropping it would mean choosing which runs count after seeing them. One failure in twelve runs says nothing about success rates either.</p>
+<p><strong>Where any saving comes from.</strong> Not from Haiku: in the six runs with the plugin, the model never delegated. The hook did fire, six denials in six runs, and after each one the model took another option from the denial message: a <code>grep</code>, then <code>sed -n</code> or a windowed <code>Read</code> on the lines it needed. The message is a menu of three options, and the second says a window of at most 350 lines is always allowed, “and you need one anyway before editing”. On a task whose point is to edit the files, that option dominates delegation. The mechanism itself works: in a separate smoke run the model delegated as instructed and Haiku answered correctly.</p>
+<p>If there is an effect, it comes from the plugin’s presence: the denials, and the subagent descriptions loaded into every session, which tell the model not to read big files directly. Both push towards targeted reads. The two are hard to separate here, but there is a hint for the descriptions. In campaign 2 every plugin run began by sizing the files (<code>xargs wc -l</code>), before any denial, while every control run began by dumping the whole package. And one plugin run was never denied at all, yet cost less than every control run of its campaign.</p>
+<p>One limit of the task: the package is generated, with a long catalog and many similar functions. Such files can be understood from a few targeted reads, so the task tests behaviour on large files more than a genuine need to grasp a whole file, which is where a worker would earn its keep.</p>
+</section>
+<section id="sec-lessons" class="level1">
+<h1>What this says about evaluating agents</h1>
+<p><strong>Choose the metric that matches the decision.</strong> Tokens kept out of the main context are easy to count and are what the design optimises, which is why they flatter it. Whether to install the plugin depends on the cost of a finished task, worker included, at real cache prices, alongside latency and quality. Spotify’s economics may also differ from mine: their worker runs on their own platform, at a price I do not know, and the plugin may serve other goals, such as keeping data on internal infrastructure.</p>
+<p><strong>Size the experiment before running it.</strong> Runs of the same agent on the same task vary by about 11% in cost here, so a 10% effect needs about twenty runs per arm, not six. Without that computation, a −10% median becomes a headline or gets dismissed, when the honest reading is “not enough data”.</p>
+<p><strong>Measure behaviour, not only the mechanism.</strong> Every component worked in isolation, and on a real task the model routed around the one that mattered. A hook changes what the model sees; the model decides what to do with it.</p>
+<p><strong>Know what cannot be enforced.</strong> The control runs opened the package with commands like <code>cat inv/*.py</code> or <code>git ls-files | xargs tail -n +1</code>. Globs, loops and <code>xargs</code> hide the file names from the hook, and a hook strict enough to catch them would block ordinary shell work. Much of the plugin’s code chases these leaks, to protect a saving this experiment could not establish.</p>
+</section>
+<section id="recommendation" class="level1">
+<h1>Recommendation</h1>
+<p>The cheapest thing to try is no plugin at all: a line in <code>CLAUDE.md</code> asking the model to use <code>grep</code> and windowed reads on large files. If the plugin’s effect really is steering, that line may capture most of it. I have not measured it; it is the third arm of the next A/B. If you work daily with very large files (logs, generated JSON, ten thousand lines and more), the saving per read is larger, and a minimal version is worth having: the <code>Read</code> hook with a high threshold and the worker, without the shell parsing.</p>
+<p>The code, the benchmark and the cost model are on GitHub at <a href="https://github.com/nbrosse/haiku-shunt">haiku-shunt</a>.</p>
+</section>
+<section id="sec-appendix" class="level1">
+<h1>Appendix: the numbers behind the post</h1>
+<section id="sec-appendix-cost" class="level2">
+<h2 class="anchored" data-anchor-id="sec-appendix-cost">The cost model</h2>
+<p>Prices are written as multiples of the parent’s input price <span class="math inline">\(P_\text{in}\)</span>, in dollars per million tokens. Two of them matter: <span class="math inline">\(w\)</span>, the price of writing to the cache, and <span class="math inline">\(r\)</span>, the price of reading from it. Claude Code’s main session uses the one-hour cache, so <span class="math inline">\(w = 2\)</span>; its subagents use the five-minute cache, at 1.25. The read price <span class="math inline">\(r\)</span> is 0.10 for most models and 0.05 for Opus 5.5.</p>
+<p>A file of <span class="math inline">\(T\)</span> tokens that enters the parent’s context is written to the cache once, then sent again on each of the <span class="math inline">\(R\)</span> turns that follow. Each re-send is either a cache hit, paid <span class="math inline">\(r\)</span>, or a miss, which Claude Code turns into a new cache write, paid <span class="math inline">\(w\)</span>. With a hit rate <span class="math inline">\(h\)</span>, one re-send costs on average</p>
+<p><span class="math display">\[
+\mu = r\,h + w\,(1-h),
+\]</span></p>
+<p>and keeping the file out of the parent avoids</p>
+<p><span class="math display">\[
+C_\text{avoided} = \frac{T \, P_\text{in} \, (w + \mu R)}{10^6}.
+\]</span></p>
+<p>The worked example in <a href="#sec-metric" class="quarto-xref">Section&nbsp;2</a> is this formula with <span class="math inline">\(T = 4{,}500\)</span>, <span class="math inline">\(P_\text{in} = 4\)</span>, <span class="math inline">\(w = 2\)</span>, <span class="math inline">\(r = 0.05\)</span>, <span class="math inline">\(R = 17\)</span>. With <span class="math inline">\(h = 1\)</span>, <span class="math inline">\(\mu = r = 0.05\)</span> and <span class="math inline">\(C_\text{avoided} \approx \$0.05\)</span>; with <span class="math inline">\(h = 0.9\)</span>, <span class="math inline">\(\mu = 0.245\)</span> and <span class="math inline">\(C_\text{avoided} \approx \$0.11\)</span>. Misses weigh heavily because a miss costs 40 times a hit.</p>
+<p>The worker has its own cost. Before it reads anything it writes its system prompt, <span class="math inline">\(F \approx 14{,}600\)</span> tokens, to its cache at <span class="math inline">\(w_H = 1.25\)</span> times Haiku’s input price <span class="math inline">\(H_\text{in} = \$1\)</span>; then it writes the file the same way, and answers in about <span class="math inline">\(A = 500\)</span> tokens at Haiku’s output price <span class="math inline">\(H_\text{out} = \$5\)</span>:</p>
+<p><span class="math display">\[
+C_\text{worker} = \frac{(F + T)\, w_H H_\text{in} + A\, H_\text{out}}{10^6}.
+\]</span></p>
+<p>The fixed part, <span class="math inline">\((F\,w_H H_\text{in} + A\,H_\text{out})/10^6\)</span>, is the $0.02 per delegation quoted above. Delegation pays when <span class="math inline">\(C_\text{avoided} &gt; C_\text{worker}\)</span>, that is for files larger than</p>
+<p><span class="math display">\[
+T^* = \frac{F\, w_H H_\text{in} + A\, H_\text{out}}{P_\text{in}\,(w + \mu R) - w_H H_\text{in}}.
+\]</span></p>
+<p>With <span class="math inline">\(R = 12\)</span> and <span class="math inline">\(h = 0.9\)</span>, this gives about 1,100 tokens for Opus 5.5 (<span class="math inline">\(P_\text{in} = 4\)</span>, <span class="math inline">\(r = 0.05\)</span>) and 2,100 for Sonnet 5 (<span class="math inline">\(P_\text{in} = 2\)</span>, <span class="math inline">\(r = 0.10\)</span>). <code>haiku-shunt doctor</code> prints these values.</p>
+<p>The model covers input cost only, everything else held fixed. A parent that sees less may also write, call tools and make mistakes differently. The break-even also leaves out the worker’s answer, which in turn rides in the parent’s context on later turns, so it is slightly optimistic.</p>
+</section>
+<section id="sec-appendix-test" class="level2">
+<h2 class="anchored" data-anchor-id="sec-appendix-test">Is −10% distinguishable from noise?</h2>
+<div id="fig-ab" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/ab-cost.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: Cost of each session. Vertical bars are the median of each arm, over both campaigns."><img src="figures/ab-cost.svg" class="img-fluid figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ab-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Cost of each session. Vertical bars are the median of each arm, over both campaigns.
+</figcaption>
+</figure>
+</div>
+<p>The question a test answers is: if the plugin had no effect at all, how surprising would these twelve costs be? Without an effect, the labels “with plugin” and “without plugin” carry no information. The cost of a run would be the same whichever arm it ran in, and any split of the twelve costs into two groups of six would have been as likely as the one observed. There are <span class="math inline">\(\binom{12}{6} = 924\)</span> such splits.</p>
+<p>To measure how lopsided a split is, pair each run of one group with each run of the other, 36 pairs, and count the pairs in which the “with plugin” run is cheaper. Call that count <span class="math inline">\(U\)</span>. It ranges from 0 to 36, and an arm with no effect gives about 18. In the actual data <span class="math inline">\(U = 30\)</span>: only the $0.317 control run beats any plugin run (<a href="#fig-ab" class="quarto-xref">Figure&nbsp;1</a>).</p>
+<p>Going through all 924 splits, 30 give <span class="math inline">\(U \geq 30\)</span>, and by symmetry 30 give <span class="math inline">\(U \leq 6\)</span>, a gap as large in the other direction. So <span class="math inline">\(60 / 924 \approx 0.065\)</span> of the splits are at least as lopsided as the data. That fraction is the <span class="math inline">\(p\)</span>-value of the exact two-sided Mann–Whitney test. It is not the probability that the plugin has no effect. It is the probability of data this lopsided <em>if</em> it had none. The usual convention calls a result significant below 0.05; 0.065 is close, on a handful of runs.</p>
+<p>The test uses only the order of the costs, not their values. With six runs per arm that is a strength: it makes no assumption about the shape of the noise, and the $0.317 run counts as “the cheapest”, however far below the others it is.</p>
+<p>Pooling the two campaigns mixes two versions of the plugin. The same test can be run within each campaign: there are <span class="math inline">\(\binom{6}{3} = 20\)</span> splits per campaign, so <span class="math inline">\(20 \times 20 = 400\)</span> combinations, and the statistic is the sum of the two <span class="math inline">\(U\)</span>s, from 0 to 18. The data give <span class="math inline">\(6 + 9 = 15\)</span>: three runs out of nine pairs reversed in campaign 1, none in campaign 2. A sum at least as far from 9 occurs in 36 of the 400 combinations, so <span class="math inline">\(p = 0.09\)</span>. Respecting the change of treatment makes the evidence slightly weaker, not stronger.</p>
+</section>
+<section id="sec-appendix-power" class="level2">
+<h2 class="anchored" data-anchor-id="sec-appendix-power">How many runs would be needed</h2>
+<p>Before running a campaign, one can ask how many runs it takes to detect an effect of a given size. The answer depends on two numbers: the effect <span class="math inline">\(\delta\)</span> one hopes to see, here 10% of the control cost, and the noise <span class="math inline">\(\sigma\)</span>, the standard deviation of the cost between runs of the same arm.</p>
+<p><strong>The noise.</strong> In the data, <span class="math inline">\(\sigma\)</span> is 14% of the control mean without the plugin and 7% with it; combined, <span class="math inline">\(\sqrt{(14^2 + 7^2)/2} \approx 11\%\)</span>. Twelve runs give only a rough estimate: without the $0.317 run, the control spread would be much smaller.</p>
+<p><strong>The formula.</strong> Compare the mean cost of <span class="math inline">\(n\)</span> runs per arm. Each mean has a standard deviation of <span class="math inline">\(\sigma / \sqrt{n}\)</span>, so their difference has a standard deviation of <span class="math inline">\(\sigma \sqrt{2/n}\)</span>. A test at the 5% level declares an effect when the observed difference exceeds <span class="math inline">\(1.96\)</span> of these standard deviations. For a true effect <span class="math inline">\(\delta\)</span> to be declared at least 80% of the time, <span class="math inline">\(\delta\)</span> must sit another <span class="math inline">\(0.84\)</span> standard deviations above that threshold, since 80% of a normal distribution lies above <span class="math inline">\(-0.84\)</span>. Hence</p>
+<p><span class="math display">\[
+\delta = (1.96 + 0.84)\,\sigma\sqrt{2/n}
+\quad\Longrightarrow\quad
+n = 2\,(1.96 + 0.84)^2 \left(\frac{\sigma}{\delta}\right)^2 \approx 15.7 \left(\frac{\sigma}{\delta}\right)^2 .
+\]</span></p>
+<p><strong>The numbers.</strong> With <span class="math inline">\(\sigma / \delta = 11\% / 10\%\)</span>, <span class="math inline">\(n \approx 15.7 \times 1.21 \approx 20\)</span> runs per arm. Read the other way, six runs per arm detect reliably only an effect of <span class="math inline">\(2.80 \times 11\% \times \sqrt{2/6} \approx 18\%\)</span>. A 10% effect may still show up in six runs, as it may have here, but more often it would not. The estimate is sensitive to the noise: with <span class="math inline">\(\sigma = 14\%\)</span>, the control arm’s value, it becomes about 31 runs per arm.</p>
+<p>The formula assumes normally distributed costs and a comparison of means. The rank test above is slightly less efficient when the noise is normal, by about 5%, so it needs a run or two more. That is an order of magnitude, which is all a plan needs.</p>
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2026,
+  author = {Brosse, Nicolas},
+  title = {Tokens Saved Are Not Dollars Saved: An {A/B} Test of a
+    {Claude} {Code} Context Shunt},
+  date = {2026-10-13},
+  url = {https://nbrosse.github.io/posts/haiku-shunt/haiku-shunt.html},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Brosse, Nicolas. 2026. <span>“Tokens Saved Are Not Dollars Saved: An A/B
+Test of a Claude Code Context Shunt.”</span> October 13. <a href="https://nbrosse.github.io/posts/haiku-shunt/haiku-shunt.html">https://nbrosse.github.io/posts/haiku-shunt/haiku-shunt.html</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/nbrosse\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+</body></html>
