@@ -15,7 +15,7 @@
 <link>https://nbrosse.github.io/</link>
 </image>
 <generator>quarto-1.10.18</generator>
-<lastBuildDate>Mon, 12 Oct 2026 22:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 13 Oct 2026 00:00:00 GMT</lastBuildDate>
 <item>
   <title>Tokens saved are not dollars saved: an A/B test of a Claude Code context shunt</title>
   <dc:creator>Nicolas Brosse</dc:creator>
@@ -25,7 +25,7 @@
   <category>agents</category>
   <category>evaluation</category>
   <guid>https://nbrosse.github.io/posts/haiku-shunt/haiku-shunt.html</guid>
-  <pubDate>Mon, 12 Oct 2026 22:00:00 GMT</pubDate>
+  <pubDate>Tue, 13 Oct 2026 00:00:00 GMT</pubDate>
   <media:content url="https://nbrosse.github.io/posts/haiku-shunt/figures/card.png" medium="image" type="image/png" height="76" width="144"/>
 </item>
 <item>
@@ -36,7 +36,7 @@
   <category>AI for mathematics</category>
   <category>agents</category>
   <guid>https://nbrosse.github.io/posts/human-ai-mathematics/human-ai-mathematics.html</guid>
-  <pubDate>Thu, 08 Oct 2026 22:00:00 GMT</pubDate>
+  <pubDate>Fri, 09 Oct 2026 00:00:00 GMT</pubDate>
   <media:content url="https://nbrosse.github.io/posts/human-ai-mathematics/figures/card.png" medium="image" type="image/png" height="76" width="144"/>
 </item>
 <item>
@@ -47,7 +47,7 @@
   <category>asymptotics</category>
   <category>diffusion models</category>
   <guid>https://nbrosse.github.io/posts/boundary-layer/boundary-layer.html</guid>
-  <pubDate>Tue, 25 Aug 2026 22:00:00 GMT</pubDate>
+  <pubDate>Wed, 26 Aug 2026 00:00:00 GMT</pubDate>
   <media:content url="https://nbrosse.github.io/posts/boundary-layer/figures/heat-density-grid.jpg" medium="image" type="image/jpeg"/>
 </item>
 <item>
@@ -58,7 +58,7 @@
   <category>deep learning</category>
   <category>flow matching</category>
   <guid>https://nbrosse.github.io/posts/posterior-concentration/posterior-concentration.html</guid>
-  <pubDate>Sun, 19 Jul 2026 22:00:00 GMT</pubDate>
+  <pubDate>Mon, 20 Jul 2026 00:00:00 GMT</pubDate>
   <media:content url="https://nbrosse.github.io/posts/posterior-concentration/figures/eigenvalues-cifar10.png" medium="image" type="image/png" height="90" width="144"/>
 </item>
 <item>
@@ -69,7 +69,7 @@
   <category>deep learning</category>
   <category>flow matching</category>
   <guid>https://nbrosse.github.io/posts/posterior-averaging/posterior-averaging.html</guid>
-  <pubDate>Mon, 11 May 2026 22:00:00 GMT</pubDate>
+  <pubDate>Tue, 12 May 2026 00:00:00 GMT</pubDate>
   <media:content url="https://nbrosse.github.io/posts/posterior-averaging/figures/card.png" medium="image" type="image/png" height="76" width="144"/>
 </item>
 <item>
@@ -80,7 +80,7 @@
   <category>machine learning</category>
   <category>chemistry</category>
   <guid>https://nbrosse.github.io/posts/raman/raman.html</guid>
-  <pubDate>Sat, 17 Jan 2026 23:00:00 GMT</pubDate>
+  <pubDate>Sun, 18 Jan 2026 00:00:00 GMT</pubDate>
   <media:content url="https://nbrosse.github.io/posts/raman/figures/raman-spectrum-example.png" medium="image" type="image/png" height="58" width="144"/>
 </item>
 <item>
@@ -90,7 +90,7 @@
   <description><![CDATA[ One real presentation, four formats, one model: what Gemini 2.5 Pro actually produces when asked to rebuild an EDF producer booklet in HTML/CSS, Quarto/Reveal.js, the Google Slides API, and python-pptx — and why the failures in the API-driven formats are silent ones. ]]></description>
   <category>LLM</category>
   <guid>https://nbrosse.github.io/posts/llm-slides/llm-slides.html</guid>
-  <pubDate>Thu, 14 Aug 2025 22:00:00 GMT</pubDate>
+  <pubDate>Fri, 15 Aug 2025 00:00:00 GMT</pubDate>
   <media:content url="https://nbrosse.github.io/posts/llm-slides/figures/card.png" medium="image" type="image/png" height="76" width="144"/>
 </item>
 <item>
@@ -101,7 +101,7 @@
   <category>LLM</category>
   <category>python</category>
   <guid>https://nbrosse.github.io/posts/llm-observability/llm-observability.html</guid>
-  <pubDate>Sun, 29 Jun 2025 22:00:00 GMT</pubDate>
+  <pubDate>Mon, 30 Jun 2025 00:00:00 GMT</pubDate>
   <media:content url="https://nbrosse.github.io/posts/llm-observability/figures/langfuse_trace.png" medium="image" type="image/png" height="118" width="144"/>
 </item>
 <item>
@@ -113,7 +113,7 @@
   <category>LLM</category>
   <category>RAG</category>
   <guid>https://nbrosse.github.io/posts/pdf-rag/pdf-rag.html</guid>
-  <pubDate>Wed, 19 Mar 2025 23:00:00 GMT</pubDate>
+  <pubDate>Thu, 20 Mar 2025 00:00:00 GMT</pubDate>
   <media:content url="https://nbrosse.github.io/posts/pdf-rag/figures/card.png" medium="image" type="image/png" height="76" width="144"/>
 </item>
 <item>
@@ -124,7 +124,7 @@
   <category>document AI</category>
   <category>LLM</category>
   <guid>https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html</guid>
-  <pubDate>Mon, 17 Feb 2025 23:00:00 GMT</pubDate>
+  <pubDate>Tue, 18 Feb 2025 00:00:00 GMT</pubDate>
   <media:content url="https://nbrosse.github.io/posts/pdf-parsing/figures/tbm04.png" medium="image" type="image/png" height="87" width="144"/>
 </item>
 <item>
@@ -135,7 +135,7 @@
   <category>deep learning</category>
   <category>biology</category>
   <guid>https://nbrosse.github.io/posts/mhc/mhc.html</guid>
-  <pubDate>Wed, 05 Feb 2025 23:00:00 GMT</pubDate>
+  <pubDate>Thu, 06 Feb 2025 00:00:00 GMT</pubDate>
   <media:content url="https://nbrosse.github.io/posts/mhc/figures/card.png" medium="image" type="image/png" height="76" width="144"/>
 </item>
 <item>
@@ -146,7 +146,7 @@
   <category>deep learning</category>
   <category>biology</category>
   <guid>https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html</guid>
-  <pubDate>Tue, 23 Apr 2024 22:00:00 GMT</pubDate>
+  <pubDate>Wed, 24 Apr 2024 00:00:00 GMT</pubDate>
   <media:content url="https://nbrosse.github.io/posts/encoding-distances/figures/overview-unimol.png" medium="image" type="image/png" height="68" width="144"/>
 </item>
 </channel>
