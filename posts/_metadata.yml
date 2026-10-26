@@ -8,8 +8,9 @@ execute:
 # Enable banner style title blocks
 title-block-banner: true
 
-# citation
+# citation; google-scholar adds the citation_* meta tags read by Google Scholar and Zotero
 citation: true
+google-scholar: true
 
 # no "Source" link under embedded notebook cells: each post links to its code repository
 notebook-links: false
