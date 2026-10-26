@@ -31,13 +31,13 @@
 <item>
   <title>AI agents on the KLS conjecture: a search mathematicians can trust and join</title>
   <dc:creator>Nicolas Brosse</dc:creator>
-  <link>https://nbrosse.github.io/posts/human-ai-mathematics/human-ai-mathematics.html</link>
-  <description><![CDATA[ AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running. ]]></description>
+  <link>https://nbrosse.github.io/posts/kls-conjecture-search/kls-conjecture-search.html</link>
+  <description><![CDATA[ AI agents can now produce more mathematics than anyone can check. Conjecture search is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running. ]]></description>
   <category>AI for mathematics</category>
   <category>agents</category>
-  <guid>https://nbrosse.github.io/posts/human-ai-mathematics/human-ai-mathematics.html</guid>
+  <guid>https://nbrosse.github.io/posts/kls-conjecture-search/kls-conjecture-search.html</guid>
   <pubDate>Fri, 09 Oct 2026 00:00:00 GMT</pubDate>
-  <media:content url="https://nbrosse.github.io/posts/human-ai-mathematics/figures/card.png" medium="image" type="image/png" height="76" width="144"/>
+  <media:content url="https://nbrosse.github.io/posts/kls-conjecture-search/figures/card.png" medium="image" type="image/png" height="76" width="144"/>
 </item>
 <item>
   <title>Mills ratios on manifolds: what Gaussian smoothing sees near a boundary</title>

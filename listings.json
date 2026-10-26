@@ -3,7 +3,7 @@
     "listing": "/blog.html",
     "items": [
       "/posts/haiku-shunt/haiku-shunt.html",
-      "/posts/human-ai-mathematics/human-ai-mathematics.html",
+      "/posts/kls-conjecture-search/kls-conjecture-search.html",
       "/posts/boundary-layer/boundary-layer.html",
       "/posts/posterior-concentration/posterior-concentration.html",
       "/posts/posterior-averaging/posterior-averaging.html",
@@ -20,7 +20,7 @@
     "listing": "/index.html",
     "items": [
       "/posts/haiku-shunt/haiku-shunt.html",
-      "/posts/human-ai-mathematics/human-ai-mathematics.html",
+      "/posts/kls-conjecture-search/kls-conjecture-search.html",
       "/posts/boundary-layer/boundary-layer.html",
       "/posts/posterior-concentration/posterior-concentration.html",
       "/posts/posterior-averaging/posterior-averaging.html",
