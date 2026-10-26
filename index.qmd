@@ -23,8 +23,9 @@ processing at Thales, drug discovery at Iktos, foundation models for biology at 
 and GenBio AI — and LLM systems as a freelancer. I am now a postdoctoral researcher at
 CREST with Arnak Dalalyan, working on two things: the mathematics of generative models,
 and human–AI collaboration in mathematical research, through
-[Human–AI Mathematics](https://human-ai-mathematics.github.io/), an open framework in
-which AI agents search for and cross-review proofs that mathematicians can check. What I
+[Human–AI Mathematics](https://human-ai-mathematics.github.io/): a map of the tools
+for mathematics with AI, and an open framework in which AI agents search for and
+cross-review proofs that mathematicians can check. What I
 care about is taking an idea from paper to working system, and measuring whether it
 actually works.
 

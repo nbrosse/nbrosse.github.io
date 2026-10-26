@@ -6,11 +6,15 @@ description: "Code, tools and demos: AI for mathematics, generative models, ML f
 ## AI for mathematics
 
 **[Human–AI Mathematics](https://human-ai-mathematics.github.io/)**\
-An open framework for mathematical research with AI agents, in which a claim counts as
-proved only after an independent review. Its first case study is a
+An initiative on mathematics done with AI, with two parts:
+[a landscape](https://human-ai-mathematics.github.io/landscape/survey.html) of about 150
+projects for mathematics with AI, and
+[conjecture search](https://human-ai-mathematics.github.io/conjecture-search/), an open
+framework for research with AI agents in which a claim counts as proved only after an
+independent review. Its first case study is a
 [manuscript](https://human-ai-mathematics.github.io/kls-conjecture-search/) that
 reconstructs and compares the three proofs of the KLS conjecture.
-[Post](posts/human-ai-mathematics/human-ai-mathematics.qmd)
+[Post](posts/kls-conjecture-search/kls-conjecture-search.qmd)
 
 **[latexfmt](https://github.com/nbrosse/latexfmt)**\
 A LaTeX formatter that understands mathematics.

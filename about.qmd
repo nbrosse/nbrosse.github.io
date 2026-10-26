@@ -36,9 +36,10 @@ working with Arnak Dalalyan. My research has two strands. The first is the mathe
 generative models: how diffusion and flow matching models behave in the small-noise
 regime, and how their samplers propagate errors. The second is human–AI collaboration in
 mathematical research. I designed and built
-[Human–AI Mathematics](https://human-ai-mathematics.github.io/), an open framework in
-which AI agents search for and cross-review proofs, and every claim they certify can be
-checked by a mathematician.
+[Human–AI Mathematics](https://human-ai-mathematics.github.io/), which maps the tools for
+mathematics with AI and develops conjecture search, an open framework in which AI agents
+search for and cross-review proofs, and every claim they certify can be checked by a
+mathematician.
 
 I came to this from both research and industry. After a PhD in statistics at
 École Polytechnique on Langevin sampling, and an internship at Google Brain, I spent six
