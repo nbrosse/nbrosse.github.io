@@ -21,5 +21,8 @@ cards (`social-card.png`, `posts/*/figures/card.png`) are built by `tools/make_c
 ```bash
 quarto preview            # local preview on port 1234
 quarto render             # build into _site/
-quarto publish gh-pages   # deploy
+quarto publish gh-pages   # manual deploy
 ```
+
+A push to `main` deploys automatically: `.github/workflows/publish.yml` renders the site and
+publishes it to the `gh-pages` branch. Pull requests are rendered but not published.
