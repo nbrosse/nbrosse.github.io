@@ -19,12 +19,14 @@ An up-to-date list is on
 
 **[Human–AI Mathematics](https://human-ai-mathematics.github.io/)**\
 N. Brosse, J. Li, Y. Lyu · 2026 · supported by Project Numina\
-An open framework for mathematical research done by humans and AI agents together.
-Its first tool, [conjecture search](https://human-ai-mathematics.github.io/conjecture-search/),
-organizes many agents over many sessions around one statement, and moves a claim to
-proved or refuted only through an independent review or a named person's acceptance.
+An initiative on mathematical research done by humans and AI agents together, with two
+parts. [The landscape](https://human-ai-mathematics.github.io/landscape/survey.html) maps
+about 150 projects for mathematics with AI in five layers, from sources to communication.
+[Conjecture search](https://human-ai-mathematics.github.io/conjecture-search/) organizes
+many agents over many sessions around one statement, and moves a claim to proved or
+refuted only through an independent review or a named person's acceptance.
 [Template](https://github.com/human-ai-mathematics/conjecture-search-template) ·
-[blog post](posts/human-ai-mathematics/human-ai-mathematics.qmd)
+[blog post](posts/kls-conjecture-search/kls-conjecture-search.qmd)
 
 **The KLS theorem and its methods**\
 N. Brosse and the Numina Collaboration · 2026\

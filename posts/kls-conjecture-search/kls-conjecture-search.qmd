@@ -3,19 +3,21 @@ title: "AI agents on the KLS conjecture: a search mathematicians can trust and j
 author: "Nicolas Brosse"
 date: "2026-10-09"
 categories: [AI for mathematics, agents]
-description: "AI agents can now produce more mathematics than anyone can check. Human–AI Mathematics is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running."
+description: "AI agents can now produce more mathematics than anyone can check. Conjecture search is an open framework with two aims: a structure that keeps an agent-driven search traceable, where a claim moves to proved only through an independent review of its exact text, and a manuscript that mathematicians can read, check and contribute to. Its first case study is the KLS conjecture, which three teams proved while the search was running."
 image: figures/card.png
 image-alt: "Human–AI Mathematics logo: an orange and white infinity symbol on a dark blue disc."
 lightbox: true
+aliases:
+  - /posts/human-ai-mathematics/human-ai-mathematics.html
 citation:
-  url: https://nbrosse.github.io/posts/human-ai-mathematics/human-ai-mathematics.html
+  url: https://nbrosse.github.io/posts/kls-conjecture-search/kls-conjecture-search.html
 ---
 
 In the first week of October 2026, the Kannan–Lovász–Simonovits (KLS) conjecture was proved three times. Three teams, each working with frontier AI models, reached independent proofs within days of one another: Bizeul–Klartag–Lehec ([arXiv:2610.05474](https://arxiv.org/abs/2610.05474)), Song–Zhang in the [second version](https://arxiv.org/abs/2610.01447v2) of a preprint whose first version had stopped at an iterated-logarithm bound, and Balasubramanian–Kasiviswanathan ([arXiv:2610.07728](https://arxiv.org/abs/2610.07728)).
 
 Since June, I had been running a search on the same conjecture, with AI agents, as a testbed for a different question: not *can agents do mathematics*, but *how do you trust what they produce, and how does a mathematician read it and take part?* The conjecture was solved elsewhere, and that is good news. The search was not wasted: within two days of each preprint, its proof had been rebuilt in the search's own format and certified there, and the result is now a [manuscript](https://human-ai-mathematics.github.io/kls-conjecture-search/) that reconstructs and compares the three proofs.
 
-This post is about the framework that came out of it, [Human–AI Mathematics](https://human-ai-mathematics.github.io/). It is a proof of concept: a first proposal, meant to evolve as it is used. Human–AI Mathematics is built with Jia Li and Yuwei Lyu, and supported by [Project Numina](https://projectnumina.ai/).
+This post is about the framework that came out of it, [conjecture search](https://human-ai-mathematics.github.io/conjecture-search/). It is a proof of concept: a first proposal, meant to evolve as it is used. It is built with Jia Li and Yuwei Lyu within [Human–AI Mathematics](https://human-ai-mathematics.github.io/), and supported by [Project Numina](https://projectnumina.ai/).
 
 # The problem is volume {#sec-problem}
 
@@ -27,7 +29,7 @@ AI agents now produce mathematical work on a hard question faster than anyone ca
 
 The three proofs of KLS show the problem at a larger scale. Three independent proofs are worth more than one, but what led to them stays private: Song and Zhang report [exploring more than 100 approaches](https://arxiv.org/abs/2610.01447v2) with AI tools before finding theirs, and none of the three papers records which routes failed, or why.
 
-The first tool of the framework, [conjecture search](https://human-ai-mathematics.github.io/conjecture-search/), proves or refutes one hard statement over many sessions and many agents. It answers the first two problems with a structure agents can be trusted with, and the third with a search mathematicians can join.
+Conjecture search proves or refutes one hard statement over many sessions and many agents. It answers the first two problems with a structure agents can be trusted with, and the third with a search mathematicians can join.
 
 # A structure agents can be trusted with {#sec-structure}
 
