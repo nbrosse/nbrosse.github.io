@@ -2,70 +2,74 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://nbrosse.github.io/research.html</loc>
-    <lastmod>2026-10-26T09:35:35.600Z</lastmod>
+    <lastmod>2026-11-17T12:21:36.669Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/raman/raman.html</loc>
-    <lastmod>2026-10-26T09:35:35.597Z</lastmod>
+    <lastmod>2026-11-17T12:21:36.667Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/posterior-averaging/posterior-averaging.html</loc>
-    <lastmod>2026-10-26T09:35:35.582Z</lastmod>
+    <lastmod>2026-11-17T12:21:36.649Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/pdf-parsing/pdf-parsing.html</loc>
-    <lastmod>2026-10-26T09:35:35.554Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/llm-slides/llm-slides.html</loc>
-    <lastmod>2026-10-26T09:35:35.533Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/kls-conjecture-search/kls-conjecture-search.html</loc>
-    <lastmod>2026-10-26T09:35:35.530Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html</loc>
-    <lastmod>2026-10-26T09:35:35.527Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/boundary-layer/boundary-layer.html</loc>
-    <lastmod>2026-10-26T09:35:35.516Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/blog.html</loc>
-    <lastmod>2026-10-26T09:35:35.514Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/about.html</loc>
-    <lastmod>2026-10-26T09:35:35.514Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/index.html</loc>
-    <lastmod>2026-10-26T09:35:35.514Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/haiku-shunt/haiku-shunt.html</loc>
-    <lastmod>2026-10-26T09:35:35.528Z</lastmod>
-  </url>
-  <url>
-    <loc>https://nbrosse.github.io/posts/llm-observability/llm-observability.html</loc>
-    <lastmod>2026-10-26T09:35:35.532Z</lastmod>
+    <lastmod>2026-11-17T12:21:36.617Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/mhc/mhc.html</loc>
-    <lastmod>2026-10-26T09:35:35.536Z</lastmod>
+    <lastmod>2026-11-17T12:21:36.594Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/llm-observability/llm-observability.html</loc>
+    <lastmod>2026-11-17T12:21:36.589Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/haiku-shunt/haiku-shunt.html</loc>
+    <lastmod>2026-11-17T12:21:36.585Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/index.html</loc>
+    <lastmod>2026-11-17T12:21:36.570Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/about.html</loc>
+    <lastmod>2026-11-17T12:21:36.569Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/blog.html</loc>
+    <lastmod>2026-11-17T12:21:36.569Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/boundary-layer/boundary-layer.html</loc>
+    <lastmod>2026-11-17T12:21:36.571Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/encoding-distances/unimol-gbf.html</loc>
+    <lastmod>2026-11-17T12:21:36.584Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/kls-conjecture-search/kls-conjecture-search.html</loc>
+    <lastmod>2026-11-17T12:21:36.587Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/llm-slides/llm-slides.html</loc>
+    <lastmod>2026-11-17T12:21:36.591Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nbrosse.github.io/posts/modelling-the-cell/modelling-the-cell.html</loc>
+    <lastmod>2026-11-17T12:21:36.596Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/pdf-rag/pdf-rag.html</loc>
-    <lastmod>2026-10-26T09:35:35.564Z</lastmod>
+    <lastmod>2026-11-17T12:21:36.629Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/posts/posterior-concentration/posterior-concentration.html</loc>
-    <lastmod>2026-10-26T09:35:35.585Z</lastmod>
+    <lastmod>2026-11-17T12:21:36.653Z</lastmod>
   </url>
   <url>
     <loc>https://nbrosse.github.io/projects.html</loc>
-    <lastmod>2026-10-26T09:35:35.600Z</lastmod>
+    <lastmod>2026-11-17T12:21:36.669Z</lastmod>
   </url>
 </urlset>

@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Nicolas Brosse">
+<meta name="dcterms.date" content="2026-11-17">
+<meta name="description" content="Notes from learning single-cell modelling: a course in French and English, a small study of whether perturbation benchmarks pick good experiments, and why I doubt scaling atlases alone will give a virtual cell.">
+
+<title>Does the benchmark pick the right experiments? Notes from learning single-cell modelling – Nicolas Brosse</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-e89d78258451fb351220702b86b1e5c8.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script data-goatcounter="https://nbrosse.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" type="application/rss+xml" title="Nicolas Brosse" href="https://nbrosse.github.io/index.xml">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Does the benchmark pick the right experiments? Notes from learning single-cell modelling – Nicolas Brosse">
+<meta property="og:description" content="Notes from learning single-cell modelling: a course in French and English, a small study of whether perturbation benchmarks pick good experiments, and why I doubt scaling atlases alone will give a virtual cell.">
+<meta property="og:image" content="https://nbrosse.github.io/posts/modelling-the-cell/figures/k562-hits.png">
+<meta property="og:site_name" content="Nicolas Brosse">
+<meta property="og:image:height" content="905">
+<meta property="og:image:width" content="1642">
+<meta property="og:image:alt" content="Bar chart of hits found among the 14 strongest K562 test perturbations: ridge-PCA (chosen by hit recall) and knn-PCA find 5, the STRING predictors 1 (knn-STRING is chosen by all five usual metrics), and ranking targets by their expression, with no model, also finds 5.">
+<meta name="twitter:title" content="Does the benchmark pick the right experiments? Notes from learning single-cell modelling – Nicolas Brosse">
+<meta name="twitter:description" content="Notes from learning single-cell modelling: a course in French and English, a small study of whether perturbation benchmarks pick good experiments, and why I doubt scaling atlases alone will give a virtual cell.">
+<meta name="twitter:image" content="https://nbrosse.github.io/posts/modelling-the-cell/figures/k562-hits.png">
+<meta name="twitter:image-height" content="905">
+<meta name="twitter:image-width" content="1642">
+<meta name="twitter:image:alt" content="Bar chart of hits found among the 14 strongest K562 test perturbations: ridge-PCA (chosen by hit recall) and knn-PCA find 5, the STRING predictors 1 (knn-STRING is chosen by all five usual metrics), and ranking targets by their expression, with no model, also finds 5.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="citation_title" content="Does the benchmark pick the right experiments? Notes from learning single-cell modelling">
+<meta name="citation_author" content="Nicolas Brosse">
+<meta name="citation_publication_date" content="2026-11-17">
+<meta name="citation_cover_date" content="2026-11-17">
+<meta name="citation_year" content="2026">
+<meta name="citation_online_date" content="2026-11-17">
+<meta name="citation_fulltext_html_url" content="https://nbrosse.github.io/posts/modelling-the-cell/modelling-the-cell.html">
+<meta name="citation_language" content="en">
+<meta name="citation_reference" content="citation_title=Deep-learning-based gene perturbation effect prediction does not yet outperform simple linear baselines;,citation_author=Constantin Ahlmann-Eltze;,citation_author=Wolfgang Huber;,citation_author=Simon Anders;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_issue=8;,citation_volume=22;,citation_journal_title=Nature Methods;">
+<meta name="citation_reference" content="citation_title=Benchmarking transcriptomics foundation models for perturbation analysis: One PCA still rules them all;,citation_author=I. Bendidi;,citation_author=Shawn Whitfield;,citation_author=Kian Kenyon-Dean;,citation_author=Hanene Ben Yedder;,citation_author=Yassir El Mesbahi;,citation_author=Emmanuel Noutahi;,citation_author=Alisandra K. Denton;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_fulltext_html_url=https://arxiv.org/abs/2410.13956;">
+<meta name="citation_reference" content="citation_title=A deep dive into single-cell RNA sequencing foundation models;,citation_author=Rebecca Boiarsky;,citation_author=Nalini Singh;,citation_author=Alejandro Buendia;,citation_author=Gad Getz;,citation_author=David Sontag;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_publisher=bioRxiv 2023.10.19.563100; later version in Nature Machine Intelligence;">
+<meta name="citation_reference" content="citation_title=scGPT: Toward building a foundation model for single-cell multi-omics using generative AI;,citation_author=Haotian Cui;,citation_author=Chloe Wang;,citation_author=Hassaan Maan;,citation_author=Kuan Pang;,citation_author=Fengning Luo;,citation_author=Nan Duan;,citation_author=Bo Wang;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_volume=21;,citation_journal_title=Nature Methods;">
+<meta name="citation_reference" content="citation_title=CZ CELLxGENE Discover: A single-cell data platform for scalable exploration, analysis and modeling of aggregated data;,citation_author=CZI Cell Science Program;,citation_author=others;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_issue=D1;,citation_volume=53;,citation_journal_title=Nucleic Acids Research;">
+<meta name="citation_reference" content="citation_title=Zero-shot evaluation reveals limitations of single-cell foundation models;,citation_author=Kasia Z. Kedzierska;,citation_author=Lorin Crawford;,citation_author=Ava P. Amini;,citation_author=Alex X. Lu;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_doi=10.1186/s13059-025-03574-x;,citation_journal_title=Genome Biology;">
+<meta name="citation_reference" content="citation_title=Diversity by design: Addressing mode collapse improves scRNA-seq perturbation modeling on well-calibrated metrics;,citation_author=Gabriel M. Mejia;,citation_author=Henry E. Miller;,citation_author=Francis J. A. Leblanc;,citation_author=Bo Wang;,citation_author=Brendan Swain;,citation_author=Lucas Paulo Lima Camillo;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_publisher=Preprint;">
+<meta name="citation_reference" content="citation_title=Deep learning perturbation models can outperform baselines on calibrated metrics;,citation_author=Henry E. Miller;,citation_author=Gabriel M. Mejia;,citation_author=Francis J. A. Leblanc;,citation_author=Brendan Swain;,citation_author=Bo Wang;,citation_author=Lucas Paulo Lima Camillo;,citation_publication_date=2026;,citation_cover_date=2026;,citation_year=2026;,citation_doi=10.1038/s41587-026-03307-w;,citation_journal_title=Nature Biotechnology;">
+<meta name="citation_reference" content="citation_title=Mapping information-rich genotype-phenotype landscapes with genome-scale Perturb-seq;,citation_author=Joseph M. Replogle;,citation_author=Reuben A. Saunders;,citation_author=Angela N. Pogson;,citation_author=Jeffrey A. Hussmann;,citation_author=others;,citation_author=Jonathan S. Weissman;,citation_publication_date=2022;,citation_cover_date=2022;,citation_year=2022;,citation_issue=14;,citation_volume=185;,citation_journal_title=Cell;">
+<meta name="citation_reference" content="citation_title=Virtual cell challenge: Toward a Turing test for the virtual cell;,citation_author=Yusuf H. Roohani;,citation_author=others;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_journal_title=Cell;">
+<meta name="citation_reference" content="citation_title=Transfer learning enables predictions in network biology;,citation_author=Christina V. Theodoris;,citation_author=Ling Xiao;,citation_author=Anant Chopra;,citation_author=Mark D. Chaffin;,citation_author=Zeina R. Al Sayed;,citation_author=others;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_volume=618;,citation_journal_title=Nature;">
+<meta name="citation_reference" content="citation_title=Systema: A framework for evaluating genetic perturbation response prediction beyond systematic variation;,citation_author=Ramon Viñas Torné;,citation_author=Maciej Wiatrak;,citation_author=Zoe Piran;,citation_author=others;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_doi=10.1038/s41587-025-02777-8;,citation_journal_title=Nature Biotechnology;">
+<meta name="citation_reference" content="citation_title=Simple controls exceed best deep learning algorithms and reveal foundation model effectiveness for predicting genetic perturbations;,citation_author=Daniel R. Wong;,citation_author=Abby S. Hill;,citation_author=Rob Moccia;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_issue=6;,citation_volume=41;,citation_journal_title=Bioinformatics;">
+<meta name="citation_reference" content="citation_title=Tahoe-100M: A giga-scale single-cell perturbation atlas for context-dependent gene function and cellular modeling;,citation_author=Jesse Zhang;,citation_author=others;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_publisher=bioRxiv 2025.02.20.639398;">
+<meta name="citation_reference" content="citation_title=scPerturb: Harmonized single-cell perturbation data;,citation_author=Stefan Peidli;,citation_author=Tessa D. Green;,citation_author=Ciyue Shen;,citation_author=Torsten Gross;,citation_author=Joseph Min;,citation_author=Samuele Garda;,citation_author=Bo Yuan;,citation_author=Linus J. Schumacher;,citation_author=Jake P. Taylor-King;,citation_author=Debora S. Marks;,citation_author=Augustin Luna;,citation_author=Nils Blüthgen;,citation_author=Chris Sander;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_issue=3;,citation_doi=10.1038/s41592-023-02144-y;,citation_volume=21;,citation_journal_title=Nature Methods;">
+<meta name="citation_reference" content="citation_title=The STRING database in 2023: Protein–protein association networks and functional enrichment analyses for any sequenced genome of interest;,citation_author=Damian Szklarczyk;,citation_author=Rebecca Kirsch;,citation_author=Mikaela Koutrouli;,citation_author=Katerina Nastou;,citation_author=Farrokh Mehryary;,citation_author=Radja Hachilif;,citation_author=Annika L. Gable;,citation_author=Tao Fang;,citation_author=Nadezhda T. Doncheva;,citation_author=Sampo Pyysalo;,citation_author=Peer Bork;,citation_author=Lars J. Jensen;,citation_author=Christian Mering;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_issue=D1;,citation_doi=10.1093/nar/gkac1000;,citation_volume=51;,citation_journal_title=Nucleic Acids Research;">
+<meta name="citation_reference" content="citation_title=The bitter lesson;,citation_author=Richard Sutton;,citation_publication_date=2019;,citation_cover_date=2019;,citation_year=2019;,citation_fulltext_html_url=http://www.incompleteideas.net/IncIdeas/BitterLesson.html;">
+<meta name="citation_reference" content="citation_title=Highly accurate protein structure prediction with AlphaFold;,citation_author=John Jumper;,citation_author=Richard Evans;,citation_author=Alexander Pritzel;,citation_author=Tim Green;,citation_author=Michael Figurnov;,citation_author=others;,citation_publication_date=2021;,citation_cover_date=2021;,citation_year=2021;,citation_doi=10.1038/s41586-021-03819-2;,citation_volume=596;,citation_journal_title=Nature;">
+<meta name="citation_reference" content="citation_title=Learning skillful medium-range global weather forecasting;,citation_author=Remi Lam;,citation_author=Alvaro Sanchez-Gonzalez;,citation_author=Matthew Willson;,citation_author=Peter Wirnsberger;,citation_author=Meire Fortunato;,citation_author=others;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_issue=6677;,citation_doi=10.1126/science.adi2336;,citation_volume=382;,citation_journal_title=Science;">
+<meta name="citation_reference" content="citation_title=Are transformers effective for time series forecasting?;,citation_author=Ailing Zeng;,citation_author=Muxi Chen;,citation_author=Lei Zhang;,citation_author=Qiang Xu;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_doi=10.1609/aaai.v37i9.26317;,citation_volume=37;,citation_conference_title=Proceedings of the AAAI conference on artificial intelligence;">
+<meta name="citation_reference" content="citation_title=Chronos: Learning the language of time series;,citation_author=Abdul Fatir Ansari;,citation_author=Lorenzo Stella;,citation_author=Caner Turkmen;,citation_author=Xiyuan Zhang;,citation_author=Pedro Mercado;,citation_author=others;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_fulltext_html_url=https://arxiv.org/abs/2403.07815;,citation_journal_title=Transactions on Machine Learning Research;">
+<meta name="citation_reference" content="citation_title=Virtual cell challenge 2025 wrap-up: Winners and reflections;,citation_author=Arc Institute;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_publisher=Blog post, 6 December 2025, arcinstitute.org/news/virtual-cell-challenge-2025-wrap-up;">
+<meta name="citation_reference" content="citation_title=Virtual cell challenge shenanigans;,citation_author=Claudia Chu;,citation_author=Harlan Stevens;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_publisher=Blog post (Substack), 5 December 2025;">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Nicolas Brosse</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../cv.pdf"> 
+<span class="menu-text">CV</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/nbrosse"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/nicolas-brosse-984685a0/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://x.com/NicolasBrosse1"> <i class="bi bi-twitter-x" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://bsky.app/profile/nbrosse.bsky.social"> <i class="bi bi-bluesky" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://scholar.google.com/citations?user=sQ6d5AYAAAAJ&amp;hl"> <i class="bi bi-google" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.researchgate.net/profile/Nicolas-Brosse-3"> <i class="bi bi-r-circle" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Does the benchmark pick the right experiments? Notes from learning single-cell modelling</h1>
+                  <div>
+        <div class="description">
+          Notes from learning single-cell modelling: a course in French and English, a small study of whether perturbation benchmarks pick good experiments, and why I doubt scaling atlases alone will give a virtual cell.
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">machine learning</div>
+                <div class="quarto-category">biology</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Nicolas Brosse </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">November 17, 2026</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#sec-why" id="toc-sec-why" class="nav-link active" data-scroll-target="#sec-why">Why single cell</a></li>
+  <li><a href="#sec-course" id="toc-sec-course" class="nav-link" data-scroll-target="#sec-course">A course, in French and English</a></li>
+  <li><a href="#sec-study" id="toc-sec-study" class="nav-link" data-scroll-target="#sec-study">A small study: does the benchmark choose good experiments?</a>
+  <ul class="collapse">
+  <li><a href="#the-question" id="toc-the-question" class="nav-link" data-scroll-target="#the-question">The question</a></li>
+  <li><a href="#setting" id="toc-setting" class="nav-link" data-scroll-target="#setting">Setting</a></li>
+  <li><a href="#on-k562-the-usual-metrics-pick-a-model-that-barely-beats-chance" id="toc-on-k562-the-usual-metrics-pick-a-model-that-barely-beats-chance" class="nav-link" data-scroll-target="#on-k562-the-usual-metrics-pick-a-model-that-barely-beats-chance">On K562, the usual metrics pick a model that barely beats chance</a></li>
+  <li><a href="#the-twist-ribosomal-proteins" id="toc-the-twist-ribosomal-proteins" class="nav-link" data-scroll-target="#the-twist-ribosomal-proteins">The twist: ribosomal proteins</a></li>
+  <li><a href="#rpe1-the-gap-does-not-replicate" id="toc-rpe1-the-gap-does-not-replicate" class="nav-link" data-scroll-target="#rpe1-the-gap-does-not-replicate">RPE1: the gap does not replicate</a></li>
+  <li><a href="#sec-noisy" id="toc-sec-noisy" class="nav-link" data-scroll-target="#sec-noisy">The hits themselves are noisy</a></li>
+  <li><a href="#what-the-study-says-and-what-it-does-not" id="toc-what-the-study-says-and-what-it-does-not" class="nav-link" data-scroll-target="#what-the-study-says-and-what-it-does-not">What the study says, and what it does not</a></li>
+  </ul></li>
+  <li><a href="#sec-scaling" id="toc-sec-scaling" class="nav-link" data-scroll-target="#sec-scaling">Will scale fix this?</a></li>
+  <li><a href="#sec-materials" id="toc-sec-materials" class="nav-link" data-scroll-target="#sec-materials">Code and materials</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block page-columns page-full" id="quarto-document-content">
+
+
+
+
+
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>In short
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>A course</strong> on single-cell modelling, in French and English, for readers coming from machine learning.</li>
+<li><strong>A small study</strong> asks whether the metric used to pick a perturbation model also picks good experiments. On one cell line the answer looked like “no”, but the effect came largely from a single gene family that a trivial ranking finds just as well, and it did not replicate on a second line.</li>
+<li><strong>The lasting lesson is about measurement</strong>: noisy targets and strong simple baselines. It is also why I doubt that scaling atlases alone will give a virtual cell.</li>
+</ul>
+</div>
+</div>
+<p>Everything is in a public repository, <a href="https://github.com/nbrosse/modelling-the-cell">modelling-the-cell</a>: the LaTeX course in both languages, the study code, the report, and the frozen analysis plan.</p>
+<section id="sec-why" class="level1">
+<h1>Why single cell</h1>
+<p>A recent project took me into “virtual cell” models: learned simulators meant to answer questions such as <em>what happens to this cell type if I knock down this gene?</em> without running the experiment. I came to the field from machine learning and applied mathematics, not biology, and the first thing I met was a paradox.</p>
+<p>Single-cell biology has done what deep learning usually asks for. CZ CELLxGENE aggregates on the order of a hundred million cells <span class="citation" data-cites="czi2025cellxgene">(<a href="#ref-czi2025cellxgene" role="doc-biblioref"><span class="nocase">CZI Cell Science Program et al.</span> 2025</a>)</span>, chemical screens such as Tahoe-100M add another hundred million <span class="citation" data-cites="zhang2025tahoe">(<a href="#ref-zhang2025tahoe" role="doc-biblioref"><span class="nocase">Zhang et al.</span> 2025</a>)</span>, and foundation models such as Geneformer and scGPT were pretrained on tens of millions of transcriptomes <span class="citation" data-cites="theodoris2023geneformer cui2024scgpt">(<a href="#ref-theodoris2023geneformer" role="doc-biblioref"><span class="nocase">Theodoris et al.</span> 2023</a>; <a href="#ref-cui2024scgpt" role="doc-biblioref">Cui et al. 2024</a>)</span>. Yet in 2025, a careful evaluation showed that these models, and the specialised deep perturbation models, did not outperform simple linear baselines at predicting the effect of a genetic perturbation, on the tasks tested <span class="citation" data-cites="ahlmann2025linear">(<a href="#ref-ahlmann2025linear" role="doc-biblioref">Ahlmann-Eltze et al. 2025</a>)</span>. Other groups found simple controls and representations hard to beat as well <span class="citation" data-cites="wong2025simplecontrols bendidi2024pca">(<a href="#ref-wong2025simplecontrols" role="doc-biblioref">Wong et al. 2025</a>; <a href="#ref-bendidi2024pca" role="doc-biblioref">Bendidi et al. 2024</a>)</span>, and a lively debate followed about whether the models are weak or the metrics are blind <span class="citation" data-cites="miller2026calibrated mejia2025diversity vinastorne2025systema">(<a href="#ref-miller2026calibrated" role="doc-biblioref">Miller et al. 2026</a>; <a href="#ref-mejia2025diversity" role="doc-biblioref">Mejia et al. 2025</a>; <a href="#ref-vinastorne2025systema" role="doc-biblioref"><span class="nocase">Viñas Torné et al.</span> 2025</a>)</span>.</p>
+<p>I wanted to understand that paradox properly, which meant learning the field from the measurement up. This post gathers what came out of that effort, in three parts: a course (<a href="#sec-course" class="quarto-xref">Section&nbsp;2</a>), a small study testing one specific question (<a href="#sec-study" class="quarto-xref">Section&nbsp;3</a>), and an attempt to answer the larger question of whether scale will eventually win here as it did elsewhere (<a href="#sec-scaling" class="quarto-xref">Section&nbsp;4</a>).</p>
+</section>
+<section id="sec-course" class="level1">
+<h1>A course, in French and English</h1>
+<p>The course was written largely with an AI assistant, under my direction and with my review. I am sharing it because it may help others coming to the field from machine learning. It exists in French and English.</p>
+<p>The course is organised around one target that every model in the field approximates in some way,</p>
+<p><span class="math display">\[
+p\big(X \mid \mathrm{do}(a),\, c,\, d,\, t\big),
+\]</span></p>
+<p>the distribution of a cell’s count profile <span class="math inline">\(X\)</span> when we intervene to set <span class="math inline">\(a\)</span> (the <span class="math inline">\(\mathrm{do}\)</span> operator of causal inference, as opposed to merely observing it), in a context <span class="math inline">\(c\)</span> (cell type, donor, cell line), at dose <span class="math inline">\(d\)</span> and time <span class="math inline">\(t\)</span>. Three levels of capability are often conflated under “cell model”: <em>representing</em> observed states, <em>predicting</em> the response to an intervention, and <em>deciding</em> which experiment to run next. Each level presupposes the previous one but does not follow from it. A good atlas embedding says nothing in general about interventions.</p>
+<p>The twelve chapters follow that ladder:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Theme</th>
+<th>Chapters</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Foundations</td>
+<td>1. From the atlas to the virtual cell · 2. Biology and measurement, from DNA to the UMI count · 3. Count statistics and the analysis pipeline</td>
+</tr>
+<tr class="even">
+<td>Representing</td>
+<td>4. Latent representation models (PCA, scVI and relatives) · 5. Foundation models and tokenisation</td>
+</tr>
+<tr class="odd">
+<td>Predicting</td>
+<td>6. Perturbation data · 7. Perturbation prediction (scGen, CPA, GEARS, optimal transport, flow matching) · 8. Time and dynamics · 9. Cell imaging and the image–transcriptome link</td>
+</tr>
+<tr class="even">
+<td>Deciding</td>
+<td>10. Evaluating a perturbation model · 11. Closed loop: active learning and experimental design · 12. Open questions and perspectives</td>
+</tr>
+</tbody>
+</table>
+<p>Three appendices give a machine learning refresher, answers to the self-assessment questions, and a glossary. The representation, foundation-model and prediction chapters end by placing their models along the same four choices: the likelihood (Gaussian on log counts, negative binomial, categorical on tokens, none), the working space (genes, latent, tokens, image features), the conditioning (one-hot, gene embedding, knowledge graph), and how control and treated cells are coupled when the measurement destroys the cell (mean shift, latent translation, optimal transport, flow). Reading the literature through those four choices makes the field far less disorderly than it first looks.</p>
+<ul>
+<li>Course in English: <a href="https://github.com/nbrosse/modelling-the-cell/releases/latest/download/modelling-the-cell-course-en.pdf">course-en.pdf</a></li>
+<li>Cours en français : <a href="https://github.com/nbrosse/modelling-the-cell/releases/latest/download/modelling-the-cell-course-fr.pdf">course-fr.pdf</a></li>
+<li>LaTeX sources: <a href="https://github.com/nbrosse/modelling-the-cell/tree/main/course">course/</a></li>
+</ul>
+<p>Chapter 10, on evaluation, is where the course turned into a question I could test.</p>
+</section>
+<section id="sec-study" class="level1 page-columns page-full">
+<h1>A small study: does the benchmark choose good experiments?</h1>
+<section id="the-question" class="level2">
+<h2 class="anchored" data-anchor-id="the-question">The question</h2>
+<p>Most of the debate on perturbation benchmarks is about <em>calibration</em>: does a metric separate an informative predictor from a trivial one, such as predicting the average effect for every gene? That matters, and recent work has made real progress on it: with well-calibrated metrics, deep perturbation models can beat uninformative baselines <span class="citation" data-cites="miller2026calibrated mejia2025diversity">(<a href="#ref-miller2026calibrated" role="doc-biblioref">Miller et al. 2026</a>; see also <a href="#ref-mejia2025diversity" role="doc-biblioref">Mejia et al. 2025</a>)</span>. But a benchmark has a second role that calibration does not address.</p>
+<p>Picture a lab with budget for 20 experiments among 1,000 candidate perturbations. It trains several models that predict the effect of each perturbation, keeps the one with the best validation score, and runs the 20 perturbations that this model ranks as strongest. The benchmark metric has quietly become part of a decision policy: it decides which experiments get run. Nothing guarantees that the model with the lowest prediction error is the one that picks the best experiments.</p>
+<p>So the study asks: when a predictor is chosen with a usual metric, how many of the truly strongest perturbations does it recover, compared with choosing it by that recovery rate directly? The unit of the answer is <em>hits lost</em>.</p>
+</section>
+<section id="setting" class="level2">
+<h2 class="anchored" data-anchor-id="setting">Setting</h2>
+<p>The data are the two genome-scale CRISPRi Perturb-seq screens of essential genes from <span class="citation" data-cites="replogle2022perturbseq"><span class="nocase">Replogle et al.</span> (<a href="#ref-replogle2022perturbseq" role="doc-biblioref">2022</a>)</span>, in the harmonised scPerturb release <span class="citation" data-cites="peidli2024scperturb">(<a href="#ref-peidli2024scperturb" role="doc-biblioref">Peidli et al. 2024</a>)</span>. In a Perturb-seq screen, each cell receives a guide RNA that reduces the expression of one gene (a <em>knockdown</em>, here by CRISPR interference, CRISPRi), and both the guide and the cell’s transcriptome, the expression level of every gene, are read. Both screens target <em>essential</em> genes, those a cell needs to survive or divide. K562, a leukaemia line, is the discovery dataset; RPE1, a non-cancerous epithelial line, is the replication.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th></th>
+<th>K562 (discovery)</th>
+<th>RPE1 (replication)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Cells measured</td>
+<td>310,385</td>
+<td>247,914</td>
+</tr>
+<tr class="even">
+<td>Candidate perturbations</td>
+<td>1,117</td>
+<td>631</td>
+</tr>
+<tr class="odd">
+<td>Train / validation / test</td>
+<td>558 / 279 / 280</td>
+<td>315 / 158 / 157</td>
+</tr>
+<tr class="even">
+<td>Test hits at <span class="math inline">\(k\)</span> = 5 % (defined below)</td>
+<td>14</td>
+<td>8</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The task</strong> is to predict the mean effect of knocking down a gene <em>never seen in training</em>, as a vector <span class="math inline">\(\Delta_p\)</span> of log-expression changes over 2,000 genes. The knocked-down gene itself is removed from every score, so that scores reflect the downstream response and not the efficiency of the knockdown.</p>
+<p><strong>The predictors</strong> are deliberately simple, because the point is to compare evaluation rules on models whose behaviour can be understood. Two constant baselines, <em>control</em> (no effect) and <em>mean</em> (the average training effect), cannot tell candidates apart. Four predictors, two learners times two representations, map a 64-dimensional representation of the target gene to its effect, with either ridge regression or nearest neighbours (the mean effect of the 20 most similar training targets):</p>
+<ul>
+<li><strong>PCA</strong>, learned from the responses: each gene is embedded by how its expression moves across the training perturbations, a signature that even a never-targeted gene has.</li>
+<li><strong>STRING</strong>, from prior knowledge: a spectral embedding of the STRING protein-association graph <span class="citation" data-cites="szklarczyk2023string">(<a href="#ref-szklarczyk2023string" role="doc-biblioref">Szklarczyk et al. 2023</a>)</span>, restricted to its experimental and database channels; the co-expression and text-mining channels are dropped because they could encode Perturb-seq results.</li>
+</ul>
+<p><strong>The usual metrics</strong> are five: Pearson correlation and MSE on raw expression, Pearson correlation on the effect <span class="math inline">\(\Delta\)</span>, MSE on the 50 genes the perturbation changes most, and a discrimination score (can the prediction identify which perturbation produced a profile?).</p>
+<p><strong>The decision metric</strong> is hit recall at <span class="math inline">\(k\)</span>. The hits are the <span class="math inline">\(k\)</span> candidates with the largest transcriptional effect. A model ranks candidates by the size of its predicted effect, <span class="math inline">\(\lVert\tilde\Delta_p\rVert^2\)</span>, and its hit recall is the share of true hits in its top <span class="math inline">\(k\)</span>. At <span class="math inline">\(k\)</span> = 5 % of the 280 K562 test candidates, there are 14 hits, and a random choice finds 0.7 of them on average.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Measuring “strongest” without the noise bias
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The natural measure of a perturbation’s strength is <span class="math inline">\(\lVert\Delta_p\rVert^2\)</span>, but only a noisy estimate <span class="math inline">\(\hat\Delta_p = \Delta_p + \varepsilon_p\)</span> is observed, and</p>
+<p><span class="math display">\[
+\mathbb{E}\,\lVert\hat\Delta_p\rVert^2 = \lVert\Delta_p\rVert^2 + \operatorname{tr}\operatorname{Var}(\varepsilon_p).
+\]</span></p>
+<p>The noise term is larger for perturbations measured on fewer cells, so ranking by the naive norm would push poorly measured perturbations up. The study instead splits the sequencing batches (GEM groups, each with its own control cells) into two disjoint units <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> and uses the cross-fitted amplitude</p>
+<p><span class="math display">\[
+\mathrm{amp}(p) = \big\langle \hat\Delta_p^A, \hat\Delta_p^B \big\rangle,
+\]</span></p>
+<p>whose expectation is <span class="math inline">\(\lVert\Delta_p\rVert^2\)</span> when the two errors are independent and centred. The controls must be split too: if both units shared the same control cells, the bias would come back through the shared control noise. After log-normalisation, the unbiasedness is only approximate; on the pooled data the naive and cross-fitted rankings agree closely (Spearman 0.98), and the correction matters mostly at the margin. It removes the average bias of noisy perturbations, not the uncertainty of the ranking itself (<a href="#sec-noisy" class="quarto-xref">Section&nbsp;3.6</a>).</p>
+</div>
+</div>
+</div>
+<p><strong>The protocol.</strong> I fixed the plan before looking at K562, and wrote down my predictions for RPE1 before downloading it (<a href="https://github.com/nbrosse/modelling-the-cell/blob/main/report/framing.md">plan</a>).</p>
+</section>
+<section id="on-k562-the-usual-metrics-pick-a-model-that-barely-beats-chance" class="level2">
+<h2 class="anchored" data-anchor-id="on-k562-the-usual-metrics-pick-a-model-that-barely-beats-chance">On K562, the usual metrics pick a model that barely beats chance</h2>
+<p>The five usual metrics agree with each other. On validation, they all choose knn-STRING, which is also the best predictor on every usual test metric. On test, it puts 1 of the 14 hits in its top 14, against 0.7 expected by chance. Hit recall on validation chooses ridge-PCA instead, which finds 5 of 14, the best test value of all predictors (<a href="#fig-k562-hits" class="quarto-xref">Figure&nbsp;1</a>). Choosing with hit recall would have found 4 more hits.</p>
+<div id="fig-k562-hits" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Bar chart: ridge-PCA and knn-PCA find 5 of 14 hits, ridge-STRING and knn-STRING 1 of 14, and the target-expression ranking 5 of 14; chance is 0.7. ridge-PCA is the choice of hit recall, knn-STRING the choice of all five usual metrics.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-k562-hits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/k562-hits.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure&nbsp;1: K562 test set: hits found among the 14 strongest perturbations by each predictor, and by ranking targets on their expression in control cells, with no model."><img src="figures/k562-hits.png" class="img-fluid figure-img" alt="Bar chart: ridge-PCA and knn-PCA find 5 of 14 hits, ridge-STRING and knn-STRING 1 of 14, and the target-expression ranking 5 of 14; chance is 0.7. ridge-PCA is the choice of hit recall, knn-STRING the choice of all five usual metrics."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-k562-hits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: K562 test set: hits found among the 14 strongest perturbations by each predictor, and by ranking targets on their expression in control cells, with no model.
+</figcaption>
+</figure>
+</div>
+<p>The STRING predictors are better at predicting the effects and at recognising perturbations; the PCA predictors are far better at finding the strongest ones. One reason the metrics can disagree with the decision is theoretical: a correlation ignores scale, <span class="math inline">\(\operatorname{corr}(a x, y) = \operatorname{corr}(x, y)\)</span> for <span class="math inline">\(a &gt; 0\)</span>, while the decision ranks candidates by the <em>size</em> of the predicted effect. A model can get every response’s direction right and its size wrong, and still score well on Pearson on <span class="math inline">\(\Delta\)</span>. That cannot be the whole story here, since the MSE metrics, which do see scale, chose the same predictor.</p>
+<p>The raw-expression metrics are worse still. Every predictor, including the one that predicts no effect at all, scores between 0.992 and 0.994 in Pearson correlation on expression. Most genes keep their level after a knockdown, so getting the baseline transcriptome right is enough for a near-perfect score.</p>
+<p>Is the four-hit gap robust? The direction is, by a rule I set after seeing the K562 result, so this check is post hoc on K562. Over 50 further random splits of the perturbations, with everything refitted and reselected each time, hit recall always picks a PCA predictor, the usual metrics always pick a STRING predictor, and the gap is positive in 92 % of splits, about 2 hits out of 14 on average (<a href="#fig-resplits" class="quarto-xref">Figure&nbsp;3</a>, left panel). But on the main split, the half-sampling sensitivity range of the gap reaches zero, so it does not meet the criterion I had frozen in advance.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>What the sensitivity ranges are, and are not
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The uncertainty of the model choice is estimated by half-sampling: 1,000 times, half of the validation perturbations are drawn and every choice is redone, and half of the test perturbations are drawn independently, with the hits redefined within that half. At k = 5 % on K562, each half holds about 7 hits instead of 14. The resulting 2.5–97.5 % ranges describe the variability of a smaller, harder selection problem; they are sensitivity ranges, not guaranteed confidence intervals, and they ignore both the noise of the training set and the noise in the hits themselves. The 50 repeated splits reuse the same perturbations, so they are a robustness check, not independent replications.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="the-twist-ribosomal-proteins" class="level2">
+<h2 class="anchored" data-anchor-id="the-twist-ribosomal-proteins">The twist: ribosomal proteins</h2>
+<p>The analyses in this section were added after the first K562 results, prompted by an adversarial review; they are exploratory. When a result looks this clean, it is worth asking <em>which</em> hits the winning model finds. Here the answer is striking: all 5 hits of ridge-PCA target ribosomal proteins (the RPL and RPS genes, which encode parts of the ribosome, the cell’s protein factory). Five of the 14 test hits are ribosomal-protein knockdowns, out of 15 ribosomal-protein candidates in the test set, and ridge-PCA’s top 14 holds 13 of them.</p>
+<p>Knocking down a ribosomal protein can disturb many processes at once and produce a large transcriptional response; a biologist would call these hits expected. And a model is not needed to find them. Ranking the test targets by a single number known before any experiment, their baseline expression in control cells, also finds 5 of the 14 hits, as many as ridge-PCA (the green bar in <a href="#fig-k562-hits" class="quarto-xref">Figure&nbsp;1</a>). Ribosomal proteins are among the most highly expressed genes in the cell, which likely explains much of the match. I call such a model-free ranking a <em>prior</em>, in the everyday sense of knowledge available before the experiment, not a Bayesian prior.</p>
+<p>Remove the ribosomal-protein targets, and the picture changes (<a href="#fig-k562-no-rp" class="quarto-xref">Figure&nbsp;2</a>). At k = 5 %, no advantage over chance is detected: ridge-PCA is numerically above chance (2 hits, 0.143 against 0.053) but not significantly (Monte-Carlo p = 0.16), the other models find none, and the gap between selection rules is zero: hit recall now picks knn-PCA and the usual metrics a STRING predictor, and none of them finds a hit. The predictors do rise above chance for <span class="math inline">\(k \geq\)</span> 10–15 %, so there is some signal in them, but not at the top of the ranking, which is where a lab with a small budget operates.</p>
+<div id="fig-k562-no-rp" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Bar chart on the same scale: ridge-PCA finds 2 of 14 hits, the other three predictors 0, and the target-expression ranking 2; chance is 0.74.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-k562-no-rp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/k562-no-rp.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure&nbsp;2: The same comparison without ribosomal-protein targets (265 test candidates, 14 hits). No predictor is significantly above chance."><img src="figures/k562-no-rp.png" class="img-fluid figure-img" alt="Bar chart on the same scale: ridge-PCA finds 2 of 14 hits, the other three predictors 0, and the target-expression ranking 2; chance is 0.74."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-k562-no-rp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: The same comparison without ribosomal-protein targets (265 test candidates, 14 hits). No predictor is significantly above chance.
+</figcaption>
+</figure>
+</div>
+<p>So the K562 result says something narrower than it first seemed. The usual metrics and hit recall do disagree, and the disagreement costs hits. But the rule that finds more hits does so, in large part, by exploiting a family of genes that a trivial prior already ranks first. The added value of the model for this decision is not shown.</p>
+</section>
+<section id="rpe1-the-gap-does-not-replicate" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="rpe1-the-gap-does-not-replicate">RPE1: the gap does not replicate</h2>
+<p>The RPE1 predictions were written down before its data were downloaded. The first, that the usual metrics and hit recall would again disagree, failed. On the main split, all five usual metrics <em>and</em> hit recall choose the same predictor, knn-STRING, and the gap is zero. Over 50 re-splits the mean gap is −0.02, positive in only 18–20 % of splits and negative in 26–30 % (<a href="#fig-resplits" class="quarto-xref">Figure&nbsp;3</a>, right panel).</p>
+<div id="fig-resplits" class="quarto-float quarto-figure quarto-figure-center anchored page-columns page-full" alt="Two bar charts of the number of splits by hits gained. K562: most splits gain 1 to 4 hits, 2 splits gain none and 2 lose one. RPE1: 25 splits gain nothing, 15 lose up to two hits, 10 gain up to two.">
+<figure class="quarto-float quarto-float-fig figure page-columns page-full">
+<div aria-describedby="fig-resplits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca" class="page-columns page-full">
+<a href="figures/resplits.png" class="lightbox page-columns page-full" data-gallery="quarto-lightbox-gallery-3" title="Figure&nbsp;3: Hits gained by choosing with hit recall instead of Pearson correlation on expression, over 50 random splits of the perturbations (k = 5 %; fractional gaps from tied rankings are rounded away from zero). The other usual metrics give nearly the same picture."><img src="figures/resplits.png" class="img-fluid figure-img column-body-outset" alt="Two bar charts of the number of splits by hits gained. K562: most splits gain 1 to 4 hits, 2 splits gain none and 2 lose one. RPE1: 25 splits gain nothing, 15 lose up to two hits, 10 gain up to two."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-resplits-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Hits gained by choosing with hit recall instead of Pearson correlation on expression, over 50 random splits of the perturbations (k = 5 %; fractional gaps from tied rankings are rounded away from zero). The other usual metrics give nearly the same picture.
+</figcaption>
+</figure>
+</div>
+<p>What did replicate is the weaker, more useful finding: the target-expression prior again matches or beats the selected model. It finds 2 of the 8 test hits, while knn-STRING, the choice of every metric, finds 1.6 (a fractional count from tie-aware expected recall). One predictor, ridge-STRING, is above chance on RPE1 (3 of 8, one-sided p = 0.005, uncorrected for the four predictors), though no selection rule picked it on validation: a small point in favour of injected biological knowledge.</p>
+<p>Why the difference between the two lines? One observation stands out (<a href="#fig-rp-filter" class="quarto-xref">Figure&nbsp;4</a>). A perturbation is a candidate only if it has at least 20 cells in each of four batch folds. On K562, 62 of the 78 ribosomal-protein knockdowns pass that filter; on RPE1, only 6 do, and a single one lands in the test set. A plausible reading is that knocking down a ribosomal protein harms RPE1 cells more, so fewer of them are observed, and the quality filter removes almost all of the family that drove the K562 result. Hits on RPE1 also have <em>fewer</em> cells than non-hits (medians 110 against 154), the reverse of K562. This is a post hoc hypothesis: I did not test whether the filter causes the change of verdict, and fewer cells do not prove cell death.</p>
+<div id="fig-rp-filter" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Grouped bar chart. K562: 62 of 78 ribosomal-protein perturbations and 1,224 of 1,979 others pass the filter. RPE1: only 6 of 78 ribosomal-protein perturbations and 790 of 2,315 others pass.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rp-filter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="figures/rp-filter.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure&nbsp;4: Share of ribosomal-protein and other perturbations that pass the filter of at least 20 cells in each of four batch folds. Two other criteria (target expressed in control cells, target present in STRING) then bring the candidates to 1,117 on K562 and 631 on RPE1."><img src="figures/rp-filter.png" class="img-fluid figure-img" alt="Grouped bar chart. K562: 62 of 78 ribosomal-protein perturbations and 1,224 of 1,979 others pass the filter. RPE1: only 6 of 78 ribosomal-protein perturbations and 790 of 2,315 others pass."></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rp-filter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Share of ribosomal-protein and other perturbations that pass the filter of at least 20 cells in each of four batch folds. Two other criteria (target expressed in control cells, target present in STRING) then bring the candidates to 1,117 on K562 and 631 on RPE1.
+</figcaption>
+</figure>
+</div>
+<p>The general point outlives the specific mechanism. When inclusion in a benchmark depends on the biology of the perturbation, the benchmark is not a sample of the interventions one would like to choose among. Filtering and cell survival are part of the learning problem.</p>
+</section>
+<section id="sec-noisy" class="level2">
+<h2 class="anchored" data-anchor-id="sec-noisy">The hits themselves are noisy</h2>
+<p>One last measurement puts all the gaps above in perspective. Splitting the cells of each perturbation into two fully independent halves and computing the top 5 % on each, the two hit lists overlap by only 79 % on K562 and 75 % on RPE1, a conservative estimate since each list uses half of the data. About one hit in four or five changes between two measurements of the same experiment. The differences between models discussed above, a few hits out of 14, are of the same order. The two quantities are not directly comparable, so this does not show that the gap is noise, but it calls for caution.</p>
+<p>The same holds for the effect profiles: two independent halves of the same experiment correlate at only 0.48 on <span class="math inline">\(\Delta\)</span> on K562 (0.55 on RPE1). The best model reaches 0.37. That reference is pessimistic, since each half uses only part of the cells, but it shows how noisy the targets themselves are. It is a yardstick, not an upper bound: a model that estimated the true effect well could beat it.</p>
+<p>Noise also bites on the selection side. On RPE1, with about 8 hits in validation, choosing a model by hit recall partly follows noise: across 50 splits, it picks each of the four learners between 14 % and 36 % of the time, and it loses a little on average. A metric aligned with the decision is not enough; it must also be stable enough to select with.</p>
+</section>
+<section id="what-the-study-says-and-what-it-does-not" class="level2">
+<h2 class="anchored" data-anchor-id="what-the-study-says-and-what-it-does-not">What the study says, and what it does not</h2>
+<p>It says that, on these two screens and with these simple predictors:</p>
+<ul>
+<li>the usual metrics agree with each other, and on K562 they choose a predictor that is close to chance at picking the strongest perturbations;</li>
+<li>a decision metric can choose differently, but its advantage on K562 is matched by a one-number prior, and it vanishes on RPE1;</li>
+<li>the hits and the choice of model are both uncertain enough that a benchmark should measure their stability, not assume it.</li>
+</ul>
+<p>It does not say that hit recall is a better metric in general, that deep or foundation models would behave the same way, or that a large transcriptional effect is the right definition of an interesting perturbation. It is two cell lines from one study, essential genes only, small hit sets, and effectively two families of predictors.</p>
+<p>The practical recommendations are modest. A perturbation benchmark that is meant to guide experiments should report a decision metric at the <span class="math inline">\(k\)</span> matching the experimental budget, compare models against priors that need no model (target expression, membership of known essential programmes), and not only against chance, size its validation set so that model selection is stable, and track which perturbations its filters drop.</p>
+<p>The <a href="https://github.com/nbrosse/modelling-the-cell/releases/latest/download/modelling-the-cell-report.pdf">report</a> has the full methods, every pre-specified criterion with its verdict, and the leakage precautions. The <a href="https://github.com/nbrosse/modelling-the-cell/tree/main/study">code</a> reproduces every result in the report’s tables and figures from the public data.</p>
+</section>
+</section>
+<section id="sec-scaling" class="level1">
+<h1>Will scale fix this?</h1>
+<p>The study is small, but it sharpens the question I started from. Sutton’s “bitter lesson” says that general methods exploiting computation eventually beat methods built on human knowledge <span class="citation" data-cites="sutton2019bitter">(<a href="#ref-sutton2019bitter" role="doc-biblioref">Sutton 2019</a>)</span>. It has been borne out in language, in protein structure <span class="citation" data-cites="jumper2021alphafold">(<a href="#ref-jumper2021alphafold" role="doc-biblioref"><span class="nocase">Jumper et al.</span> 2021</a>)</span>, in weather forecasting <span class="citation" data-cites="lam2023graphcast">(<a href="#ref-lam2023graphcast" role="doc-biblioref"><span class="nocase">Lam et al.</span> 2023</a>)</span>. Why not, so far, in single cell?</p>
+<p>My answer is that the bitter lesson carries an assumption that is easy to forget: the signal must already be in the data. I find it useful to look at the fields where scaling succeeded through five conditions. This is my own grid, not a theorem: none of the conditions is strictly necessary, and the study above tests none of them directly.</p>
+<p><strong>1. The pretraining objective is the task, or close to it.</strong> Predicting the next token already is generating text. A weather model predicts the state at <span class="math inline">\(t\)</span> + 6 h from the state at <span class="math inline">\(t\)</span>, with forty years of reanalysis (past observations assimilated into a consistent physical record) providing free input–output pairs. AlphaFold is supervised directly on structures. Single-cell foundation models, by contrast, are pretrained to reconstruct masked genes in observational atlases, while the task that matters is interventional: what happens if I perturb this gene? Learning <span class="math inline">\(p(X)\)</span> on resting cells does not identify causal effects. Atlases are the climatology of the cell, and climatology is not forecasting. Observational pretraining may still make learning from interventional data more efficient; how much is an open question.</p>
+<p><strong>2. The effective data size is large, not just the raw volume.</strong> We count cells in the hundreds of millions, but the cells of one condition are replicates of each other. For perturbation prediction the statistical unit is the (perturbation, context) pair. In this study, after the eligibility filters (<a href="#fig-rp-filter" class="quarto-xref">Figure&nbsp;4</a>), the real <span class="math inline">\(n\)</span> was 1,117 on K562 and 631 on RPE1, in two essential-gene screens and exactly two contexts.</p>
+<p><strong>3. The target is measured well above the noise.</strong> Experimental protein structures are precise relative to the structural differences a predictor must capture. In single-cell RNA sequencing, each measurement samples a small fraction of a cell’s transcripts, with batch effects on top. The study gives an idea of the noise: independent halves of the same experiment agree at 0.48 on the effect profile, and their hit lists overlap by about three quarters. When the targets are this noisy and a mean predictor is not far behind the best models, small differences between models are hard to resolve. I suspect this explains part of why deep models did not beat linear baselines <span class="citation" data-cites="ahlmann2025linear">(<a href="#ref-ahlmann2025linear" role="doc-biblioref">Ahlmann-Eltze et al. 2025</a>)</span>.</p>
+<p><strong>4. A blind benchmark against a strong baseline.</strong> Protein structure prediction was judged in CASP, a blind competition; weather models are compared on WeatherBench against the operational physics-based model of the European weather centre (ECMWF), a formidable baseline. Progress there was visible and hard to game. In single cell, raw-expression metrics saturate around 0.99 for a model that predicts nothing, and the first Virtual Cell Challenge <span class="citation" data-cites="roohani2025vcc">(<a href="#ref-roohani2025vcc" role="doc-biblioref"><span class="nocase">Roohani et al.</span> 2025</a>)</span> ended in a debate on metrics that a mean prediction can satisfy <span class="citation" data-cites="arc2025vccwrapup chu2025vccshenanigans">(<a href="#ref-arc2025vccwrapup" role="doc-biblioref">Arc Institute 2025</a>; <a href="#ref-chu2025vccshenanigans" role="doc-biblioref">Chu and Stevens 2025</a>)</span>. The study adds one more failure mode: the usual metrics can choose a model that does no better than a single number known before any experiment. Without a good benchmark, real progress would go unseen if it happened.</p>
+<p><strong>5. Structure to exploit, and contexts to learn from.</strong> The physics of the atmosphere is the same everywhere, on a sphere with known symmetries. Proteins have 3D geometry, hence equivariant architectures. Language is compositional. I know of no structure in the cell as exploitable as the 3D geometry of proteins. And the cell changes with type, donor, protocol and state, while the data cover very few contexts: the questions asked are extrapolative, an unseen perturbation, often in an unseen context, learned from a handful of observed ones. The RPE1 replication is a small illustration: a conclusion drawn on one cell line did not hold on the next, where even the candidate population differed.</p>
+<p>Two caveats keep this from being a story of scale versus no scale. Time-series forecasting, the closest analogue to single cell with its heterogeneous series and no shared semantics, is not a clear success of scale: a linear model beat the transformers of the time <span class="citation" data-cites="zeng2023dlinear">(<a href="#ref-zeng2023dlinear" role="doc-biblioref">Zeng et al. 2023</a>)</span>, and today’s foundation models <span class="citation" data-cites="ansari2024chronos">(<a href="#ref-ansari2024chronos" role="doc-biblioref"><span class="nocase">Ansari et al.</span> 2024</a>)</span> bring convenient zero-shot forecasts; in my reading, their gains over well-tuned statistical baselines are modest. And AlphaFold is not a victory of raw scale either: it relies on a heavily domain-informed architecture and fifty years of the PDB, and its successes are concentrated where those data are dense; dynamics and the effects of single mutations remain much harder.</p>
+<p>In the fields above, simple methods won until the condition on the data was met. The current finding in single cell does not show that scale will fail; it suggests that several of these conditions are not yet met. Which of them can be?</p>
+<p><strong>What plays for.</strong> Biology can generate its data on demand. New protein structures are slow and costly to determine; a lab can run a new Perturb-seq screen relatively quickly, and a closed loop of model and experiment is an advantage the PDB never had. Interventional datasets are growing quickly, and what matters is their diversity of contexts more than their number of cells. And prior knowledge may help: on RPE1, the only predictor above chance used a protein-association graph, though on K562 the same predictors were near chance at the top.</p>
+<p><strong>What plays against.</strong> Measurement noise limits what any model can show: more cells per condition, more molecules per cell and other modalities would reduce it more surely than a bigger network. The space of perturbations, contexts, doses and times is combinatorially huge, and data cover little of it. And evaluations find that single-cell foundation models often do no better than simple baselines on cell-type annotation, clustering and integration, fine-tuned <span class="citation" data-cites="boiarsky2023deepdive">(<a href="#ref-boiarsky2023deepdive" role="doc-biblioref">Boiarsky et al. 2023</a>)</span> or zero-shot <span class="citation" data-cites="kedzierska2025zeroshot">(<a href="#ref-kedzierska2025zeroshot" role="doc-biblioref">Kedzierska et al. 2025</a>)</span>, and that more observational pretraining does not reliably help, consistent with the first condition: more climatology does not give forecasts.</p>
+<p>So I do not expect a generalist virtual cell from scaling up atlases. I expect narrower successes: transfer of perturbation effects between close contexts in heavily measured systems, trained on diverse interventional data, judged with decision-relevant metrics against strong priors, and fed by experiments in a loop. The likely path looks more like weather, with input–output pairs in bulk plus knowledge of the system, than like language models.</p>
+<p>Before betting on scale for a given problem, I would now ask three questions:</p>
+<ol type="1">
+<li>How reproducible is the measured effect between independent replicates?</li>
+<li>How many independent conditions, not cells, are there?</li>
+<li>Does the benchmark show progress against a strong baseline, such as the expression level of the targeted gene?</li>
+</ol>
+<p>All three can be answered on public screens before building a new model.</p>
+</section>
+<section id="sec-materials" class="level1">
+<h1>Code and materials</h1>
+<p>The repository <a href="https://github.com/nbrosse/modelling-the-cell">modelling-the-cell</a> contains:</p>
+<ul>
+<li><code>course/</code>: the course in French and English (LaTeX), with a shared bibliography of about 170 references;</li>
+<li><code>report/</code>: the study report, the analysis plan frozen before the analysis, and the detailed results with every number traced to a script;</li>
+<li><code>study/</code>: the Python code of the study (uv, tested), which downloads the public data and reproduces every figure.</li>
+</ul>
+<p>Text and figures are under CC BY 4.0, code under MIT.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-ahlmann2025linear" class="csl-entry" role="listitem">
+Ahlmann-Eltze, Constantin, Wolfgang Huber, and Simon Anders. 2025. <span>“Deep-Learning-Based Gene Perturbation Effect Prediction Does Not yet Outperform Simple Linear Baselines.”</span> <em>Nature Methods</em> 22 (8): 1657–61.
+</div>
+<div id="ref-ansari2024chronos" class="csl-entry" role="listitem">
+<span class="nocase">Ansari, Abdul Fatir, Lorenzo Stella, Caner Turkmen, Xiyuan Zhang, Pedro Mercado, et al.</span> 2024. <span>“Chronos: Learning the Language of Time Series.”</span> <em>Transactions on Machine Learning Research</em>. <a href="https://arxiv.org/abs/2403.07815">https://arxiv.org/abs/2403.07815</a>.
+</div>
+<div id="ref-arc2025vccwrapup" class="csl-entry" role="listitem">
+Arc Institute. 2025. <em>Virtual Cell Challenge 2025 Wrap-up: Winners and Reflections</em>. Blog post, 6 December 2025, arcinstitute.org/news/virtual-cell-challenge-2025-wrap-up.
+</div>
+<div id="ref-bendidi2024pca" class="csl-entry" role="listitem">
+Bendidi, I., Shawn Whitfield, Kian Kenyon-Dean, et al. 2024. <em>Benchmarking Transcriptomics Foundation Models for Perturbation Analysis: One <span>PCA</span> Still Rules Them All</em>. <a href="https://arxiv.org/abs/2410.13956">https://arxiv.org/abs/2410.13956</a>.
+</div>
+<div id="ref-boiarsky2023deepdive" class="csl-entry" role="listitem">
+Boiarsky, Rebecca, Nalini Singh, Alejandro Buendia, Gad Getz, and David Sontag. 2023. <em>A Deep Dive into Single-Cell <span>RNA</span> Sequencing Foundation Models</em>. bioRxiv 2023.10.19.563100; later version in Nature Machine Intelligence.
+</div>
+<div id="ref-chu2025vccshenanigans" class="csl-entry" role="listitem">
+Chu, Claudia, and Harlan Stevens. 2025. <em>Virtual Cell Challenge Shenanigans</em>. Blog post (Substack), 5 December 2025.
+</div>
+<div id="ref-cui2024scgpt" class="csl-entry" role="listitem">
+Cui, Haotian, Chloe Wang, Hassaan Maan, et al. 2024. <span>“<span class="nocase">scGPT</span>: Toward Building a Foundation Model for Single-Cell Multi-Omics Using Generative <span>AI</span>.”</span> <em>Nature Methods</em> 21: 1470–80.
+</div>
+<div id="ref-czi2025cellxgene" class="csl-entry" role="listitem">
+<span class="nocase">CZI Cell Science Program et al.</span> 2025. <span>“<span>CZ CELLxGENE Discover</span>: A Single-Cell Data Platform for Scalable Exploration, Analysis and Modeling of Aggregated Data.”</span> <em>Nucleic Acids Research</em> 53 (D1): D886–900.
+</div>
+<div id="ref-jumper2021alphafold" class="csl-entry" role="listitem">
+<span class="nocase">Jumper, John, Richard Evans, Alexander Pritzel, Tim Green, Michael Figurnov, et al.</span> 2021. <span>“Highly Accurate Protein Structure Prediction with <span>AlphaFold</span>.”</span> <em>Nature</em> 596: 583–89. <a href="https://doi.org/10.1038/s41586-021-03819-2">https://doi.org/10.1038/s41586-021-03819-2</a>.
+</div>
+<div id="ref-kedzierska2025zeroshot" class="csl-entry" role="listitem">
+Kedzierska, Kasia Z., Lorin Crawford, Ava P. Amini, and Alex X. Lu. 2025. <span>“Zero-Shot Evaluation Reveals Limitations of Single-Cell Foundation Models.”</span> <em>Genome Biology</em>, ahead of print. <a href="https://doi.org/10.1186/s13059-025-03574-x">https://doi.org/10.1186/s13059-025-03574-x</a>.
+</div>
+<div id="ref-lam2023graphcast" class="csl-entry" role="listitem">
+<span class="nocase">Lam, Remi, Alvaro Sanchez-Gonzalez, Matthew Willson, Peter Wirnsberger, Meire Fortunato, et al.</span> 2023. <span>“Learning Skillful Medium-Range Global Weather Forecasting.”</span> <em>Science</em> 382 (6677): 1416–21. <a href="https://doi.org/10.1126/science.adi2336">https://doi.org/10.1126/science.adi2336</a>.
+</div>
+<div id="ref-mejia2025diversity" class="csl-entry" role="listitem">
+Mejia, Gabriel M., Henry E. Miller, Francis J. A. Leblanc, Bo Wang, Brendan Swain, and Lucas Paulo de Lima Camillo. 2025. <em>Diversity by Design: Addressing Mode Collapse Improves <span class="nocase">scRNA-seq</span> Perturbation Modeling on Well-Calibrated Metrics</em>. Preprint.
+</div>
+<div id="ref-miller2026calibrated" class="csl-entry" role="listitem">
+Miller, Henry E., Gabriel M. Mejia, Francis J. A. Leblanc, Brendan Swain, Bo Wang, and Lucas Paulo de Lima Camillo. 2026. <span>“Deep Learning Perturbation Models Can Outperform Baselines on Calibrated Metrics.”</span> <em>Nature Biotechnology</em>, ahead of print. <a href="https://doi.org/10.1038/s41587-026-03307-w">https://doi.org/10.1038/s41587-026-03307-w</a>.
+</div>
+<div id="ref-peidli2024scperturb" class="csl-entry" role="listitem">
+Peidli, Stefan, Tessa D. Green, Ciyue Shen, et al. 2024. <span>“<span class="nocase">scPerturb</span>: Harmonized Single-Cell Perturbation Data.”</span> <em>Nature Methods</em> 21 (3): 531–40. <a href="https://doi.org/10.1038/s41592-023-02144-y">https://doi.org/10.1038/s41592-023-02144-y</a>.
+</div>
+<div id="ref-replogle2022perturbseq" class="csl-entry" role="listitem">
+<span class="nocase">Replogle, Joseph M., Reuben A. Saunders, Angela N. Pogson, Jeffrey A. Hussmann, others, and Jonathan S. Weissman</span>. 2022. <span>“Mapping Information-Rich Genotype-Phenotype Landscapes with Genome-Scale <span class="nocase">Perturb-seq</span>.”</span> <em>Cell</em> 185 (14): 2559–75.
+</div>
+<div id="ref-roohani2025vcc" class="csl-entry" role="listitem">
+<span class="nocase">Roohani, Yusuf H. et al.</span> 2025. <span>“Virtual Cell Challenge: Toward a <span>Turing</span> Test for the Virtual Cell.”</span> <em>Cell</em>.
+</div>
+<div id="ref-sutton2019bitter" class="csl-entry" role="listitem">
+Sutton, Richard. 2019. <em>The Bitter Lesson</em>. <a href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html">http://www.incompleteideas.net/IncIdeas/BitterLesson.html</a>.
+</div>
+<div id="ref-szklarczyk2023string" class="csl-entry" role="listitem">
+Szklarczyk, Damian, Rebecca Kirsch, Mikaela Koutrouli, et al. 2023. <span>“The <span>STRING</span> Database in 2023: Protein–Protein Association Networks and Functional Enrichment Analyses for Any Sequenced Genome of Interest.”</span> <em>Nucleic Acids Research</em> 51 (D1): D638–46. <a href="https://doi.org/10.1093/nar/gkac1000">https://doi.org/10.1093/nar/gkac1000</a>.
+</div>
+<div id="ref-theodoris2023geneformer" class="csl-entry" role="listitem">
+<span class="nocase">Theodoris, Christina V., Ling Xiao, Anant Chopra, Mark D. Chaffin, Zeina R. Al Sayed, et al.</span> 2023. <span>“Transfer Learning Enables Predictions in Network Biology.”</span> <em>Nature</em> 618: 616–24.
+</div>
+<div id="ref-vinastorne2025systema" class="csl-entry" role="listitem">
+<span class="nocase">Viñas Torné, Ramon, Maciej Wiatrak, Zoe Piran, et al.</span> 2025. <span>“Systema: A Framework for Evaluating Genetic Perturbation Response Prediction Beyond Systematic Variation.”</span> <em>Nature Biotechnology</em>, ahead of print. <a href="https://doi.org/10.1038/s41587-025-02777-8">https://doi.org/10.1038/s41587-025-02777-8</a>.
+</div>
+<div id="ref-wong2025simplecontrols" class="csl-entry" role="listitem">
+Wong, Daniel R., Abby S. Hill, and Rob Moccia. 2025. <span>“Simple Controls Exceed Best Deep Learning Algorithms and Reveal Foundation Model Effectiveness for Predicting Genetic Perturbations.”</span> <em>Bioinformatics</em> 41 (6): btaf317.
+</div>
+<div id="ref-zeng2023dlinear" class="csl-entry" role="listitem">
+Zeng, Ailing, Muxi Chen, Lei Zhang, and Qiang Xu. 2023. <span>“Are Transformers Effective for Time Series Forecasting?”</span> <em>Proceedings of the AAAI Conference on Artificial Intelligence</em> 37: 11121–28. <a href="https://doi.org/10.1609/aaai.v37i9.26317">https://doi.org/10.1609/aaai.v37i9.26317</a>.
+</div>
+<div id="ref-zhang2025tahoe" class="csl-entry" role="listitem">
+<span class="nocase">Zhang, Jesse et al.</span> 2025. <em><span>Tahoe-100M</span>: A Giga-Scale Single-Cell Perturbation Atlas for Context-Dependent Gene Function and Cellular Modeling</em>. bioRxiv 2025.02.20.639398.
+</div>
+</div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{brosse2026,
+  author = {Brosse, Nicolas},
+  title = {Does the Benchmark Pick the Right Experiments? {Notes} from
+    Learning Single-Cell Modelling},
+  date = {2026-11-17},
+  url = {https://nbrosse.github.io/posts/modelling-the-cell/modelling-the-cell.html},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-brosse2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Brosse, Nicolas. 2026. <span>“Does the Benchmark Pick the Right
+Experiments? Notes from Learning Single-Cell Modelling.”</span> November
+17. <a href="https://nbrosse.github.io/posts/modelling-the-cell/modelling-the-cell.html">https://nbrosse.github.io/posts/modelling-the-cell/modelling-the-cell.html</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/nbrosse\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+</body></html>
