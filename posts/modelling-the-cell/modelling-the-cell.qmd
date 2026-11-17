@@ -4,20 +4,20 @@ author: "Nicolas Brosse"
 date: "2026-11-17"
 categories: [machine learning, biology]
 bibliography: modelling-the-cell-references.bib
-description: "How I learned single-cell modelling by writing a course on it, what a small pre-specified audit of perturbation benchmarks found on two Perturb-seq screens, and why the conditions that made scaling work in protein structure and weather are not yet met for the virtual cell."
-image: figures/social-card.png
-image-alt: "Two-panel chart. Left: test hit recall of six predictors; ridge-PCA (chosen by hit recall) and knn-PCA find about 36% of hits, the STRING predictor chosen by every usual metric about 7%. Right: hits gained by choosing with hit recall instead of each usual metric."
+description: "Notes from learning single-cell modelling: a course in French and English, a small audit of perturbation benchmarks, and why scaling has not (yet) worked for the virtual cell."
+image: figures/k562-hits.png
+image-alt: "Bar chart of hits found among the 14 strongest K562 test perturbations: ridge-PCA (chosen by hit recall) and knn-PCA find 5, the STRING predictors 1 (knn-STRING is chosen by all five usual metrics), and ranking targets by their expression, with no model, also finds 5."
 lightbox: true
 citation:
   url: https://nbrosse.github.io/posts/modelling-the-cell/modelling-the-cell.html
 ---
 
-::: {.callout-note appearance="simple"}
+::: {.callout-note}
 ## In short
 
-- I wrote a course on single-cell modelling, in French and English, from the raw molecule counts to closed-loop experimental design.
-- A small study with a plan fixed in advance, on the Replogle Perturb-seq screens, asks whether the metric that picks a perturbation model also picks good experiments. On K562, five usual metrics choose a model that finds 1 of the 14 strongest test perturbations; choosing by hit recall finds 5, on one split and without meeting my pre-specified criterion. All 5 are ribosomal-protein knockdowns, a model-free ranking by the target's expression finds as many, and the gap does not replicate on RPE1.
-- What does hold on both cell lines is a lesson about measurement: the hits are only partly reproducible, and a simple prior is a hard baseline to beat. Together with what other fields teach about scaling, this is one reason I do not expect a generalist virtual cell from scaling atlases alone.
+- **A course** on single-cell modelling, in French and English, for readers coming from machine learning.
+- **A small study** asks whether the metric used to pick a perturbation model also picks good experiments. On one cell line the answer looked like "no", but the effect came largely from a single gene family that a trivial ranking finds just as well, and it did not replicate on a second line.
+- **The lasting lesson is about measurement**: noisy targets and strong simple baselines. It is also why I doubt that scaling atlases alone will give a virtual cell.
 :::
 
 Everything is in a public repository, [modelling-the-cell](https://github.com/nbrosse/modelling-the-cell): the LaTeX course in both languages, the study code, the report, and the frozen analysis plan.
@@ -28,11 +28,13 @@ A recent project took me into "virtual cell" models: learned simulators meant to
 
 Single-cell biology has done what deep learning usually asks for. CZ CELLxGENE aggregates on the order of a hundred million cells [@czi2025cellxgene], chemical screens such as Tahoe-100M add another hundred million [@zhang2025tahoe], and foundation models such as Geneformer and scGPT were pretrained on tens of millions of transcriptomes [@theodoris2023geneformer; @cui2024scgpt]. Yet in 2025, a careful evaluation showed that these models, and the specialised deep perturbation models, did not outperform simple linear baselines at predicting the effect of a genetic perturbation, on the tasks tested [@ahlmann2025linear]. Other groups found simple controls and representations hard to beat as well [@wong2025simplecontrols; @bendidi2024pca], and a lively debate followed about whether the models are weak or the metrics are blind [@miller2026calibrated; @mejia2025diversity; @vinastorne2025systema].
 
-I wanted to understand that paradox properly, which meant learning the field from the measurement up. This post is the result of that effort, in three parts: a course (@sec-course), a small study testing one specific question (@sec-study), and an attempt to answer the larger question of whether scale will eventually win here as it did elsewhere (@sec-scaling).
+I wanted to understand that paradox properly, which meant learning the field from the measurement up. This post gathers what came out of that effort, in three parts: a course (@sec-course), a small study testing one specific question (@sec-study), and an attempt to answer the larger question of whether scale will eventually win here as it did elsewhere (@sec-scaling).
 
 # A course, in French and English {#sec-course}
 
-The best way I know to learn a field is to write the textbook I wish I had. The course is organised around one target that every model in the field approximates in some way,
+The course was written largely with an AI assistant, under my direction and with my review. I am sharing it because it may help others coming to the field from machine learning. It exists in French and English.
+
+The course is organised around one target that every model in the field approximates in some way,
 
 $$
 p\big(X \mid \mathrm{do}(a),\, c,\, d,\, t\big),
@@ -49,9 +51,7 @@ The twelve chapters follow that ladder:
 | Predicting | 6. Perturbation data · 7. Perturbation prediction (scGen, CPA, GEARS, optimal transport, flow matching) · 8. Time and dynamics · 9. Cell imaging and the image–transcriptome link |
 | Deciding | 10. Evaluating a perturbation model · 11. Closed loop: active learning and experimental design · 12. Open questions and perspectives |
 
-Three appendices give a machine learning refresher, answers to the self-assessment questions, and a glossary. The representation, foundation-model and prediction chapters end by placing their models along the same four choices: the likelihood (Gaussian on log counts, negative binomial, categorical on tokens, none), the working space (genes, latent, tokens, image features), the conditioning (one-hot, gene embedding, knowledge graph), and how control and treated cells are coupled when the measurement destroys the cell (mean shift, latent translation, optimal transport, flow). Reading thirty papers through those four choices made the field far less disorderly than it first looked.
-
-The course exists in two languages because I wrote it first in French, which is how I think, and then translated it line by line so that it could be useful beyond a French-speaking audience. The French version remains the source of truth.
+Three appendices give a machine learning refresher, answers to the self-assessment questions, and a glossary. The representation, foundation-model and prediction chapters end by placing their models along the same four choices: the likelihood (Gaussian on log counts, negative binomial, categorical on tokens, none), the working space (genes, latent, tokens, image features), the conditioning (one-hot, gene embedding, knowledge graph), and how control and treated cells are coupled when the measurement destroys the cell (mean shift, latent translation, optimal transport, flow). Reading the literature through those four choices makes the field far less disorderly than it first looks.
 
 - Course in English: [course-en.pdf](https://github.com/nbrosse/modelling-the-cell/releases/latest/download/course-en.pdf)
 - Cours en français : [course-fr.pdf](https://github.com/nbrosse/modelling-the-cell/releases/latest/download/course-fr.pdf)
@@ -91,7 +91,7 @@ The data are the two genome-scale CRISPRi Perturb-seq screens of essential genes
 
 **The decision metric** is hit recall at $k$. The hits are the $k$ candidates with the largest transcriptional effect. A model ranks candidates by the size of its predicted effect, $\lVert\tilde\Delta_p\rVert^2$, and its hit recall is the share of true hits in its top $k$. At $k$ = 5 % of the 280 K562 test candidates, there are 14 hits, and a random choice finds 0.7 of them on average.
 
-::: {.callout-tip collapse="true"}
+::: {.callout-note collapse="true"}
 ## Measuring "strongest" without the winner's curse
 
 The natural measure of a perturbation's strength is $\lVert\Delta_p\rVert^2$, but only a noisy estimate $\hat\Delta_p = \Delta_p + \varepsilon_p$ is observed, and
@@ -109,23 +109,21 @@ $$
 whose expectation is $\lVert\Delta_p\rVert^2$ when the two errors are independent and centred. The controls must be split too: if both units shared the same control cells, the bias would come back through the shared control noise. After log-normalisation, the unbiasedness is only approximate; on the pooled data the naive and cross-fitted rankings agree closely (Spearman 0.98), and the correction matters mostly at the margin.
 :::
 
-**The protocol.** The questions, every numerical parameter and the reading rules were written down and frozen before the K562 data were analysed, with a few dated deviations listed in the report ([framing.md](https://github.com/nbrosse/modelling-the-cell/blob/main/report/framing.md)). After K562, the observations were turned into explicit predictions for RPE1, committed before the RPE1 file was downloaded, and RPE1 went through the same pipeline with no new tuning. For each metric, the chosen predictor is the best on validation; the *gap* is the test hit recall of the predictor chosen by hit recall minus that of the predictor chosen by the metric.
+**The protocol.** I fixed the plan before looking at K562, and wrote down my predictions for RPE1 before downloading it ([plan](https://github.com/nbrosse/modelling-the-cell/blob/main/report/framing.md)).
 
 ## On K562, the usual metrics pick a model that barely beats chance
 
-The five usual metrics agree with each other. On validation, they all choose knn-STRING, which is also the best predictor on every usual test metric. On test, it puts 1 of the 14 hits in its top 14, against 0.7 expected by chance. Hit recall on validation chooses ridge-PCA instead, which finds 5 of 14, the best test value of all predictors (@fig-selection-gap).
+The five usual metrics agree with each other. On validation, they all choose knn-STRING, which is also the best predictor on every usual test metric. On test, it puts 1 of the 14 hits in its top 14, against 0.7 expected by chance. Hit recall on validation chooses ridge-PCA instead, which finds 5 of 14, the best test value of all predictors (@fig-k562-hits). Choosing with hit recall would have found 4 more hits.
 
-![K562, main split. (a) Test hit recall at k = 5 % of each predictor, with the predictor chosen by each rule; chance and the reproducibility of the hits are shown as lines. (b) Hits gained on test, as a share of the test hits, by choosing with hit recall instead of each usual metric, with half-sampling sensitivity ranges, at k = 1, 5 and 10 %.](figures/h4-selection-gap.svg){#fig-selection-gap fig-alt="Two-panel chart. Panel a: horizontal bars of test hit recall; ridge-PCA and knn-PCA reach about 0.36, the STRING predictors about 0.07, close to the chance line at 0.05; the reproducibility line is near 0.79. Panel b: the gain from choosing by hit recall is about 0.29 at k = 5 % for each of the five usual metrics, with ranges from 0 to about 0.4–0.57."}
+![K562 test set: hits found among the 14 strongest perturbations by each predictor, and by ranking targets on their expression in control cells, with no model.](figures/k562-hits.png){#fig-k562-hits fig-alt="Bar chart: ridge-PCA and knn-PCA find 5 of 14 hits, ridge-STRING and knn-STRING 1 of 14, and the target-expression ranking 5 of 14; chance is 0.7. ridge-PCA is the choice of hit recall, knn-STRING the choice of all five usual metrics."}
 
 The STRING predictors are better at predicting the effects and at recognising perturbations; the PCA predictors are far better at finding the strongest ones. One reason the metrics can disagree with the decision is theoretical: a correlation ignores scale, $\operatorname{corr}(a x, y) = \operatorname{corr}(x, y)$ for $a > 0$, while the decision ranks candidates by the *size* of the predicted effect. A model can get every response's direction right and its size wrong, and still score well on Pearson on $\Delta$. That cannot be the whole story here, since the MSE metrics, which do see scale, chose the same predictor.
 
-The raw-expression metrics are worse still. Every predictor, including the one that predicts no effect at all, scores between 0.992 and 0.994 in Pearson correlation on expression. Most genes keep their level after a knockdown, so getting the baseline transcriptome right is enough for a near-perfect score (@fig-baseline).
+The raw-expression metrics are worse still. Every predictor, including the one that predicts no effect at all, scores between 0.992 and 0.994 in Pearson correlation on expression. Most genes keep their level after a knockdown, so getting the baseline transcriptome right is enough for a near-perfect score.
 
-![K562 test value of every predictor and of the reproducibility reference, for each usual metric. Grey: constant baselines; blue: PCA; orange: STRING.](figures/h1h3-baseline-gap.svg){#fig-baseline fig-alt="Five small panels, one per metric. On Pearson on expression and MSE on all genes, the predictors differ only in the third or fourth decimal (0.9924 to 0.9939 in Pearson). On the effect metrics, the STRING predictors score best among the models, and the reproducibility reference is clearly above all of them."}
+Is the four-hit gap robust? The direction is, by a rule I set after seeing the K562 result, so this check is post hoc on K562. Over 50 further random splits of the perturbations, with everything refitted and reselected each time, hit recall always picks a PCA predictor, the usual metrics always pick a STRING predictor, and the gap is positive in 92 % of splits, about 2 hits out of 14 on average (@fig-resplits, left panel). But on the main split, the half-sampling sensitivity range of the gap reaches zero, so it does not meet the criterion I had frozen in advance.
 
-Is the four-hit gap robust? The direction is, by a rule I set after seeing the K562 result, so this check is post hoc on K562. Over 50 further random splits of the perturbations, with everything refitted and reselected each time, hit recall always picks a PCA predictor, the usual metrics always pick a STRING predictor, and the gap is positive in 92 % of splits, about 2 hits out of 14 on average (@fig-resplits, left). But on the main split, the half-sampling sensitivity range of the gap reaches zero, so it does not meet the criterion I had frozen in advance.
-
-::: {.callout-tip collapse="true"}
+::: {.callout-note collapse="true"}
 ## What the sensitivity ranges are, and are not
 
 The uncertainty of the model choice is estimated by half-sampling: 1,000 times, half of the validation perturbations are drawn and every choice is redone, and half of the test perturbations are drawn independently, with the hits redefined within that half. At k = 5 % on K562, each half holds about 7 hits instead of 14. The resulting 2.5–97.5 % ranges describe the variability of a smaller, harder selection problem; they are sensitivity ranges, not guaranteed confidence intervals, and they ignore both the noise of the training set and the noise in the hits themselves. The 50 repeated splits reuse the same perturbations, so they are a robustness check, not independent replications.
@@ -135,40 +133,31 @@ The uncertainty of the model choice is estimated by half-sampling: 1,000 times, 
 
 The analyses in this section were added after the first K562 results, prompted by an adversarial review; they are exploratory. When a result looks this clean, it is worth asking *which* hits the winning model finds. Here the answer is striking: all 5 hits of ridge-PCA target ribosomal proteins (the RPL and RPS genes, which encode parts of the ribosome, the cell's protein factory). Five of the 14 test hits are ribosomal-protein knockdowns, out of 15 ribosomal-protein candidates in the test set, and ridge-PCA's top 14 holds 13 of them.
 
-Knocking down a ribosomal protein can disturb many processes at once and produce a large transcriptional response; a biologist would call these hits expected. And a model is not needed to find them. Ranking the test targets by a single number known before any experiment, their baseline expression in control cells, also finds 5 of the 14 hits, as many as ridge-PCA (@fig-hit-recall-k, panel a). Ribosomal proteins are among the most highly expressed genes in the cell, which likely explains much of the match. I call such a model-free ranking a *prior*, in the everyday sense of knowledge available before the experiment, not a Bayesian prior.
+Knocking down a ribosomal protein can disturb many processes at once and produce a large transcriptional response; a biologist would call these hits expected. And a model is not needed to find them. Ranking the test targets by a single number known before any experiment, their baseline expression in control cells, also finds 5 of the 14 hits, as many as ridge-PCA (the green bar in @fig-k562-hits). Ribosomal proteins are among the most highly expressed genes in the cell, which likely explains much of the match. I call such a model-free ranking a *prior*, in the everyday sense of knowledge available before the experiment, not a Bayesian prior.
 
-![K562 test hit recall as a function of k for every predictor, the target-expression prior (green) and the stability of the hits between independent measurements (dotted), (a) with and (b) without ribosomal-protein targets. The vertical line marks k = 5 %.](figures/hit-recall-vs-k.svg){#fig-hit-recall-k fig-alt="Two line charts of test hit recall against k from 1 to 30 percent. Panel a: the PCA predictors and the expression prior rise early, around 0.35–0.4 at k = 5 %, while the STRING predictors are near chance there. Panel b, without ribosomal-protein targets: all predictors and the prior are close to the chance line at small k and separate from it only beyond about 10–15 %."}
+Remove the ribosomal-protein targets, and the picture changes (@fig-k562-no-rp). At k = 5 %, no advantage over chance is detected: ridge-PCA is numerically above chance (2 hits, 0.143 against 0.053) but not significantly (Monte-Carlo p = 0.16), the other models find none, and the gap between selection rules is zero. The predictors do rise above chance for $k \geq$ 10–15 %, so there is some signal in them, but not at the top of the ranking, which is where a lab with a small budget operates.
 
-Remove the ribosomal-protein targets, and the picture changes (@fig-hit-recall-k, panel b). At k = 5 %, no advantage over chance is detected: ridge-PCA is numerically above chance (2 hits, 0.143 against 0.053) but not significantly (Monte-Carlo p = 0.16), the other models find none, and the gap between selection rules is zero. The predictors do rise above chance for $k \geq$ 10–15 %, so there is some signal in them, but not at the top of the ranking, which is where a lab with a small budget operates.
+![The same comparison without ribosomal-protein targets (265 test candidates, 14 hits). No predictor is significantly above chance.](figures/k562-no-rp.png){#fig-k562-no-rp fig-alt="Bar chart on the same scale: ridge-PCA finds 2 of 14 hits, the other three predictors 0, and the target-expression ranking 2; chance is 0.74."}
 
 So the K562 result says something narrower than it first seemed. The usual metrics and hit recall do disagree, and the disagreement costs hits. But the rule that finds more hits does so, in large part, by exploiting a family of genes that a trivial prior already ranks first. The added value of the model for this decision is not shown.
 
 ## RPE1: the gap does not replicate
 
-The RPE1 predictions were written down before its data were downloaded. The first, that the usual metrics and hit recall would again disagree, failed. On the main split, all five usual metrics *and* hit recall choose the same predictor, knn-STRING, and the gap is zero. Over 50 re-splits the mean gap is −0.02, positive in only 18–20 % of splits and negative in 26–30 % (@fig-resplits, right).
+The RPE1 predictions were written down before its data were downloaded. The first, that the usual metrics and hit recall would again disagree, failed. On the main split, all five usual metrics *and* hit recall choose the same predictor, knn-STRING, and the gap is zero. Over 50 re-splits the mean gap is −0.02, positive in only 18–20 % of splits and negative in 26–30 % (@fig-resplits, right panel).
 
-::: {#fig-resplits layout-ncol=2}
-
-![K562](figures/h4-repeated-splits.svg){#fig-resplits-k562 fig-alt="Dot plot of the test hit recall gained by choosing with hit recall, over 50 splits, for each of the five usual metrics on K562; the means sit around 0.15 and 92 % of splits are positive."}
-
-![RPE1](figures/h4-repeated-splits-rpe1.svg){#fig-resplits-rpe1 fig-alt="The same dot plot on RPE1; the means sit near zero, with many splits at zero and a substantial share negative."}
-
-Test hit recall gained by choosing with hit recall instead of each usual metric, over 50 random splits of the perturbations (k = 5 %, bar = mean).
-:::
+![Hits gained by choosing with hit recall instead of Pearson correlation on expression, over 50 random splits of the perturbations (k = 5 %; fractional gaps from tied rankings are rounded away from zero). The other usual metrics give nearly the same picture.](figures/resplits.png){#fig-resplits .column-body-outset fig-alt="Two bar charts of the number of splits by hits gained. K562: most splits gain 1 to 4 hits, 2 splits gain none and 2 lose one. RPE1: 25 splits gain nothing, 15 lose up to two hits, 10 gain up to two."}
 
 What did replicate is the weaker, more useful finding: the target-expression prior again matches or beats the selected model. It finds 2 of the 8 test hits, while knn-STRING, the choice of every metric, finds 1.6 (a fractional count from tie-aware expected recall). One predictor, ridge-STRING, is clearly above chance on RPE1 (3 of 8, one-sided p = 0.005, uncorrected for the four predictors), though no selection rule picked it on validation: a small point in favour of injected biological knowledge.
 
 Why the difference between the two lines? One observation stands out (@fig-rp-filter). A perturbation is a candidate only if it has at least 20 cells in each of four batch folds. On K562, 62 of the 78 ribosomal-protein knockdowns pass that filter; on RPE1, only 6 do, and a single one lands in the test set. A plausible reading is that knocking down a ribosomal protein harms RPE1 cells more, so fewer of them are observed, and the quality filter removes almost all of the family that drove the K562 result. Hits on RPE1 also have *fewer* cells than non-hits (medians 110 against 154), the reverse of K562. This is a post hoc hypothesis: I did not test whether the filter causes the change of verdict, and fewer cells do not prove cell death.
 
-![Who passes the candidate filter. (a) Share of ribosomal-protein (red) and other (grey) perturbations with at least 20 cells in every fold. (b, c) Distribution of the number of cells in the smallest fold, with the threshold.](figures/rp-filter.svg){#fig-rp-filter fig-alt="Panel a: bar chart; on K562, 62 of 78 ribosomal-protein perturbations pass the filter, on RPE1 only 6 of 78, while other perturbations pass at 62 % and 34 %. Panels b and c: histograms of cells in the smallest fold; on RPE1 the ribosomal-protein distribution lies mostly below the threshold of 20."}
+![Share of ribosomal-protein and other perturbations that pass the filter of at least 20 cells in each of four batch folds.](figures/rp-filter.png){#fig-rp-filter fig-alt="Grouped bar chart. K562: 62 of 78 ribosomal-protein perturbations and 1,224 of 1,979 others pass the filter. RPE1: only 6 of 78 ribosomal-protein perturbations and 790 of 2,315 others pass."}
 
 The general point outlives the specific mechanism. When inclusion in a benchmark depends on the biology of the perturbation, the benchmark is not a sample of the interventions one would like to choose among. Filtering and cell survival are part of the learning problem.
 
 ## The hits themselves are noisy
 
-One last measurement puts all the gaps above in perspective. Splitting the cells of each perturbation into two fully independent halves and computing the top 5 % on each, the two hit lists overlap by only 79 % on K562 and 75 % on RPE1 (@fig-stability), a conservative estimate since each list uses half of the data. About one hit in four or five changes between two measurements of the same experiment. The differences between models discussed above, a few hits out of 14, are of the same order. The two quantities are not directly comparable, so this does not show that the gap is noise, but it calls for caution.
-
-![K562. (a) Overlap of the top k between independent halves of the data, as a function of k, on the test set and on validation and test pooled. (b) Bias of the naive amplitude against the number of cells, with a 1/n reference.](figures/h5-topk-stability.svg){#fig-stability fig-alt="Panel a: line chart of top-k overlap between independent measurements against k, around 0.67 at 1 %, 0.79 at 5 % and about 0.9 from 10 %. Panel b: scatter plot showing that the excess of the naive amplitude over the cross-fitted one decreases roughly as one over the number of cells."}
+One last measurement puts all the gaps above in perspective. Splitting the cells of each perturbation into two fully independent halves and computing the top 5 % on each, the two hit lists overlap by only 79 % on K562 and 75 % on RPE1, a conservative estimate since each list uses half of the data. About one hit in four or five changes between two measurements of the same experiment. The differences between models discussed above, a few hits out of 14, are of the same order. The two quantities are not directly comparable, so this does not show that the gap is noise, but it calls for caution.
 
 The same holds for the effect profiles: two independent halves of the same experiment correlate at only 0.48 on $\Delta$ on K562 (0.55 on RPE1). The best model reaches 0.37. That reference is pessimistic, since each half uses only part of the cells, but it shows how noisy the targets themselves are. It is a yardstick, not an upper bound: a model that estimated the true effect well could beat it.
 
@@ -186,7 +175,7 @@ It does not say that hit recall is a better metric in general, that deep or foun
 
 The practical recommendations are modest. A perturbation benchmark that is meant to guide experiments should report a decision metric at the $k$ matching the experimental budget, compare models against priors that need no model (target expression, membership of known essential programmes), and not only against chance, size its validation set so that model selection is stable, and track which perturbations its filters drop.
 
-The [report](https://github.com/nbrosse/modelling-the-cell/releases/latest/download/report.pdf) has the full methods, every pre-specified criterion with its verdict, the deviations from the plan, and the leakage precautions. The [code](https://github.com/nbrosse/modelling-the-cell/tree/main/study) reproduces every result in the report's tables and figures from the public data.
+The [report](https://github.com/nbrosse/modelling-the-cell/releases/latest/download/report.pdf) has the full methods, every pre-specified criterion with its verdict, and the leakage precautions. The [code](https://github.com/nbrosse/modelling-the-cell/tree/main/study) reproduces every result in the report's tables and figures from the public data.
 
 # Will scale fix this? {#sec-scaling}
 
