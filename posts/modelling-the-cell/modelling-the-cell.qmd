@@ -53,8 +53,8 @@ The twelve chapters follow that ladder:
 
 Three appendices give a machine learning refresher, answers to the self-assessment questions, and a glossary. The representation, foundation-model and prediction chapters end by placing their models along the same four choices: the likelihood (Gaussian on log counts, negative binomial, categorical on tokens, none), the working space (genes, latent, tokens, image features), the conditioning (one-hot, gene embedding, knowledge graph), and how control and treated cells are coupled when the measurement destroys the cell (mean shift, latent translation, optimal transport, flow). Reading the literature through those four choices makes the field far less disorderly than it first looks.
 
-- Course in English: [course-en.pdf](https://github.com/nbrosse/modelling-the-cell/releases/latest/download/course-en.pdf)
-- Cours en français : [course-fr.pdf](https://github.com/nbrosse/modelling-the-cell/releases/latest/download/course-fr.pdf)
+- Course in English: [course-en.pdf](https://github.com/nbrosse/modelling-the-cell/releases/latest/download/modelling-the-cell-course-en.pdf)
+- Cours en français : [course-fr.pdf](https://github.com/nbrosse/modelling-the-cell/releases/latest/download/modelling-the-cell-course-fr.pdf)
 - LaTeX sources: [course/](https://github.com/nbrosse/modelling-the-cell/tree/main/course)
 
 Chapter 10, on evaluation, is where the course turned into a question I could test.
@@ -175,7 +175,7 @@ It does not say that hit recall is a better metric in general, that deep or foun
 
 The practical recommendations are modest. A perturbation benchmark that is meant to guide experiments should report a decision metric at the $k$ matching the experimental budget, compare models against priors that need no model (target expression, membership of known essential programmes), and not only against chance, size its validation set so that model selection is stable, and track which perturbations its filters drop.
 
-The [report](https://github.com/nbrosse/modelling-the-cell/releases/latest/download/report.pdf) has the full methods, every pre-specified criterion with its verdict, and the leakage precautions. The [code](https://github.com/nbrosse/modelling-the-cell/tree/main/study) reproduces every result in the report's tables and figures from the public data.
+The [report](https://github.com/nbrosse/modelling-the-cell/releases/latest/download/modelling-the-cell-report.pdf) has the full methods, every pre-specified criterion with its verdict, and the leakage precautions. The [code](https://github.com/nbrosse/modelling-the-cell/tree/main/study) reproduces every result in the report's tables and figures from the public data.
 
 # Will scale fix this? {#sec-scaling}
 
